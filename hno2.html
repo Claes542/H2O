@@ -46,9 +46,9 @@
       ];
       window.USER_ANGLE = parseFloat(document.getElementById('angle').value);
       document.getElementById('config').style.display = 'none';
-      // Load h3.js first (defines setup/draw), then p5.js (finds them)
+      // Load hno2.js first (defines setup/draw), then p5.js (finds them)
       var s = document.createElement('script');
-      s.src = 'h3.js?t=' + Date.now();
+      s.src = 'hno2.js?t=' + Date.now();
       s.onload = function() {
         var p5s = document.createElement('script');
         p5s.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';

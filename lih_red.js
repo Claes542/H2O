@@ -1,59 +1,44 @@
-// HNO (Nitroxyl) Quantum Simulation — WebGPU Compute Shaders
-// H(blue,Z=1) N(green,Z=7→3) O(red,Z=8→2) triangular molecule
+// H2-like Quantum Simulation — WebGPU Compute Shaders
+// e1 around k1 (Z=1), e2 around k2 (Z=1), w2=0 inside r_cut of k2
 
 const NN = 200;
 const S = NN + 1;
 const S2 = S * S;
 const S3 = S * S * S;
 const N2 = Math.round(NN / 2);
-const D_bond = 40;   // 4 au between adjacent atoms (at 20 au screen)
-const r_cut = window.USER_RC || [0.5, 0.3, 0.1];   // au, inner w cutoff per nucleus
-let R_out = 2.0;   // au, outer w cutoff
-const NELEC = 3;
-const NRED = 6;  // 3 norms + T + V_eK + V_ee
-const _uz = window.USER_Z || [2, 3, 1];
-let Z = [..._uz];
-let Ne = [..._uz];    // electron occupation = charge
-const Z_orig = [..._uz];
-const Ne_orig = [..._uz];
+const D_bond = 60;   // 3 au
+const r_cut = 1.0;   // au
 
-// Triangle in i-j plane: Green at apex, Red-Green-Blue angle
-const bondAngle = (window.USER_ANGLE || 90) * Math.PI / 180;
-function triPos(db) {
-  // Green (index 1) at apex, Red (0) and Blue (2) as legs
-  const halfA = bondAngle / 2;
-  const gi = N2, gj = N2 - Math.round(db * Math.cos(halfA) / 3);
-  const ri = N2 - Math.round(db * Math.sin(halfA)), rj = N2 + Math.round(2 * db * Math.cos(halfA) / 3);
-  const bi = N2 + Math.round(db * Math.sin(halfA)), bj = rj;
-  return [[ri, rj, N2], [gi, gj, N2], [bi, bj, N2]];
+function makeBondPos(D) {
+  // Two atoms along i-axis, centered at [N2, N2, N2]
+  const half = Math.round(D / 2);
+  return {
+    H0: [N2 - half, N2, N2],
+    H1: [N2 + half, N2, N2]
+  };
 }
-const rawPos = triPos(D_bond);
-const comI = Math.round((rawPos[0][0] + rawPos[1][0] + rawPos[2][0]) / 3);
-const comJ = Math.round((rawPos[0][1] + rawPos[1][1] + rawPos[2][1]) / 3);
-let nucPos = rawPos.map(p => [p[0] + N2 - comI, p[1] + N2 - comJ, N2]);
-const molNucPos = nucPos.map(p => [...p]);  // save molecule positions
-
+const nucPos = makeBondPos(D_bond);
+const R1 = 100;  // large, no outer cutoff
 let E_min = Infinity;
-let screenAu = 20;
-let hv = screenAu / NN, h2v = hv * hv, h3v = hv * hv * hv;
+const hv = 10 / NN, h2v = hv * hv, h3v = hv * hv * hv;
 const dv = 0.12;
-let dtv = dv * h2v, half_dv = 0.5 * dv;
+const dtv = dv * h2v, half_dv = 0.5 * dv;
 const PX = 400 / NN;
 const INTERIOR = (NN - 1) * (NN - 1) * (NN - 1);
 const STEPS_PER_FRAME = 500;
 const NORM_INTERVAL = 20;
+const NELEC = 2;
+const NRED = NELEC + 1;  // 3 values: 2 norms + 1 energy
 
 // ===== WGSL SHADERS =====
 
 const paramStructWGSL = `
 struct P {
   NN: u32, S: u32, S2: u32, S3: u32,
-  N2: u32, h0I: u32, h1I: u32, h2I: u32,
+  N2: u32, h1I: u32,
   h: f32, h2: f32, inv_h: f32, inv_h2: f32,
-  dt: f32, half_d: f32, _pad0: f32, TWO_PI: f32,
-  h3: f32, Z0: f32, Z1: f32, Z2: f32,
-  h0J: u32, h1J: u32, h2J: u32, R_out: f32,
-  rc0: f32, rc1: f32, rc2: f32, voronoi: f32
+  dt: f32, half_d: f32, r_cut: f32, TWO_PI: f32, h3: f32,
+  _pad2: u32
 }`;
 
 const updateWGSL = `
@@ -81,8 +66,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let i = (gid.x / (NM * NM)) + 1u;
   let id = i * p.S2 + j * p.S + k;
 
+  // c[m]: other electron's density
   var cm: f32 = 0.0;
-  cm -= Ui[0u * p.S3 + id] + Ui[1u * p.S3 + id] + Ui[2u * p.S3 + id];
+  cm -= Ui[0u * p.S3 + id] + Ui[1u * p.S3 + id];
   cm += Ui[o + id];
   cm = 0.5 * (cm + Ui[o + id]);
 
@@ -95,42 +81,23 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let gx = (wip - wim) * p.inv_h;
   let gy = (wjp - wjm) * p.inv_h;
   let gz = (wkp - wkm) * p.inv_h;
-  var nw = wc + 0.25 * p.dt * abs(cm) * lw + 5.0 * p.dt * cm * sqrt(gx * gx + gy * gy + gz * gz);
+  var nw = wc + 0.5 * p.dt * abs(cm) * lw + 5.0 * p.dt * cm * sqrt(gx * gx + gy * gy + gz * gz);
   nw = clamp(nw, 0.0, 1.0);
 
+  // inside r_cut of k2: smooth cutoff for w2, hard freeze for w1/u1
+  let di = f32(i) - f32(p.h1I);
+  let dj = f32(j) - f32(p.N2);
   let dkk = f32(k) - f32(p.N2);
-
-  let d0i = f32(i) - f32(p.h0I); let d0j = f32(j) - f32(p.h0J);
-  let r0 = sqrt(d0i*d0i + d0j*d0j + dkk*dkk) * p.h;
-  if (r0 < p.rc0) {
-    let edge0 = p.rc0 - 3.0 * p.h;
-    let t = clamp((r0 - edge0) / (p.rc0 - edge0), 0.0, 1.0);
-    nw = min(nw, t * t * (3.0 - 2.0 * t));
+  let r_k2 = sqrt(di * di + dj * dj + dkk * dkk) * p.h;
+  let in_cut = r_k2 < p.r_cut;
+  if (m == 0u && in_cut) { nw = wc; }
+  if (m == 1u && in_cut) {
+    let edge = p.r_cut - 3.0 * p.h;
+    let t = clamp((r_k2 - edge) / (p.r_cut - edge), 0.0, 1.0);
+    let s = t * t * (3.0 - 2.0 * t);
+    nw = min(nw, s);
   }
-
-  let d1i = f32(i) - f32(p.h1I); let d1j = f32(j) - f32(p.h1J);
-  let r1 = sqrt(d1i*d1i + d1j*d1j + dkk*dkk) * p.h;
-  if (r1 < p.rc1) {
-    let edge1 = p.rc1 - 3.0 * p.h;
-    let t = clamp((r1 - edge1) / (p.rc1 - edge1), 0.0, 1.0);
-    nw = min(nw, t * t * (3.0 - 2.0 * t));
-  }
-
-  let d2i = f32(i) - f32(p.h2I); let d2j = f32(j) - f32(p.h2J);
-  let r2 = sqrt(d2i*d2i + d2j*d2j + dkk*dkk) * p.h;
-  if (r2 < p.rc2) {
-    let edge2 = p.rc2 - 3.0 * p.h;
-    let t = clamp((r2 - edge2) / (p.rc2 - edge2), 0.0, 1.0);
-    nw = min(nw, t * t * (3.0 - 2.0 * t));
-  }
-
-  // Voronoi restriction: w=0 if point is closer to another nucleus
-  if (p.voronoi > 0.5) {
-    var rm: f32;
-    if (m == 0u) { rm = r0; } else if (m == 1u) { rm = r1; } else { rm = r2; }
-    if ((m != 0u && r0 < rm) || (m != 1u && r1 < rm) || (m != 2u && r2 < rm)) { nw = 0.0; }
-  }
-
+  let inside_cut = m == 0u && in_cut;
   Wo[o + id] = nw;
 
   let uc  = Ui[o + id];
@@ -138,17 +105,20 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let ujp = Ui[o + id + p.S];  let ujm = Ui[o + id - p.S];
   let ukp = Ui[o + id + 1u];   let ukm = Ui[o + id - 1u];
 
-  Uo[o + id] = uc
-    + p.half_d * ((uip - uc) * (wip + nw) * 0.5 - (uc - uim) * (nw + wim) * 0.5)
-    + p.half_d * ((ujp - uc) * (wjp + nw) * 0.5 - (uc - ujm) * (nw + wjm) * 0.5)
-    + p.half_d * ((ukp - uc) * (wkp + nw) * 0.5 - (uc - ukm) * (nw + wkm) * 0.5)
-    + p.dt * (K[id] - 2.0 * Pi[o + id]) * uc * wc;
+  if (inside_cut) {
+    Uo[o + id] = uc;
+  } else {
+    Uo[o + id] = uc
+      + p.half_d * ((uip - uc) * (wip + nw) * 0.5 - (uc - uim) * (nw + wim) * 0.5)
+      + p.half_d * ((ujp - uc) * (wjp + nw) * 0.5 - (uc - ujm) * (nw + wjm) * 0.5)
+      + p.half_d * ((ukp - uc) * (wkp + nw) * 0.5 - (uc - ukm) * (nw + wkm) * 0.5)
+      + p.dt * (K[id] - 2.0 * Pi[o + id]) * uc * wc;
+  }
 
   let Pc = Pi[o + id];
-  let u0 = Ui[0u * p.S3 + id];
-  let u1 = Ui[1u * p.S3 + id];
-  let u2 = Ui[2u * p.S3 + id];
-  var rho: f32 = p.Z0 * u0*u0 + p.Z1 * u1*u1 + p.Z2 * u2*u2;
+  var rho: f32 = 0.0;
+  let u0 = Ui[0u * p.S3 + id]; let u1 = Ui[1u * p.S3 + id];
+  rho = u0*u0 + u1*u1;
   let self_u = Ui[o + id];
   rho -= self_u * self_u;
 
@@ -172,14 +142,14 @@ ${paramStructWGSL}
 
 var<workgroup> sn: array<f32, 768>;
 
-@compute @workgroup_size(128)
+@compute @workgroup_size(256)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>,
         @builtin(local_invocation_index) lid: u32,
         @builtin(workgroup_id) wgid: vec3<u32>) {
   let NM = p.NN - 1u;
   let tot = NM * NM * NM;
 
-  for (var x: u32 = 0u; x < 6u; x++) { sn[lid * 6u + x] = 0.0; }
+  for (var x: u32 = 0u; x < 3u; x++) { sn[lid * 3u + x] = 0.0; }
 
   if (gid.x < tot) {
     let k = (gid.x % NM) + 1u;
@@ -187,43 +157,36 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>,
     let i = (gid.x / (NM * NM)) + 1u;
     let id = i * p.S2 + j * p.S + k;
 
-    var T: f32 = 0.0;
-    var VeK: f32 = 0.0;
-    var Vee: f32 = 0.0;
-    for (var m: u32 = 0u; m < 3u; m++) {
+    var en: f32 = 0.0;
+    for (var m: u32 = 0u; m < 2u; m++) {
       let o = m * p.S3;
       let v = U[o + id];
-      var Zm: f32;
-      if (m == 0u) { Zm = p.Z0; } else if (m == 1u) { Zm = p.Z1; } else { Zm = p.Z2; }
-      sn[lid * 6u + m] = v * v * p.h3;
-      if (W[o + id] > 0.2) {
+      sn[lid * 3u + m] = v * v * p.h3;
+      if (W[o + id] > 0.7) {
         let a = U[o + id + p.S2] - v;
         let b = U[o + id + p.S] - v;
         let c = U[o + id + 1u] - v;
-        T += Zm * 0.5 * (a * a + b * b + c * c) * p.h;
+        en += 0.5 * (a * a + b * b + c * c) * p.h;
       }
-      VeK -= Zm * K[id] * v * v * p.h3;
-      Vee += Zm * Pv[o + id] * v * v * p.h3;
+      en += (Pv[o + id] - K[id]) * v * v * p.h3;
     }
-    sn[lid * 6u + 3u] = T;
-    sn[lid * 6u + 4u] = VeK;
-    sn[lid * 6u + 5u] = Vee;
+    sn[lid * 3u + 2u] = en;
   }
 
   workgroupBarrier();
 
-  for (var s: u32 = 64u; s > 0u; s >>= 1u) {
+  for (var s: u32 = 128u; s > 0u; s >>= 1u) {
     if (lid < s) {
-      for (var x: u32 = 0u; x < 6u; x++) {
-        sn[lid * 6u + x] += sn[(lid + s) * 6u + x];
+      for (var x: u32 = 0u; x < 3u; x++) {
+        sn[lid * 3u + x] += sn[(lid + s) * 3u + x];
       }
     }
     workgroupBarrier();
   }
 
   if (lid == 0u) {
-    let base = wgid.x * 6u;
-    for (var x: u32 = 0u; x < 6u; x++) {
+    let base = wgid.x * 3u;
+    for (var x: u32 = 0u; x < 3u; x++) {
       partials[base + x] = sn[x];
     }
   }
@@ -238,29 +201,29 @@ struct NWG { count: u32 }
 
 var<workgroup> wg: array<f32, 768>;
 
-@compute @workgroup_size(128)
+@compute @workgroup_size(256)
 fn main(@builtin(local_invocation_index) lid: u32) {
-  for (var x: u32 = 0u; x < 6u; x++) { wg[lid * 6u + x] = 0.0; }
+  for (var x: u32 = 0u; x < 3u; x++) { wg[lid * 3u + x] = 0.0; }
 
-  for (var i: u32 = lid; i < nwg.count; i += 128u) {
-    for (var x: u32 = 0u; x < 6u; x++) {
-      wg[lid * 6u + x] += partials[i * 6u + x];
+  for (var i: u32 = lid; i < nwg.count; i += 256u) {
+    for (var x: u32 = 0u; x < 3u; x++) {
+      wg[lid * 3u + x] += partials[i * 3u + x];
     }
   }
 
   workgroupBarrier();
 
-  for (var s: u32 = 64u; s > 0u; s >>= 1u) {
+  for (var s: u32 = 128u; s > 0u; s >>= 1u) {
     if (lid < s) {
-      for (var x: u32 = 0u; x < 6u; x++) {
-        wg[lid * 6u + x] += wg[(lid + s) * 6u + x];
+      for (var x: u32 = 0u; x < 3u; x++) {
+        wg[lid * 3u + x] += wg[(lid + s) * 3u + x];
       }
     }
     workgroupBarrier();
   }
 
   if (lid == 0u) {
-    for (var x: u32 = 0u; x < 6u; x++) {
+    for (var x: u32 = 0u; x < 3u; x++) {
       sums[x] = wg[x];
     }
   }
@@ -284,7 +247,7 @@ fn main(@builtin(global_invocation_id) g: vec3<u32>) {
   let i = (g.x / (NM * NM)) + 1u;
   let id = i * p.S2 + j * p.S + k;
 
-  for (var m: u32 = 0u; m < 3u; m++) {
+  for (var m: u32 = 0u; m < 2u; m++) {
     let n = sums[m];
     if (n > 0.0) { U[m * p.S3 + id] *= inverseSqrt(n); }
   }
@@ -307,20 +270,20 @@ fn main(@builtin(global_invocation_id) g: vec3<u32>) {
   let SS = p.NN + 1u;
   if (i > p.NN || j > p.NN) { return; }
 
-  for (var m: u32 = 0u; m < 3u; m++) {
+  for (var m: u32 = 0u; m < 2u; m++) {
     let idx = m * p.S3 + i * p.S2 + j * p.S + p.N2;
     out[m * SS * SS + i * SS + j] = select(0.0, U[idx], W[idx] > 0.0);
   }
 
   if (j == 0u) {
-    let b = 3u * SS * SS;
-    for (var m: u32 = 0u; m < 3u; m++) {
+    let b = 2u * SS * SS;
+    for (var m: u32 = 0u; m < 2u; m++) {
       out[b + m * SS + i] = W[m * p.S3 + i * p.S2 + (p.N2 + 8u) * p.S + p.N2];
       let uIdx = m * p.S3 + i * p.S2 + (p.N2 + 5u) * p.S + p.N2;
-      out[b + 3u * SS + m * SS + i] = U[uIdx] * W[uIdx];
-      out[b + 6u * SS + m * SS + i] = Pv[m * p.S3 + i * p.S2 + p.N2 * p.S + p.N2];
+      out[b + 2u * SS + m * SS + i] = select(0.0, U[uIdx], W[uIdx] > 0.0);
+      out[b + 4u * SS + m * SS + i] = Pv[m * p.S3 + i * p.S2 + p.N2 * p.S + p.N2];
     }
-    out[b + 9u * SS + i] = K[i * p.S2 + p.N2 * p.S + p.N2];
+    out[b + 6u * SS + i] = K[i * p.S2 + p.N2 * p.S + p.N2];
   }
 }
 `;
@@ -332,36 +295,22 @@ let updatePL, reducePL, finalizePL, normalizePL, extractPL;
 let updateBG = [], reduceBG = [], finalizeBG, normalizeBG = [], extractBG = [];
 let cur = 0, gpuReady = false, computing = false;
 let tStep = 0, E = 0, lastMs = 0;
-let E_T = 0, E_eK = 0, E_ee = 0, E_KK = 0;
 let gpuError = null;
+const STEPS_PHASE = 5000;
 
-// Phase system: sweep over distances
-const D_SWEEP = [1.4, 4];  // au
-const D_SCREEN = [8, 16];  // au, per-phase screen size
-let phase = 0, phaseSteps = 0;
-const PHASE_STEPS = [20000, 10000];
-let E_sweep = [];
-let addNucRepulsion = true;
-let curD_bond = D_bond;
-
-const SLICE_SIZE = (3 * S * S + 10 * S) * 4;
+const SLICE_SIZE = (2 * S * S + 7 * S) * 4;
 const WG_UPDATE = Math.ceil(INTERIOR / 256);
-const WG_REDUCE = Math.ceil(INTERIOR / 128);
+const WG_REDUCE = Math.ceil(INTERIOR / 256);
 const WG_NORM = Math.ceil(INTERIOR / 256);
 const WG_EXTRACT = Math.ceil(S / 16);
-const SUMS_BYTES = NRED * 4;
+const SUMS_BYTES = NRED * 4;  // 12 bytes
 
 let sliceData = null;
 
-function smoothCut(r, rc) {
-  if (r >= rc) return 1;
-  const edge = rc - 3 * hv;
-  const t = Math.max(0, Math.min(1, (r - edge) / (rc - edge)));
-  return t * t * (3 - 2 * t);
-}
-
-function uploadInitialData() {
-  console.log("Init: k0=(" + nucPos[0] + ") k1=(" + nucPos[1] + ") k2=(" + nucPos[2] + ")");
+function uploadInitialData(pos) {
+  const [h0I, h0J, h0K] = pos.H0;
+  const [h1I, h1J, h1K] = pos.H1;
+  console.log("Init: H0=(" + h0I + "," + h0J + "," + h0K + ") H1=(" + h1I + "," + h1J + "," + h1K + ")");
 
   const Kd = new Float32Array(S3);
   const Ud = new Float32Array(NELEC * S3);
@@ -370,38 +319,40 @@ function uploadInitialData() {
   const soft = 0.04 * h2v;
 
   for (let i = 0; i <= NN; i++) {
-    const dx = [];
-    for (let n = 0; n < 3; n++) dx[n] = (i - nucPos[n][0]) * hv;
+    const dxH0 = (i - h0I) * hv, dxH1 = (i - h1I) * hv;
     for (let j = 0; j <= NN; j++) {
-      const dy = [];
-      for (let n = 0; n < 3; n++) dy[n] = (j - nucPos[n][1]) * hv;
+      const dyH0 = (j - h0J) * hv, dyH1 = (j - h1J) * hv;
       for (let k = 0; k <= NN; k++) {
-        const dz = [];
-        for (let n = 0; n < 3; n++) dz[n] = (k - nucPos[n][2]) * hv;
+        const dzH0 = (k - h0K) * hv, dzH1 = (k - h1K) * hv;
         const id = i * S2 + j * S + k;
 
-        const r = [], ir = [], u = [];
-        for (let n = 0; n < 3; n++) {
-          r[n] = Math.sqrt(dx[n]*dx[n] + dy[n]*dy[n] + dz[n]*dz[n] + soft);
-          ir[n] = 1 / r[n];
-          u[n] = Math.exp(-Z[n] * r[n]);
+        const r1 = Math.sqrt(dxH0*dxH0 + dyH0*dyH0 + dzH0*dzH0 + soft);
+        const r2 = Math.sqrt(dxH1*dxH1 + dyH1*dyH1 + dzH1*dzH1 + soft);
+        const ir1 = 1/r1, ir2 = 1/r2;
+
+        // Both point charges +1
+        Kd[id] = ir1 + ir2;
+
+        // u1/w1 excluded inside r_cut of k2; u2 free everywhere
+        const u1 = Math.exp(-r1);
+        const u2 = Math.exp(-r2);
+        const R_out = 2.5;  // au
+        if (r2 <= r_cut) {
+          // m=0: excluded (u0=0, w0=0)
+          // m=1: smooth w2 inside cutoff, u2 free
+          const edge = r_cut - 3 * hv;
+          const t = Math.max(0, Math.min(1, (r2 - edge) / (r_cut - edge)));
+          const s = t * t * (3 - 2 * t);
+          Ud[1*S3+id] = u2;
+          Wd[1*S3+id] = s;
+        } else if (u1 >= u2) {
+          Ud[0*S3+id] = u1; Wd[0*S3+id] = r1 <= R_out ? 1 : 0;
+        } else {
+          Ud[1*S3+id] = u2; Wd[1*S3+id] = r2 <= R_out ? 1 : 0;
         }
 
-        Kd[id] = Z[0]*ir[0] + Z[1]*ir[1] + Z[2]*ir[2];
-
-        let best = -1;
-        for (let n = 0; n < 3; n++) {
-          if (Z[n] > 0 && (best < 0 || u[n] > u[best])) best = n;
-        }
-        if (best >= 0) {
-          const w = r[best] <= R_out ? smoothCut(r[best], r_cut[best]) : 0;
-          Ud[best*S3+id] = u[best];
-          Wd[best*S3+id] = w;
-        }
-
-        const pAvg = (Z[0]*ir[0] + Z[1]*ir[1] + Z[2]*ir[2]) / 3;
         for (let m = 0; m < NELEC; m++) {
-          Pd[m*S3+id] = pAvg;
+          Pd[m*S3+id] = 0.5 * ir1 + 0.5 * ir2;
         }
       }
     }
@@ -417,61 +368,6 @@ function uploadInitialData() {
   cur = 0;
 }
 
-function updateParamsBuf() {
-  const pb = new ArrayBuffer(112);
-  const pu = new Uint32Array(pb);
-  const pf = new Float32Array(pb);
-  pu[0] = NN; pu[1] = S; pu[2] = S2; pu[3] = S3;
-  pu[4] = N2; pu[5] = nucPos[0][0]; pu[6] = nucPos[1][0]; pu[7] = nucPos[2][0];
-  pf[8] = hv; pf[9] = h2v; pf[10] = 1 / hv; pf[11] = 1 / h2v;
-  pf[12] = dtv; pf[13] = half_dv; pf[14] = 0; pf[15] = 2 * Math.PI;
-  pf[16] = h3v; pf[17] = Z[0]; pf[18] = Z[1]; pf[19] = Z[2];
-  pu[20] = nucPos[0][1]; pu[21] = nucPos[1][1]; pu[22] = nucPos[2][1]; pf[23] = R_out;
-  pf[24] = r_cut[0]; pf[25] = r_cut[1]; pf[26] = r_cut[2]; pf[27] = 1.0;
-  device.queue.writeBuffer(paramsBuf, 0, pb);
-}
-
-function startMolPhase(dist_au, phaseNum, screen) {
-  if (screen) {
-    screenAu = screen;
-    hv = screenAu / NN; h2v = hv * hv; h3v = hv * hv * hv;
-    dtv = dv * h2v; half_dv = 0.5 * dv;
-  }
-  const d_bond = Math.round(dist_au / hv);
-  curD_bond = d_bond;
-  const rp = triPos(d_bond);
-  const ci = Math.round((rp[0][0] + rp[1][0] + rp[2][0]) / 3);
-  const cj = Math.round((rp[0][1] + rp[1][1] + rp[2][1]) / 3);
-  nucPos = rp.map(p => [p[0] + N2 - ci, p[1] + N2 - cj, N2]);
-  Z = [...Z_orig]; Ne = [...Ne_orig];
-  R_out = 2.0;
-  addNucRepulsion = true;
-  updateParamsBuf();
-  uploadInitialData();
-  tStep = 0; phaseSteps = 0; E_min = Infinity; cur = 0;
-  phase = phaseNum;
-  console.log("=== MOLECULE D=" + d_bond + " (" + (d_bond*hv).toFixed(2) + " au): phase " + phase + " ===");
-}
-
-function startAtomPhase(atomIdx) {
-  // Single atom at center, only active field has Z>0
-  nucPos = [[N2, N2, N2], [N2, N2, N2], [N2, N2, N2]];
-  Z = [0, 0, 0];
-  Ne = [0, 0, 0];
-  Z[atomIdx] = Z_orig[atomIdx];
-  Ne[atomIdx] = Ne_orig[atomIdx];
-  R_out = 2.0;
-  addNucRepulsion = false;
-  updateParamsBuf();
-  uploadInitialData();
-  tStep = 0;
-  phaseSteps = 0;
-  E_min = Infinity;
-  cur = 0;
-  phase = atomIdx + 1;
-  console.log("=== ATOM " + atomIdx + " (Z=" + Z_orig[atomIdx] + "): phase " + phase + " ===");
-}
-
 function setup() {
   createCanvas(400, 400);
   textSize(9);
@@ -482,22 +378,28 @@ async function initGPU() {
   try {
     if (!navigator.gpu) {
       gpuError = "WebGPU not supported. Use Chrome 113+ or Safari 17+.";
+      console.error(gpuError);
       return;
     }
 
     const adapter = await navigator.gpu.requestAdapter();
-    if (!adapter) { gpuError = "No GPU adapter found."; return; }
+    if (!adapter) {
+      gpuError = "No GPU adapter found.";
+      console.error(gpuError);
+      return;
+    }
 
     try {
       const info = await adapter.requestAdapterInfo();
       console.log("GPU:", info.vendor, info.architecture, info.description);
-    } catch (e) {}
+    } catch (e) { console.log("Could not get adapter info"); }
 
     device = await adapter.requestDevice();
     console.log("WebGPU device ready");
 
     device.lost.then((info) => {
       gpuError = "GPU device lost: " + info.message;
+      console.error(gpuError);
       gpuReady = false;
     });
 
@@ -520,20 +422,19 @@ async function initGPU() {
     numWGBuf = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
     device.queue.writeBuffer(numWGBuf, 0, new Uint32Array([WG_REDUCE, 0, 0, 0]));
 
-    const pb = new ArrayBuffer(112);
+    const pb = new ArrayBuffer(64);
     const pu = new Uint32Array(pb);
     const pf = new Float32Array(pb);
-    pu[0] = NN; pu[1] = S; pu[2] = S2; pu[3] = S3;
-    pu[4] = N2; pu[5] = nucPos[0][0]; pu[6] = nucPos[1][0]; pu[7] = nucPos[2][0];
-    pf[8] = hv; pf[9] = h2v; pf[10] = 1 / hv; pf[11] = 1 / h2v;
-    pf[12] = dtv; pf[13] = half_dv; pf[14] = 0; pf[15] = 2 * Math.PI;
-    pf[16] = h3v; pf[17] = Z[0]; pf[18] = Z[1]; pf[19] = Z[2];
-    pu[20] = nucPos[0][1]; pu[21] = nucPos[1][1]; pu[22] = nucPos[2][1]; pf[23] = R_out;
-    pf[24] = r_cut[0]; pf[25] = r_cut[1]; pf[26] = r_cut[2]; pf[27] = 1.0;
-    paramsBuf = device.createBuffer({ size: 112, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+    pu[0] = NN; pu[1] = S; pu[2] = S2; pu[3] = S3; pu[4] = N2; pu[5] = nucPos.H1[0];
+    console.log("h1I=" + nucPos.H1[0] + " N2=" + N2 + " hv=" + hv + " 1au=" + (1/hv).toFixed(1) + " grid pts");
+    pf[6] = hv; pf[7] = h2v; pf[8] = 1 / hv; pf[9] = 1 / h2v;
+    pf[10] = dtv; pf[11] = half_dv; pf[12] = r_cut; pf[13] = 2 * Math.PI;
+    pf[14] = h3v;
+    pu[15] = 0;
+    paramsBuf = device.createBuffer({ size: 64, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
     device.queue.writeBuffer(paramsBuf, 0, pb);
 
-    uploadInitialData();
+    uploadInitialData(nucPos);
 
     async function compileShader(name, code) {
       const module = device.createShaderModule({ code });
@@ -607,10 +508,8 @@ async function initGPU() {
       { binding: 2, resource: { buffer: numWGBuf } },
     ]});
 
-    console.log("Ready! dispatch(" + WG_UPDATE + "," + NELEC + ",1)");
+    console.log("Ready! dispatch(" + WG_UPDATE + ",2,1)");
     gpuReady = true;
-    // Start first sweep distance
-    startMolPhase(D_SWEEP[0], 0, D_SCREEN[0]);
 
   } catch (e) {
     gpuError = e.message || String(e);
@@ -667,9 +566,7 @@ async function doSteps(n) {
   await sumsReadBuf.mapAsync(GPUMapMode.READ);
   const sumsData = new Float32Array(sumsReadBuf.getMappedRange().slice(0));
   sumsReadBuf.unmap();
-  E_T = sumsData[3];
-  E_eK = sumsData[4];
-  E_ee = sumsData[5];
+  E = sumsData[2];  // energy at index 2 (after 2 norms)
 
   await sliceReadBuf.mapAsync(GPUMapMode.READ);
   sliceData = new Float32Array(sliceReadBuf.getMappedRange().slice(0));
@@ -678,20 +575,13 @@ async function doSteps(n) {
   tStep += n;
   lastMs = performance.now() - t0;
 
-  E_KK = 0;
-  if (addNucRepulsion) {
-    const soft_nuc = 0.04 * h2v;
-    for (let a = 0; a < 3; a++) {
-      for (let b = a + 1; b < 3; b++) {
-        const d = Math.sqrt(
-          ((nucPos[a][0]-nucPos[b][0])*hv)**2 +
-          ((nucPos[a][1]-nucPos[b][1])*hv)**2 +
-          ((nucPos[a][2]-nucPos[b][2])*hv)**2 + soft_nuc);
-        E_KK += Z[a]*Z[b]/d;
-      }
-    }
-  }
-  E = E_T + E_eK + E_ee + E_KK;
+  // Nuclear repulsion: Z=1 for both
+  const soft_nuc = 0.04 * h2v;
+  const d01 = Math.sqrt(
+    ((nucPos.H0[0]-nucPos.H1[0])*hv)**2 +
+    ((nucPos.H0[1]-nucPos.H1[1])*hv)**2 +
+    ((nucPos.H0[2]-nucPos.H1[2])*hv)**2 + soft_nuc);
+  E += 1/d01;
 
   if (!isFinite(E)) {
     gpuError = "Numerical instability at step " + tStep;
@@ -723,26 +613,11 @@ function draw() {
     return;
   }
 
-  if (!computing && phase < D_SWEEP.length) {
+  if (!computing) {
     computing = true;
     doSteps(STEPS_PER_FRAME).then(() => {
       computing = false;
-      phaseSteps += STEPS_PER_FRAME;
-      if (phaseSteps >= 5000) {
-        device.queue.writeBuffer(paramsBuf, 27 * 4, new Float32Array([0.0]));
-      }
       if (isFinite(E) && E < E_min) E_min = E;
-
-      if (phaseSteps >= PHASE_STEPS[phase]) {
-        E_sweep[phase] = { d: D_SWEEP[phase], E: E, T: E_T, VeK: E_eK, Vee: E_ee, VKK: E_KK };
-        console.log("=== D=" + D_SWEEP[phase] + " au DONE: E=" + E.toFixed(6) + " ===");
-        if (phase + 1 < D_SWEEP.length) {
-          const nextD = D_SWEEP[phase + 1];
-          startMolPhase(nextD, phase + 1, D_SCREEN[phase + 1]);
-        } else {
-          phase = D_SWEEP.length;  // done
-        }
-      }
     }).catch((e) => {
       gpuError = e.message || String(e);
       console.error("GPU step failed:", e);
@@ -765,19 +640,17 @@ function draw() {
         const py0 = Math.floor(PX * j * d);
         const py1 = Math.floor(PX * (j + 1) * d);
         const b = i * SS + j;
-        // 3 electrons: red, green, blue
-        const e0 = 500 * sliceData[0 * SS * SS + b];
-        const e1 = 500 * sliceData[1 * SS * SS + b];
-        const e2 = 500 * sliceData[2 * SS * SS + b];
-        const ri = Math.min(255, Math.floor(e0));
-        const gi = Math.min(255, Math.floor(e1));
-        const bi = Math.min(255, Math.floor(e2));
+        // 2 electrons: red, green
+        const u0 = 500 * sliceData[0 * SS * SS + b];
+        const u1 = 500 * sliceData[1 * SS * SS + b];
+        const ri = Math.min(255, Math.floor(u0));
+        const gi = Math.min(255, Math.floor(u1));
         for (let py = py0; py < py1 && py < H; py++) {
           for (let px = px0; px < px1 && px < W; px++) {
             const idx = (py * W + px) * 4;
             pixels[idx] = ri;
             pixels[idx + 1] = gi;
-            pixels[idx + 2] = bi;
+            pixels[idx + 2] = 0;
             pixels[idx + 3] = 255;
           }
         }
@@ -786,49 +659,27 @@ function draw() {
     updatePixels();
 
     // Line plots
-    const lb = 3 * SS * SS;
-    const colors = [[255,0,0],[0,255,0],[0,100,255]];
+    const lb = 2 * SS * SS;
     for (let i = 1; i < NN - 10; i++) {
-      for (let m = 0; m < 3; m++) {
-        fill(255); ellipse(PX * i, 300 - 100 * sliceData[lb + m * SS + i], 2);
-        fill(colors[m][0], colors[m][1], colors[m][2]);
-        ellipse(PX * i, 300 - 100 * sliceData[lb + 3 * SS + m * SS + i], 3);
-        fill(0, 255, 255, 200); ellipse(PX * i, 300 - 30 * sliceData[lb + 6 * SS + m * SS + i], 2);
+      for (let m = 0; m < 2; m++) {
+        fill(255); ellipse(PX * i, 300 - 100 * sliceData[lb + m * SS + i], 3);
+        fill(m === 0 ? 255 : 0, m === 1 ? 255 : 0, 0); ellipse(PX * i, 300 - 100 * sliceData[lb + 2 * SS + m * SS + i], 3);
+        fill(0, 255, 255, 255); ellipse(PX * i, 300 - 30 * sliceData[lb + 4 * SS + m * SS + i], 2);
       }
-      fill(0, 0, 255, 200); ellipse(PX * i, 300 - 30 * sliceData[lb + 9 * SS + i], 2);
+      fill(0, 0, 255, 255); ellipse(PX * i, 300 - 30 * sliceData[lb + 6 * SS + i], 3);
     }
   }
 
   // Draw nuclear positions
   fill(255); stroke(255); strokeWeight(1);
-  for (let n = 0; n < 3; n++) {
-    if (Z[n] > 0) circle(nucPos[n][0] * PX, nucPos[n][1] * PX, 6);
-  }
-  // Screen boundary
-  noFill(); stroke(100); strokeWeight(1);
-  rect(0, 0, 400, 400);
+  circle(nucPos.H0[0] * PX, nucPos.H0[1] * PX, 6);
+  circle(nucPos.H1[0] * PX, nucPos.H1[1] * PX, 6);
   noStroke();
 
   fill(255);
-  const pLabel = phase < D_SWEEP.length ? "D=" + D_SWEEP[phase] + " au (" + screenAu + " au)" : "DONE";
-  text("HNO Nitroxyl | " + pLabel + " | O(red)=" + Z_orig[0] + " N(green)=" + Z_orig[1] + " H(blue)=" + Z_orig[2] + " | " + NN + "^3", 5, 20);
-  text("step " + tStep + " (" + phaseSteps + "/" + (PHASE_STEPS[phase] || "done") + ")  E=" + E.toFixed(6), 5, 35);
-  if (lastMs > 0) text((lastMs / STEPS_PER_FRAME).toFixed(1) + "ms/step", 300, 35);
-
-  fill(200);
-  text("T=" + E_T.toFixed(4) + " V_eK=" + E_eK.toFixed(4) + " V_ee=" + E_ee.toFixed(4) + " V_KK=" + E_KK.toFixed(4), 5, 50);
-
-  // Show completed sweep results
-  let y = 65;
-  for (let i = 0; i < E_sweep.length; i++) {
-    const s = E_sweep[i];
-    fill(255, 255, 0);
-    text("D=" + s.d.toFixed(1) + "  E=" + s.E.toFixed(4) + "  T=" + s.T.toFixed(4) + "  VeK=" + s.VeK.toFixed(4) + "  Vee=" + s.Vee.toFixed(4) + "  VKK=" + s.VKK.toFixed(4), 5, y);
-    y += 13;
-  }
-  if (E_sweep.length >= 2) {
-    const Ebind = E_sweep[0].E - E_sweep[E_sweep.length - 1].E;
-    fill(0, 255, 128);
-    text("Binding energy: E(D=" + E_sweep[0].d.toFixed(1) + ") - E(D=" + E_sweep[E_sweep.length-1].d.toFixed(1) + ") = " + Ebind.toFixed(4) + " au = " + (Ebind * 27.211).toFixed(2) + " eV", 5, y);
-  }
+  const r = D_bond * hv;
+  text("e1+e2 k1+k2 w2=0 inside r_cut | WebGPU, " + NN + "^3", 5, 20);
+  text("D=" + D_bond + " r=" + r.toFixed(2) + " rc=" + r_cut, 5, 35);
+  text("step " + tStep + "  E=" + E.toFixed(6) + "  min=" + (isFinite(E_min) ? E_min.toFixed(6) : "---"), 5, 50);
+  if (lastMs > 0) text((lastMs / STEPS_PER_FRAME).toFixed(1) + "ms/step", 300, 50);
 }

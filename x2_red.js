@@ -1,19 +1,18 @@
-// H2 Quantum Simulation — WebGPU Compute Shaders
+// H2 Quantum Simulation — WebGPU Compute Shaders (Red variant)
 // 2 hydrogen atoms, 1 electron each (2 electrons total)
+// Exclusion zone around nuclei, 3D workgroup update shader
 
 const NN = 128;
 const S = NN + 1;
 const S2 = S * S;
 const S3 = S * S * S;
 const N2 = Math.round(NN / 2);
-// Sweep over bond distances (in grid units)
 // hv = 10/128 = 0.078125, so D=18 ≈ 1.4 au (equilibrium H2)
 const D_values = [18];
 let D_idx = 0;
 let D_bond = D_values[0];
 
 function makeBondPos(D) {
-  // Two atoms along i-axis, centered at [N2, N2, N2]
   const half = Math.round(D / 2);
   return {
     H0: [N2 - half, N2, N2],
@@ -30,20 +29,23 @@ const dtv = dv * h2v, half_dv = 0.5 * dv;
 const PX = 400 / NN;
 const INTERIOR = (NN - 1) * (NN - 1) * (NN - 1);
 const STEPS_PER_BATCH = 200;
-const VIS_INTERVAL = 5;  // readback every 5th frame
+const VIS_INTERVAL = 5;
 const NORM_INTERVAL = 20;
 let frameCount = 0;
 const NELEC = 2;
-const NRED = NELEC + 1;  // 3 values: 2 norms + 1 energy
+const NRED = NELEC + 1;
+
+const EXCL_R = 0.5 / hv;  // 0.5 AU in grid units
+const EXCL_R2 = EXCL_R * EXCL_R;
 
 // ===== WGSL SHADERS =====
 
 const paramStructWGSL = `
 struct P {
   NN: u32, S: u32, S2: u32, S3: u32,
-  N2: u32, _pad0: u32,
+  N2: u32, nucHalf: u32,
   h: f32, h2: f32, inv_h: f32, inv_h2: f32,
-  dt: f32, half_d: f32, _pad1: f32, TWO_PI: f32, h3: f32,
+  dt: f32, half_d: f32, exclR2: f32, TWO_PI: f32, h3: f32,
   _pad2: u32
 }`;
 
@@ -58,63 +60,71 @@ ${paramStructWGSL}
 @group(0) @binding(6) var<storage, read_write> Wo: array<f32>;
 @group(0) @binding(7) var<storage, read_write> Po: array<f32>;
 
-@compute @workgroup_size(256)
+@compute @workgroup_size(4, 4, 4)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let NM = p.NN - 1u;
-  let tot = NM * NM * NM;
-  if (gid.x >= tot) { return; }
+  let i = gid.x + 1u;
+  let j = gid.y + 1u;
+  let k = gid.z + 1u;
+  if (i > NM || j > NM || k > NM) { return; }
 
-  let m = gid.y;
-  let o = m * p.S3;
-
-  let k = (gid.x % NM) + 1u;
-  let j = ((gid.x / NM) % NM) + 1u;
-  let i = (gid.x / (NM * NM)) + 1u;
   let id = i * p.S2 + j * p.S + k;
 
-  // c[m]: other electron's density
-  var cm: f32 = 0.0;
-  cm -= Ui[0u * p.S3 + id] + Ui[1u * p.S3 + id];
-  cm += Ui[o + id];
-  cm = 0.5 * (cm + Ui[o + id]);
+  // Read both electrons once
+  let u0 = Ui[id]; let u1 = Ui[p.S3 + id];
 
-  let wc  = Wi[o + id];
-  let wip = Wi[o + id + p.S2]; let wim = Wi[o + id - p.S2];
-  let wjp = Wi[o + id + p.S];  let wjm = Wi[o + id - p.S];
-  let wkp = Wi[o + id + 1u];   let wkm = Wi[o + id - 1u];
+  // Exclusion zone geometry
+  let dj0 = f32(j) - f32(p.N2);
+  let dk0 = f32(k) - f32(p.N2);
+  let djk2 = dj0 * dj0 + dk0 * dk0;
+  let di_n0 = f32(i) - f32(p.N2 - p.nucHalf);
+  let di_n1 = f32(i) - f32(p.N2 + p.nucHalf);
+  let inExcl = (di_n0 * di_n0 + djk2 < p.exclR2) || (di_n1 * di_n1 + djk2 < p.exclR2);
 
-  let lw = (wip + wim + wjp + wjm + wkp + wkm - 6.0 * wc) * p.inv_h2;
-  let gx = (wip - wim) * p.inv_h;
-  let gy = (wjp - wjm) * p.inv_h;
-  let gz = (wkp - wkm) * p.inv_h;
-  var nw = wc + 0.5 * p.dt * abs(cm) * lw + 5.0 * p.dt * cm * sqrt(gx * gx + gy * gy + gz * gz);
-  nw = clamp(nw, 0.0, 1.0);
-  Wo[o + id] = nw;
+  for (var m: u32 = 0u; m < 2u; m++) {
+    let o = m * p.S3;
+    let uc = select(u1, u0, m == 0u);
+    let u_other = select(u0, u1, m == 0u);
 
-  let uc  = Ui[o + id];
-  let uip = Ui[o + id + p.S2]; let uim = Ui[o + id - p.S2];
-  let ujp = Ui[o + id + p.S];  let ujm = Ui[o + id - p.S];
-  let ukp = Ui[o + id + 1u];   let ukm = Ui[o + id - 1u];
+    let cm = 0.5 * (uc - u_other);
 
-  Uo[o + id] = uc
-    + p.half_d * ((uip - uc) * (wip + nw) * 0.5 - (uc - uim) * (nw + wim) * 0.5)
-    + p.half_d * ((ujp - uc) * (wjp + nw) * 0.5 - (uc - ujm) * (nw + wjm) * 0.5)
-    + p.half_d * ((ukp - uc) * (wkp + nw) * 0.5 - (uc - ukm) * (nw + wkm) * 0.5)
-    + p.dt * (K[id] - 2.0 * Pi[o + id]) * uc * wc;
+    let wc  = Wi[o + id];
+    let wip = Wi[o + id + p.S2]; let wim = Wi[o + id - p.S2];
+    let wjp = Wi[o + id + p.S];  let wjm = Wi[o + id - p.S];
+    let wkp = Wi[o + id + 1u];   let wkm = Wi[o + id - 1u];
 
-  let Pc = Pi[o + id];
-  var rho: f32 = 0.0;
-  let u0 = Ui[0u * p.S3 + id]; let u1 = Ui[1u * p.S3 + id];
-  rho = u0*u0 + u1*u1;
-  let self_u = Ui[o + id];
-  rho -= self_u * self_u;
+    let lw = (wip + wim + wjp + wjm + wkp + wkm - 6.0 * wc) * p.inv_h2;
+    let gx = (wip - wim) * p.inv_h;
+    let gy = (wjp - wjm) * p.inv_h;
+    let gz = (wkp - wkm) * p.inv_h;
+    var nw = wc + 0.5 * p.dt * abs(cm) * lw + 5.0 * p.dt * cm * sqrt(gx * gx + gy * gy + gz * gz);
+    nw = clamp(nw, 0.0, 1.0);
 
-  Po[o + id] = Pc
-    + p.dt * (Pi[o + id + p.S2] + Pi[o + id - p.S2]
-            + Pi[o + id + p.S]  + Pi[o + id - p.S]
-            + Pi[o + id + 1u]   + Pi[o + id - 1u]
-            - 6.0 * Pc) * p.inv_h2
-    + p.TWO_PI * p.dt * rho;
+    // Exclusion zone: W=0 within 0.5 AU of each nucleus
+    if (inExcl) { nw = 0.0; }
+
+    Wo[o + id] = nw;
+
+    let uip = Ui[o + id + p.S2]; let uim = Ui[o + id - p.S2];
+    let ujp = Ui[o + id + p.S];  let ujm = Ui[o + id - p.S];
+    let ukp = Ui[o + id + 1u];   let ukm = Ui[o + id - 1u];
+
+    Uo[o + id] = uc
+      + p.half_d * ((uip - uc) * (wip + nw) * 0.5 - (uc - uim) * (nw + wim) * 0.5)
+      + p.half_d * ((ujp - uc) * (wjp + nw) * 0.5 - (uc - ujm) * (nw + wjm) * 0.5)
+      + p.half_d * ((ukp - uc) * (wkp + nw) * 0.5 - (uc - ukm) * (nw + wkm) * 0.5)
+      + p.dt * (K[id] - 2.0 * Pi[o + id]) * uc * wc;
+
+    let Pc = Pi[o + id];
+    let rho = u_other * u_other;
+
+    Po[o + id] = Pc
+      + p.dt * (Pi[o + id + p.S2] + Pi[o + id - p.S2]
+              + Pi[o + id + p.S]  + Pi[o + id - p.S]
+              + Pi[o + id + 1u]   + Pi[o + id - 1u]
+              - 6.0 * Pc) * p.inv_h2
+      + p.TWO_PI * p.dt * rho;
+  }
 }
 `;
 
@@ -285,11 +295,14 @@ let phase = 1;
 const STEPS_PHASE = 50000;
 
 const SLICE_SIZE = (2 * S * S + 7 * S) * 4;
-const WG_UPDATE = Math.ceil(INTERIOR / 256);
+const NM = NN - 1;
+const WG_UPD_X = Math.ceil(NM / 4);
+const WG_UPD_Y = Math.ceil(NM / 4);
+const WG_UPD_Z = Math.ceil(NM / 4);
 const WG_REDUCE = Math.ceil(INTERIOR / 256);
 const WG_NORM = Math.ceil(INTERIOR / 256);
 const WG_EXTRACT = Math.ceil(S / 16);
-const SUMS_BYTES = NRED * 4;  // 12 bytes
+const SUMS_BYTES = NRED * 4;
 
 let sliceData = null;
 
@@ -318,9 +331,12 @@ function uploadInitialData(pos) {
 
         Kd[id] = ir0 + ir1;
 
-        // Voronoi partition: electron m=0 near H0, m=1 near H1
-        if (r0 <= r1 && r0 < R1) { Ud[0*S3+id] = Math.exp(-r0); Wd[0*S3+id] = 1; }
-        if (r1 < r0  && r1 < R1) { Ud[1*S3+id] = Math.exp(-r1); Wd[1*S3+id] = 1; }
+        // Voronoi partition with exclusion zone
+        const inExcl = (r0 < 0.5 || r1 < 0.5);
+        if (!inExcl) {
+          if (r0 <= r1 && r0 < R1) { Ud[0*S3+id] = Math.exp(-r0); Wd[0*S3+id] = 1; }
+          if (r1 < r0  && r1 < R1) { Ud[1*S3+id] = Math.exp(-r1); Wd[1*S3+id] = 1; }
+        }
 
         for (let m = 0; m < NELEC; m++) {
           Pd[m*S3+id] = 0.5 * ir0 + 0.5 * ir1;
@@ -396,9 +412,9 @@ async function initGPU() {
     const pb = new ArrayBuffer(64);
     const pu = new Uint32Array(pb);
     const pf = new Float32Array(pb);
-    pu[0] = NN; pu[1] = S; pu[2] = S2; pu[3] = S3; pu[4] = N2; pu[5] = 0;
+    pu[0] = NN; pu[1] = S; pu[2] = S2; pu[3] = S3; pu[4] = N2; pu[5] = Math.round(D_bond / 2);
     pf[6] = hv; pf[7] = h2v; pf[8] = 1 / hv; pf[9] = 1 / h2v;
-    pf[10] = dtv; pf[11] = half_dv; pf[12] = 0; pf[13] = 2 * Math.PI;
+    pf[10] = dtv; pf[11] = half_dv; pf[12] = EXCL_R2; pf[13] = 2 * Math.PI;
     pf[14] = h3v;
     pu[15] = 0;
     paramsBuf = device.createBuffer({ size: 64, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
@@ -478,7 +494,7 @@ async function initGPU() {
       { binding: 2, resource: { buffer: numWGBuf } },
     ]});
 
-    console.log("Ready! dispatch(" + WG_UPDATE + ",2,1)");
+    console.log("Ready! 3D dispatch(" + WG_UPD_X + "," + WG_UPD_Y + "," + WG_UPD_Z + ")");
     gpuReady = true;
 
   } catch (e) {
@@ -494,7 +510,7 @@ function encodeBatch(enc, n) {
     let cp = enc.beginComputePass();
     cp.setPipeline(updatePL);
     cp.setBindGroup(0, updateBG[cur]);
-    cp.dispatchWorkgroups(WG_UPDATE, NELEC, 1);
+    cp.dispatchWorkgroups(WG_UPD_X, WG_UPD_Y, WG_UPD_Z);
     cp.end();
 
     if ((s + 1) % NORM_INTERVAL === 0 || s === n - 1) {
@@ -632,6 +648,21 @@ function draw() {
     for (let p = 0; p < W * H * 4; p += 4) {
       pixels[p] = 0; pixels[p+1] = 0; pixels[p+2] = 0; pixels[p+3] = 255;
     }
+    // Auto-scale density
+    let maxD0 = 0, maxD1 = 0;
+    for (let i = 1; i < NN; i++) {
+      for (let j = 1; j < NN; j++) {
+        const b = i * SS + j;
+        const v0 = sliceData[0 * SS * SS + b];
+        const v1 = sliceData[1 * SS * SS + b];
+        const d0 = v0 * v0, d1 = v1 * v1;
+        if (d0 > maxD0) maxD0 = d0;
+        if (d1 > maxD1) maxD1 = d1;
+      }
+    }
+    const scale0 = maxD0 > 0 ? 255 / maxD0 : 0;
+    const scale1 = maxD1 > 0 ? 255 / maxD1 : 0;
+
     for (let i = 1; i < NN; i++) {
       const px0 = Math.floor(PX * i * d);
       const px1 = Math.floor(PX * (i + 1) * d);
@@ -639,11 +670,10 @@ function draw() {
         const py0 = Math.floor(PX * j * d);
         const py1 = Math.floor(PX * (j + 1) * d);
         const b = i * SS + j;
-        // 2 electrons: red, green
-        const u0 = 500 * sliceData[0 * SS * SS + b];
-        const u1 = 500 * sliceData[1 * SS * SS + b];
-        const ri = Math.min(255, Math.floor(u0));
-        const gi = Math.min(255, Math.floor(u1));
+        const v0 = sliceData[0 * SS * SS + b];
+        const v1 = sliceData[1 * SS * SS + b];
+        const ri = Math.min(255, Math.floor(v0 * v0 * scale0));
+        const gi = Math.min(255, Math.floor(v1 * v1 * scale1));
         for (let py = py0; py < py1 && py < H; py++) {
           for (let px = px0; px < px1 && px < W; px++) {
             const idx = (py * W + px) * 4;
@@ -676,7 +706,7 @@ function draw() {
   noStroke();
 
   fill(255);
-  text("H2 2e sweep distance | WebGPU, " + NN + "^3", 5, 20);
+  text("H2 2e (excl zone) | WebGPU, " + NN + "^3", 5, 20);
   if (phase < 3) {
     const r = D_bond * hv;
     text("D=" + D_bond + " r=" + r.toFixed(2) + " (" + (D_idx+1) + "/" + D_values.length + ")", 5, 35);

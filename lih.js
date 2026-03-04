@@ -7,17 +7,12 @@ const S2 = S * S;
 const S3 = S * S * S;
 const N2 = Math.round(NN / 2);
 
-// Geometry: Li left, H right along i-axis
-const D = 32;  // separation in grid units (3.2 au with hv=0.1)
-const half = Math.round(D / 2);
-const nucPos = {
-  Li: [N2 - half, N2, N2],
-  H:  [N2 + half, N2, N2]
-};
-const R1 = 10;    // initial outer radius
-const R_inner = 3.0;  // inner shell radius (au) for init
-let sweepResults = [];
-let E_min = Infinity;
+// Geometry: Li fixed, H moves right
+const Li_pos = 50;        // Li stays at grid 50
+let H_pos, D_grid, d_au, nucRepulsion;
+const nucPos = { Li: [Li_pos, N2, N2], H: [0, N2, N2] };
+const R1 = 10;
+const R_inner = 3.0;
 const hv = 20 / NN, h2v = hv * hv, h3v = hv * hv * hv;
 const dv = 0.12;
 const dtv = dv * h2v, half_dv = 0.5 * dv;
@@ -26,22 +21,34 @@ const INTERIOR = (NN - 1) * (NN - 1) * (NN - 1);
 const STEPS_PER_FRAME = 500;
 const NORM_INTERVAL = 20;
 const NELEC = 4;
-const NRED = NELEC + 1;  // 5 values: 4 norms + 1 energy
+const NRED = NELEC + 1;
 
-// Nuclear repulsion: Z_Li * Z_H / d = 3/d
-const d_au = D * hv;
-const nucRepulsion = 3.0 / d_au;
+// Sweep configuration
+const sweepDistances = [3.2, 4.0, 6.0, 8.0, 10.0];  // au
+const STEPS_PER_POINT = 20000;
+let sweepIdx = 0;
+let sweepResults = [];
+let E_min = Infinity;
 
 // Reference energies for binding energy
-const E_Li_ref = -7.478;  // exact Li
-const E_H_ref = -0.5;     // exact H
+const E_Li_ref = -7.3249;
+const E_H_ref = -0.5;
+
+function setDistance(dist_au) {
+  d_au = dist_au;
+  D_grid = Math.round(dist_au / hv);
+  H_pos = Li_pos + D_grid;
+  nucPos.H[0] = H_pos;
+  nucRepulsion = 3.0 / dist_au;
+  console.log("Distance=" + dist_au + " au, D=" + D_grid + " grid, Li=" + Li_pos + " H=" + H_pos);
+}
 
 // ===== WGSL SHADERS =====
 
 const paramStructWGSL = `
 struct P {
   NN: u32, S: u32, S2: u32, S3: u32,
-  N2: u32, _pad0: u32,
+  N2: u32, liI: u32,
   h: f32, h2: f32, inv_h: f32, inv_h2: f32,
   dt: f32, half_d: f32, _pad1: f32, TWO_PI: f32, h3: f32,
   _pad2: u32
@@ -90,7 +97,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let dw = 0.5 * p.dt * abs(cm) * lw + 5.0 * p.dt * cm * sqrt(gx * gx + gy * gy + gz * gz);
 
   var nw = wc;
-  let liI = p.N2 - ${half}u;
+  let liI = p.liI;
   let di = abs(i32(i) - i32(liI));
   if (m >= 2u || (m < 2u && di > 3)) {
     // Update W for outer/H electrons everywhere, inner Li electrons only away from hemisphere split
@@ -289,8 +296,7 @@ let updateBG = [], reduceBG = [], finalizeBG, normalizeBG = [], extractBG = [];
 let cur = 0, gpuReady = false, computing = false;
 let tStep = 0, E = 0, lastMs = 0;
 let gpuError = null;
-let phase = 1;
-const STEPS_PHASE = 10000;
+let sweepDone = false;
 
 const SLICE_SIZE = (4 * S * S + 13 * S) * 4;  // 4 density slices + 13 line sets
 const WG_UPDATE = Math.ceil(INTERIOR / 256);
@@ -331,20 +337,21 @@ function uploadInitialData() {
         // Nuclear potential: Z_Li=3, Z_H=1
         Kd[id] = 3*irLi + irH;
 
+        const mid = Math.round((liI + hI) / 2);
         // m=0: Li inner hemisphere i < liI, r_Li < R_inner, init exp(-3r_Li)
         if (rLi < R_inner && i < liI) {
           Ud[0*S3+id] = Math.exp(-3*rLi); Wd[0*S3+id] = 1;
         }
         // m=1: Li inner hemisphere i > liI and i < midpoint, r_Li < R_inner, init exp(-3r_Li)
-        if (rLi < R_inner && i > liI && i < N2) {
+        if (rLi < R_inner && i > liI && i < mid) {
           Ud[1*S3+id] = Math.exp(-3*rLi); Wd[1*S3+id] = 1;
         }
         // m=2: Li outer shell (2s), r_Li > R_inner and i < midpoint, init exp(-r_Li)
-        if (rLi > R_inner && i < N2) {
+        if (rLi > R_inner && i < mid) {
           Ud[2*S3+id] = Math.exp(-rLi); Wd[2*S3+id] = 1;
         }
         // m=3: H electron, i >= midpoint, init exp(-r_H)
-        if (rH < R1 && i >= N2) {
+        if (rH < R1 && i >= mid) {
           Ud[3*S3+id] = Math.exp(-rH); Wd[3*S3+id] = 1;
         }
 
@@ -363,6 +370,29 @@ function uploadInitialData() {
     device.queue.writeBuffer(P_buf[i], 0, Pd);
   }
   cur = 0;
+}
+
+function uploadParams() {
+  const pb = new ArrayBuffer(64);
+  const pu = new Uint32Array(pb);
+  const pf = new Float32Array(pb);
+  pu[0] = NN; pu[1] = S; pu[2] = S2; pu[3] = S3; pu[4] = N2; pu[5] = Li_pos;
+  pf[6] = hv; pf[7] = h2v; pf[8] = 1 / hv; pf[9] = 1 / h2v;
+  pf[10] = dtv; pf[11] = half_dv; pf[12] = 0; pf[13] = 2 * Math.PI;
+  pf[14] = h3v;
+  pu[15] = 0;
+  device.queue.writeBuffer(paramsBuf, 0, pb);
+}
+
+function startSweepPoint(idx) {
+  sweepIdx = idx;
+  setDistance(sweepDistances[idx]);
+  uploadParams();
+  uploadInitialData();
+  tStep = 0;
+  E = 0;
+  E_min = Infinity;
+  console.log("=== Sweep point " + (idx + 1) + "/" + sweepDistances.length + ": d=" + d_au + " au ===");
 }
 
 function setup() {
@@ -419,17 +449,10 @@ async function initGPU() {
     numWGBuf = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
     device.queue.writeBuffer(numWGBuf, 0, new Uint32Array([WG_REDUCE, 0, 0, 0]));
 
-    const pb = new ArrayBuffer(64);
-    const pu = new Uint32Array(pb);
-    const pf = new Float32Array(pb);
-    pu[0] = NN; pu[1] = S; pu[2] = S2; pu[3] = S3; pu[4] = N2; pu[5] = 0;
-    pf[6] = hv; pf[7] = h2v; pf[8] = 1 / hv; pf[9] = 1 / h2v;
-    pf[10] = dtv; pf[11] = half_dv; pf[12] = 0; pf[13] = 2 * Math.PI;
-    pf[14] = h3v;
-    pu[15] = 0;
     paramsBuf = device.createBuffer({ size: 64, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
-    device.queue.writeBuffer(paramsBuf, 0, pb);
 
+    setDistance(sweepDistances[0]);
+    uploadParams();
     uploadInitialData();
 
     async function compileShader(name, code) {
@@ -603,13 +626,21 @@ function draw() {
     return;
   }
 
-  if (!computing && phase < 3) {
+  if (!computing && !sweepDone) {
     computing = true;
     doSteps(STEPS_PER_FRAME).then(() => {
       computing = false;
-      if (tStep >= STEPS_PHASE) {
-        phase = 3;
-        console.log("Done: E_min=" + E_min.toFixed(6));
+      if (tStep >= STEPS_PER_POINT) {
+        const bind = E_min - E_Li_ref - E_H_ref;
+        sweepResults.push({ d: d_au, E_min: E_min, bind: bind });
+        console.log("Sweep " + (sweepIdx+1) + ": d=" + d_au.toFixed(2) + " E_min=" + E_min.toFixed(6) + " bind=" + bind.toFixed(4));
+        if (sweepIdx + 1 < sweepDistances.length) {
+          startSweepPoint(sweepIdx + 1);
+        } else {
+          sweepDone = true;
+          console.log("=== Sweep complete ===");
+          for (const r of sweepResults) console.log("d=" + r.d.toFixed(2) + " E=" + r.E_min.toFixed(6) + " bind=" + r.bind.toFixed(4));
+        }
       }
     }).catch((e) => {
       gpuError = e.message || String(e);
@@ -636,8 +667,8 @@ function draw() {
         // 4 electrons: red (Li inner 0), green (Li inner 1), blue (Li outer), white (H)
         const u0 = 500 * sliceData[0 * SS * SS + b];
         const u1 = 500 * sliceData[1 * SS * SS + b];
-        const u2 = 500 * sliceData[2 * SS * SS + b];
-        const u3 = 500 * sliceData[3 * SS * SS + b];
+        const u2 = 2000 * sliceData[2 * SS * SS + b];
+        const u3 = 2000 * sliceData[3 * SS * SS + b];
         const ri = Math.min(255, Math.floor(u0 + u3));
         const gi = Math.min(255, Math.floor(u1 + u3));
         const bi = Math.min(255, Math.floor(u2 + u3));
@@ -654,15 +685,45 @@ function draw() {
     }
     updatePixels();
 
-    // Line plots
-    const lb = 4 * SS * SS;
-    for (let i = 1; i < NN - 10; i++) {
-      for (let m = 0; m < 4; m++) {
-        const col = m === 0 ? [255, 100, 100] : m === 1 ? [100, 255, 100] : m === 2 ? [100, 100, 255] : [255, 255, 255];
-        fill(col[0], col[1], col[2]); ellipse(PX * i, 300 - 100 * sliceData[lb + m * SS + i], 2);
+    // Ridge plot: density on parallel lines above bond axis
+    const nLines = 10;
+    const jStep = 4;       // grid spacing between lines
+    const baseY = 380;     // bottom baseline on canvas
+    const lineSpacing = 18; // vertical spacing between ridge lines
+    const scale = 3000;    // density amplitude scale
+    for (let L = 0; L < nLines; L++) {
+      const jOff = N2 - L * jStep;  // j = N2, N2-4, N2-8, ...
+      if (jOff < 1) break;
+      const yBase = baseY - L * lineSpacing;
+      const alpha = Math.max(60, 255 - L * 20);
+      // draw filled ridge
+      noStroke(); fill(0);
+      beginShape();
+      vertex(PX, yBase);
+      for (let i = 1; i < NN; i++) {
+        let tot = 0;
+        for (let m = 0; m < 4; m++) {
+          const v = sliceData[m * SS * SS + i * SS + jOff];
+          tot += v * v;
+        }
+        vertex(PX * i, yBase - scale * tot);
       }
-      fill(0, 0, 255); ellipse(PX * i, 300 - 30 * sliceData[lb + 12 * SS + i], 3);
+      vertex(PX * (NN - 1), yBase);
+      endShape(CLOSE);
+      // draw line on top
+      stroke(100, 180, 255, alpha); strokeWeight(1); noFill();
+      beginShape();
+      for (let i = 1; i < NN; i++) {
+        let tot = 0;
+        for (let m = 0; m < 4; m++) {
+          const v = sliceData[m * SS * SS + i * SS + jOff];
+          tot += v * v;
+        }
+        vertex(PX * i, yBase - scale * tot);
+      }
+      endShape();
     }
+    noStroke();
   }
 
   // Draw nuclear positions
@@ -673,15 +734,19 @@ function draw() {
   noStroke();
 
   fill(255);
-  text("LiH 4e | " + NN + "^3, " + (hv * NN).toFixed(0) + " au box, d=" + d_au.toFixed(2) + " au, nuc=" + nucRepulsion.toFixed(3), 5, 20);
-  text("step " + tStep + "/" + STEPS_PHASE + "  E=" + E.toFixed(6) + "  min=" + (isFinite(E_min) ? E_min.toFixed(6) : "---"), 5, 35);
+  text("LiH sweep " + (sweepIdx+1) + "/" + sweepDistances.length + " | d=" + d_au.toFixed(2) + " au, " + NN + "^3", 5, 20);
+  text("step " + tStep + "/" + STEPS_PER_POINT + "  E=" + E.toFixed(6) + "  min=" + (isFinite(E_min) ? E_min.toFixed(6) : "---"), 5, 35);
   if (lastMs > 0) text((lastMs / STEPS_PER_FRAME).toFixed(1) + "ms/step", 300, 35);
 
-  if (phase === 3) {
-    fill(200, 100, 100);
-    textSize(11);
-    const bind = E_min - E_Li_ref - E_H_ref;
-    text("E_min=" + E_min.toFixed(4) + "  bind=" + bind.toFixed(4) + " Ha  (Li=" + E_Li_ref + " H=" + E_H_ref + ")", 10, 55);
+  // Show completed sweep results
+  if (sweepResults.length > 0) {
+    fill(200, 180, 100); textSize(10);
+    text("d(au)   E_min      bind(Ha)", 10, 55);
     textSize(9);
+    for (let r = 0; r < sweepResults.length; r++) {
+      const sr = sweepResults[r];
+      fill(sr.bind < 0 ? [100, 255, 100] : [255, 100, 100]);
+      text(sr.d.toFixed(2) + "    " + sr.E_min.toFixed(6) + "   " + sr.bind.toFixed(4), 10, 70 + r * 14);
+    }
   }
 }
