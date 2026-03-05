@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>CO2 — Quantum Simulation</title>
+  <style>
+    body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #000; overflow: hidden; }
+    canvas { border: none; }
+  </style>
+</head>
+<body>
+  <script>
+    window.onerror = function(msg, url, line) {
+      document.body.style.color = 'red';
+      document.body.innerHTML = '<pre>ERROR: ' + msg + '\nLine: ' + line + '\nFile: ' + url + '</pre>';
+    };
+
+    // CO2: O=C=O linear, C-O bond = 1.162 A = 2.196 au
+    (function() {
+      var N = 200, scr = 10;
+      var ppau = N / scr;
+      var bond = 2.196;
+      var c = Math.round(N / 2);
+      var dx = Math.round(bond * ppau);
+
+      window.USER_ATOMS = [
+        { i: c - dx, j: c, Z: 2, el: 'O' },
+        { i: c,      j: c, Z: 4, el: 'C' },
+        { i: c + dx, j: c, Z: 2, el: 'O' },
+        { i: c, j: c, Z: 0, el: '' },
+        { i: c, j: c, Z: 0, el: '' }
+      ];
+      window.USER_Z = [2, 4, 2, 0, 0];
+      window.USER_RC = [0.5, 0.4, 0.5, 0, 0];
+      window.USER_SCREEN = scr;
+      window.USER_STEPS = 20000;
+
+      var s = document.createElement('script');
+      s.src = 'molecule.js?t=' + Date.now();
+      s.onerror = function() {
+        document.body.style.color = 'red';
+        document.body.innerHTML = '<pre>Failed to load molecule.js</pre>';
+      };
+      s.onload = function() {
+        var p5s = document.createElement('script');
+        p5s.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+        document.body.appendChild(p5s);
+      };
+      document.body.appendChild(s);
+    })();
+  </script>
+</body>
+</html>

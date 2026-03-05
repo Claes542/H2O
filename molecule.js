@@ -1,18 +1,19 @@
 // Molecule Quantum Simulation — WebGPU Compute Shaders
-// Up to 5 atoms placed interactively, planar geometry
+// Up to 10 atoms placed interactively, 3D geometry
 
-const NN = 200;
+const NN = window.USER_NN || 200;
 const S = NN + 1;
 const S2 = S * S;
 const S3 = S * S * S;
 const N2 = Math.round(NN / 2);
-const NELEC = 5;
-const NRED = 8;  // 5 norms + T + V_eK + V_ee
-const r_cut = window.USER_RC || [0.5, 0.3, 0.1, 0, 0];
-while (r_cut.length < 5) r_cut.push(0);
-let R_out = 2.0;   // au, outer w cutoff
+const MAX_ATOMS = 10;
 const _uz = window.USER_Z || [2, 3, 1, 0, 0];
-while (_uz.length < 5) _uz.push(0);
+while (_uz.length < MAX_ATOMS) _uz.push(0);
+const NELEC = _uz.filter(z => z > 0).length || 3;
+const NRED = NELEC + 3;  // N norms + T + V_eK + V_ee
+const r_cut = window.USER_RC || [0.5, 0.3, 0.1, 0, 0];
+while (r_cut.length < MAX_ATOMS) r_cut.push(0);
+let R_out = 2.0;   // au, outer w cutoff
 let Z = [..._uz];
 let Ne = [..._uz];
 const Z_orig = [..._uz];
@@ -26,9 +27,9 @@ const _atoms = window.USER_ATOMS || [
   { i: 100, j: 100, Z: 0, el: '' },
   { i: 100, j: 100, Z: 0, el: '' }
 ];
-while (_atoms.length < 5) _atoms.push({ i: N2, j: N2, Z: 0, el: '' });
+while (_atoms.length < MAX_ATOMS) _atoms.push({ i: N2, j: N2, Z: 0, el: '' });
 const atomLabels = _atoms.map(a => a.el);
-let nucPos = _atoms.map(a => [a.i, a.j, N2]);
+let nucPos = _atoms.map(a => [a.i, a.j, a.k !== undefined ? a.k : N2]);
 const molNucPos = nucPos.map(p => [...p]);
 
 let E_min = Infinity;
@@ -43,17 +44,20 @@ const NORM_INTERVAL = 20;
 
 // ===== WGSL SHADERS =====
 
+// Param struct: 16 common + 10 I + 10 J + 10 K + 10 Z + 10 rc + 2 pad = 68 fields = 272 bytes
+const PARAM_BYTES = 272;
 const paramStructWGSL = `
 struct P {
   NN: u32, S: u32, S2: u32, S3: u32,
-  N2: u32, h0I: u32, h1I: u32, h2I: u32,
+  N2: u32, voronoi: f32, R_out: f32, TWO_PI: f32,
   h: f32, h2: f32, inv_h: f32, inv_h2: f32,
-  dt: f32, half_d: f32, h3I: u32, h4I: u32,
-  h3: f32, Z0: f32, Z1: f32, Z2: f32,
-  h0J: u32, h1J: u32, h2J: u32, R_out: f32,
-  rc0: f32, rc1: f32, rc2: f32, voronoi: f32,
-  TWO_PI: f32, h3J: u32, h4J: u32, Z3: f32,
-  Z4: f32, rc3: f32, rc4: f32, _pad: f32
+  dt: f32, half_d: f32, h3: f32, _pad0: f32,
+  ${Array.from({length: MAX_ATOMS}, (_, i) => 'h' + i + 'I: u32').join(', ')},
+  ${Array.from({length: MAX_ATOMS}, (_, i) => 'h' + i + 'J: u32').join(', ')},
+  ${Array.from({length: MAX_ATOMS}, (_, i) => 'h' + i + 'K: u32').join(', ')},
+  ${Array.from({length: MAX_ATOMS}, (_, i) => 'Z' + i + ': f32').join(', ')},
+  ${Array.from({length: MAX_ATOMS}, (_, i) => 'rc' + i + ': f32').join(', ')},
+  _pad1: f32, _pad2: f32
 }`;
 
 const updateWGSL = `
@@ -82,7 +86,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let id = i * p.S2 + j * p.S + k;
 
   var cm: f32 = 0.0;
-  cm -= Ui[0u * p.S3 + id] + Ui[1u * p.S3 + id] + Ui[2u * p.S3 + id] + Ui[3u * p.S3 + id] + Ui[4u * p.S3 + id];
+  cm -= ${Array.from({length: NELEC}, (_, i) => `Ui[${i}u * p.S3 + id]`).join(' + ')};
   cm += Ui[o + id];
   cm = 0.5 * (cm + Ui[o + id]);
 
@@ -98,53 +102,19 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   var nw = wc + 0.25 * p.dt * abs(cm) * lw + 5.0 * p.dt * cm * sqrt(gx * gx + gy * gy + gz * gz);
   nw = clamp(nw, 0.0, 1.0);
 
-  let dkk = f32(k) - f32(p.N2);
-
-  let d0i = f32(i) - f32(p.h0I); let d0j = f32(j) - f32(p.h0J);
-  let r0 = sqrt(d0i*d0i + d0j*d0j + dkk*dkk) * p.h;
-  if (r0 < p.rc0) {
-    let edge0 = p.rc0 - 3.0 * p.h;
-    let t = clamp((r0 - edge0) / (p.rc0 - edge0), 0.0, 1.0);
+${Array.from({length: NELEC}, (_, n) => `  let d${n}i = f32(i) - f32(p.h${n}I); let d${n}j = f32(j) - f32(p.h${n}J); let d${n}k = f32(k) - f32(p.h${n}K);
+  let r${n} = sqrt(d${n}i*d${n}i + d${n}j*d${n}j + d${n}k*d${n}k) * p.h;
+  if (r${n} < p.rc${n}) {
+    let edge${n} = p.rc${n} - 3.0 * p.h;
+    let t = clamp((r${n} - edge${n}) / (p.rc${n} - edge${n}), 0.0, 1.0);
     nw = min(nw, t * t * (3.0 - 2.0 * t));
-  }
+  }`).join('\n\n')}
 
-  let d1i = f32(i) - f32(p.h1I); let d1j = f32(j) - f32(p.h1J);
-  let r1 = sqrt(d1i*d1i + d1j*d1j + dkk*dkk) * p.h;
-  if (r1 < p.rc1) {
-    let edge1 = p.rc1 - 3.0 * p.h;
-    let t = clamp((r1 - edge1) / (p.rc1 - edge1), 0.0, 1.0);
-    nw = min(nw, t * t * (3.0 - 2.0 * t));
-  }
-
-  let d2i = f32(i) - f32(p.h2I); let d2j = f32(j) - f32(p.h2J);
-  let r2 = sqrt(d2i*d2i + d2j*d2j + dkk*dkk) * p.h;
-  if (r2 < p.rc2) {
-    let edge2 = p.rc2 - 3.0 * p.h;
-    let t = clamp((r2 - edge2) / (p.rc2 - edge2), 0.0, 1.0);
-    nw = min(nw, t * t * (3.0 - 2.0 * t));
-  }
-
-  let d3i = f32(i) - f32(p.h3I); let d3j = f32(j) - f32(p.h3J);
-  let r3 = sqrt(d3i*d3i + d3j*d3j + dkk*dkk) * p.h;
-  if (r3 < p.rc3) {
-    let edge3 = p.rc3 - 3.0 * p.h;
-    let t = clamp((r3 - edge3) / (p.rc3 - edge3), 0.0, 1.0);
-    nw = min(nw, t * t * (3.0 - 2.0 * t));
-  }
-
-  let d4i = f32(i) - f32(p.h4I); let d4j = f32(j) - f32(p.h4J);
-  let r4 = sqrt(d4i*d4i + d4j*d4j + dkk*dkk) * p.h;
-  if (r4 < p.rc4) {
-    let edge4 = p.rc4 - 3.0 * p.h;
-    let t = clamp((r4 - edge4) / (p.rc4 - edge4), 0.0, 1.0);
-    nw = min(nw, t * t * (3.0 - 2.0 * t));
-  }
-
-  // Voronoi restriction: w=0 if point is closer to another nucleus
+  // Voronoi restriction
   if (p.voronoi > 0.5) {
     var rm: f32;
-    if (m == 0u) { rm = r0; } else if (m == 1u) { rm = r1; } else if (m == 2u) { rm = r2; } else if (m == 3u) { rm = r3; } else { rm = r4; }
-    if ((m != 0u && p.Z0 > 0.0 && r0 < rm) || (m != 1u && p.Z1 > 0.0 && r1 < rm) || (m != 2u && p.Z2 > 0.0 && r2 < rm) || (m != 3u && p.Z3 > 0.0 && r3 < rm) || (m != 4u && p.Z4 > 0.0 && r4 < rm)) { nw = 0.0; }
+    ${Array.from({length: NELEC}, (_, i) => `${i === 0 ? 'if' : 'else if'} (m == ${i}u) { rm = r${i}; }`).join(' ')}
+    if (${Array.from({length: NELEC}, (_, i) => `(m != ${i}u && p.Z${i} > 0.0 && r${i} < rm)`).join(' || ')}) { nw = 0.0; }
   }
 
   Wo[o + id] = nw;
@@ -161,12 +131,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     + p.dt * (K[id] - 2.0 * Pi[o + id]) * uc * wc;
 
   let Pc = Pi[o + id];
-  let u0 = Ui[0u * p.S3 + id];
-  let u1 = Ui[1u * p.S3 + id];
-  let u2 = Ui[2u * p.S3 + id];
-  let u3 = Ui[3u * p.S3 + id];
-  let u4 = Ui[4u * p.S3 + id];
-  var rho: f32 = p.Z0 * u0*u0 + p.Z1 * u1*u1 + p.Z2 * u2*u2 + p.Z3 * u3*u3 + p.Z4 * u4*u4;
+${Array.from({length: NELEC}, (_, i) => `  let u${i} = Ui[${i}u * p.S3 + id];`).join('\n')}
+  var rho: f32 = ${Array.from({length: NELEC}, (_, i) => `p.Z${i} * u${i}*u${i}`).join(' + ')};
   let self_u = Ui[o + id];
   rho -= self_u * self_u;
 
@@ -188,7 +154,7 @@ ${paramStructWGSL}
 @group(0) @binding(4) var<storage, read> K: array<f32>;
 @group(0) @binding(5) var<storage, read_write> partials: array<f32>;
 
-var<workgroup> sn: array<f32, 1024>;
+var<workgroup> sn: array<f32, ${NRED * 128}>;
 
 @compute @workgroup_size(128)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>,
@@ -197,7 +163,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>,
   let NM = p.NN - 1u;
   let tot = NM * NM * NM;
 
-  for (var x: u32 = 0u; x < 8u; x++) { sn[lid * 8u + x] = 0.0; }
+  for (var x: u32 = 0u; x < ${NRED}u; x++) { sn[lid * ${NRED}u + x] = 0.0; }
 
   if (gid.x < tot) {
     let k = (gid.x % NM) + 1u;
@@ -208,12 +174,12 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>,
     var T: f32 = 0.0;
     var VeK: f32 = 0.0;
     var Vee: f32 = 0.0;
-    for (var m: u32 = 0u; m < 5u; m++) {
+    for (var m: u32 = 0u; m < ${NELEC}u; m++) {
       let o = m * p.S3;
       let v = U[o + id];
       var Zm: f32;
-      if (m == 0u) { Zm = p.Z0; } else if (m == 1u) { Zm = p.Z1; } else if (m == 2u) { Zm = p.Z2; } else if (m == 3u) { Zm = p.Z3; } else { Zm = p.Z4; }
-      sn[lid * 8u + m] = v * v * p.h3;
+      ${Array.from({length: NELEC}, (_, i) => `${i === 0 ? 'if' : 'else if'} (m == ${i}u) { Zm = p.Z${i}; }`).join(' ')} else { Zm = 0.0; }
+      sn[lid * ${NRED}u + m] = v * v * p.h3;
       if (W[o + id] > 0.2) {
         let a = U[o + id + p.S2] - v;
         let b = U[o + id + p.S] - v;
@@ -223,25 +189,25 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>,
       VeK -= Zm * K[id] * v * v * p.h3;
       Vee += Zm * Pv[o + id] * v * v * p.h3;
     }
-    sn[lid * 8u + 5u] = T;
-    sn[lid * 8u + 6u] = VeK;
-    sn[lid * 8u + 7u] = Vee;
+    sn[lid * ${NRED}u + ${NELEC}u] = T;
+    sn[lid * ${NRED}u + ${NELEC + 1}u] = VeK;
+    sn[lid * ${NRED}u + ${NELEC + 2}u] = Vee;
   }
 
   workgroupBarrier();
 
   for (var s: u32 = 64u; s > 0u; s >>= 1u) {
     if (lid < s) {
-      for (var x: u32 = 0u; x < 8u; x++) {
-        sn[lid * 8u + x] += sn[(lid + s) * 8u + x];
+      for (var x: u32 = 0u; x < ${NRED}u; x++) {
+        sn[lid * ${NRED}u + x] += sn[(lid + s) * ${NRED}u + x];
       }
     }
     workgroupBarrier();
   }
 
   if (lid == 0u) {
-    let base = wgid.x * 8u;
-    for (var x: u32 = 0u; x < 8u; x++) {
+    let base = wgid.x * ${NRED}u;
+    for (var x: u32 = 0u; x < ${NRED}u; x++) {
       partials[base + x] = sn[x];
     }
   }
@@ -254,15 +220,15 @@ struct NWG { count: u32 }
 @group(0) @binding(1) var<storage, read_write> sums: array<f32>;
 @group(0) @binding(2) var<uniform> nwg: NWG;
 
-var<workgroup> wg: array<f32, 1024>;
+var<workgroup> wg: array<f32, ${NRED * 128}>;
 
 @compute @workgroup_size(128)
 fn main(@builtin(local_invocation_index) lid: u32) {
-  for (var x: u32 = 0u; x < 8u; x++) { wg[lid * 8u + x] = 0.0; }
+  for (var x: u32 = 0u; x < ${NRED}u; x++) { wg[lid * ${NRED}u + x] = 0.0; }
 
   for (var i: u32 = lid; i < nwg.count; i += 128u) {
-    for (var x: u32 = 0u; x < 8u; x++) {
-      wg[lid * 8u + x] += partials[i * 8u + x];
+    for (var x: u32 = 0u; x < ${NRED}u; x++) {
+      wg[lid * ${NRED}u + x] += partials[i * ${NRED}u + x];
     }
   }
 
@@ -270,15 +236,15 @@ fn main(@builtin(local_invocation_index) lid: u32) {
 
   for (var s: u32 = 64u; s > 0u; s >>= 1u) {
     if (lid < s) {
-      for (var x: u32 = 0u; x < 8u; x++) {
-        wg[lid * 8u + x] += wg[(lid + s) * 8u + x];
+      for (var x: u32 = 0u; x < ${NRED}u; x++) {
+        wg[lid * ${NRED}u + x] += wg[(lid + s) * ${NRED}u + x];
       }
     }
     workgroupBarrier();
   }
 
   if (lid == 0u) {
-    for (var x: u32 = 0u; x < 8u; x++) {
+    for (var x: u32 = 0u; x < ${NRED}u; x++) {
       sums[x] = wg[x];
     }
   }
@@ -302,7 +268,7 @@ fn main(@builtin(global_invocation_id) g: vec3<u32>) {
   let i = (g.x / (NM * NM)) + 1u;
   let id = i * p.S2 + j * p.S + k;
 
-  for (var m: u32 = 0u; m < 5u; m++) {
+  for (var m: u32 = 0u; m < ${NELEC}u; m++) {
     let n = sums[m];
     if (n > 0.0) { U[m * p.S3 + id] *= inverseSqrt(n); }
   }
@@ -325,20 +291,20 @@ fn main(@builtin(global_invocation_id) g: vec3<u32>) {
   let SS = p.NN + 1u;
   if (i > p.NN || j > p.NN) { return; }
 
-  for (var m: u32 = 0u; m < 5u; m++) {
+  for (var m: u32 = 0u; m < ${NELEC}u; m++) {
     let idx = m * p.S3 + i * p.S2 + j * p.S + p.N2;
     out[m * SS * SS + i * SS + j] = select(0.0, U[idx], W[idx] > 0.0);
   }
 
   if (j == 0u) {
-    let b = 5u * SS * SS;
-    for (var m: u32 = 0u; m < 5u; m++) {
+    let b = ${NELEC}u * SS * SS;
+    for (var m: u32 = 0u; m < ${NELEC}u; m++) {
       out[b + m * SS + i] = W[m * p.S3 + i * p.S2 + (p.N2 + 8u) * p.S + p.N2];
       let uIdx = m * p.S3 + i * p.S2 + (p.N2 + 5u) * p.S + p.N2;
-      out[b + 5u * SS + m * SS + i] = U[uIdx] * W[uIdx];
-      out[b + 10u * SS + m * SS + i] = Pv[m * p.S3 + i * p.S2 + p.N2 * p.S + p.N2];
+      out[b + ${NELEC}u * SS + m * SS + i] = U[uIdx] * W[uIdx];
+      out[b + ${NELEC * 2}u * SS + m * SS + i] = Pv[m * p.S3 + i * p.S2 + p.N2 * p.S + p.N2];
     }
-    out[b + 15u * SS + i] = K[i * p.S2 + p.N2 * p.S + p.N2];
+    out[b + ${NELEC * 3}u * SS + i] = K[i * p.S2 + p.N2 * p.S + p.N2];
   }
 }
 `;
@@ -358,7 +324,7 @@ let phase = 0, phaseSteps = 0;
 const TOTAL_STEPS = window.USER_STEPS || 20000;
 let addNucRepulsion = true;
 
-const SLICE_SIZE = (5 * S * S + 16 * S) * 4;
+const SLICE_SIZE = (NELEC * S * S + (3 * NELEC + 1) * S) * 4;
 const WG_UPDATE = Math.ceil(INTERIOR / 256);
 const WG_REDUCE = Math.ceil(INTERIOR / 128);
 const WG_NORM = Math.ceil(INTERIOR / 256);
@@ -372,6 +338,21 @@ function smoothCut(r, rc) {
   const edge = rc - 3 * hv;
   const t = Math.max(0, Math.min(1, (r - edge) / (rc - edge)));
   return t * t * (3 - 2 * t);
+}
+
+function fillParamsBuf(pb) {
+  const pu = new Uint32Array(pb);
+  const pf = new Float32Array(pb);
+  pu[0] = NN; pu[1] = S; pu[2] = S2; pu[3] = S3;
+  pu[4] = N2; pf[5] = 1.0; pf[6] = R_out; pf[7] = 2 * Math.PI;
+  pf[8] = hv; pf[9] = h2v; pf[10] = 1 / hv; pf[11] = 1 / h2v;
+  pf[12] = dtv; pf[13] = half_dv; pf[14] = h3v; pf[15] = 0;
+  for (let n = 0; n < MAX_ATOMS; n++) pu[16 + n] = nucPos[n][0];
+  for (let n = 0; n < MAX_ATOMS; n++) pu[26 + n] = nucPos[n][1];
+  for (let n = 0; n < MAX_ATOMS; n++) pu[36 + n] = nucPos[n][2];
+  for (let n = 0; n < MAX_ATOMS; n++) pf[46 + n] = Z[n];
+  for (let n = 0; n < MAX_ATOMS; n++) pf[56 + n] = r_cut[n];
+  pf[66] = 0; pf[67] = 0;
 }
 
 function uploadInitialData() {
@@ -437,18 +418,8 @@ function uploadInitialData() {
 }
 
 function updateParamsBuf() {
-  const pb = new ArrayBuffer(144);
-  const pu = new Uint32Array(pb);
-  const pf = new Float32Array(pb);
-  pu[0] = NN; pu[1] = S; pu[2] = S2; pu[3] = S3;
-  pu[4] = N2; pu[5] = nucPos[0][0]; pu[6] = nucPos[1][0]; pu[7] = nucPos[2][0];
-  pf[8] = hv; pf[9] = h2v; pf[10] = 1 / hv; pf[11] = 1 / h2v;
-  pf[12] = dtv; pf[13] = half_dv; pu[14] = nucPos[3][0]; pu[15] = nucPos[4][0];
-  pf[16] = h3v; pf[17] = Z[0]; pf[18] = Z[1]; pf[19] = Z[2];
-  pu[20] = nucPos[0][1]; pu[21] = nucPos[1][1]; pu[22] = nucPos[2][1]; pf[23] = R_out;
-  pf[24] = r_cut[0]; pf[25] = r_cut[1]; pf[26] = r_cut[2]; pf[27] = 1.0;
-  pf[28] = 2 * Math.PI; pu[29] = nucPos[3][1]; pu[30] = nucPos[4][1]; pf[31] = Z[3];
-  pf[32] = Z[4]; pf[33] = r_cut[3]; pf[34] = r_cut[4]; pf[35] = 0;
+  const pb = new ArrayBuffer(PARAM_BYTES);
+  fillParamsBuf(pb);
   device.queue.writeBuffer(paramsBuf, 0, pb);
 }
 
@@ -521,19 +492,9 @@ async function initGPU() {
     numWGBuf = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
     device.queue.writeBuffer(numWGBuf, 0, new Uint32Array([WG_REDUCE, 0, 0, 0]));
 
-    const pb = new ArrayBuffer(144);
-    const pu = new Uint32Array(pb);
-    const pf = new Float32Array(pb);
-    pu[0] = NN; pu[1] = S; pu[2] = S2; pu[3] = S3;
-    pu[4] = N2; pu[5] = nucPos[0][0]; pu[6] = nucPos[1][0]; pu[7] = nucPos[2][0];
-    pf[8] = hv; pf[9] = h2v; pf[10] = 1 / hv; pf[11] = 1 / h2v;
-    pf[12] = dtv; pf[13] = half_dv; pu[14] = nucPos[3][0]; pu[15] = nucPos[4][0];
-    pf[16] = h3v; pf[17] = Z[0]; pf[18] = Z[1]; pf[19] = Z[2];
-    pu[20] = nucPos[0][1]; pu[21] = nucPos[1][1]; pu[22] = nucPos[2][1]; pf[23] = R_out;
-    pf[24] = r_cut[0]; pf[25] = r_cut[1]; pf[26] = r_cut[2]; pf[27] = 1.0;
-    pf[28] = 2 * Math.PI; pu[29] = nucPos[3][1]; pu[30] = nucPos[4][1]; pf[31] = Z[3];
-    pf[32] = Z[4]; pf[33] = r_cut[3]; pf[34] = r_cut[4]; pf[35] = 0;
-    paramsBuf = device.createBuffer({ size: 144, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+    const pb = new ArrayBuffer(PARAM_BYTES);
+    fillParamsBuf(pb);
+    paramsBuf = device.createBuffer({ size: PARAM_BYTES, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
     device.queue.writeBuffer(paramsBuf, 0, pb);
 
     uploadInitialData();
@@ -669,9 +630,9 @@ async function doSteps(n) {
   await sumsReadBuf.mapAsync(GPUMapMode.READ);
   const sumsData = new Float32Array(sumsReadBuf.getMappedRange().slice(0));
   sumsReadBuf.unmap();
-  E_T = sumsData[5];
-  E_eK = sumsData[6];
-  E_ee = sumsData[7];
+  E_T = sumsData[NELEC];
+  E_eK = sumsData[NELEC + 1];
+  E_ee = sumsData[NELEC + 2];
 
   await sliceReadBuf.mapAsync(GPUMapMode.READ);
   sliceData = new Float32Array(sliceReadBuf.getMappedRange().slice(0));
@@ -732,7 +693,7 @@ function draw() {
       computing = false;
       phaseSteps += STEPS_PER_FRAME;
       if (phaseSteps >= 5000) {
-        device.queue.writeBuffer(paramsBuf, 27 * 4, new Float32Array([0.0]));
+        device.queue.writeBuffer(paramsBuf, 5 * 4, new Float32Array([0.0]));
       }
       if (isFinite(E) && E < E_min) E_min = E;
 
@@ -755,8 +716,9 @@ function draw() {
     for (let p = 0; p < W * H * 4; p += 4) {
       pixels[p] = 0; pixels[p+1] = 0; pixels[p+2] = 0; pixels[p+3] = 255;
     }
-    // 5 electrons mapped to RGB: 0=red, 1=green, 2=blue, 3=yellow(R+G), 4=magenta(R+B)
-    const eRGB = [[1,0,0],[0,1,0],[0,0,1],[1,1,0],[1,0,1]];
+    // Element colors: H=white, O=red, N=blue, C=green
+    const zRGB = {1:[1,1,1], 2:[1,0,0], 3:[0,0.4,1], 4:[0,1,0]};
+    const eRGB = Z.slice(0, NELEC).map(z => zRGB[z] || [0.5,0.5,0.5]);
     for (let i = 1; i < NN; i++) {
       const px0 = Math.floor(PX * i * d);
       const px1 = Math.floor(PX * (i + 1) * d);
@@ -765,7 +727,7 @@ function draw() {
         const py1 = Math.floor(PX * (j + 1) * d);
         const b = i * SS + j;
         let ri = 0, gi = 0, bi = 0;
-        for (let m = 0; m < 5; m++) {
+        for (let m = 0; m < NELEC; m++) {
           const ev = 500 * sliceData[m * SS * SS + b];
           ri += ev * eRGB[m][0];
           gi += ev * eRGB[m][1];
@@ -788,17 +750,18 @@ function draw() {
     updatePixels();
 
     // Line plots
-    const lb = 5 * SS * SS;
-    const colors = [[255,0,0],[0,255,0],[0,100,255],[255,255,0],[255,0,255]];
+    const lb = NELEC * SS * SS;
+    const zCol = {1:[255,255,255], 2:[255,0,0], 3:[0,100,255], 4:[0,255,0]};
+    const colors = Z.slice(0, NELEC).map(z => zCol[z] || [128,128,128]);
     for (let i = 1; i < NN - 10; i++) {
-      for (let m = 0; m < 5; m++) {
+      for (let m = 0; m < NELEC; m++) {
         if (Z[m] === 0) continue;
         fill(255); ellipse(PX * i, 300 - 100 * sliceData[lb + m * SS + i], 2);
         fill(colors[m][0], colors[m][1], colors[m][2]);
-        ellipse(PX * i, 300 - 100 * sliceData[lb + 5 * SS + m * SS + i], 3);
-        fill(0, 255, 255, 200); ellipse(PX * i, 300 - 30 * sliceData[lb + 10 * SS + m * SS + i], 2);
+        ellipse(PX * i, 300 - 100 * sliceData[lb + NELEC * SS + m * SS + i], 3);
+        fill(0, 255, 255, 200); ellipse(PX * i, 300 - 30 * sliceData[lb + 2 * NELEC * SS + m * SS + i], 2);
       }
-      fill(0, 0, 255, 200); ellipse(PX * i, 300 - 30 * sliceData[lb + 15 * SS + i], 2);
+      fill(0, 0, 255, 200); ellipse(PX * i, 300 - 30 * sliceData[lb + 3 * NELEC * SS + i], 2);
     }
   }
 

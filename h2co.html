@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>H2CO Formaldehyde — Quantum Simulation</title>
+  <style>
+    body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #000; overflow: hidden; }
+    canvas { border: none; }
+  </style>
+</head>
+<body>
+  <script>
+    window.onerror = function(msg, url, line) {
+      document.body.style.color = 'red';
+      document.body.innerHTML = '<pre>ERROR: ' + msg + '\nLine: ' + line + '\nFile: ' + url + '</pre>';
+    };
+
+    // H2CO formaldehyde — planar C2v
+    // C=O bond: 1.203 A = 2.273 au
+    // C-H bond: 1.101 A = 2.081 au
+    // H-C-H angle: 116.5 deg  ->  H-C-O angle: 121.75 deg
+    (function() {
+      var N = 200, scr = 10, N2 = Math.round(N / 2);
+      var hv = scr / N;  // 0.05 au/point
+      var bondCO = 2.273;  // au
+      var bondCH = 2.081;  // au
+      var hcoAngle = 121.75 * Math.PI / 180;
+
+      var cx = N2, cy = N2;  // C at center
+      var dCO = Math.round(bondCO / hv);  // ~45 grid points
+      var dCH = Math.round(bondCH / hv);  // ~42 grid points
+
+      // O to the right of C along +i axis
+      var oi = cx + dCO;
+
+      // H atoms at +/-121.75 deg from C->O direction
+      var h1i = Math.round(cx + dCH * Math.cos(hcoAngle));
+      var h1j = Math.round(cy + dCH * Math.sin(hcoAngle));
+      var h2i = Math.round(cx + dCH * Math.cos(-hcoAngle));
+      var h2j = Math.round(cy + dCH * Math.sin(-hcoAngle));
+
+      window.USER_ATOMS = [
+        { i: oi,  j: cy,  Z: 2, el: 'O' },   // O (red)
+        { i: cx,  j: cy,  Z: 4, el: 'C' },   // C (green)
+        { i: h1i, j: h1j, Z: 1, el: 'H' },   // H (blue)
+        { i: h2i, j: h2j, Z: 1, el: 'H' },   // H (yellow)
+        { i: N2, j: N2, Z: 0, el: '' }
+      ];
+      window.USER_Z = [2, 4, 1, 1, 0];
+      window.USER_RC = [0.5, 0.4, 0.1, 0.1, 0];
+      window.USER_SCREEN = scr;
+      window.USER_STEPS = 20000;
+
+      // Log geometry
+      var a = window.USER_ATOMS;
+      for (var n = 0; n < 4; n++) {
+        console.log(a[n].el + ': i=' + a[n].i + ' j=' + a[n].j +
+          ' (' + (a[n].i * hv).toFixed(2) + ',' + (a[n].j * hv).toFixed(2) + ') au');
+      }
+    })();
+
+    var s = document.createElement('script');
+    s.src = 'molecule.js?t=' + Date.now();
+    s.onerror = function() {
+      document.body.innerHTML = '<pre style="color:red">Failed to load molecule.js</pre>';
+    };
+    s.onload = function() {
+      var p5s = document.createElement('script');
+      p5s.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+      document.body.appendChild(p5s);
+    };
+    document.body.appendChild(s);
+  </script>
+</body>
+</html>

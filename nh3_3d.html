@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>NH3 Ammonia — 3D Quantum Simulation</title>
+  <style>
+    body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #000; overflow: hidden; }
+    canvas { border: none; }
+  </style>
+</head>
+<body>
+  <script>
+    window.onerror = function(msg, url, line) {
+      document.body.style.color = 'red';
+      document.body.innerHTML = '<pre>ERROR: ' + msg + '\nLine: ' + line + '\nFile: ' + url + '</pre>';
+    };
+
+    // NH3 ammonia: pyramidal C3v
+    // N-H bond = 1.012 A = 1.912 au, H-N-H angle = 107.8 deg
+    (function() {
+      var N = 200, scr = 10, N2 = Math.round(N / 2);
+      var hv = scr / N;
+      var bond = 1.912;
+      var alpha = 107.8 * Math.PI / 180;
+      var cosT = Math.sqrt((Math.cos(alpha) + 0.5) / 1.5);
+      var sinT = Math.sqrt(1 - cosT * cosT);
+      var rP = bond * sinT / hv;
+      var rA = bond * cosT / hv;
+
+      window.USER_ATOMS = [
+        { i: N2, j: N2, k: N2, Z: 3, el: 'N' },
+        { i: Math.round(N2 - rA), j: Math.round(N2 + rP), k: N2, Z: 1, el: 'H' },
+        { i: Math.round(N2 - rA), j: Math.round(N2 + rP * Math.cos(2*Math.PI/3)), k: Math.round(N2 + rP * Math.sin(2*Math.PI/3)), Z: 1, el: 'H' },
+        { i: Math.round(N2 - rA), j: Math.round(N2 + rP * Math.cos(4*Math.PI/3)), k: Math.round(N2 + rP * Math.sin(4*Math.PI/3)), Z: 1, el: 'H' },
+        { i: N2, j: N2, k: N2, Z: 0, el: '' }
+      ];
+      window.USER_Z = [3, 1, 1, 1, 0];
+      window.USER_RC = [0.3, 0.1, 0.1, 0.1, 0];
+      window.USER_SCREEN = scr;
+      window.USER_STEPS = 20000;
+    })();
+
+    // Load molecule.js (simulation), then molecule3d.js (3D rendering), then p5.js
+    var s1 = document.createElement('script');
+    s1.src = 'molecule.js?t=' + Date.now();
+    s1.onerror = function() { document.body.innerHTML = '<pre style="color:red">Failed to load molecule.js</pre>'; };
+    s1.onload = function() {
+      var s2 = document.createElement('script');
+      s2.src = 'molecule3d.js?t=' + Date.now();
+      s2.onerror = function() { document.body.innerHTML = '<pre style="color:red">Failed to load molecule3d.js</pre>'; };
+      s2.onload = function() {
+        var s3 = document.createElement('script');
+        s3.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+        document.body.appendChild(s3);
+      };
+      document.body.appendChild(s2);
+    };
+    document.body.appendChild(s1);
+  </script>
+</body>
+</html>

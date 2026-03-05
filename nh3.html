@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>NH3 Ammonia — Quantum Simulation</title>
+  <style>
+    body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #000; overflow: hidden; }
+    canvas { border: none; }
+  </style>
+</head>
+<body>
+  <script>
+    window.onerror = function(msg, url, line) {
+      document.body.style.color = 'red';
+      document.body.innerHTML = '<pre>ERROR: ' + msg + '\nLine: ' + line + '\nFile: ' + url + '</pre>';
+    };
+
+    // NH3 ammonia: pyramidal C3v
+    // N-H bond = 1.012 A = 1.912 au
+    // H-N-H angle = 107.8 deg
+    (function() {
+      var N = 200, scr = 10, N2 = Math.round(N / 2);
+      var hv = scr / N;  // 0.05 au per grid point
+      var bond = 1.912;  // N-H bond in au
+
+      // H-N-H angle -> angle between C3 axis and N-H bond
+      var alpha = 107.8 * Math.PI / 180;
+      // cos(alpha) = 1.5*cos^2(theta) - 0.5
+      var cosTheta = Math.sqrt((Math.cos(alpha) + 0.5) / 1.5);
+      var sinTheta = Math.sqrt(1 - cosTheta * cosTheta);
+
+      // Place N at center, C3 axis along i-axis
+      // H atoms form umbrella opening in -i direction
+      var rPerp = bond * sinTheta / hv;  // grid units, in j-k plane
+      var rAxial = bond * cosTheta / hv; // grid units, along i-axis
+
+      // N at grid center
+      var ni = N2, nj = N2, nk = N2;
+
+      // H1: in the midplane (k=N2), along +j direction
+      var h1i = Math.round(ni - rAxial);
+      var h1j = Math.round(nj + rPerp);
+      var h1k = N2;
+
+      // H2: 120 deg from H1 in j-k plane
+      var h2i = Math.round(ni - rAxial);
+      var h2j = Math.round(nj + rPerp * Math.cos(2 * Math.PI / 3));
+      var h2k = Math.round(nk + rPerp * Math.sin(2 * Math.PI / 3));
+
+      // H3: 240 deg from H1 in j-k plane
+      var h3i = Math.round(ni - rAxial);
+      var h3j = Math.round(nj + rPerp * Math.cos(4 * Math.PI / 3));
+      var h3k = Math.round(nk + rPerp * Math.sin(4 * Math.PI / 3));
+
+      window.USER_ATOMS = [
+        { i: ni, j: nj, k: nk, Z: 3, el: 'N' },   // N (red)
+        { i: h1i, j: h1j, k: h1k, Z: 1, el: 'H' }, // H1 (green) - in slice plane
+        { i: h2i, j: h2j, k: h2k, Z: 1, el: 'H' }, // H2 (blue)
+        { i: h3i, j: h3j, k: h3k, Z: 1, el: 'H' }, // H3 (yellow)
+        { i: N2, j: N2, k: N2, Z: 0, el: '' }
+      ];
+      window.USER_Z = [3, 1, 1, 1, 0];
+      window.USER_RC = [0.3, 0.1, 0.1, 0.1, 0];
+      window.USER_SCREEN = scr;
+      window.USER_STEPS = 20000;
+
+      // Log geometry
+      var atoms = window.USER_ATOMS;
+      for (var a = 0; a < 4; a++) {
+        console.log(atoms[a].el + ': i=' + atoms[a].i + ' j=' + atoms[a].j + ' k=' + atoms[a].k);
+      }
+
+      var s = document.createElement('script');
+      s.src = 'molecule.js?t=' + Date.now();
+      s.onerror = function() {
+        document.body.style.color = 'red';
+        document.body.innerHTML = '<pre>Failed to load molecule.js</pre>';
+      };
+      s.onload = function() {
+        var p5s = document.createElement('script');
+        p5s.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+        document.body.appendChild(p5s);
+      };
+      document.body.appendChild(s);
+    })();
+  </script>
+</body>
+</html>
