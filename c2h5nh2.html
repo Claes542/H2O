@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Ethylamine (C2H5NH2) — Quantum Simulation</title>
+  <style>
+    body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #000; overflow: hidden; flex-direction: column; }
+    canvas { border: none; }
+  </style>
+</head>
+<body>
+  <script>
+    window.onerror = function(msg, url, line) {
+      document.body.style.color = 'red';
+      document.body.innerHTML = '<pre>ERROR: ' + msg + '\nLine: ' + line + '\nFile: ' + url + '</pre>';
+    };
+
+    // Ethylamine CH3-CH2-NH2 on 200^3 grid, 14 au screen
+    // 1 au ~ 14.3 grid cells
+    // C-C ~2.9au(41cells), C-N ~2.8au(40cells), C-H ~2.1au(29cells), N-H ~1.9au(27cells)
+    var atoms = [
+      { i: 60,  j: 100, Z: 4, el: 'C' },   // C1 methyl
+      { i: 100, j: 100, Z: 4, el: 'C' },   // C2 methylene
+      { i: 136, j: 112, Z: 3, el: 'N' },   // N amine
+      { i: 35,  j: 88,  Z: 1, el: 'H' },   // H (methyl)
+      { i: 35,  j: 112, Z: 1, el: 'H' },   // H (methyl)
+      { i: 48,  j: 78,  Z: 1, el: 'H' },   // H (methyl)
+      { i: 100, j: 72,  Z: 1, el: 'H' },   // H (methylene)
+      { i: 100, j: 128, Z: 1, el: 'H' },   // H (methylene)
+      { i: 158, j: 98,  Z: 1, el: 'H' },   // H (amine)
+      { i: 158, j: 126, Z: 1, el: 'H' },   // H (amine)
+    ];
+
+    function rcForZ(z) {
+      if (z === 0) return 0;
+      if (z <= 1) return 0.1;
+      if (z === 2) return 0.5;
+      if (z === 3) return 0.3;
+      return 0.4;
+    }
+
+    window.USER_NN = 200;
+    window.USER_ATOMS = atoms;
+    window.USER_SCREEN = 14;
+    window.USER_STEPS = 20000;
+    window.USER_Z = atoms.map(function(a) { return a.Z; });
+    window.USER_RC = atoms.map(function(a) { return rcForZ(a.Z); });
+
+    var s = document.createElement('script');
+    s.src = 'molecule.js?t=' + Date.now();
+    s.onerror = function() { document.body.innerHTML = '<pre style="color:red">Failed to load molecule.js</pre>'; };
+    s.onload = function() {
+      var p5s = document.createElement('script');
+      p5s.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+      document.body.appendChild(p5s);
+    };
+    document.body.appendChild(s);
+  </script>
+</body>
+</html>

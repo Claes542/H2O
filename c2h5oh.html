@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Ethanol (C2H5OH) — Quantum Simulation</title>
+  <style>
+    body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #000; overflow: hidden; flex-direction: column; }
+    canvas { border: none; }
+  </style>
+</head>
+<body>
+  <script>
+    window.onerror = function(msg, url, line) {
+      document.body.style.color = 'red';
+      document.body.innerHTML = '<pre>ERROR: ' + msg + '\nLine: ' + line + '\nFile: ' + url + '</pre>';
+    };
+
+    // Ethanol C2H5OH on 100^3 grid, 14 au screen
+    // 1 au ~ 7.14 grid cells
+    // C-C ~2.9au(21cells), C-O ~2.7au(19cells), C-H ~2.1au(15cells), O-H ~1.8au(13cells)
+    var _NN = 200;
+    var _screenAu = 14;
+
+    var atoms = [
+      { i: 70,  j: 100, Z: 4, el: 'C' },   // C1 methyl
+      { i: 112, j: 100, Z: 4, el: 'C' },   // C2 methylene
+      { i: 146, j: 118, Z: 2, el: 'O' },   // O
+      { i: 168, j: 104, Z: 1, el: 'H' },   // H (hydroxyl)
+      { i: 44,  j: 86,  Z: 1, el: 'H' },   // H (methyl)
+      { i: 44,  j: 114, Z: 1, el: 'H' },   // H (methyl)
+      { i: 56,  j: 76,  Z: 1, el: 'H' },   // H (methyl)
+      { i: 112, j: 70,  Z: 1, el: 'H' },   // H (methylene)
+      { i: 112, j: 130, Z: 1, el: 'H' },   // H (methylene)
+    ];
+
+    function rcForZ(z) {
+      if (z === 0) return 0;
+      if (z <= 1) return 0.1;
+      if (z === 2) return 0.5;
+      if (z === 3) return 0.3;
+      return 0.4;
+    }
+
+    window.USER_NN = _NN;
+    window.USER_ATOMS = atoms;
+    window.USER_SCREEN = _screenAu;
+    window.USER_STEPS = 20000;
+    window.USER_Z = atoms.map(function(a) { return a.Z; });
+    window.USER_RC = atoms.map(function(a) { return rcForZ(a.Z); });
+
+    var s = document.createElement('script');
+    s.src = 'molecule.js?t=' + Date.now();
+    s.onerror = function() { document.body.innerHTML = '<pre style="color:red">Failed to load molecule.js</pre>'; };
+    s.onload = function() {
+      var p5s = document.createElement('script');
+      p5s.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+      document.body.appendChild(p5s);
+    };
+    document.body.appendChild(s);
+  </script>
+</body>
+</html>
