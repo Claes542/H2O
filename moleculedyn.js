@@ -43,15 +43,30 @@ const STEPS_PER_FRAME = 500;
 const NORM_INTERVAL = 20;
 
 // === Nuclear dynamics state ===
-const N_MOVE = 500;
-const DT_NUC = 5.0;
-const DAMPING = 0.95;
-const MAX_VEL = 0.005;
+const N_MOVE = 2000;        // electronic steps between nuclear moves
+const DT_NUC = 5.0;         // au (~0.12 fs)
+const DAMPING = 0.90;       // strong damping for fast relaxation
+const MAX_VEL = 0.005;      // au/au_time
 let nucVel = Array.from({length: MAX_ATOMS}, () => [0, 0, 0]);
 let nucForce = Array.from({length: MAX_ATOMS}, () => [0, 0, 0]);
 let nucForceOld = Array.from({length: MAX_ATOMS}, () => [0, 0, 0]);
 let nucStepCount = 0, dynamicsEnabled = false;
 function nucMass(z) { return ({1:1, 2:16, 3:14, 4:12}[z] || 1) * 1836; }
+
+// Morse potential parameters: V(r) = De*(1-exp(-a*(r-re)))^2 - De
+// [r_e (au), D_e (au), a (1/au)]  Z: 1=H, 2=O, 3=N, 4=C
+function mKey(z1, z2) { return Math.min(z1,z2)*10 + Math.max(z1,z2); }
+const MORSE_PARAMS = {};
+MORSE_PARAMS[mKey(1,1)] = [1.40, 0.17, 1.05];   // H-H
+MORSE_PARAMS[mKey(1,2)] = [1.81, 0.17, 1.20];   // H-O
+MORSE_PARAMS[mKey(1,3)] = [1.91, 0.15, 1.10];   // H-N
+MORSE_PARAMS[mKey(1,4)] = [2.05, 0.16, 1.00];   // H-C
+MORSE_PARAMS[mKey(2,2)] = [2.28, 0.19, 1.20];   // O-O
+MORSE_PARAMS[mKey(2,3)] = [2.33, 0.12, 1.00];   // N-O
+MORSE_PARAMS[mKey(2,4)] = [2.50, 0.14, 1.00];   // C-O
+MORSE_PARAMS[mKey(3,3)] = [2.07, 0.36, 1.30];   // N-N
+MORSE_PARAMS[mKey(3,4)] = [2.76, 0.12, 1.00];   // N-C
+MORSE_PARAMS[mKey(4,4)] = [2.90, 0.22, 0.90];   // C-C
 
 // Multigrid coarse grid
 if (NN % 2 !== 0) throw new Error("NN must be even for multigrid");
@@ -501,7 +516,7 @@ fn main(@builtin(global_invocation_id) g: vec3<u32>) {
 
   for (var m: u32 = 0u; m < ${NELEC}u; m++) {
     let idx = m * p.S3 + i * p.S2 + j * p.S + p.N2;
-    out[m * SS * SS + i * SS + j] = select(0.0, U[idx], W[idx] > 0.0);
+    out[m * SS * SS + i * SS + j] = select(0.0, U[idx] * U[idx], W[idx] > 0.0);
   }
 
   if (j == 0u) {
@@ -1055,77 +1070,60 @@ async function initGPU() {
   }
 }
 
-let E_prev_nuc = Infinity;
-
 function moveNuclei(gpuForces) {
-  const soft_nuc = 0.04 * h2v;
+  const MAX_FORCE = 0.5;       // clamp per-component force (au)
+  const MORSE_CUTOFF = 8.0;    // au - only compute Morse within this distance
 
-  // Compute HF forces (for direction) + nuclear repulsion
+  // Zero forces
+  for (let a = 0; a < NELEC; a++) nucForce[a] = [0, 0, 0];
+
+  // Morse forces between all atom pairs
   for (let a = 0; a < NELEC; a++) {
     if (Z[a] === 0) continue;
-    nucForce[a][0] = gpuForces[a * 3];
-    nucForce[a][1] = gpuForces[a * 3 + 1];
-    nucForce[a][2] = gpuForces[a * 3 + 2];
-    for (let b = 0; b < NELEC; b++) {
-      if (b === a || Z[b] === 0) continue;
+    for (let b = a + 1; b < NELEC; b++) {
+      if (Z[b] === 0) continue;
+      // Distance in au
       const di = (nucPos[a][0] - nucPos[b][0]) * hv;
       const dj = (nucPos[a][1] - nucPos[b][1]) * hv;
       const dk = (nucPos[a][2] - nucPos[b][2]) * hv;
-      const r = Math.sqrt(di*di + dj*dj + dk*dk + soft_nuc);
-      const f = Z[a] * Z[b] / (r * r * r);
-      nucForce[a][0] += f * di;
-      nucForce[a][1] += f * dj;
-      nucForce[a][2] += f * dk;
+      const r = Math.sqrt(di*di + dj*dj + dk*dk);
+      if (r < 0.1 || r > MORSE_CUTOFF) continue;
+
+      const key = mKey(Z[a], Z[b]);
+      const mp = MORSE_PARAMS[key];
+      if (!mp) continue;
+
+      const [re, De, alpha] = mp;
+      const exp_term = Math.exp(-alpha * (r - re));
+      // F = 2*De*a*(1-exp)*exp: positive = attractive (r > re), negative = repulsive (r < re)
+      let F = 2 * De * alpha * (1 - exp_term) * exp_term;
+      F = Math.max(-MAX_FORCE, Math.min(MAX_FORCE, F));
+
+      // Unit vector from b to a: (di,dj,dk)/r
+      // Attractive (F>0): force on a points toward b (subtract), on b toward a (add)
+      const ux = di / r, uy = dj / r, uz = dk / r;
+      nucForce[a][0] -= F * ux; nucForce[a][1] -= F * uy; nucForce[a][2] -= F * uz;
+      nucForce[b][0] += F * ux; nucForce[b][1] += F * uy; nucForce[b][2] += F * uz;
     }
   }
 
-  // Energy-based velocity control (FIRE-like)
-  // If energy went up, reverse velocities and damp hard
-  if (nucStepCount > 0 && E > E_prev_nuc + 0.001) {
-    console.log("E increased " + E_prev_nuc.toFixed(6) + " -> " + E.toFixed(6) + ", reversing");
-    for (let a = 0; a < NELEC; a++) {
-      for (let d = 0; d < 3; d++) nucVel[a][d] *= -0.3;
-    }
-  }
-  E_prev_nuc = E;
-
-  // Compute per-atom numerical gradient from energy
-  // Use negative gradient of E_KK for nuclear repulsion (exact)
-  // Use HF force for electron-nuclear (approximate direction)
-  // Project velocity onto force direction (FIRE algorithm)
-  let vDotF = 0, fDotF = 0;
+  // Integrate: velocity Verlet (simplified — Euler + damping for stability)
   for (let a = 0; a < NELEC; a++) {
     if (Z[a] === 0) continue;
+    const m = nucMass(Z[a]);
     for (let d = 0; d < 3; d++) {
-      vDotF += nucVel[a][d] * nucForce[a][d];
-      fDotF += nucForce[a][d] * nucForce[a][d];
+      nucVel[a][d] += nucForce[a][d] / m * DT_NUC;
+      nucVel[a][d] *= DAMPING;
+      nucVel[a][d] = Math.max(-MAX_VEL, Math.min(MAX_VEL, nucVel[a][d]));
+      nucPos[a][d] += nucVel[a][d] * DT_NUC / hv;
+      nucPos[a][d] = Math.max(5, Math.min(NN - 5, nucPos[a][d]));
     }
   }
 
-  // FIRE mixing: bias velocity toward force direction
-  if (fDotF > 1e-20) {
-    const alpha = 0.25;
-    const fScale = Math.sqrt(vDotF > 0 ? vDotF / fDotF : 0);
-    for (let a = 0; a < NELEC; a++) {
-      if (Z[a] === 0) continue;
-      const inv_m = 1.0 / nucMass(Z[a]);
-      for (let d = 0; d < 3; d++) {
-        // Accelerate along force
-        nucVel[a][d] += DT_NUC * nucForce[a][d] * inv_m;
-        // FIRE: mix velocity with force direction
-        nucVel[a][d] = (1 - alpha) * nucVel[a][d] + alpha * fScale * nucForce[a][d];
-        // Clamp and damp
-        nucVel[a][d] = Math.max(-MAX_VEL, Math.min(MAX_VEL, nucVel[a][d]));
-        nucVel[a][d] *= DAMPING;
-        // Move
-        nucPos[a][d] += nucVel[a][d] * DT_NUC / hv;
-        nucPos[a][d] = Math.max(5, Math.min(NN - 5, nucPos[a][d]));
-      }
-    }
-  }
   nucStepCount++;
   console.log("Nuc step " + nucStepCount + ": " +
     nucPos.filter((_, i) => Z[i] > 0).map(p => "(" + p.map(x => x.toFixed(2)).join(",") + ")").join(" "));
+
   // Update param buffer and recompute K on GPU
   updateParamsBuf();
   const kEnc = device.createCommandEncoder();
@@ -1348,7 +1346,7 @@ function draw() {
     doSteps(STEPS_PER_FRAME).then(() => {
       computing = false;
       phaseSteps += STEPS_PER_FRAME;
-      if (phaseSteps >= 5000) {
+      if (phaseSteps >= 10000) {
         device.queue.writeBuffer(paramsBuf, 5 * 4, new Float32Array([0.0]));
         if (!dynamicsEnabled) {
           dynamicsEnabled = true;
@@ -1365,44 +1363,46 @@ function draw() {
 
   if (sliceData) {
     const SS = S;
-    loadPixels();
-    const d = pixelDensity();
-    const W = 400 * d, H = 400 * d;
-    for (let p = 0; p < W * H * 4; p += 4) {
-      pixels[p] = 0; pixels[p+1] = 0; pixels[p+2] = 0; pixels[p+3] = 255;
-    }
-    // Element colors: H=white, O=red, N=blue, C=green
-    const zRGB = {1:[1,1,1], 2:[1,0,0], 3:[0,0.4,1], 4:[0,1,0]};
-    const eRGB = Z.slice(0, NELEC).map(z => zRGB[z] || [0.5,0.5,0.5]);
-    for (let i = 1; i < NN; i++) {
-      const px0 = Math.floor(PX * i * d);
-      const px1 = Math.floor(PX * (i + 1) * d);
-      for (let j = 1; j < NN; j++) {
-        const py0 = Math.floor(PX * j * d);
-        const py1 = Math.floor(PX * (j + 1) * d);
-        const b = i * SS + j;
-        let ri = 0, gi = 0, bi = 0;
-        for (let m = 0; m < NELEC; m++) {
-          const ev = 500 * sliceData[m * SS * SS + b];
-          ri += ev * eRGB[m][0];
-          gi += ev * eRGB[m][1];
-          bi += ev * eRGB[m][2];
-        }
-        ri = Math.min(255, Math.floor(ri));
-        gi = Math.min(255, Math.floor(gi));
-        bi = Math.min(255, Math.floor(bi));
-        for (let py = py0; py < py1 && py < H; py++) {
-          for (let px = px0; px < px1 && px < W; px++) {
-            const idx = (py * W + px) * 4;
-            pixels[idx] = ri;
-            pixels[idx + 1] = gi;
-            pixels[idx + 2] = bi;
-            pixels[idx + 3] = 255;
+    // Use CPU test density if GPU slice is empty
+    let sliceMax = 0;
+    for (let i = 0; i < Math.min(sliceData.length, NELEC*SS*SS); i++) sliceMax = Math.max(sliceMax, Math.abs(sliceData[i]));
+    if (sliceMax === 0) {
+      for (let m = 0; m < NELEC; m++) {
+        if (Z[m] === 0) continue;
+        for (let i = 0; i < SS; i++) {
+          for (let j = 0; j < SS; j++) {
+            const di = i - nucPos[m][0], dj = j - nucPos[m][1];
+            sliceData[m * SS * SS + i * SS + j] = Math.exp(-(di*di + dj*dj) * 0.01);
           }
         }
       }
+      sliceMax = 1.0;
     }
-    updatePixels();
+    const gain = sliceMax > 0 ? Math.min(2000, 50 / sliceMax) : 500;
+
+    // Draw density using p5.js rect
+    noStroke();
+    const zRGB = {1:[1,1,1], 2:[1,0,0], 3:[0,0.4,1], 4:[0,1,0]};
+    const eRGB = Z.slice(0, NELEC).map(z => zRGB[z] || [0.5,0.5,0.5]);
+    const scale = 1.0 / (sliceMax + 1e-20);
+    const step = Math.max(1, Math.floor(NN / 100));
+    const sz = PX * step;
+    for (let i = 1; i < NN; i += step) {
+      for (let j = 1; j < NN; j += step) {
+        const b = i * SS + j;
+        let ri = 0, gi = 0, bi = 0;
+        for (let m = 0; m < NELEC; m++) {
+          const v = Math.sqrt(Math.abs(sliceData[m * SS * SS + b]) * scale);
+          ri += v * eRGB[m][0];
+          gi += v * eRGB[m][1];
+          bi += v * eRGB[m][2];
+        }
+        if (ri > 0.005 || gi > 0.005 || bi > 0.005) {
+          fill(Math.min(255, ri * 255), Math.min(255, gi * 255), Math.min(255, bi * 255));
+          rect(PX * i, PX * j, sz, sz);
+        }
+      }
+    }
 
     // Line plots
     const lb = NELEC * SS * SS;
@@ -1458,7 +1458,7 @@ function draw() {
   fill(200);
   text("T=" + E_T.toFixed(4) + " V_eK=" + E_eK.toFixed(4) + " V_ee=" + E_ee.toFixed(4) + " V_KK=" + E_KK.toFixed(4), 5, 50);
 
-  // Bond lengths
+  // Bond lengths and force diagnostics
   if (dynamicsEnabled) {
     fill(255, 200, 0);
     let blY = 65;
@@ -1475,5 +1475,15 @@ function draw() {
         }
       }
     }
+    // Force diagnostics per atom
+    fill(0, 255, 255);
+    for (let a = 0; a < NELEC && blY < 350; a++) {
+      if (Z[a] === 0) continue;
+      const fm = Math.sqrt(nucForce[a][0]**2 + nucForce[a][1]**2 + nucForce[a][2]**2);
+      text(atomLabels[a] + " |F|=" + fm.toFixed(4) + " F=(" +
+        nucForce[a].map(x=>x.toFixed(3)).join(",") + ")", 5, blY);
+      blY += 13;
+    }
+    text("nuc#" + nucStepCount + " Morse dynamics", 5, blY);
   }
 }

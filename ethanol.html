@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>C2H5OH Ethanol — Quantum Simulation</title>
+  <title>C2H5OH Ethanol — Quantum Dynamics (9 atoms)</title>
   <style>
     body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #000; overflow: hidden; }
     canvas { border: none; }
@@ -147,7 +147,7 @@
       window.USER_Z  = [4, 4, 2, 1, 1, 1, 1, 1, 1];
       window.USER_RC = [0.4, 0.4, 0.5, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1];
       window.USER_SCREEN = scr;
-      window.USER_STEPS = 20000;
+      window.USER_STEPS = 100000;
 
       var atoms = window.USER_ATOMS;
       for (var a = 0; a < atoms.length; a++) {
@@ -158,9 +158,9 @@
     })();
 
     var s = document.createElement('script');
-    s.src = 'molecule.js?t=' + Date.now();
+    s.src = 'moleculedyn.js?t=' + Date.now();
     s.onerror = function() {
-      document.body.innerHTML = '<pre style="color:red">Failed to load molecule.js</pre>';
+      document.body.innerHTML = '<pre style="color:red">Failed to load moleculedyn.js</pre>';
     };
     s.onload = function() {
       var p5s = document.createElement('script');
