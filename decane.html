@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>C10H22 Decane — Quantum Simulation (32 atoms)</title>
+  <style>
+    body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #000; overflow: hidden; }
+    canvas { border: none; }
+  </style>
+</head>
+<body>
+  <script>
+    window.onerror = function(msg, url, line) {
+      document.body.style.color = 'red';
+      document.body.innerHTML = '<pre>ERROR: ' + msg + '\nLine: ' + line + '\nFile: ' + url + '</pre>';
+    };
+
+    // Decane C10H22 — 32 atoms, all-trans zigzag
+    (function() {
+      var N = 100, scr = 30, N2 = Math.round(N / 2);
+      var hv = scr / N;  // 0.6 au/grid
+      var CC = 2.910;    // C-C bond au
+      var CH = 2.060;    // C-H bond au
+      var tet = 109.47 * Math.PI / 180;
+      var cosT = Math.cos(tet);  // -1/3
+      var sinT = Math.sin(tet);  // sqrt(8/9)
+
+      var NC = 10;
+      var dx = CC * Math.sin(tet / 2);  // ~2.376 au
+      var dy = CC * Math.cos(tet / 2);  // ~1.680 au
+
+      // Carbon backbone zigzag in x-y plane
+      var carbons = [];
+      for (var c = 0; c < NC; c++) {
+        carbons.push([c * dx, (c % 2) * dy, 0]);
+      }
+
+      var hydrogens = [];
+
+      // Internal carbons (index 1 to NC-2): 2 H atoms each, ±z
+      for (var c = 1; c < NC - 1; c++) {
+        var curr = carbons[c];
+        var prev = carbons[c - 1];
+        var next = carbons[c + 1];
+
+        // Vectors from current to neighbors (normalized)
+        var v1x = (prev[0] - curr[0]) / CC;
+        var v1y = (prev[1] - curr[1]) / CC;
+        var v2x = (next[0] - curr[0]) / CC;
+        var v2y = (next[1] - curr[1]) / CC;
+
+        // Anti-bisector direction (where H atoms go)
+        var bx = -(v1x + v2x);
+        var by = -(v1y + v2y);
+        var blen = Math.sqrt(bx * bx + by * by);
+        bx /= blen; by /= blen;
+
+        // Tetrahedral placement: a along bisector, b along ±z
+        var dotBC1 = bx * v1x + by * v1y;
+        var a = (-1 / 3) / dotBC1;
+        var b = Math.sqrt(Math.max(0, 1 - a * a));
+
+        hydrogens.push([curr[0] + CH * a * bx, curr[1] + CH * a * by,  CH * b]);
+        hydrogens.push([curr[0] + CH * a * bx, curr[1] + CH * a * by, -CH * b]);
+      }
+
+      // Terminal carbons: 3 H atoms each (methyl groups)
+      function addMethyl(cIdx, bondToIdx) {
+        var cx = carbons[cIdx][0], cy = carbons[cIdx][1];
+        var bx = carbons[bondToIdx][0] - cx;
+        var by = carbons[bondToIdx][1] - cy;
+        var bl = Math.sqrt(bx * bx + by * by);
+        bx /= bl; by /= bl;
+        // perp1 = cross(bond_dir, z) = (by, -bx, 0); perp2 = (0,0,1)
+        var px = by, py = -bx;
+        for (var h = 0; h < 3; h++) {
+          var phi = h * 2 * Math.PI / 3;
+          var hx = cx + CH * (cosT * bx + sinT * (Math.cos(phi) * px));
+          var hy = cy + CH * (cosT * by + sinT * (Math.cos(phi) * py));
+          var hz = CH * sinT * Math.sin(phi);
+          hydrogens.push([hx, hy, hz]);
+        }
+      }
+      addMethyl(0, 1);
+      addMethyl(NC - 1, NC - 2);
+
+      // Combine all atoms
+      var all = [];
+      for (var i = 0; i < carbons.length; i++) all.push({ pos: carbons[i], Z: 4, el: 'C' + i });
+      for (var i = 0; i < hydrogens.length; i++) all.push({ pos: hydrogens[i], Z: 1, el: 'H' });
+
+      console.log("Decane: " + carbons.length + " C + " + hydrogens.length + " H = " + all.length + " atoms");
+
+      // Center molecule
+      var cx = 0, cy = 0, cz = 0;
+      for (var a = 0; a < all.length; a++) {
+        cx += all[a].pos[0]; cy += all[a].pos[1]; cz += all[a].pos[2];
+      }
+      cx /= all.length; cy /= all.length; cz /= all.length;
+
+      // Map to grid
+      function grd(pos) {
+        return {
+          i: Math.round(N2 + (pos[0] - cx) / hv),
+          j: Math.round(N2 + (pos[1] - cy) / hv),
+          k: Math.round(N2 + (pos[2] - cz) / hv)
+        };
+      }
+
+      window.USER_NN = N;
+      window.USER_SCREEN = scr;
+      window.USER_STEPS = 20000;
+      window.USER_ATOMS = all.map(function(a) {
+        var g = grd(a.pos);
+        return { i: g.i, j: g.j, k: g.k, Z: a.Z, el: a.el };
+      });
+      window.USER_Z = all.map(function(a) { return a.Z; });
+      window.USER_RC = all.map(function(a) { return a.Z === 1 ? 0.1 : 0.4; });
+
+      // Log positions
+      var atoms = window.USER_ATOMS;
+      for (var a = 0; a < atoms.length; a++) {
+        var at = atoms[a];
+        console.log(at.el + ': grid(' + at.i + ',' + at.j + ',' + at.k + ') = (' +
+          (at.i * hv).toFixed(2) + ',' + (at.j * hv).toFixed(2) + ',' + (at.k * hv).toFixed(2) + ') au');
+      }
+    })();
+
+    var s = document.createElement('script');
+    s.src = 'molecule.js?t=' + Date.now();
+    s.onerror = function() {
+      document.body.innerHTML = '<pre style="color:red">Failed to load molecule.js</pre>';
+    };
+    s.onload = function() {
+      var p5s = document.createElement('script');
+      p5s.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+      document.body.appendChild(p5s);
+    };
+    document.body.appendChild(s);
+  </script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>C30H22 p-Quinquephenyl — Quantum Simulation (52 atoms)</title>
+  <style>
+    body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #000; overflow: hidden; }
+    canvas { border: none; }
+  </style>
+</head>
+<body>
+  <script>
+    window.onerror = function(msg, url, line) {
+      document.body.style.color = 'red';
+      document.body.innerHTML = '<pre>ERROR: ' + msg + '\nLine: ' + line + '\nFile: ' + url + '</pre>';
+    };
+
+    // p-Quinquephenyl C30H22 — 5 para-connected phenyl rings, 52 atoms
+    // Alternating 44° dihedral twist between adjacent rings
+    (function() {
+      var N = 100, scr = 44, N2 = Math.round(N / 2);
+      var hv = scr / N;
+      var CC_ar = 2.640;    // aromatic C-C bond (1.40 Å)
+      var CC_link = 2.780;  // inter-ring C-C bond (1.47 Å)
+      var CH = 2.060;       // C-H bond (1.09 Å)
+      var NRINGS = 5;
+      var ringSpacing = 2 * CC_ar + CC_link;  // ~8.06 au center-to-center
+
+      var carbons = [];
+      var hydrogens = [];
+
+      for (var ring = 0; ring < NRINGS; ring++) {
+        var cx = ring * ringSpacing;
+        var twist = ring * 44 * Math.PI / 180;  // cumulative dihedral twist
+        var cosT = Math.cos(twist);
+        var sinT = Math.sin(twist);
+
+        // 6 carbons per ring at angles 0°,60°,120°,180°,240°,300°
+        // v=0 at 0° (rightward along chain), v=3 at 180° (leftward)
+        var ringC = [];
+        for (var v = 0; v < 6; v++) {
+          var angle = v * Math.PI / 3;
+          var dx = Math.cos(angle);
+          var dperp = Math.sin(angle);
+          var dy = dperp * cosT;
+          var dz = dperp * sinT;
+          ringC.push([cx + CC_ar * dx, CC_ar * dy, CC_ar * dz]);
+        }
+        for (var v = 0; v < 6; v++) carbons.push(ringC[v]);
+
+        // H atoms — skip para carbons that link to adjacent rings
+        for (var v = 0; v < 6; v++) {
+          var isLinkRight = (v === 0 && ring < NRINGS - 1);
+          var isLinkLeft  = (v === 3 && ring > 0);
+          if (isLinkRight || isLinkLeft) continue;
+
+          var angle = v * Math.PI / 3;
+          var dx = Math.cos(angle);
+          var dperp = Math.sin(angle);
+          var dy = dperp * cosT;
+          var dz = dperp * sinT;
+          hydrogens.push([ringC[v][0] + CH * dx, ringC[v][1] + CH * dy, ringC[v][2] + CH * dz]);
+        }
+      }
+
+      // Combine all atoms: 30 C + 22 H = 52
+      var all = [];
+      for (var i = 0; i < carbons.length; i++) all.push({ pos: carbons[i], Z: 4, el: 'C' + i });
+      for (var i = 0; i < hydrogens.length; i++) all.push({ pos: hydrogens[i], Z: 1, el: 'H' });
+
+      console.log("Pentaphenyl: " + carbons.length + " C + " + hydrogens.length + " H = " + all.length + " atoms");
+
+      // Center molecule
+      var mx = 0, my = 0, mz = 0;
+      for (var i = 0; i < all.length; i++) { mx += all[i].pos[0]; my += all[i].pos[1]; mz += all[i].pos[2]; }
+      mx /= all.length; my /= all.length; mz /= all.length;
+
+      function grd(pos) {
+        return {
+          i: Math.round(N2 + (pos[0] - mx) / hv),
+          j: Math.round(N2 + (pos[1] - my) / hv),
+          k: Math.round(N2 + (pos[2] - mz) / hv)
+        };
+      }
+
+      window.USER_NN = N;
+      window.USER_SCREEN = scr;
+      window.USER_STEPS = 10000;
+      window.USER_ATOMS = all.map(function(a) { var g = grd(a.pos); return { i: g.i, j: g.j, k: g.k, Z: a.Z, el: a.el }; });
+      window.USER_Z = all.map(function(a) { return a.Z; });
+      window.USER_RC = all.map(function(a) { return a.Z === 1 ? 0.1 : 0.4; });
+
+      var atoms = window.USER_ATOMS;
+      for (var a = 0; a < atoms.length; a++) {
+        var at = atoms[a];
+        console.log(at.el + ': grid(' + at.i + ',' + at.j + ',' + at.k + ')');
+      }
+    })();
+
+    var s = document.createElement('script');
+    s.src = 'molecule.js?t=' + Date.now();
+    s.onerror = function() { document.body.innerHTML = '<pre style="color:red">Failed to load molecule.js</pre>'; };
+    s.onload = function() {
+      var p5s = document.createElement('script');
+      p5s.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+      document.body.appendChild(p5s);
+    };
+    document.body.appendChild(s);
+  </script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>C10H16O Camphor — Quantum Simulation (27 atoms)</title>
+  <style>
+    body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #000; overflow: hidden; }
+    canvas { border: none; }
+  </style>
+</head>
+<body>
+  <script>
+    window.onerror = function(msg, url, line) {
+      document.body.style.color = 'red';
+      document.body.innerHTML = '<pre>ERROR: ' + msg + '\nLine: ' + line + '\nFile: ' + url + '</pre>';
+    };
+
+    // Camphor C10H16O — 27 atoms
+    // Bicyclo[2.2.1]heptan-2-one with 3 methyl groups
+    (function() {
+      var N = 100, scr = 14, N2 = Math.round(N / 2);
+      var hv = scr / N;
+      var CH = 2.060;
+
+      // Helper functions
+      function norm(v) { var l = Math.sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]); return [v[0]/l, v[1]/l, v[2]/l]; }
+      function sub(a,b) { return [a[0]-b[0], a[1]-b[1], a[2]-b[2]]; }
+      function add(a,b) { return [a[0]+b[0], a[1]+b[1], a[2]+b[2]]; }
+      function scl(v,s) { return [v[0]*s, v[1]*s, v[2]*s]; }
+      function cross(a,b) { return [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]]; }
+      function dot(a,b) { return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]; }
+
+      // Norbornane cage + camphor substituents (coordinates in au)
+      // Cage from approximate crystal structure (Angstrom * 1.8897)
+      var C1  = [0.00,  2.06,  0.42];   // bridgehead (bonds: C2, C6, C7, C8)
+      var C2  = [2.29,  0.59,  0.91];   // ketone C (bonds: C1, C3, O)
+      var C3  = [1.40, -1.98,  0.00];   // (bonds: C2, C4)
+      var C4  = [0.00, -1.08, -2.29];   // bridgehead (bonds: C3, C5, C7)
+      var C5  = [-1.40, -1.98, 0.00];   // (bonds: C4, C6)
+      var C6  = [-2.29, 0.59,  0.91];   // (bonds: C5, C1)
+      var C7  = [0.00,  1.02,  2.97];   // bridge (bonds: C1, C4, C9, C10)
+      var Oat = [4.38,  1.06,  1.66];   // ketone O on C2
+      var C8  = [0.00,  4.78,  1.21];   // methyl on C1
+      var C9  = [2.42,  1.70,  4.55];   // gem-dimethyl on C7
+      var C10 = [-2.42, 1.70,  4.55];   // gem-dimethyl on C7
+
+      // Place 2 H atoms on C with 2 known bonds
+      function addH2(center, bond1, bond2) {
+        var d1 = norm(sub(bond1, center));
+        var d2 = norm(sub(bond2, center));
+        var antibis = scl(norm(add(d1, d2)), -1);
+        var perp = norm(cross(d1, d2));
+        var dotAB = dot(antibis, d1);
+        var a = (-1/3) / dotAB;
+        var b = Math.sqrt(Math.max(0, 1 - a*a));
+        return [
+          add(center, add(scl(antibis, CH*a), scl(perp, CH*b))),
+          add(center, add(scl(antibis, CH*a), scl(perp, -CH*b)))
+        ];
+      }
+
+      // Place 1 H on bridgehead C with 3 known bonds
+      function addH1(center, b1, b2, b3) {
+        var d1 = norm(sub(b1, center));
+        var d2 = norm(sub(b2, center));
+        var d3 = norm(sub(b3, center));
+        var hdir = norm(scl(add(add(d1, d2), d3), -1));
+        return [add(center, scl(hdir, CH))];
+      }
+
+      // Place 3 H on methyl C with 1 known bond
+      function addH3(center, bondTo) {
+        var bdir = norm(sub(bondTo, center));
+        var cosT = Math.cos(109.47 * Math.PI / 180);
+        var sinT = Math.sin(109.47 * Math.PI / 180);
+        var up = Math.abs(bdir[1]) < 0.9 ? [0,1,0] : [1,0,0];
+        var p1 = norm(cross(bdir, up));
+        var p2 = norm(cross(bdir, p1));
+        var hs = [];
+        for (var i = 0; i < 3; i++) {
+          var phi = i * 2 * Math.PI / 3;
+          var hdir = add(scl(bdir, cosT), add(scl(p1, sinT*Math.cos(phi)), scl(p2, sinT*Math.sin(phi))));
+          hs.push(add(center, scl(hdir, CH)));
+        }
+        return hs;
+      }
+
+      // Build all H atoms (16 total)
+      var Hs = [];
+      Hs = Hs.concat(addH2(C3, C2, C4));       // C3: 2H
+      Hs = Hs.concat(addH1(C4, C3, C5, C7));   // C4: 1H (bridgehead)
+      Hs = Hs.concat(addH2(C5, C4, C6));        // C5: 2H
+      Hs = Hs.concat(addH2(C6, C5, C1));        // C6: 2H
+      Hs = Hs.concat(addH3(C8, C1));            // C8: 3H (methyl)
+      Hs = Hs.concat(addH3(C9, C7));            // C9: 3H (methyl)
+      Hs = Hs.concat(addH3(C10, C7));           // C10: 3H (methyl)
+
+      // Combine: 10C + 1O + 16H = 27 atoms
+      var all = [
+        {pos:C1, Z:4, el:'C1'}, {pos:C2, Z:4, el:'C2'}, {pos:C3, Z:4, el:'C3'},
+        {pos:C4, Z:4, el:'C4'}, {pos:C5, Z:4, el:'C5'}, {pos:C6, Z:4, el:'C6'},
+        {pos:C7, Z:4, el:'C7'}, {pos:Oat, Z:2, el:'O'},
+        {pos:C8, Z:4, el:'C8'}, {pos:C9, Z:4, el:'C9'}, {pos:C10, Z:4, el:'C10'}
+      ];
+      for (var i = 0; i < Hs.length; i++) all.push({pos:Hs[i], Z:1, el:'H'});
+
+      console.log("Camphor: " + all.length + " atoms (10C + 1O + 16H)");
+
+      // Center molecule
+      var cx=0, cy=0, cz=0;
+      for (var i=0; i<all.length; i++) { cx+=all[i].pos[0]; cy+=all[i].pos[1]; cz+=all[i].pos[2]; }
+      cx/=all.length; cy/=all.length; cz/=all.length;
+
+      function grd(pos) {
+        return {
+          i: Math.round(N2 + (pos[0]-cx)/hv),
+          j: Math.round(N2 + (pos[1]-cy)/hv),
+          k: Math.round(N2 + (pos[2]-cz)/hv)
+        };
+      }
+
+      window.USER_NN = N;
+      window.USER_SCREEN = scr;
+      window.USER_STEPS = 10000;
+      window.USER_ATOMS = all.map(function(a) { var g = grd(a.pos); return {i:g.i, j:g.j, k:g.k, Z:a.Z, el:a.el}; });
+      window.USER_Z = all.map(function(a) { return a.Z; });
+      window.USER_RC = all.map(function(a) { return a.Z === 1 ? 0.1 : (a.Z === 2 ? 0.5 : 0.4); });
+
+      var atoms = window.USER_ATOMS;
+      for (var a = 0; a < atoms.length; a++) {
+        var at = atoms[a];
+        console.log(at.el + ': grid(' + at.i + ',' + at.j + ',' + at.k + ')');
+      }
+    })();
+
+    var s = document.createElement('script');
+    s.src = 'molecule.js?t=' + Date.now();
+    s.onerror = function() { document.body.innerHTML = '<pre style="color:red">Failed to load molecule.js</pre>'; };
+    s.onload = function() {
+      var p5s = document.createElement('script');
+      p5s.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+      document.body.appendChild(p5s);
+    };
+    document.body.appendChild(s);
+  </script>
+</body>
+</html>
