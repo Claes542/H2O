@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>C2H5OH Ethanol — Quantum Simulation</title>
+  <style>
+    body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #000; overflow: hidden; }
+    canvas { border: none; }
+  </style>
+</head>
+<body>
+  <script>
+    window.onerror = function(msg, url, line) {
+      document.body.style.color = 'red';
+      document.body.innerHTML = '<pre>ERROR: ' + msg + '\nLine: ' + line + '\nFile: ' + url + '</pre>';
+    };
+
+    // Ethanol CH3-CH2-OH — 9 atoms, full 3D sp3 geometry
+    // C-C 1.54A=2.910au, C-O 1.43A=2.703au, C-H 1.09A=2.060au, O-H 0.97A=1.833au
+    // Tetrahedral angles 109.47 deg
+    (function() {
+      var N = 100, scr = 14, N2 = Math.round(N / 2);
+      var hv = scr / N;
+      var tet = 109.47 * Math.PI / 180;  // tetrahedral angle
+      var cosT = Math.cos(tet);
+      var sinT = Math.sin(tet);
+
+      // Build in 3D (x,y,z) then map to grid (i,j,k)
+      // Backbone in x-y plane: C1-C2 along x, O in x-y plane
+
+      // C1 at origin
+      var C1 = [0, 0, 0];
+      // C2 along +x
+      var C2 = [2.910, 0, 0];
+
+      // O from C2: tetrahedral, in x-y plane
+      // C1-C2-O angle = 109.47, O in +y hemisphere
+      var O = [C2[0] + 2.703 * Math.cos(Math.PI - tet), 2.703 * Math.sin(Math.PI - tet), 0];
+
+      // H on OH: C2-O-H angle ~108.5 deg, in x-y plane
+      var cohAng = 108.5 * Math.PI / 180;
+      var ox = C2[0] - O[0], oy = C2[1] - O[1];  // O->C2 direction
+      var oAng = Math.atan2(oy, ox);
+      var Hoh = [O[0] + 1.833 * Math.cos(oAng + cohAng), O[1] + 1.833 * Math.sin(oAng + cohAng), 0];
+
+      // Tetrahedral H placement helper
+      // Given bond axis direction (unit), place 2 or 3 H atoms tetrahedrally
+      // For sp3 with 2 known bonds in x-y plane, remaining 2 bonds point ±z
+      var sq23 = Math.sqrt(2/3);
+      var sq13 = Math.sqrt(1/3);
+
+      // 2 H on C2: C2 has bonds to C1(-x) and O(in xy-plane)
+      // Remaining 2 H atoms are symmetric about the C1-C2-O plane (±z)
+      // Bisector of C1 and O from C2:
+      var c2c1 = [-2.910, 0, 0];  // C2->C1 direction (normalize)
+      var c2c1L = 2.910;
+      var c2o = [O[0]-C2[0], O[1]-C2[1], 0];
+      var c2oL = Math.sqrt(c2o[0]*c2o[0] + c2o[1]*c2o[1]);
+      // Unit vectors
+      var uc1 = [c2c1[0]/c2c1L, c2c1[1]/c2c1L, 0];
+      var uo  = [c2o[0]/c2oL, c2o[1]/c2oL, 0];
+      // Bisector of the two known bonds (anti-direction for H placement)
+      var bisX = -(uc1[0] + uo[0]), bisY = -(uc1[1] + uo[1]);
+      var bisL = Math.sqrt(bisX*bisX + bisY*bisY);
+      bisX /= bisL; bisY /= bisL;
+      // Perpendicular in xy-plane
+      var perpX = -bisY, perpY = bisX;
+      // H atoms at tetrahedral angle from bisector, ±z
+      // The half-angle between the two H bonds projected onto bisector plane
+      var hDist = 2.060;
+      // Use tetrahedral geometry: cos(109.47) = -1/3
+      // Component along bisector and ±z
+      var along = hDist * (-1/3);  // projection along anti-bisector...
+      // Actually let me just use explicit tetrahedral construction
+      // H_C2 bonds should make 109.47 with both C1 and O bonds
+      // Place them as: bisector_dir * cos(alpha) ± z * sin(alpha)
+      // where alpha is chosen so angle to C1 and O = 109.47
+      // For symmetric placement: the H-C-H angle = 109.47 and each H makes 109.47 with C1 and O
+      // angle from bisector to H = half of H-C-H angle in the perpendicular plane
+      // Since all tetrahedral: angle(bisector, H) such that angle(C1,H)=109.47
+      // bisector angle from C1 = (180-109.47)/2... this is getting complex
+
+      // Simpler: use rotation matrices
+      // Place 4 tetrahedral directions, assign 2 to C1 and O (known), other 2 are H
+      // Standard tetrahedron vertices (unit):
+      //   v0 = (1,1,1)/sqrt(3), v1 = (1,-1,-1)/sqrt(3), v2 = (-1,1,-1)/sqrt(3), v3 = (-1,-1,1)/sqrt(3)
+      // Rotate so v2 aligns with C2->C1 and v0 aligns with C2->O
+      // Too complex. Let me use a practical approach:
+
+      // The two H on C2 are symmetric about the C1-C2-O plane (the xy plane)
+      // They lie in the plane that bisects the C1-C2-O angle, at tet angle from both
+      // anti-bisector direction in xy:
+      var abX = bisX, abY = bisY;
+      // cos(angle between H and C1 bond) = cos(tet) = -1/3
+      // H = a*(abX,abY,0) + b*(0,0,±1)
+      // dot(H, uc1) = cos(tet) * |H| => a*abX*uc1[0] + a*abY*uc1[1] = -1/3
+      // |H| = 1 for unit, so a*dot(ab,uc1) = -1/3
+      var dotAbC1 = abX * uc1[0] + abY * uc1[1];
+      var a_comp = (-1/3) / dotAbC1;
+      var b_comp = Math.sqrt(1 - a_comp * a_comp);
+
+      var H4 = [C2[0] + hDist * a_comp * abX, C2[1] + hDist * a_comp * abY,  hDist * b_comp];
+      var H5 = [C2[0] + hDist * a_comp * abX, C2[1] + hDist * a_comp * abY, -hDist * b_comp];
+
+      // 3 H on C1 (methyl): C1 has bond to C2 along +x
+      // 3 H atoms at tetrahedral angle from +x, 120 deg apart around x-axis
+      // Tetrahedral: angle from +x axis = 109.47 deg
+      // H direction: cos(tet)*xhat + sin(tet)*(cos(phi)*yhat + sin(phi)*zhat)
+      // phi = 0, 120, 240 deg (staggered relative to C2-O bond)
+      // Stagger by 60 deg so H1 is anti to O
+      var stagger = 60 * Math.PI / 180;
+      var cT = Math.cos(tet), sT = Math.sin(tet);
+      var H1 = [hDist * cT, hDist * sT * Math.cos(stagger),          hDist * sT * Math.sin(stagger)];
+      var H2 = [hDist * cT, hDist * sT * Math.cos(stagger + 2.094),  hDist * sT * Math.sin(stagger + 2.094)];
+      var H3 = [hDist * cT, hDist * sT * Math.cos(stagger + 4.189),  hDist * sT * Math.sin(stagger + 4.189)];
+
+      // Center molecule
+      var all = [C1, C2, O, H1, H2, H3, H4, H5, Hoh];
+      var cx = 0, cy = 0, cz = 0;
+      for (var a = 0; a < all.length; a++) { cx += all[a][0]; cy += all[a][1]; cz += all[a][2]; }
+      cx /= all.length; cy /= all.length; cz /= all.length;
+
+      function grd(pos) {
+        return {
+          i: Math.round(N2 + (pos[0] - cx) / hv),
+          j: Math.round(N2 + (pos[1] - cy) / hv),
+          k: Math.round(N2 + (pos[2] - cz) / hv)
+        };
+      }
+
+      var gC1 = grd(C1), gC2 = grd(C2), gO = grd(O);
+      var gH1 = grd(H1), gH2 = grd(H2), gH3 = grd(H3);
+      var gH4 = grd(H4), gH5 = grd(H5), gHoh = grd(Hoh);
+
+      window.USER_NN = N;
+      window.USER_ATOMS = [
+        { i: gC1.i, j: gC1.j, k: gC1.k, Z: 4, el: 'C1' },
+        { i: gC2.i, j: gC2.j, k: gC2.k, Z: 4, el: 'C2' },
+        { i: gO.i,  j: gO.j,  k: gO.k,  Z: 2, el: 'O'  },
+        { i: gH1.i, j: gH1.j, k: gH1.k, Z: 1, el: 'H'  },
+        { i: gH2.i, j: gH2.j, k: gH2.k, Z: 1, el: 'H'  },
+        { i: gH3.i, j: gH3.j, k: gH3.k, Z: 1, el: 'H'  },
+        { i: gH4.i, j: gH4.j, k: gH4.k, Z: 1, el: 'H'  },
+        { i: gH5.i, j: gH5.j, k: gH5.k, Z: 1, el: 'H'  },
+        { i: gHoh.i,j: gHoh.j,k: gHoh.k,Z: 1, el: 'H'  }
+      ];
+      window.USER_Z  = [4, 4, 2, 1, 1, 1, 1, 1, 1];
+      window.USER_RC = [0.4, 0.4, 0.5, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1];
+      window.USER_SCREEN = scr;
+      window.USER_STEPS = 20000;
+
+      var atoms = window.USER_ATOMS;
+      for (var a = 0; a < atoms.length; a++) {
+        var at = atoms[a];
+        console.log(at.el + ': (' + at.i + ',' + at.j + ',' + at.k + ') = (' +
+          (at.i * hv).toFixed(2) + ',' + (at.j * hv).toFixed(2) + ',' + (at.k * hv).toFixed(2) + ') au');
+      }
+    })();
+
+    var s = document.createElement('script');
+    s.src = 'molecule.js?t=' + Date.now();
+    s.onerror = function() {
+      document.body.innerHTML = '<pre style="color:red">Failed to load molecule.js</pre>';
+    };
+    s.onload = function() {
+      var p5s = document.createElement('script');
+      p5s.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+      document.body.appendChild(p5s);
+    };
+    document.body.appendChild(s);
+  </script>
+</body>
+</html>
