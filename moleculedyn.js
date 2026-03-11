@@ -60,11 +60,11 @@ const SIC_INTERVAL = NELEC <= 15 ? 1 : NELEC <= 30 ? 5 : 999999;  // skip SIC fo
 const SIC_JACOBI = NELEC <= 15 ? 10 : 4;
 
 // === Nuclear dynamics state ===
-const N_MOVE = 2000;        // electronic steps between nuclear moves
-const DT_NUC = 10.0;        // au (~0.24 fs)
+const N_MOVE = 200;         // electronic steps between nuclear moves
+const DT_NUC = 20.0;        // au (~0.48 fs)
 const NUC_SUBSTEPS = 1;     // single step (forces recomputed each move)
-const DAMPING = 0.90;       // strong damping for optimization
-const MAX_VEL = 0.01;       // au/au_time
+const DAMPING = 0.98;       // light damping
+const MAX_VEL = 0.1;        // au/au_time
 let nucVel = Array.from({length: MAX_ATOMS}, () => [0, 0, 0]);
 let nucForce = Array.from({length: MAX_ATOMS}, () => [0, 0, 0]);
 let nucStepCount = 0, dynamicsEnabled = false;
@@ -733,6 +733,7 @@ fn main(@builtin(global_invocation_id) g: vec3<u32>) {
 // === Nuclear dynamics shaders ===
 
 // Gradient of electron potential P at nuclear positions — reads directly from P_buf[0]
+const FORCE_RADIUS = Math.max(3, Math.round(1.0 / hGrid));  // ~1 au sphere in grid cells
 const gradPtotal_WGSL = `
 ${paramStructWGSL}
 ${atomStructWGSL}
@@ -754,18 +755,52 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     return;
   }
 
-  let ii = atoms[atom].posI;
-  let jj = atoms[atom].posJ;
-  let kk = atoms[atom].posK;
-
+  let ci = i32(atoms[atom].posI);
+  let cj = i32(atoms[atom].posJ);
+  let ck = i32(atoms[atom].posK);
+  let R = ${FORCE_RADIUS}i;
+  let R2f = f32(R * R);
   let inv2h = 0.5 * p.inv_h;
-  let dPdi = (Pt[(ii+1u)*p.S2 + jj*p.S + kk] - Pt[(ii-1u)*p.S2 + jj*p.S + kk]) * inv2h;
-  let dPdj = (Pt[ii*p.S2 + (jj+1u)*p.S + kk] - Pt[ii*p.S2 + (jj-1u)*p.S + kk]) * inv2h;
-  let dPdk = (Pt[ii*p.S2 + jj*p.S + (kk+1u)] - Pt[ii*p.S2 + jj*p.S + (kk-1u)]) * inv2h;
+  let S = i32(p.S);
 
-  forceSums[atom * 3u]      = 2.0 * ZA * dPdi;
-  forceSums[atom * 3u + 1u] = 2.0 * ZA * dPdj;
-  forceSums[atom * 3u + 2u] = 2.0 * ZA * dPdk;
+  var sumFi: f32 = 0.0;
+  var sumFj: f32 = 0.0;
+  var sumFk: f32 = 0.0;
+  var count: f32 = 0.0;
+
+  for (var di: i32 = -R; di <= R; di++) {
+    let ii = ci + di;
+    if (ii < 1 || ii >= S - 1) { continue; }
+    for (var dj: i32 = -R; dj <= R; dj++) {
+      let jj = cj + dj;
+      if (jj < 1 || jj >= S - 1) { continue; }
+      for (var dk: i32 = -R; dk <= R; dk++) {
+        let kk = ck + dk;
+        if (kk < 1 || kk >= S - 1) { continue; }
+        let r2 = f32(di*di + dj*dj + dk*dk);
+        if (r2 > R2f) { continue; }
+
+        let ui = u32(ii); let uj = u32(jj); let uk = u32(kk);
+        let gI = (Pt[(ui+1u)*p.S2 + uj*p.S + uk] - Pt[(ui-1u)*p.S2 + uj*p.S + uk]) * inv2h;
+        let gJ = (Pt[ui*p.S2 + (uj+1u)*p.S + uk] - Pt[ui*p.S2 + (uj-1u)*p.S + uk]) * inv2h;
+        let gK = (Pt[ui*p.S2 + uj*p.S + (uk+1u)] - Pt[ui*p.S2 + uj*p.S + (uk-1u)]) * inv2h;
+        sumFi += gI;
+        sumFj += gJ;
+        sumFk += gK;
+        count += 1.0;
+      }
+    }
+  }
+
+  if (count > 0.0) {
+    sumFi /= count;
+    sumFj /= count;
+    sumFk /= count;
+  }
+
+  forceSums[atom * 3u]      = 2.0 * ZA * sumFi;
+  forceSums[atom * 3u + 1u] = 2.0 * ZA * sumFj;
+  forceSums[atom * 3u + 2u] = 2.0 * ZA * sumFk;
 }
 `;
 
@@ -1723,9 +1758,13 @@ function draw() {
       phaseSteps += STEPS_PER_FRAME;
       if (isFinite(E) && E < E_min) E_min = E;
 
-      // Dynamics off by default — press D to enable
+      // Auto-enable dynamics after convergence
+      if (!dynamicsEnabled && phaseSteps >= 10000) {
+        dynamicsEnabled = true;
+        console.log("=== Dynamics auto-enabled at step " + phaseSteps + " ===");
+      }
 
-      if (phaseSteps >= TOTAL_STEPS) {
+      if (!dynamicsEnabled && phaseSteps >= TOTAL_STEPS) {
         console.log("=== DONE: E=" + E.toFixed(6) + " ===");
         phase = 1;  // done
         if (window.onSweepDone) window.onSweepDone(E_min);
@@ -1862,7 +1901,7 @@ function draw() {
         const fx = nucForce[n][0], fy = nucForce[n][1];
         const fmag = Math.sqrt(fx*fx + fy*fy);
         if (fmag > 1e-8) {
-          const arrowScale = 5000;
+          const arrowScale = 100;
           const ax = nucPos[n][0] * PX + fx * arrowScale;
           const ay = nucPos[n][1] * PX + fy * arrowScale;
           stroke(0, 255, 0); strokeWeight(1);
@@ -1872,22 +1911,6 @@ function draw() {
     }
   }
 
-  // Bond lengths
-  if (dynamicsEnabled) {
-    noStroke(); fill(180, 255, 180);
-    for (let a = 0; a < NELEC; a++) {
-      for (let b = a + 1; b < NELEC; b++) {
-        if (Z[a] === 0 || Z[b] === 0) continue;
-        const dx = (nucPos[a][0] - nucPos[b][0]) * hGrid;
-        const dy = (nucPos[a][1] - nucPos[b][1]) * hGrid;
-        const dz = (nucPos[a][2] - nucPos[b][2]) * hGrid;
-        const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
-        const mx = (nucPos[a][0] + nucPos[b][0]) * 0.5 * PX;
-        const my = (nucPos[a][1] + nucPos[b][1]) * 0.5 * PX;
-        text(dist.toFixed(2), mx, my);
-      }
-    }
-  }
 
   // Screen boundary
   noFill(); stroke(100); strokeWeight(1);
