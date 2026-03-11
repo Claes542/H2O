@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>C2H5OH Ethanol — Quantum Dynamics (9 atoms)</title>
+  <style>
+    body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #000; overflow: hidden; }
+    canvas { border: none; }
+  </style>
+</head>
+<body>
+  <script>
+    window.onerror = function(msg, url, line) {
+      document.body.style.color = 'red';
+      document.body.innerHTML = '<pre>ERROR: ' + msg + '\nLine: ' + line + '\nFile: ' + url + '</pre>';
+    };
+
+    // C2H5OH ethanol — 9 atoms: CH3-CH2-OH
+    // 200^3 grid, 10 au screen (same as H2O)
+    // Bond lengths in au: C-C=2.88, C-O=2.69, O-H=1.81, C-H=2.06
+    (function() {
+      var N = 200, scr = 10, N2 = 100;
+      var hv = scr / N;  // 0.05 au/cell
+
+      // Bond lengths in au
+      var CC = 2.88, CO = 2.69, OH = 1.81, CH = 2.06;
+
+      // Place backbone along x-axis, centered at grid center
+      // C1(methyl) - C2 - O - H(hydroxyl)
+      var backLen = CC + CO;
+      var x0 = -backLen / 2;  // start of backbone in au relative to center
+
+      // Backbone positions (au relative to center)
+      var C1x = x0;
+      var C2x = x0 + CC;
+      var Ox  = x0 + CC + CO;
+      var OHx = Ox + OH * Math.cos(Math.PI / 3);  // 60° angle
+      var OHy = OH * Math.sin(Math.PI / 3);
+
+      // C-H bonds: tetrahedral ~109.5°
+      var tet = 109.5 * Math.PI / 180;
+      var chProj = CH * Math.sin(tet / 2);  // perpendicular component
+      var chAx = CH * Math.cos(tet / 2);    // along-axis component
+
+      function toGrid(ax, ay) {
+        return [Math.round(N2 + ax / hv), Math.round(N2 + ay / hv)];
+      }
+
+      var atoms = [];
+      var Zs = [];
+      var RCs = [];
+
+      function add(ax, ay, Z, el) {
+        var g = toGrid(ax, ay);
+        atoms.push({ i: g[0], j: g[1], Z: Z, el: el });
+        Zs.push(Z);
+        RCs.push(Z <= 1 ? 0.1 : 0.5);
+      }
+
+      // C1 (methyl carbon)
+      add(C1x, 0, 4, 'C');
+      // 3 H on C1: one along backbone away, two splayed
+      add(C1x - chAx, 0, 1, 'H');
+      add(C1x - chProj * 0.5, chProj, 1, 'H');
+      add(C1x - chProj * 0.5, -chProj, 1, 'H');
+
+      // C2 (methylene carbon)
+      add(C2x, 0, 4, 'C');
+      // 2 H on C2: perpendicular to backbone
+      add(C2x, chProj, 1, 'H');
+      add(C2x, -chProj, 1, 'H');
+
+      // O (hydroxyl)
+      add(Ox, 0, 2, 'O');
+
+      // H on O (angled)
+      add(OHx, OHy, 1, 'H');
+
+      window.USER_NN = N;
+      window.USER_SCREEN = scr;
+      window.USER_STEPS = 100000;
+      window.USER_ATOMS = atoms;
+      window.USER_Z = Zs;
+      window.USER_RC = RCs;
+
+      console.log("C2H5OH: " + atoms.length + " atoms, screen=" + scr + " au, h=" + hv.toFixed(4) + " au/cell");
+      for (var n = 0; n < atoms.length; n++) {
+        console.log("  " + atoms[n].el + " Z=" + atoms[n].Z + " at (" + atoms[n].i + "," + atoms[n].j + ") rc=" + RCs[n]);
+      }
+    })();
+
+    var s = document.createElement('script');
+    s.src = 'molecule.js?t=' + Date.now();
+    s.onerror = function() { document.body.innerHTML = '<pre style="color:red">Failed to load molecule.js</pre>'; };
+    s.onload = function() {
+      var p5s = document.createElement('script');
+      p5s.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+      document.body.appendChild(p5s);
+    };
+    document.body.appendChild(s);
+  </script>
+</body>
+</html>

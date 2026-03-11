@@ -19,7 +19,7 @@
     // 1 au ~ 7.14 grid cells
     // C-C ~2.9au(21cells), C-O ~2.7au(19cells), C-H ~2.1au(15cells), O-H ~1.8au(13cells)
     var _NN = 200;
-    var _screenAu = 14;
+    var _screenAu = 10;
 
     var atoms = [
       { i: 70,  j: 100, Z: 4, el: 'C' },   // C1 methyl
@@ -35,10 +35,8 @@
 
     function rcForZ(z) {
       if (z === 0) return 0;
-      if (z <= 1) return 0.1;
-      if (z === 2) return 0.5;
-      if (z === 3) return 0.3;
-      return 0.4;
+      if (z <= 1) return 0.1;  // H
+      return 0.5;              // O, C, N — same as H2O oxygen
     }
 
     window.USER_NN = _NN;

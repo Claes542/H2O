@@ -1808,65 +1808,45 @@ function draw() {
     }
     updatePixels();
 
-    // Density line plots at multiple j-heights
-    const nLines = 5;
-    const plotH = 50;
-    const yBase = 520;
-    const lineColors = [
-      [0, 255, 255],   // cyan
-      [255, 255, 0],   // yellow
-      [0, 255, 100],   // green
-      [255, 100, 255], // magenta
-      [255, 160, 0],   // orange
-    ];
-    // Space lines across atom region (±40% of grid around center)
-    let globalMax = 0;
+    // Density line plots: up to 5 lines evenly spaced through atom region
+    const kernelJs = [];
+    for (let n = 0; n < NELEC; n++) {
+      if (Z[n] > 0) kernelJs.push(Math.round(nucPos[n][1]));
+    }
+    kernelJs.sort((a,b) => a - b);
+    const jLo = kernelJs.length > 0 ? kernelJs[0] : N2;
+    const jHi = kernelJs.length > 0 ? kernelJs[kernelJs.length - 1] : N2;
+    const maxLines = 5;
     const lineRows = [];
-    const jMin = Math.max(1, Math.round(N2 - NN * 0.4));
-    const jMax = Math.min(NN - 1, Math.round(N2 + NN * 0.4));
+    for (let li = 0; li < maxLines; li++) {
+      lineRows.push(Math.round(jLo + (jHi - jLo) * li / (maxLines - 1)));
+    }
+    const nLines = lineRows.length;
+    let globalMax = 0;
     for (let li = 0; li < nLines; li++) {
-      const row = Math.round(jMin + (jMax - jMin) * li / (nLines - 1));
-      lineRows.push(row);
       for (let i = 1; i < NN; i++) {
-        const v = sliceData[i * SS + row];
+        const v = sliceData[i * SS + lineRows[li]];
         if (v > globalMax) globalMax = v;
       }
     }
     if (globalMax > 0) {
-      // Log scale so small peaks are visible alongside large ones
-      let logMax = 0;
-      for (let li = 0; li < nLines; li++) {
-        for (let i = 1; i < NN; i++) {
-          const v = sliceData[i * SS + lineRows[li]];
-          if (v > 1e-10) {
-            const lv = Math.log10(v) + 10;  // shift so 1e-10 → 0
-            if (lv > logMax) logMax = lv;
-          }
-        }
-      }
-      // Element colors: H=yellow, O=red, N=blue, C=green
       const zRGBplot = {1:[255,255,0], 2:[255,60,60], 3:[60,130,255], 4:[60,255,60]};
-      // Plot each line at its actual j-position on the image, growing upward
-      const lineH = 30;  // max height of each line plot in pixels
-      const sc = logMax > 0 ? lineH / logMax : 1;
+      const lineH = 60;
+      const sc = lineH / globalMax;
       for (let li = 0; li < nLines; li++) {
         const row = lineRows[li];
-        const rowY = PX * row;  // actual y-position on image
-        // Baseline
+        const rowY = PX * row;
         stroke(255, 255, 255, 40); strokeWeight(1);
         line(0, rowY, 700, rowY);
-        // Density curve growing upward from baseline
         strokeWeight(2); noFill();
         for (let i = 1; i < NN - 1; i++) {
           const v1 = sliceData[i * SS + row];
           const v2 = sliceData[(i+1) * SS + row];
-          const lv1 = v1 > 1e-10 ? Math.log10(v1) + 10 : 0;
-          const lv2 = v2 > 1e-10 ? Math.log10(v2) + 10 : 0;
-          if (lv1 < 0.01 && lv2 < 0.01) continue;
+          if (v1 < 1e-12 && v2 < 1e-12) continue;
           const z = Math.round(sliceData[SS2 + i * SS + row]);
           const c = zRGBplot[z] || [180,180,180];
           stroke(c[0], c[1], c[2], 220);
-          line(PX * i, rowY - lv1 * sc, PX * (i+1), rowY - lv2 * sc);
+          line(PX * i, rowY - v1 * sc, PX * (i+1), rowY - v2 * sc);
         }
       }
     }
