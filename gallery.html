@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>H2O — Quantum Molecular Simulation Gallery</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0a0a0a; color: #e0e0e0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace; }
+header { text-align: center; padding: 40px 20px 20px; }
+header h1 { font-size: 2em; color: #4fc3f7; margin-bottom: 8px; }
+header p { color: #888; max-width: 700px; margin: 0 auto; line-height: 1.5; }
+.warn { background: #332200; color: #ffb74d; padding: 10px 20px; text-align: center; font-size: 13px; margin: 10px auto; max-width: 700px; border-radius: 6px; }
+.section { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
+.section h2 { color: #4fc3f7; font-size: 1.3em; margin-bottom: 15px; padding-bottom: 6px; border-bottom: 1px solid #222; }
+.section p.desc { color: #888; font-size: 13px; margin-bottom: 15px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.card { background: #161616; border: 1px solid #222; border-radius: 8px; padding: 16px; transition: border-color 0.2s, background 0.2s; cursor: pointer; text-decoration: none; color: inherit; display: block; }
+.card:hover { border-color: #4fc3f7; background: #1a1a2a; }
+.card h3 { font-size: 14px; color: #fff; margin-bottom: 4px; }
+.card .atoms { font-size: 12px; color: #4fc3f7; margin-bottom: 6px; }
+.card .desc { font-size: 12px; color: #888; line-height: 1.4; }
+.card .tag { display: inline-block; font-size: 10px; padding: 2px 6px; border-radius: 3px; margin-right: 4px; margin-top: 6px; }
+.tag-grow { background: #1b3a1b; color: #66bb6a; }
+.tag-dyn { background: #1a2a3a; color: #42a5f5; }
+.tag-protein { background: #3a1a3a; color: #ba68c8; }
+.tag-water { background: #0a2a3a; color: #26c6da; }
+.tag-small { background: #2a2a1a; color: #ffca28; }
+.tag-record { background: #3a1a1a; color: #ef5350; }
+footer { text-align: center; padding: 40px 20px; color: #444; font-size: 12px; }
+footer a { color: #4fc3f7; text-decoration: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>H2O &mdash; Quantum Molecular Simulation</h1>
+  <p>Real-time electron density computation on 3D grids using WebGPU compute shaders.
+     Watch molecules assemble atom-by-atom, fold, and interact &mdash; from hydrogen to 1000-atom proteins.</p>
+</header>
+
+<div class="warn">Requires WebGPU: Chrome 113+, Edge 113+, or Safari 17+. Large molecules need a modern GPU with ~1 GB memory.</div>
+
+<!-- GROW ANIMATIONS -->
+<div class="section">
+  <h2>Atom-by-Atom Grow Animations</h2>
+  <p class="desc">Watch molecules assemble one atom at a time. Heavy skeleton builds first, then hydrogens, then solvent. Click "Add" or "Auto-grow" to control the process.</p>
+  <div class="grid">
+    <a class="card" href="water_grow.html">
+      <h3>Water Cluster</h3>
+      <div class="atoms">9 atoms &middot; 200&sup3; grid</div>
+      <div class="desc">3 water molecules. Watch hydrogen bond network form.</div>
+      <span class="tag tag-grow">grow</span><span class="tag tag-water">water</span>
+    </a>
+    <a class="card" href="formamide_grow.html">
+      <h3>Formamide</h3>
+      <div class="atoms">12 atoms &middot; 200&sup3; grid</div>
+      <div class="desc">H-CO-NH&sub2; &mdash; simplest peptide bond analog + 2 waters.</div>
+      <span class="tag tag-grow">grow</span><span class="tag tag-small">small molecule</span>
+    </a>
+    <a class="card" href="ethanol_grow.html">
+      <h3>Ethanol</h3>
+      <div class="atoms">12 atoms &middot; 200&sup3; grid</div>
+      <div class="desc">CH&sub3;CH&sub2;OH + water. C-C-O skeleton first.</div>
+      <span class="tag tag-grow">grow</span><span class="tag tag-small">small molecule</span>
+    </a>
+    <a class="card" href="glycine_grow.html">
+      <h3>Glycine</h3>
+      <div class="atoms">16 atoms &middot; 200&sup3; grid</div>
+      <div class="desc">Simplest amino acid NH&sub2;-CH&sub2;-COOH + 2 waters.</div>
+      <span class="tag tag-grow">grow</span><span class="tag tag-protein">amino acid</span>
+    </a>
+    <a class="card" href="peptide_grow.html">
+      <h3>Tri-Glycine Peptide</h3>
+      <div class="atoms">27 atoms &middot; 300&sup3; grid</div>
+      <div class="desc">NH&sub2;-Gly-Gly-Gly-COOH backbone + water.</div>
+      <span class="tag tag-grow">grow</span><span class="tag tag-protein">peptide</span>
+    </a>
+    <a class="card" href="chignolin_grow.html">
+      <h3>Chignolin</h3>
+      <div class="atoms">~90 atoms &middot; 300&sup3; grid</div>
+      <div class="desc">10-residue mini-protein GYDPETGTWG at 50% fold.</div>
+      <span class="tag tag-grow">grow</span><span class="tag tag-protein">protein</span>
+    </a>
+    <a class="card" href="hairpin_grow.html">
+      <h3>Hairpin &beta;-sheet</h3>
+      <div class="atoms">~90 atoms &middot; 300&sup3; grid</div>
+      <div class="desc">12-residue glycine hairpin at 75% fold + water.</div>
+      <span class="tag tag-grow">grow</span><span class="tag tag-protein">protein</span>
+    </a>
+    <a class="card" href="villin_grow.html">
+      <h3>Villin Headpiece</h3>
+      <div class="atoms">~999 atoms &middot; 300&sup3; grid</div>
+      <div class="desc">3-helix bundle (24 residues) + hydration shell. The big one.</div>
+      <span class="tag tag-grow">grow</span><span class="tag tag-protein">protein</span>
+    </a>
+  </div>
+</div>
+
+<!-- SMALL MOLECULES -->
+<div class="section">
+  <h2>Small Molecules</h2>
+  <p class="desc">Static electron density calculations. Fast convergence on 200&sup3; grids.</p>
+  <div class="grid">
+    <a class="card" href="h2.html">
+      <h3>H&sub2;</h3>
+      <div class="desc">Hydrogen molecule</div>
+      <span class="tag tag-small">small molecule</span>
+    </a>
+    <a class="card" href="h2o.html">
+      <h3>H&sub2;O</h3>
+      <div class="desc">Single water molecule</div>
+      <span class="tag tag-small">small molecule</span><span class="tag tag-water">water</span>
+    </a>
+    <a class="card" href="co2.html">
+      <h3>CO&sub2;</h3>
+      <div class="desc">Carbon dioxide</div>
+      <span class="tag tag-small">small molecule</span>
+    </a>
+    <a class="card" href="nh3_3d.html">
+      <h3>NH&sub3;</h3>
+      <div class="desc">Ammonia (3D geometry)</div>
+      <span class="tag tag-small">small molecule</span>
+    </a>
+    <a class="card" href="h2co.html">
+      <h3>H&sub2;CO</h3>
+      <div class="desc">Formaldehyde</div>
+      <span class="tag tag-small">small molecule</span>
+    </a>
+    <a class="card" href="hno.html">
+      <h3>HNO</h3>
+      <div class="desc">Nitroxyl</div>
+      <span class="tag tag-small">small molecule</span>
+    </a>
+    <a class="card" href="lih.html">
+      <h3>LiH</h3>
+      <div class="desc">Lithium hydride</div>
+      <span class="tag tag-small">small molecule</span>
+    </a>
+    <a class="card" href="ethanol.html">
+      <h3>Ethanol</h3>
+      <div class="desc">CH&sub3;CH&sub2;OH</div>
+      <span class="tag tag-small">small molecule</span>
+    </a>
+    <a class="card" href="caffeine2.html">
+      <h3>Caffeine</h3>
+      <div class="desc">C&sub8;H&sub1;&sub0;N&sub4;O&sub2; + water shell</div>
+      <span class="tag tag-small">small molecule</span>
+    </a>
+    <a class="card" href="camphor.html">
+      <h3>Camphor</h3>
+      <div class="desc">C&sub1;&sub0;H&sub1;&sub6;O bicyclic terpenoid</div>
+      <span class="tag tag-small">small molecule</span>
+    </a>
+  </div>
+</div>
+
+<!-- DYNAMICS -->
+<div class="section">
+  <h2>Molecules with Nuclear Dynamics</h2>
+  <p class="desc">Electron density drives nuclear motion via Hellmann-Feynman forces. Press D to toggle dynamics.</p>
+  <div class="grid">
+    <a class="card" href="h2o_dyn.html">
+      <h3>H&sub2;O dynamics</h3>
+      <div class="desc">Water with nuclear motion</div>
+      <span class="tag tag-dyn">dynamics</span><span class="tag tag-water">water</span>
+    </a>
+    <a class="card" href="glycine_dyn.html">
+      <h3>Glycine dynamics</h3>
+      <div class="desc">Amino acid with nuclear motion</div>
+      <span class="tag tag-dyn">dynamics</span><span class="tag tag-protein">amino acid</span>
+    </a>
+    <a class="card" href="caffeine_dyn.html">
+      <h3>Caffeine dynamics</h3>
+      <div class="desc">Caffeine with nuclear forces</div>
+      <span class="tag tag-dyn">dynamics</span>
+    </a>
+    <a class="card" href="c2h5oh_dyn.html">
+      <h3>Ethanol dynamics</h3>
+      <div class="desc">Ethanol with nuclear motion</div>
+      <span class="tag tag-dyn">dynamics</span>
+    </a>
+    <a class="card" href="lih_dyn.html">
+      <h3>LiH dynamics</h3>
+      <div class="desc">Lithium hydride stretching</div>
+      <span class="tag tag-dyn">dynamics</span>
+    </a>
+    <a class="card" href="water5_dyn.html">
+      <h3>5 Water molecules</h3>
+      <div class="desc">Small water cluster dynamics</div>
+      <span class="tag tag-dyn">dynamics</span><span class="tag tag-water">water</span>
+    </a>
+  </div>
+</div>
+
+<!-- PEPTIDES & PROTEINS -->
+<div class="section">
+  <h2>Peptides &amp; Proteins</h2>
+  <p class="desc">From single amino acids to 1000-atom three-helix bundles. 300&sup3; grids.</p>
+  <div class="grid">
+    <a class="card" href="glycine.html">
+      <h3>Glycine</h3>
+      <div class="desc">Single amino acid</div>
+      <span class="tag tag-protein">amino acid</span>
+    </a>
+    <a class="card" href="ala_dipeptide.html">
+      <h3>Ala dipeptide</h3>
+      <div class="desc">Alanine dipeptide</div>
+      <span class="tag tag-protein">peptide</span>
+    </a>
+    <a class="card" href="asp_pro.html">
+      <h3>Asp-Pro</h3>
+      <div class="desc">Dipeptide with proline pyrrolidine ring</div>
+      <span class="tag tag-protein">peptide</span>
+    </a>
+    <a class="card" href="hairpin.html">
+      <h3>Hairpin</h3>
+      <div class="desc">&beta;-hairpin (folded)</div>
+      <span class="tag tag-protein">protein</span>
+    </a>
+    <a class="card" href="hairpin_slider.html">
+      <h3>Hairpin slider</h3>
+      <div class="desc">Adjustable fold fraction 0&ndash;100%</div>
+      <span class="tag tag-protein">protein</span>
+    </a>
+    <a class="card" href="chignolin.html">
+      <h3>Chignolin</h3>
+      <div class="desc">10-residue mini-protein with fold slider</div>
+      <span class="tag tag-protein">protein</span>
+    </a>
+    <a class="card" href="trpcage.html">
+      <h3>Trp-cage</h3>
+      <div class="desc">20-residue protein fold</div>
+      <span class="tag tag-protein">protein</span>
+    </a>
+    <a class="card" href="villin.html">
+      <h3>Villin headpiece</h3>
+      <div class="desc">~1000 atoms, 3-helix bundle + hydration</div>
+      <span class="tag tag-protein">protein</span>
+    </a>
+  </div>
+</div>
+
+<!-- WATER CLUSTERS -->
+<div class="section">
+  <h2>Water Clusters</h2>
+  <div class="grid">
+    <a class="card" href="h2o_3mol.html">
+      <h3>3 waters</h3>
+      <span class="tag tag-water">water</span>
+    </a>
+    <a class="card" href="h2o_10mol.html">
+      <h3>10 waters</h3>
+      <span class="tag tag-water">water</span>
+    </a>
+    <a class="card" href="h2o_50.html">
+      <h3>50 waters</h3>
+      <span class="tag tag-water">water</span>
+    </a>
+    <a class="card" href="water100.html">
+      <h3>100 waters</h3>
+      <span class="tag tag-water">water</span>
+    </a>
+    <a class="card" href="water1000.html">
+      <h3>1000 waters</h3>
+      <div class="desc">Large-scale water simulation</div>
+      <span class="tag tag-water">water</span>
+    </a>
+  </div>
+</div>
+
+<!-- TOOLS -->
+<div class="section">
+  <h2>Tools</h2>
+  <div class="grid">
+    <a class="card" href="record_grow.html">
+      <h3>Video Recorder</h3>
+      <div class="desc">Record any grow animation as .webm video. Select molecule, set dwell time, press record.</div>
+      <span class="tag tag-record">recording</span>
+    </a>
+    <a class="card" href="molecule.html">
+      <h3>Molecule (default)</h3>
+      <div class="desc">Default simulation page with built-in atom placement.</div>
+    </a>
+    <a class="card" href="sweep_bond.html">
+      <h3>Bond length sweep</h3>
+      <div class="desc">Scan energy vs bond distance.</div>
+    </a>
+  </div>
+</div>
+
+<footer>
+  <p><a href="https://github.com/Claes542/H2O">GitHub</a> &middot; WebGPU compute shaders &middot; No server required</p>
+</footer>
+
+</body>
+</html>
