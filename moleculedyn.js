@@ -13,10 +13,14 @@ const NRED_E = 3;  // Energy reduce: T + V_eK + V_ee (norms via atomic accumulat
 const r_cut = window.USER_RC || [0, 0, 0, 0, 0];
 while (r_cut.length < MAX_ATOMS) r_cut.push(0);
 let R_out = 0.5;   // au, outer w cutoff
-let Z = [..._uz];
+// Z_eff = input Z values (H=1, O=2, N=3, C=4) — used in V_eK and density
+// Z_nuc = actual nuclear charge (H=1, O=8, N=7, C=6) — used in V_KK
+function zNuc(z) { return ({1:1, 2:8, 3:7, 4:6}[z] || z); }
+let Z = [..._uz];          // Z_eff for electron-kernel and density
 let Ne = [..._uz];
 const Z_orig = [..._uz];
 const Ne_orig = [..._uz];
+const Z_nuc = _uz.map(zNuc);  // actual nuclear charges for KK repulsion
 
 // Atom positions from interactive placement or defaults
 const _atoms = window.USER_ATOMS || [
@@ -34,7 +38,7 @@ const molNucPos = nucPos.map(p => [...p]);
 let E_min = Infinity;
 let screenAu = window.USER_SCREEN || 10;
 let hGrid = screenAu / NN, h2v = hGrid * hGrid, h3v = hGrid * hGrid * hGrid;
-const dv = NELEC > 100 ? 0.03 : 0.12;  // smaller timestep for large systems (high total K)
+const dv = NELEC > 100 ? 0.03 : (hGrid < 0.08 ? 0.06 : 0.12);  // smaller timestep for fine grids
 let dtv = dv * h2v, half_dv = 0.5 * dv;
 const PX = 700 / NN;
 const INTERIOR = (NN - 1) * (NN - 1) * (NN - 1);
@@ -60,14 +64,14 @@ const SIC_INTERVAL = NELEC <= 15 ? 1 : NELEC <= 30 ? 5 : 999999;  // skip SIC fo
 const SIC_JACOBI = NELEC <= 15 ? 10 : 4;
 
 // === Nuclear dynamics state ===
-const N_MOVE = 200;         // electronic steps between nuclear moves
-const DT_NUC = 20.0;        // au (~0.48 fs)
+const N_MOVE = NELEC <= 5 ? 500 : NELEC <= 30 ? 500 : 200;  // electronic steps between nuclear moves
+const DT_NUC = 5.0;         // au (~0.12 fs)
 const NUC_SUBSTEPS = 1;     // single step (forces recomputed each move)
-const DAMPING = 0.98;       // light damping
-const MAX_VEL = 0.1;        // au/au_time
+const DAMPING = 0.90;       // strong damping for stability
+const MAX_VEL = 0.02;       // au/au_time
 let nucVel = Array.from({length: MAX_ATOMS}, () => [0, 0, 0]);
 let nucForce = Array.from({length: MAX_ATOMS}, () => [0, 0, 0]);
-let nucStepCount = 0, dynamicsEnabled = false;
+let nucStepCount = 0, dynamicsEnabled = false, E_prev_nuc = Infinity;
 function nucMass(z) { return ({1:1, 2:16, 3:14, 4:12}[z] || 1) * 1836; }
 
 // Multigrid coarse grid
@@ -110,12 +114,14 @@ struct Atom {
 // U update — label-based domains, Neumann BC at domain boundaries
 const updateU_WGSL = `
 ${paramStructWGSL}
+${atomStructWGSL}
 @group(0) @binding(0) var<uniform> p: P;
 @group(0) @binding(1) var<storage, read> K: array<f32>;
 @group(0) @binding(2) var<storage, read> Ui: array<f32>;
 @group(0) @binding(3) var<storage, read> label: array<u32>;
 @group(0) @binding(4) var<storage, read> Pi: array<f32>;
 @group(0) @binding(5) var<storage, read_write> Uo: array<f32>;
+@group(0) @binding(6) var<storage, read> atoms: array<Atom>;
 
 ${cellIdxWGSL}
 @compute @workgroup_size(256)
@@ -130,22 +136,77 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let i = (cell / (NM * NM)) + 1u;
   let id = i * p.S2 + j * p.S + k;
 
-  let myL = label[id];
+  // Check if inside own atom's r_c sphere — enforce U=0 (Dirichlet)
+  let myOwner = label[id];
+  let myRc = atoms[myOwner].rc;
+  if (myRc > 0.0) {
+    let d0i = (f32(i) - f32(atoms[myOwner].posI)) * p.h;
+    let d0j = (f32(j) - f32(atoms[myOwner].posJ)) * p.h;
+    let d0k = (f32(k) - f32(atoms[myOwner].posK)) * p.h;
+    if (d0i*d0i + d0j*d0j + d0k*d0k < myRc * myRc) { Uo[id] = 0.0; return; }
+  }
+
+  // Check if each neighbor is inside its own atom's r_c (Neumann: reflect)
+  var nb_ip = false; var nb_im = false;
+  var nb_jp = false; var nb_jm = false;
+  var nb_kp = false; var nb_km = false;
+  // Only check the 6 neighbor labels' atoms
+  let check_dirs = array<vec3<i32>, 6>(
+    vec3<i32>(1,0,0), vec3<i32>(-1,0,0),
+    vec3<i32>(0,1,0), vec3<i32>(0,-1,0),
+    vec3<i32>(0,0,1), vec3<i32>(0,0,-1));
+  let nb_ids = array<u32, 6>(id + p.S2, id - p.S2, id + p.S, id - p.S, id + 1u, id - 1u);
+  for (var d: u32 = 0u; d < 6u; d++) {
+    let nbAtom = label[nb_ids[d]];
+    let nbRc = atoms[nbAtom].rc;
+    if (nbRc <= 0.0) { continue; }
+    let ni = f32(i32(i) + check_dirs[d].x);
+    let nj = f32(i32(j) + check_dirs[d].y);
+    let nk = f32(i32(k) + check_dirs[d].z);
+    let ddi = (ni - f32(atoms[nbAtom].posI)) * p.h;
+    let ddj = (nj - f32(atoms[nbAtom].posJ)) * p.h;
+    let ddk = (nk - f32(atoms[nbAtom].posK)) * p.h;
+    if (ddi*ddi + ddj*ddj + ddk*ddk < nbRc * nbRc) {
+      switch(d) {
+        case 0u: { nb_ip = true; }
+        case 1u: { nb_im = true; }
+        case 2u: { nb_jp = true; }
+        case 3u: { nb_jm = true; }
+        case 4u: { nb_kp = true; }
+        case 5u: { nb_km = true; }
+        default: {}
+      }
+    }
+  }
 
   let uc = Ui[id];
 
-  // Neumann BC: no diffusion across domain boundaries (independent u per domain)
-  let u_ip = select(uc, Ui[id + p.S2], label[id + p.S2] == myL);
-  let u_im = select(uc, Ui[id - p.S2], label[id - p.S2] == myL);
-  let u_jp = select(uc, Ui[id + p.S],  label[id + p.S]  == myL);
-  let u_jm = select(uc, Ui[id - p.S],  label[id - p.S]  == myL);
-  let u_kp = select(uc, Ui[id + 1u],   label[id + 1u]   == myL);
-  let u_km = select(uc, Ui[id - 1u],   label[id - 1u]   == myL);
+  // Neumann BC: reflect at domain boundaries AND at r_c surface
+  let u_ip = select(uc, Ui[id + p.S2], label[id + p.S2] == myOwner && !nb_ip);
+  let u_im = select(uc, Ui[id - p.S2], label[id - p.S2] == myOwner && !nb_im);
+  let u_jp = select(uc, Ui[id + p.S],  label[id + p.S]  == myOwner && !nb_jp);
+  let u_jm = select(uc, Ui[id - p.S],  label[id - p.S]  == myOwner && !nb_jm);
+  let u_kp = select(uc, Ui[id + 1u],   label[id + 1u]   == myOwner && !nb_kp);
+  let u_km = select(uc, Ui[id - 1u],   label[id - 1u]   == myOwner && !nb_km);
 
   let lap = u_ip + u_im + u_jp + u_jm + u_kp + u_km - 6.0 * uc;
 
   // Full nuclear potential (all nuclei) minus other-electron repulsion (no self-repulsion)
-  Uo[id] = uc + p.half_d * lap + p.dt * (K[id] - 2.0 * Pi[id]) * uc;
+  var uNew = uc + p.half_d * lap + p.dt * (K[id] - 2.0 * Pi[id]) * uc;
+
+  // Absorbing boundary: damp wavefunction near grid edges
+  let margin = 10u;
+  let S1 = p.S - 1u;
+  let dii = min(i - 1u, S1 - i);
+  let djj = min(j - 1u, S1 - j);
+  let dkk = min(k - 1u, S1 - k);
+  let dmin = min(dii, min(djj, dkk));
+  if (dmin < margin) {
+    let fade = f32(dmin) / f32(margin);
+    uNew *= fade * fade;
+  }
+
+  Uo[id] = uNew;
 }
 `;
 
@@ -212,12 +273,12 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   // Normalized velocity in [-1,+1] so boundary speed is independent of system size
   let denom = myRho + bestOtherRho;
   let velocity = select((myRho - bestOtherRho) / denom, 0.0, denom < 1e-20);
-  let dt_w: f32 = 2.0;
+  let dt_w: f32 = 1.0;
   w += dt_w * velocity;
 
   // Curvature regularization: smooth jagged boundaries
   let curv = (myCnt - 3.0) / 3.0;  // [-1, +1], negative = surrounded by others
-  w += 0.5 * curv;
+  w += 2.0 * curv;
 
   var newL = myL;
   if (w < 0.0) {
@@ -733,7 +794,7 @@ fn main(@builtin(global_invocation_id) g: vec3<u32>) {
 // === Nuclear dynamics shaders ===
 
 // Gradient of electron potential P at nuclear positions — reads directly from P_buf[0]
-const FORCE_RADIUS = Math.max(3, Math.round(1.0 / hGrid));  // ~1 au sphere in grid cells
+const FORCE_RADIUS = Math.max(3, Math.min(8, Math.round(1.0 / hGrid)));  // ~1.0 au sphere in grid cells
 const gradPtotal_WGSL = `
 ${paramStructWGSL}
 ${atomStructWGSL}
@@ -866,7 +927,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let zk = f32(kk) * p.h;
 
   var Kval: f32 = K[id];
-  var br2: f32 = bestR2[id];
+  var bestDens: f32 = bestR2[id];  // reuse buffer: stores best density (negative, for min comparison)
   var bestN: u32 = label[id];
   let soft = 0.04 * p.h2;
   let end = range.start + range.count;
@@ -880,16 +941,18 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let r2 = dx*dx + dy*dy + dz*dz + soft;
     let r = sqrt(r2);
     Kval += Za / max(r, ${R_SING});
-    if (r2 < br2) { br2 = r2; bestN = n; }
+    // Domain assignment: highest Z * exp(-2*Z*r) wins
+    let dens = -Za * exp(-2.0 * Za * r);  // negative so smaller = better density
+    if (dens < bestDens) { bestDens = dens; bestN = n; }
   }
 
   K[id] = Kval;
-  bestR2[id] = br2;
+  bestR2[id] = bestDens;
   label[id] = bestN;
 }
 `;
 
-// Phase 2: set U from bestR2 (full Voronoi labels from phase 1)
+// Phase 2: set U from bestR2 (labels already set by accum)
 const gpuInitFinalWGSL = `
 ${paramStructWGSL}
 @group(0) @binding(0) var<uniform> p: P;
@@ -901,8 +964,9 @@ ${cellIdxWGSL}
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let id = cellIdx(gid);
   if (id >= p.S3) { return; }
-  let r = sqrt(bestR2[id]);
-  U[id] = select(0.0, exp(-r), r < p.R_out);
+  // bestR2 stores negative density: -Z*exp(-2*Z*r), recover r from it
+  let nd = bestR2[id];
+  U[id] = select(0.0, sqrt(-nd), nd < 0.0);
 }
 `;
 
@@ -1252,6 +1316,7 @@ async function initGPU() {
         { binding: 3, resource: { buffer: labelBuf } },
         { binding: 4, resource: { buffer: PotherBuf } },
         { binding: 5, resource: { buffer: U_buf[n] } },
+        { binding: 6, resource: { buffer: atomBuf } },
       ]});
       reduceEnergyBG[c] = device.createBindGroup({ layout: reduceEnergyPL.getBindGroupLayout(0), entries: [
         { binding: 0, resource: { buffer: paramsBuf } },
@@ -1634,7 +1699,7 @@ async function doSteps(n) {
           ((nucPos[a][0]-nucPos[b][0])*hGrid)**2 +
           ((nucPos[a][1]-nucPos[b][1])*hGrid)**2 +
           ((nucPos[a][2]-nucPos[b][2])*hGrid)**2 + soft_nuc);
-        E_KK += Z[a]*Z[b]/d;
+        E_KK += Z_nuc[a]*Z_nuc[b]/d;
       }
     }
   }
@@ -1672,31 +1737,47 @@ async function moveNuclei(gpuForces) {
       const dx = (nucPos[a][0] - nucPos[b][0]) * hGrid;
       const dy = (nucPos[a][1] - nucPos[b][1]) * hGrid;
       const dz = (nucPos[a][2] - nucPos[b][2]) * hGrid;
-      const r2 = dx*dx + dy*dy + dz*dz;
+      const r2 = dx*dx + dy*dy + dz*dz + 0.25;  // softened to prevent singularity
       const r = Math.sqrt(r2);
       const inv_r3 = 1.0 / (r * r2);
-      nucForce[a][0] += Z[a] * Z[b] * dx * inv_r3;
-      nucForce[a][1] += Z[a] * Z[b] * dy * inv_r3;
-      nucForce[a][2] += Z[a] * Z[b] * dz * inv_r3;
+      nucForce[a][0] += Z_nuc[a] * Z_nuc[b] * dx * inv_r3;
+      nucForce[a][1] += Z_nuc[a] * Z_nuc[b] * dy * inv_r3;
+      nucForce[a][2] += Z_nuc[a] * Z_nuc[b] * dz * inv_r3;
     }
   }
 
-  console.log("Forces (elec+nuc): " + nucForce.filter((_,i) => Z[i]>0).map((f,i) =>
-    atomLabels[i]+"=("+f.map(x=>x.toExponential(3)).join(",")+")").join(" "));
-
-  for (let sub = 0; sub < NUC_SUBSTEPS; sub++) {
-    for (let a = 0; a < NELEC; a++) {
-      if (Z[a] === 0) continue;
-      const m = nucMass(Z[a]);
-      for (let d = 0; d < 3; d++) {
-        nucVel[a][d] += nucForce[a][d] / m * DT_NUC;
-        nucVel[a][d] *= DAMPING;
-        nucVel[a][d] = Math.max(-MAX_VEL, Math.min(MAX_VEL, nucVel[a][d]));
-        nucPos[a][d] += nucVel[a][d] * DT_NUC / hGrid;
-        nucPos[a][d] = Math.max(5, Math.min(NN - 5, nucPos[a][d]));
-      }
+  // Steepest descent: move along force direction with fixed step size
+  // Clamp total force magnitude per atom
+  const MAX_FORCE = 0.5;
+  for (let a = 0; a < NELEC; a++) {
+    if (Z[a] === 0) continue;
+    const fm = Math.sqrt(nucForce[a][0]**2 + nucForce[a][1]**2 + nucForce[a][2]**2);
+    if (fm > MAX_FORCE) {
+      const s = MAX_FORCE / fm;
+      nucForce[a][0] *= s; nucForce[a][1] *= s; nucForce[a][2] *= s;
     }
   }
+
+  // Save old positions for rollback
+  const oldPos = nucPos.map(p => [...p]);
+
+  const STEP_SIZE = 0.3;  // grid cells per unit force
+  for (let a = 0; a < NELEC; a++) {
+    if (Z[a] === 0) continue;
+    const m = nucMass(Z[a]);
+    for (let d = 0; d < 3; d++) {
+      const disp = nucForce[a][d] / m * STEP_SIZE * 1836;  // normalize by proton mass
+      nucPos[a][d] += Math.max(-0.5, Math.min(0.5, disp));
+      nucPos[a][d] = Math.max(5, Math.min(NN - 5, nucPos[a][d]));
+    }
+  }
+
+  // If energy increased, rollback and halve step
+  if (nucStepCount > 0 && E > E_prev_nuc * 1.01) {
+    for (let a = 0; a < NELEC; a++) nucPos[a] = oldPos[a];
+    console.log("Nuc rollback: E=" + E.toFixed(6) + " > E_prev=" + E_prev_nuc.toFixed(6));
+  }
+  E_prev_nuc = E;
 
   nucStepCount++;
   console.log("Nuc step " + nucStepCount + ": " +
@@ -1758,8 +1839,9 @@ function draw() {
       phaseSteps += STEPS_PER_FRAME;
       if (isFinite(E) && E < E_min) E_min = E;
 
-      // Auto-enable dynamics after convergence
-      if (!dynamicsEnabled && phaseSteps >= 10000) {
+      // Auto-enable dynamics after convergence (scale with atom count)
+      const dynThreshold = NELEC <= 5 ? 10000 : NELEC <= 30 ? 2000 : 1000;
+      if (!dynamicsEnabled && phaseSteps >= dynThreshold) {
         dynamicsEnabled = true;
         console.log("=== Dynamics auto-enabled at step " + phaseSteps + " ===");
       }
@@ -1828,8 +1910,8 @@ function draw() {
         let ri = Math.min(255, Math.floor(brightness * rgb[0]));
         let gi = Math.min(255, Math.floor(brightness * rgb[1]));
         let bi = Math.min(255, Math.floor(brightness * rgb[2]));
-        // Dim boundary overlay (don't replace density, just brighten slightly)
-        if (bnd > 0.5) {
+        // Boundary overlay disabled
+        if (false) {
           ri = Math.min(255, ri + 40);
           gi = Math.min(255, gi + 40);
           bi = Math.min(255, bi + 40);
@@ -1891,17 +1973,24 @@ function draw() {
     }
   }
 
-  // Draw nuclear positions with force arrows
+  // Draw nuclear positions with force arrows (auto-scaled to max 15px)
   fill(255); stroke(255); strokeWeight(1);
+  var maxFmag = 0;
+  if (dynamicsEnabled) {
+    for (let n = 0; n < NELEC; n++) {
+      if (Z[n] > 0 && nucForce[n]) {
+        const fm = Math.sqrt(nucForce[n][0]**2 + nucForce[n][1]**2);
+        if (fm > maxFmag) maxFmag = fm;
+      }
+    }
+  }
+  const arrowScale = maxFmag > 1e-10 ? 15.0 / maxFmag : 1.0;
   for (let n = 0; n < NELEC; n++) {
     if (Z[n] > 0) {
       circle(nucPos[n][0] * PX, nucPos[n][1] * PX, 6);
-      // Draw force arrows when dynamics enabled
       if (dynamicsEnabled && nucForce[n]) {
         const fx = nucForce[n][0], fy = nucForce[n][1];
-        const fmag = Math.sqrt(fx*fx + fy*fy);
-        if (fmag > 1e-8) {
-          const arrowScale = 100;
+        if (fx*fx + fy*fy > 1e-16) {
           const ax = nucPos[n][0] * PX + fx * arrowScale;
           const ay = nucPos[n][1] * PX + fy * arrowScale;
           stroke(0, 255, 0); strokeWeight(1);
@@ -1918,7 +2007,7 @@ function draw() {
   noStroke();
 
   fill(255);
-  const labels = atomLabels.map((el, i) => [el, Z_orig[i]]).filter(x => x[1] > 0).map(x => x[0] + "(Z=" + x[1] + ")").join(" ");
+  const labels = atomLabels.map((el, i) => [el, Z_nuc[i], Z_orig[i]]).filter(x => x[2] > 0).map(x => x[0] + "(Z=" + x[1] + ",Zeff=" + x[2] + ")").join(" ");
   const pLabel = phase === 0 ? "running" : "DONE";
   text("Molecule: " + labels + " | " + screenAu + " au | " + pLabel + " | " + NN + "^3", 5, 20);
   text("step " + tStep + " (" + phaseSteps + "/" + TOTAL_STEPS + ")  E=" + E.toFixed(6) + "  E_min=" + E_min.toFixed(6), 5, 35);

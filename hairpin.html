@@ -126,7 +126,13 @@
   window.USER_SCREEN = scr;
   window.USER_STEPS = 1000000;
   window.USER_Z = atoms.map(function(a) { return a.Z; });
-  window.USER_RC = atoms.map(function(a) { return 0; });
+  window.USER_RC = atoms.map(function(a) {
+    if (a.el === 'H') return 0;
+    if (a.el === 'C') return 0.3;
+    if (a.el === 'N') return 0.3;
+    if (a.el === 'O') return 0.4;
+    return 0;
+  });
 })();
 
 var s = document.createElement('script');

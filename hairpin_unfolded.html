@@ -1,24 +1,23 @@
 <!DOCTYPE html>
 <html><body style="margin:0;background:#000;color:#fff;font-family:monospace">
-<pre id="log">Building Trp-cage (unfolded)...</pre>
+<pre id="log">Building hairpin (unfolded)...</pre>
 <script>
 var log = document.getElementById('log');
 window.onerror = function(msg, url, line) {
   log.textContent += '\nERROR: ' + msg + '\nLine: ' + line;
 };
 
-// Trp-cage miniprotein TC5b: 20 residues, ~200 atoms
-// Launched from UNFOLDED (extended/beta-strand) configuration
-// Each residue: N, H, Ca, Ha, Cb, 3Hb, C, O = 10 atoms
-// Extended strand: ~3.4 A per residue along backbone
-// 300^3 grid, screen=50 au
+// Beta hairpin 12-residue polyglycine — UNFOLDED (extended chain) + 1 water
+// Same atoms as hairpin.html but laid out as straight extended strand
+// Each glycine residue: N, H, Ca, 2Ha, C, O = 7 atoms × 12 = 84
+// + N-term extra H + C-term OH = 84 + 1 + 2 = 87 protein + 3 water = 90 atoms
+// 300^3 grid, screen=100 au (extended chain is long)
 
 (function() {
   var gridN = 300, scr = 100;
-  var h = scr / gridN;  // ~0.167 au/cell
+  var h = scr / gridN;  // ~0.333 au/cell
   var N2 = Math.round(gridN / 2);
-  var A = 1.8897;  // angstrom to au
-  var nRes = 20;
+  var A = 1.8897;
   var atoms = [];
 
   function addAtom(au_x, au_y, au_z, Z, el) {
@@ -31,17 +30,18 @@ window.onerror = function(msg, url, line) {
     atoms.push({ i: gi, j: gj, k: gk, Z: Z, el: el });
   }
 
-  // Extended strand geometry
-  var resAdv = 3.4 * A;   // ~6.4 au per residue along strand
-  var zig = 0.6 * A;      // zigzag amplitude (beta-strand pleating)
+  var nRes = 12;
+  // Extended strand: ~3.8 A per residue (fully stretched peptide)
+  var resAdv = 3.8 * A;   // ~7.2 au per residue
+  var zig = 0.5 * A;      // zigzag amplitude
 
   // Bond lengths (au)
   var bNH = 1.01 * A;
   var bCH = 1.09 * A;
-  var bCO = 1.23 * A;
-  var bCaCb = 1.52 * A;
+  var bCO = 1.24 * A;
+  var bOH = 0.97 * A;
 
-  // Lay out as extended chain along x-axis, centered
+  // Extended chain along x-axis, centered
   var totalLen = (nRes - 1) * resAdv;
   var x0 = -totalLen / 2;
 
@@ -50,52 +50,51 @@ window.onerror = function(msg, url, line) {
     var zigSign = (r % 2 === 0) ? 1 : -1;
     var yBase = zigSign * zig;
 
-    // Direction along backbone (x-axis)
-    // Perpendicular is y-axis
-    var perpX = 0, perpY = 1;
-
-    // N atom (before Ca)
+    // N atom
     var Nx = xr - 0.35 * resAdv;
     var Ny = yBase * 0.6;
     addAtom(Nx, Ny, 0, 3, 'N');
 
-    // H on N (perpendicular, alternating sides)
-    var nhSide = zigSign;
-    addAtom(Nx, Ny + nhSide * bNH, 0, 1, 'H');
+    // H on N (perpendicular)
+    addAtom(Nx, Ny + zigSign * bNH, 0, 1, 'H');
 
-    // Ca atom
+    // Extra H on N-terminus (residue 0)
+    if (r === 0) {
+      addAtom(Nx, Ny - zigSign * bNH, 0, 1, 'H');
+    }
+
+    // Ca atom (glycine)
     var Cax = xr;
     var Cay = -yBase * 0.4;
     addAtom(Cax, Cay, 0, 4, 'C');
 
-    // Ha (behind Ca, opposite to Cb)
-    addAtom(Cax, Cay, -bCH * 0.9, 1, 'H');
+    // 2 H on Ca (glycine CH2, perpendicular to backbone in z)
+    addAtom(Cax, Cay, bCH, 1, 'H');
+    addAtom(Cax, Cay, -bCH, 1, 'H');
 
-    // Cb (outward from backbone plane)
-    var cbX = Cax;
-    var cbY = Cay + zigSign * bCaCb * 0.8;
-    var cbZ = bCaCb * 0.6;
-    addAtom(cbX, cbY, cbZ, 4, 'C');
-
-    // 3 Hb on methyl around Cb
-    for (var hh = 0; hh < 3; hh++) {
-      var phi = hh * 2.094 + r * 0.5;  // 120 deg apart, rotated per residue
-      addAtom(cbX + bCH * 0.8 * Math.cos(phi),
-              cbY + bCH * 0.8 * Math.sin(phi),
-              cbZ + bCH * 0.6 * (hh === 0 ? 1 : -0.5), 1, 'H');
-    }
-
-    // Carbonyl C (after Ca)
+    // Carbonyl C
     var Cx = xr + 0.35 * resAdv;
     var Cy = yBase * 0.3;
     addAtom(Cx, Cy, 0, 4, 'C');
 
-    // Carbonyl O (perpendicular to backbone)
+    // Carbonyl O (alternating sides)
     var oSide = -zigSign;
     addAtom(Cx, Cy + oSide * bCO, 0, 2, 'O');
   }
 
-  log.textContent = 'Trp-cage (unfolded): ' + atoms.length + ' atoms, ' + nRes + ' residues';
+  // C-terminal OH group
+  var lastCx = x0 + (nRes - 1) * resAdv + 0.35 * resAdv;
+  var lastCy = ((nRes - 1) % 2 === 0 ? 1 : -1) * zig * 0.3;
+  var ohX = lastCx + 1.34 * A;
+  addAtom(ohX, lastCy, 0, 2, 'O');
+  addAtom(ohX + bOH, lastCy, 0, 1, 'H');
+
+  // 1 water molecule above the chain
+  addAtom(0, 5 * A, 0, 2, 'O');
+  addAtom(-0.76 * A, 5 * A - 0.59 * A, 0, 1, 'H');
+  addAtom(0.76 * A, 5 * A - 0.59 * A, 0, 1, 'H');
+
+  log.textContent = 'Hairpin (unfolded): ' + atoms.length + ' atoms, ' + nRes + ' glycine residues + 1 water';
   log.textContent += '\nExtended chain on ' + gridN + '^3 grid, screen=' + scr + ' au';
 
   window.USER_NN = gridN;

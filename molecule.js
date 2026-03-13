@@ -12,7 +12,8 @@ const NELEC = _uz.filter(z => z > 0).length || 3;
 const NRED_E = 3;  // Energy reduce: T + V_eK + V_ee (norms via atomic accumulation)
 const r_cut = window.USER_RC || [0, 0, 0, 0, 0];
 while (r_cut.length < MAX_ATOMS) r_cut.push(0);
-let R_out = 0.5;   // au, outer w cutoff
+let R_out = 0.5;   // au, unused legacy
+let curvReg = 0.15;  // curvature regularization for free boundary
 let Z = [..._uz];
 let Ne = [..._uz];
 const Z_orig = [..._uz];
@@ -52,8 +53,8 @@ function dispatchLinear(pass, totalCells) {
 }
 
 const STEPS_PER_FRAME = NELEC <= 5 ? 500 : NELEC <= 15 ? 100 : NELEC <= 30 ? 50 : NELEC <= 100 ? 5 : 2;
-const W_STEPS_PER_FRAME = 1;
-const BOUNDARY_INTERVAL = 10;
+const W_STEPS_PER_FRAME = 500;
+const BOUNDARY_INTERVAL = 20;
 const NORM_INTERVAL = 20;
 const POISSON_INTERVAL = 50;
 const SIC_INTERVAL = NELEC <= 15 ? 1 : NELEC <= 30 ? 5 : 999999;  // skip SIC for large molecules
@@ -61,10 +62,12 @@ const SIC_JACOBI = NELEC <= 15 ? 10 : 4;
 
 // === Nuclear dynamics state ===
 const N_MOVE = 200;         // electronic steps between nuclear moves
-const DT_NUC = 20.0;        // au (~0.48 fs)
+const DT_NUC = 0.8;         // au (~0.02 fs)
 const NUC_SUBSTEPS = 1;     // single step (forces recomputed each move)
 const DAMPING = 0.98;       // light damping
 const MAX_VEL = 0.1;        // au/au_time
+let forceScale = 1.0;       // adjustable via slider/keys
+let boundarySpeed = 0.5;    // dt_w for free boundary evolution
 let nucVel = Array.from({length: MAX_ATOMS}, () => [0, 0, 0]);
 let nucForce = Array.from({length: MAX_ATOMS}, () => [0, 0, 0]);
 let nucStepCount = 0, dynamicsEnabled = false;
@@ -94,7 +97,7 @@ const PARAM_BYTES = 64;
 const paramStructWGSL = `
 struct P {
   NN: u32, S: u32, S2: u32, S3: u32,
-  N2: u32, voronoi: f32, R_out: f32, TWO_PI: f32,
+  N2: u32, dt_w: f32, curvReg: f32, TWO_PI: f32,
   h: f32, h2: f32, inv_h: f32, inv_h2: f32,
   dt: f32, half_d: f32, h3: f32, sliceK: u32,
 }`;
@@ -107,15 +110,30 @@ struct Atom {
   rc: f32, _p0: f32, _p1: f32, _p2: f32,
 }`;
 
-// U update — label-based domains, Neumann BC at domain boundaries
+// U update — label-based domains, Neumann BC at domain boundaries and r_c surfaces
 const updateU_WGSL = `
 ${paramStructWGSL}
+${atomStructWGSL}
 @group(0) @binding(0) var<uniform> p: P;
 @group(0) @binding(1) var<storage, read> K: array<f32>;
 @group(0) @binding(2) var<storage, read> Ui: array<f32>;
 @group(0) @binding(3) var<storage, read> label: array<u32>;
 @group(0) @binding(4) var<storage, read> Pi: array<f32>;
 @group(0) @binding(5) var<storage, read_write> Uo: array<f32>;
+@group(0) @binding(6) var<storage, read> atoms: array<Atom>;
+
+fn distToAtom(ci: u32, cj: u32, ck: u32, n: u32) -> f32 {
+  let dx = (f32(ci) - f32(atoms[n].posI)) * p.h;
+  let dy = (f32(cj) - f32(atoms[n].posJ)) * p.h;
+  let dz = (f32(ck) - f32(atoms[n].posK)) * p.h;
+  return sqrt(dx*dx + dy*dy + dz*dz);
+}
+
+fn isInsideRc(ci: u32, cj: u32, ck: u32, lbl: u32) -> bool {
+  let rc = atoms[lbl].rc;
+  if (rc <= 0.0) { return false; }
+  return distToAtom(ci, cj, ck, lbl) < rc;
+}
 
 ${cellIdxWGSL}
 @compute @workgroup_size(256)
@@ -132,15 +150,29 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
   let myL = label[id];
 
+  // Inside r_c: U = 0 (Dirichlet)
+  if (isInsideRc(i, j, k, myL)) {
+    Uo[id] = 0.0;
+    return;
+  }
+
   let uc = Ui[id];
 
-  // Neumann BC: no diffusion across domain boundaries (independent u per domain)
-  let u_ip = select(uc, Ui[id + p.S2], label[id + p.S2] == myL);
-  let u_im = select(uc, Ui[id - p.S2], label[id - p.S2] == myL);
-  let u_jp = select(uc, Ui[id + p.S],  label[id + p.S]  == myL);
-  let u_jm = select(uc, Ui[id - p.S],  label[id - p.S]  == myL);
-  let u_kp = select(uc, Ui[id + 1u],   label[id + 1u]   == myL);
-  let u_km = select(uc, Ui[id - 1u],   label[id - 1u]   == myL);
+  // Outside r_c: Neumann BC at r_c surface (reflect neighbor if it's inside r_c)
+  // Also Neumann at domain boundaries (existing behavior)
+  let l_ip = label[id + p.S2]; let inside_ip = isInsideRc(i+1u, j, k, l_ip);
+  let l_im = label[id - p.S2]; let inside_im = isInsideRc(i-1u, j, k, l_im);
+  let l_jp = label[id + p.S];  let inside_jp = isInsideRc(i, j+1u, k, l_jp);
+  let l_jm = label[id - p.S];  let inside_jm = isInsideRc(i, j-1u, k, l_jm);
+  let l_kp = label[id + 1u];   let inside_kp = isInsideRc(i, j, k+1u, l_kp);
+  let l_km = label[id - 1u];   let inside_km = isInsideRc(i, j, k-1u, l_km);
+
+  let u_ip = select(uc, Ui[id + p.S2], l_ip == myL && !inside_ip);
+  let u_im = select(uc, Ui[id - p.S2], l_im == myL && !inside_im);
+  let u_jp = select(uc, Ui[id + p.S],  l_jp == myL && !inside_jp);
+  let u_jm = select(uc, Ui[id - p.S],  l_jm == myL && !inside_jm);
+  let u_kp = select(uc, Ui[id + 1u],   l_kp == myL && !inside_kp);
+  let u_km = select(uc, Ui[id - 1u],   l_km == myL && !inside_km);
 
   let lap = u_ip + u_im + u_jp + u_jm + u_kp + u_km - 6.0 * uc;
 
@@ -153,13 +185,11 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 // W > 0 means "I belong here", W < 0 means "neighbor density dominates, should flip"
 const evolveBoundaryWGSL = `
 ${paramStructWGSL}
-${atomStructWGSL}
 @group(0) @binding(0) var<uniform> p: P;
 @group(0) @binding(1) var<storage, read> labelIn: array<u32>;
 @group(0) @binding(2) var<storage, read_write> labelOut: array<u32>;
 @group(0) @binding(3) var<storage, read> U: array<f32>;
 @group(0) @binding(4) var<storage, read_write> W: array<f32>;
-@group(0) @binding(5) var<storage, read> atoms: array<Atom>;
 
 ${cellIdxWGSL}
 @compute @workgroup_size(256)
@@ -175,8 +205,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let id = i * p.S2 + j * p.S + k;
 
   let myL = labelIn[id];
-  let myZ = atoms[myL].Z;
-  let myRho = myZ * U[id] * U[id];
+  let myRho = U[id] * U[id];
 
   let id_ip = id + p.S2; let id_im = id - p.S2;
   let id_jp = id + p.S;  let id_jm = id - p.S;
@@ -186,17 +215,17 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let l_jp = labelIn[id_jp]; let l_jm = labelIn[id_jm];
   let l_kp = labelIn[id_kp]; let l_km = labelIn[id_km];
 
-  // Find best cross-boundary neighbor (highest density) + count same-domain
+  // Find best cross-boundary neighbor (highest density U²) + count same-domain
   var bestOtherL: u32 = myL;
   var bestOtherRho: f32 = 0.0;
   var myCnt: f32 = 0.0;
 
-  if (l_ip == myL) { myCnt += 1.0; } else { let r = atoms[l_ip].Z * U[id_ip] * U[id_ip]; if (r > bestOtherRho) { bestOtherRho = r; bestOtherL = l_ip; } }
-  if (l_im == myL) { myCnt += 1.0; } else { let r = atoms[l_im].Z * U[id_im] * U[id_im]; if (r > bestOtherRho) { bestOtherRho = r; bestOtherL = l_im; } }
-  if (l_jp == myL) { myCnt += 1.0; } else { let r = atoms[l_jp].Z * U[id_jp] * U[id_jp]; if (r > bestOtherRho) { bestOtherRho = r; bestOtherL = l_jp; } }
-  if (l_jm == myL) { myCnt += 1.0; } else { let r = atoms[l_jm].Z * U[id_jm] * U[id_jm]; if (r > bestOtherRho) { bestOtherRho = r; bestOtherL = l_jm; } }
-  if (l_kp == myL) { myCnt += 1.0; } else { let r = atoms[l_kp].Z * U[id_kp] * U[id_kp]; if (r > bestOtherRho) { bestOtherRho = r; bestOtherL = l_kp; } }
-  if (l_km == myL) { myCnt += 1.0; } else { let r = atoms[l_km].Z * U[id_km] * U[id_km]; if (r > bestOtherRho) { bestOtherRho = r; bestOtherL = l_km; } }
+  if (l_ip == myL) { myCnt += 1.0; } else { let r = U[id_ip] * U[id_ip]; if (r > bestOtherRho) { bestOtherRho = r; bestOtherL = l_ip; } }
+  if (l_im == myL) { myCnt += 1.0; } else { let r = U[id_im] * U[id_im]; if (r > bestOtherRho) { bestOtherRho = r; bestOtherL = l_im; } }
+  if (l_jp == myL) { myCnt += 1.0; } else { let r = U[id_jp] * U[id_jp]; if (r > bestOtherRho) { bestOtherRho = r; bestOtherL = l_jp; } }
+  if (l_jm == myL) { myCnt += 1.0; } else { let r = U[id_jm] * U[id_jm]; if (r > bestOtherRho) { bestOtherRho = r; bestOtherL = l_jm; } }
+  if (l_kp == myL) { myCnt += 1.0; } else { let r = U[id_kp] * U[id_kp]; if (r > bestOtherRho) { bestOtherRho = r; bestOtherL = l_kp; } }
+  if (l_km == myL) { myCnt += 1.0; } else { let r = U[id_km] * U[id_km]; if (r > bestOtherRho) { bestOtherRho = r; bestOtherL = l_km; } }
 
   var w = W[id];
 
@@ -212,12 +241,11 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   // Normalized velocity in [-1,+1] so boundary speed is independent of system size
   let denom = myRho + bestOtherRho;
   let velocity = select((myRho - bestOtherRho) / denom, 0.0, denom < 1e-20);
-  let dt_w: f32 = 2.0;
-  w += dt_w * velocity;
+  w += p.dt_w * velocity;
 
   // Curvature regularization: smooth jagged boundaries
   let curv = (myCnt - 3.0) / 3.0;  // [-1, +1], negative = surrounded by others
-  w += 0.5 * curv;
+  w += p.curvReg * curv;
 
   var newL = myL;
   if (w < 0.0) {
@@ -255,25 +283,20 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
   let oldL = labelOld[id];
   let newL = labelNew[id];
-  if (oldL != newL) {
-    let Zold = atoms[oldL].Z;
-    let Znew = atoms[newL].Z;
-    U[id] *= sqrt(Zold / max(Znew, 0.001));
-  }
+  // When cell flips domain, keep U continuous (density U² is the physical quantity)
+  // Normalization step will adjust ∫U² = Z_eff for each domain
 }
 `;
 
 // Compute density for a single domain (for self-potential calculation)
 const computeRhoSelfWGSL = `
 ${paramStructWGSL}
-${atomStructWGSL}
 struct DomIdx { idx: u32, _p0: u32, _p1: u32, _p2: u32 }
 @group(0) @binding(0) var<uniform> p: P;
 @group(0) @binding(1) var<storage, read> U: array<f32>;
 @group(0) @binding(2) var<storage, read_write> rhoSelf: array<f32>;
-@group(0) @binding(3) var<storage, read> atoms: array<Atom>;
-@group(0) @binding(4) var<storage, read> label: array<u32>;
-@group(0) @binding(5) var<uniform> dom: DomIdx;
+@group(0) @binding(3) var<storage, read> label: array<u32>;
+@group(0) @binding(4) var<uniform> dom: DomIdx;
 
 ${cellIdxWGSL}
 @compute @workgroup_size(256)
@@ -287,7 +310,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let i = (cell / (NM * NM)) + 1u;
   let id = i * p.S2 + j * p.S + k;
   let u = U[id];
-  rhoSelf[id] = select(0.0, atoms[label[id]].Z * u * u, label[id] == dom.idx);
+  rhoSelf[id] = select(0.0, u * u, label[id] == dom.idx);
 }
 `;
 
@@ -352,12 +375,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 // Compute rho_total from single density field + labels
 const computeRhoWGSL = `
 ${paramStructWGSL}
-${atomStructWGSL}
 @group(0) @binding(0) var<uniform> p: P;
 @group(0) @binding(1) var<storage, read> U: array<f32>;
 @group(0) @binding(2) var<storage, read_write> rhoTotal: array<f32>;
-@group(0) @binding(3) var<storage, read> atoms: array<Atom>;
-@group(0) @binding(4) var<storage, read> label: array<u32>;
 
 ${cellIdxWGSL}
 @compute @workgroup_size(256)
@@ -371,7 +391,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let i = (cell / (NM * NM)) + 1u;
   let id = i * p.S2 + j * p.S + k;
   let u = U[id];
-  rhoTotal[id] = atoms[label[id]].Z * u * u;
+  rhoTotal[id] = u * u;
 }
 `;
 
@@ -551,14 +571,12 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 const MAX_REDUCE_WG = 256;
 const reduceEnergyWGSL = `
 ${paramStructWGSL}
-${atomStructWGSL}
 @group(0) @binding(0) var<uniform> p: P;
 @group(0) @binding(1) var<storage, read> U: array<f32>;
-@group(0) @binding(2) var<storage, read> label: array<u32>;
-@group(0) @binding(3) var<storage, read> Pv: array<f32>;
-@group(0) @binding(4) var<storage, read> K: array<f32>;
-@group(0) @binding(5) var<storage, read_write> partials: array<f32>;
-@group(0) @binding(6) var<storage, read> atoms: array<Atom>;
+@group(0) @binding(2) var<storage, read> Pv: array<f32>;
+@group(0) @binding(3) var<storage, read> K: array<f32>;
+@group(0) @binding(4) var<storage, read_write> partials: array<f32>;
+@group(0) @binding(5) var<storage, read> label: array<u32>;
 
 var<workgroup> sn: array<f32, ${3 * REDUCE_WG}>;
 
@@ -581,15 +599,15 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>,
     let id = i * p.S2 + j * p.S + k;
 
     let v = U[id];
-    let Zm = atoms[label[id]].Z;
+    let myL = label[id];
 
-    let v_ip = U[id + p.S2];
-    let v_jp = U[id + p.S];
-    let v_kp = U[id + 1u];
-    let a = v_ip - v; let b = v_jp - v; let c = v_kp - v;
-    sn[lid * 3u]      += Zm * 0.5 * (a * a + b * b + c * c) * p.h;
-    sn[lid * 3u + 1u] += -Zm * K[id] * v * v * p.h3;
-    sn[lid * 3u + 2u] += Zm * Pv[id] * v * v * p.h3;
+    // Only include gradients within same domain (skip cross-boundary)
+    let a = select(0.0, U[id + p.S2] - v, label[id + p.S2] == myL);
+    let b = select(0.0, U[id + p.S]  - v, label[id + p.S]  == myL);
+    let c = select(0.0, U[id + 1u]   - v, label[id + 1u]   == myL);
+    sn[lid * 3u]      += 0.5 * (a * a + b * b + c * c) * p.h;
+    sn[lid * 3u + 1u] += -K[id] * v * v * p.h3;
+    sn[lid * 3u + 2u] += Pv[id] * v * v * p.h3;
 
     cell = cell + stride;
   }
@@ -653,10 +671,12 @@ fn main(@builtin(local_invocation_index) lid: u32) {
 
 const normalizeWGSL = `
 ${paramStructWGSL}
+${atomStructWGSL}
 @group(0) @binding(0) var<uniform> p: P;
 @group(0) @binding(1) var<storage, read_write> U: array<f32>;
 @group(0) @binding(2) var<storage, read> normFloat: array<f32>;
 @group(0) @binding(3) var<storage, read> label: array<u32>;
+@group(0) @binding(4) var<storage, read> atoms: array<Atom>;
 
 ${cellIdxWGSL}
 @compute @workgroup_size(256)
@@ -671,8 +691,11 @@ fn main(@builtin(global_invocation_id) g: vec3<u32>) {
   let i = (cell / (NM * NM)) + 1u;
   let id = i * p.S2 + j * p.S + k;
 
-  let n = normFloat[label[id]];
-  if (n > 0.0) { U[id] *= inverseSqrt(n); }
+  let lbl = label[id];
+  let n = normFloat[lbl];
+  let Zeff = atoms[lbl].Z;
+  // Normalize so that ∫U² dV = Z_eff
+  if (n > 0.0 && Zeff > 0.0) { U[id] *= sqrt(Zeff / n); }
 }
 `;
 
@@ -712,11 +735,11 @@ fn main(@builtin(global_invocation_id) g: vec3<u32>) {
   let u = U[idx];
   let lbl = label[idx];
   let Zlbl = atoms[lbl].Z;
-  out[i * SS + j] = Zlbl * u * u;
+  out[i * SS + j] = u * u;
   out[SS * SS + i * SS + j] = Zlbl;
 
   // Boundary: only where density exists (skip empty Voronoi regions)
-  let dens = Zlbl * u * u;
+  let dens = u * u;
   var bnd = 0.0;
   if (dens > 1e-6) {
     if (i > 1u && i < p.NN - 1u) {
@@ -839,8 +862,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 const WG_RECOMPUTE_K = Math.ceil(S3 / 256);
 
 // GPU init: split into two shaders to handle large atom counts
-// Phase 1: accumulate K and find nearest atom (batched over atom ranges)
-// Phase 2: set U and P from K and labels
+// Phase 1: accumulate K, find dominating atom by highest exp(-Z*r)
+// Phase 2: set U from bestU values
 const INIT_BATCH = 50;  // atoms per dispatch batch
 const gpuInitAccumWGSL = `
 ${paramStructWGSL}
@@ -849,7 +872,7 @@ struct Range { start: u32, count: u32, _p0: u32, _p1: u32 }
 @group(0) @binding(0) var<uniform> p: P;
 @group(0) @binding(1) var<storage, read> atoms: array<Atom>;
 @group(0) @binding(2) var<storage, read_write> K: array<f32>;
-@group(0) @binding(3) var<storage, read_write> bestR2: array<f32>;
+@group(0) @binding(3) var<storage, read_write> bestU: array<f32>;
 @group(0) @binding(4) var<storage, read_write> label: array<u32>;
 @group(0) @binding(5) var<uniform> range: Range;
 
@@ -866,7 +889,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let zk = f32(kk) * p.h;
 
   var Kval: f32 = K[id];
-  var br2: f32 = bestR2[id];
+  var bU: f32 = bestU[id];
   var bestN: u32 = label[id];
   let soft = 0.04 * p.h2;
   let end = range.start + range.count;
@@ -880,20 +903,23 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let r2 = dx*dx + dy*dy + dz*dz + soft;
     let r = sqrt(r2);
     Kval += Za / max(r, ${R_SING});
-    if (r2 < br2) { br2 = r2; bestN = n; }
+    // Normalized trial: ∫U²dV = Z_eff analytically (U = Z²/√π · exp(-Z·r))
+    // Domains assigned by highest normalized density
+    let uTrial = Za * Za * ${(1/Math.sqrt(Math.PI)).toFixed(10)} * exp(-Za * r);
+    if (uTrial > bU) { bU = uTrial; bestN = n; }
   }
 
   K[id] = Kval;
-  bestR2[id] = br2;
+  bestU[id] = bU;
   label[id] = bestN;
 }
 `;
 
-// Phase 2: set U from bestR2 (full Voronoi labels from phase 1)
+// Phase 2: set U directly from bestU (= exp(-Z*r) of winning atom)
 const gpuInitFinalWGSL = `
 ${paramStructWGSL}
 @group(0) @binding(0) var<uniform> p: P;
-@group(0) @binding(1) var<storage, read> bestR2: array<f32>;
+@group(0) @binding(1) var<storage, read> bestU: array<f32>;
 @group(0) @binding(2) var<storage, read_write> U: array<f32>;
 
 ${cellIdxWGSL}
@@ -901,8 +927,7 @@ ${cellIdxWGSL}
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let id = cellIdx(gid);
   if (id >= p.S3) { return; }
-  let r = sqrt(bestR2[id]);
-  U[id] = select(0.0, exp(-r), r < p.R_out);
+  U[id] = bestU[id];
 }
 `;
 
@@ -955,7 +980,7 @@ function fillParamsBuf(pb) {
   const pu = new Uint32Array(pb);
   const pf = new Float32Array(pb);
   pu[0] = NN; pu[1] = S; pu[2] = S2; pu[3] = S3;
-  pu[4] = N2; pf[5] = 1.0; pf[6] = R_out; pf[7] = 2 * Math.PI;
+  pu[4] = N2; pf[5] = boundarySpeed; pf[6] = curvReg; pf[7] = 2 * Math.PI;
   pf[8] = hGrid; pf[9] = h2v; pf[10] = 1 / hGrid; pf[11] = 1 / h2v;
   pf[12] = dtv; pf[13] = half_dv; pf[14] = h3v; pu[15] = sliceK;
 }
@@ -990,10 +1015,10 @@ async function uploadInitialData() {
   clrEnc.clearBuffer(P_buf[0]);
   device.queue.submit([clrEnc.finish()]);
 
-  // Fill bestR2 with 1e30 from CPU (it's a float buffer)
-  const br2 = new Float32Array(S3);
-  br2.fill(1e30);
-  device.queue.writeBuffer(bestR2Buf, 0, br2);
+  // Fill bestU with 0 from CPU (no density initially)
+  const bU = new Float32Array(S3);
+  bU.fill(0.0);
+  device.queue.writeBuffer(bestR2Buf, 0, bU);
 
   // Batched init: process INIT_BATCH atoms per dispatch
   const nBatches = Math.ceil(NELEC / INIT_BATCH);
@@ -1014,6 +1039,7 @@ async function uploadInitialData() {
 
   // Final pass: set U and P from bestR2 (labels already set by accum)
   {
+    device.pushErrorScope('validation');
     const enc = device.createCommandEncoder();
     const ip = enc.beginComputePass();
     ip.setPipeline(gpuInitFinalPL);
@@ -1021,10 +1047,31 @@ async function uploadInitialData() {
     dispatchLinear(ip, S3);
     ip.end();
     device.queue.submit([enc.finish()]);
+    const initErr = await device.popErrorScope();
+    if (initErr) console.error("GPU init error:", initErr.message);
   }
 
   await device.queue.onSubmittedWorkDone();
   console.log("GPU init dispatched in " + ((performance.now() - t0)).toFixed(0) + "ms");
+
+  // Debug: read back a few U values to verify init worked
+  {
+    const dbgBuf = device.createBuffer({ size: 256, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+    const dbgEnc = device.createCommandEncoder();
+    dbgEnc.copyBufferToBuffer(U_buf[0], N2 * S2 * 4, dbgBuf, 0, 256);
+    device.queue.submit([dbgEnc.finish()]);
+    await dbgBuf.mapAsync(GPUMapMode.READ);
+    const dbgData = new Float32Array(dbgBuf.getMappedRange().slice(0));
+    dbgBuf.unmap(); dbgBuf.destroy();
+    let dbgMax = 0, dbgNonZero = 0;
+    for (let i = 0; i < dbgData.length; i++) {
+      if (dbgData[i] !== 0) dbgNonZero++;
+      if (Math.abs(dbgData[i]) > dbgMax) dbgMax = Math.abs(dbgData[i]);
+    }
+    console.log("Init U debug: max=" + dbgMax.toExponential(3) + " nonZero=" + dbgNonZero + "/64 sample: " +
+      dbgData[0].toExponential(3) + " " + dbgData[32].toExponential(3));
+    window._initDebug = "initU: max=" + dbgMax.toExponential(2) + " nz=" + dbgNonZero;
+  }
 
   // Copy to double-buffered slots
   const cpEnc = device.createCommandEncoder();
@@ -1091,6 +1138,30 @@ function setup() {
   console.log("setup: NELEC=" + NELEC + " NRED_E=" + NRED_E + " REDUCE_WG=" + REDUCE_WG);
   createCanvas(700, 700);
   textSize(9);
+
+  // Control sliders (top-right)
+  var ctrl = document.createElement('div');
+  ctrl.style.cssText = 'position:fixed;top:10px;right:10px;z-index:100;background:rgba(0,0,0,0.7);padding:6px 10px;border-radius:6px;color:#fff;font:11px monospace';
+  ctrl.innerHTML =
+    'Force: <input id="forceSlider" type="range" min="0" max="500" value="100" style="width:120px;vertical-align:middle"><span id="forceScaleVal"> 1.0x</span><br>' +
+    'Boundary: <input id="bndSlider" type="range" min="0" max="200" value="50" style="width:120px;vertical-align:middle"><span id="bndVal"> 0.50</span><br>' +
+    'Curvature: <input id="curvSlider" type="range" min="0" max="100" value="15" style="width:120px;vertical-align:middle"><span id="curvVal"> 0.15</span>';
+  document.body.appendChild(ctrl);
+  document.getElementById('forceSlider').oninput = function() {
+    forceScale = this.value / 100;
+    document.getElementById('forceScaleVal').textContent = ' ' + forceScale.toFixed(1) + 'x';
+  };
+  document.getElementById('bndSlider').oninput = function() {
+    boundarySpeed = this.value / 100;
+    document.getElementById('bndVal').textContent = ' ' + boundarySpeed.toFixed(2);
+    updateParamsBuf();
+  };
+  document.getElementById('curvSlider').oninput = function() {
+    curvReg = this.value / 100;
+    document.getElementById('curvVal').textContent = ' ' + curvReg.toFixed(2);
+    updateParamsBuf();
+  };
+
   initGPU();
 }
 
@@ -1220,8 +1291,9 @@ async function initGPU() {
 
     updatePL = await device.createComputePipelineAsync({ layout: 'auto', compute: { module: updateMod, entryPoint: 'main' } });
     evolveBoundaryPL = await device.createComputePipelineAsync({ layout: 'auto', compute: { module: evolveBoundaryMod, entryPoint: 'main' } });
-    const fixBoundaryUMod = await compileShader('fixBoundaryU', fixBoundaryU_WGSL);
-    fixBoundaryUPL = await device.createComputePipelineAsync({ layout: 'auto', compute: { module: fixBoundaryUMod, entryPoint: 'main' } });
+    // fixBoundaryU no longer needed (U stays continuous, normalization handles ∫U²=Z_eff)
+    // const fixBoundaryUMod = await compileShader('fixBoundaryU', fixBoundaryU_WGSL);
+    // fixBoundaryUPL = await device.createComputePipelineAsync({ layout: 'auto', compute: { module: fixBoundaryUMod, entryPoint: 'main' } });
     computeRhoSelfPL = await device.createComputePipelineAsync({ layout: 'auto', compute: { module: computeRhoSelfMod, entryPoint: 'main' } });
     subtractPselfPL = await device.createComputePipelineAsync({ layout: 'auto', compute: { module: subtractPselfMod, entryPoint: 'main' } });
     jacobiSmoothPL = await device.createComputePipelineAsync({ layout: 'auto', compute: { module: jacobiSmoothMod, entryPoint: 'main' } });
@@ -1252,15 +1324,15 @@ async function initGPU() {
         { binding: 3, resource: { buffer: labelBuf } },
         { binding: 4, resource: { buffer: PotherBuf } },
         { binding: 5, resource: { buffer: U_buf[n] } },
+        { binding: 6, resource: { buffer: atomBuf } },
       ]});
       reduceEnergyBG[c] = device.createBindGroup({ layout: reduceEnergyPL.getBindGroupLayout(0), entries: [
         { binding: 0, resource: { buffer: paramsBuf } },
         { binding: 1, resource: { buffer: U_buf[c] } },
-        { binding: 2, resource: { buffer: labelBuf } },
-        { binding: 3, resource: { buffer: PotherBuf } },
-        { binding: 4, resource: { buffer: K_buf } },
-        { binding: 5, resource: { buffer: partialsBuf } },
-        { binding: 6, resource: { buffer: atomBuf } },
+        { binding: 2, resource: { buffer: PotherBuf } },
+        { binding: 3, resource: { buffer: K_buf } },
+        { binding: 4, resource: { buffer: partialsBuf } },
+        { binding: 5, resource: { buffer: labelBuf } },
       ]});
       accumNormsBG[c] = device.createBindGroup({ layout: accumNormsPL.getBindGroupLayout(0), entries: [
         { binding: 0, resource: { buffer: paramsBuf } },
@@ -1273,6 +1345,7 @@ async function initGPU() {
         { binding: 1, resource: { buffer: U_buf[c] } },
         { binding: 2, resource: { buffer: normFloatBuf } },
         { binding: 3, resource: { buffer: labelBuf } },
+        { binding: 4, resource: { buffer: atomBuf } },
       ]});
       extractBG[c] = device.createBindGroup({ layout: extractPL.getBindGroupLayout(0), entries: [
         { binding: 0, resource: { buffer: paramsBuf } },
@@ -1287,8 +1360,6 @@ async function initGPU() {
         { binding: 0, resource: { buffer: paramsBuf } },
         { binding: 1, resource: { buffer: U_buf[c] } },
         { binding: 2, resource: { buffer: rhoTotalBuf } },
-        { binding: 3, resource: { buffer: atomBuf } },
-        { binding: 4, resource: { buffer: labelBuf } },
       ]});
     }
     // Boundary evolution: labelBuf -> label2Buf, indexed by U cur
@@ -1299,16 +1370,8 @@ async function initGPU() {
         { binding: 2, resource: { buffer: label2Buf } },
         { binding: 3, resource: { buffer: U_buf[u] } },
         { binding: 4, resource: { buffer: W_buf } },
-        { binding: 5, resource: { buffer: atomBuf } },
       ]});
-      // Fix U at flipped cells: labelBuf=old, label2Buf=new, U[cur]=read_write
-      fixBoundaryUBG[u] = device.createBindGroup({ layout: fixBoundaryUPL.getBindGroupLayout(0), entries: [
-        { binding: 0, resource: { buffer: paramsBuf } },
-        { binding: 1, resource: { buffer: labelBuf } },
-        { binding: 2, resource: { buffer: label2Buf } },
-        { binding: 3, resource: { buffer: U_buf[u] } },
-        { binding: 4, resource: { buffer: atomBuf } },
-      ]});
+      // fixBoundaryU no longer needed — U stays continuous, normalization handles ∫U²=Z_eff
     }
     // Residual (cur-independent now — single field P)
     residualBG[0] = device.createBindGroup({ layout: computeResidualPL.getBindGroupLayout(0), entries: [
@@ -1386,9 +1449,8 @@ async function initGPU() {
             { binding: 0, resource: { buffer: paramsBuf } },
             { binding: 1, resource: { buffer: U_buf[c] } },
             { binding: 2, resource: { buffer: residualBuf } },
-            { binding: 3, resource: { buffer: atomBuf } },
-            { binding: 4, resource: { buffer: labelBuf } },
-            { binding: 5, resource: { buffer: domainBufs[m] } },
+            { binding: 3, resource: { buffer: labelBuf } },
+            { binding: 4, resource: { buffer: domainBufs[m] } },
           ]});
         }
         subtractPselfBG[m] = device.createBindGroup({ layout: subtractPselfPL.getBindGroupLayout(0), entries: [
@@ -1443,6 +1505,8 @@ async function initGPU() {
 
 async function doSteps(n) {
   const t0 = performance.now();
+  device.pushErrorScope('validation');
+  device.pushErrorScope('out-of-memory');
   const enc = device.createCommandEncoder();
   let needForceReadback = false;
 
@@ -1496,7 +1560,7 @@ async function doSteps(n) {
       vp.end();
     }
 
-    // --- U update (Neumann BC from labels) ---
+    // --- U update (Neumann BC from labels and r_c surfaces) ---
     let cp = enc.beginComputePass();
     cp.setPipeline(updatePL);
     cp.setBindGroup(0, updateBG[cur]);
@@ -1564,7 +1628,7 @@ async function doSteps(n) {
       sp.setBindGroup(0, computeRhoSelfBG[m][cur]);
       dispatchLinear(sp, INTERIOR);
       sp.end();
-      enc.copyBufferToBuffer(P_buf[0], 0, P_buf[1], 0, S3 * 4);
+      enc.clearBuffer(P_buf[1]);
       for (let js = 0; js < SIC_JACOBI; js++) {
         sp = enc.beginComputePass();
         sp.setPipeline(jacobiSmoothPL);
@@ -1588,12 +1652,7 @@ async function doSteps(n) {
     bp.setBindGroup(0, evolveBoundaryBG[cur]);
     dispatchLinear(bp, INTERIOR);
     bp.end();
-    // Fix U at flipped cells for density continuity (before copying new labels)
-    bp = enc.beginComputePass();
-    bp.setPipeline(fixBoundaryUPL);
-    bp.setBindGroup(0, fixBoundaryUBG[cur]);
-    dispatchLinear(bp, INTERIOR);
-    bp.end();
+    // U stays continuous at domain flips — normalization handles ∫U²=Z_eff
     enc.copyBufferToBuffer(label2Buf, 0, labelBuf, 0, S3 * 4);
   }
 
@@ -1609,6 +1668,11 @@ async function doSteps(n) {
     enc.copyBufferToBuffer(forceSumsBuf, 0, forceSumsReadBuf, 0, NELEC * 3 * 4);
   }
   device.queue.submit([enc.finish()]);
+
+  const oomErr = await device.popErrorScope();
+  const valErr = await device.popErrorScope();
+  if (oomErr) { console.error("GPU OOM:", oomErr.message); window._gpuValErr = "OOM: " + oomErr.message; }
+  if (valErr) { console.error("GPU Validation:", valErr.message); window._gpuValErr = "VAL: " + valErr.message; }
 
   await sumsReadBuf.mapAsync(GPUMapMode.READ);
   const sumsData = new Float32Array(sumsReadBuf.getMappedRange().slice(0));
@@ -1689,7 +1753,7 @@ async function moveNuclei(gpuForces) {
       if (Z[a] === 0) continue;
       const m = nucMass(Z[a]);
       for (let d = 0; d < 3; d++) {
-        nucVel[a][d] += nucForce[a][d] / m * DT_NUC;
+        nucVel[a][d] += nucForce[a][d] / m * DT_NUC * forceScale;
         nucVel[a][d] *= DAMPING;
         nucVel[a][d] = Math.max(-MAX_VEL, Math.min(MAX_VEL, nucVel[a][d]));
         nucPos[a][d] += nucVel[a][d] * DT_NUC / hGrid;
@@ -1780,18 +1844,25 @@ function draw() {
     const SS = S;
     const SS2 = SS * SS;
     // Diagnostic: check density values
-    if (frameCount <= 3 || frameCount % 100 === 0) {
-      let maxD = 0, nanCount = 0, posCount = 0;
+    {
+      let maxD = 0, nanCount = 0, posCount = 0, negCount = 0;
       for (let i = 1; i < NN; i++) {
         for (let j = 1; j < NN; j++) {
           const v = sliceData[i * SS + j];
           if (isNaN(v)) nanCount++;
           else if (v > 0) { posCount++; if (v > maxD) maxD = v; }
+          else if (v < 0) negCount++;
         }
       }
-      console.log("frame=" + frameCount + " maxDens=" + maxD.toExponential(3) +
-        " posCount=" + posCount + " nanCount=" + nanCount +
-        " E_T=" + E_T.toExponential(3) + " E_eK=" + E_eK.toExponential(3));
+      window._diagMaxD = maxD;
+      window._diagPos = posCount;
+      window._diagNan = nanCount;
+      window._diagNeg = negCount;
+      if (frameCount <= 3 || frameCount % 100 === 0) {
+        console.log("frame=" + frameCount + " maxDens=" + maxD.toExponential(3) +
+          " posCount=" + posCount + " nanCount=" + nanCount + " negCount=" + negCount +
+          " E_T=" + E_T.toExponential(3) + " E_eK=" + E_eK.toExponential(3));
+      }
     }
     loadPixels();
     const d = pixelDensity();
@@ -1931,11 +2002,35 @@ function draw() {
 
   // Dynamics status
   fill(dynamicsEnabled ? [0,255,255] : [150,150,150]);
-  text("Dynamics: " + (dynamicsEnabled ? "ON" : "OFF") + " (nucStep=" + nucStepCount + ")  [press D to toggle]", 5, 80);
+  text("Dynamics: " + (dynamicsEnabled ? "ON" : "OFF") + " (nucStep=" + nucStepCount + ")  Force=" + forceScale.toFixed(1) + "x  [D toggle, +/- force]", 5, 80);
+
+  // r_c values
+  fill(200, 180, 255);
+  var rcInfo = atomLabels.map((el, i) => [el, Z_orig[i], r_cut[i]]).filter(x => x[1] > 0);
+  var rcSeen = {};
+  rcInfo.forEach(x => { rcSeen[x[0]] = x[2]; });
+  text("r_c: " + Object.keys(rcSeen).map(k => k + "=" + rcSeen[k]).join(" "), 5, 95);
+
+  // Diagnostics
+  fill(255, 255, 0);
+  text("maxDens=" + (window._diagMaxD || 0).toExponential(2) +
+    " pos=" + (window._diagPos || 0) + " nan=" + (window._diagNan || 0) +
+    " neg=" + (window._diagNeg || 0), 5, 110);
+  if (window._initDebug) {
+    fill(0, 255, 255);
+    text(window._initDebug, 300, 110);
+  }
+  if (window._gpuValErr) {
+    fill(255, 0, 0);
+    var errLines = (window._gpuValErr).match(/.{1,80}/g) || [window._gpuValErr];
+    for (var ei = 0; ei < Math.min(errLines.length, 5); ei++) {
+      text(errLines[ei], 5, 128 + ei * 13);
+    }
+  }
 
   // Slice position
   fill(180, 180, 255);
-  text("Slice k=" + sliceK + "/" + NN + "  [Up/Down to scroll]", 5, 95);
+  text("Slice k=" + sliceK + "/" + NN + "  [Up/Down to scroll]", 5, 125);
 }
 
 function keyPressed() {
@@ -1947,6 +2042,20 @@ function keyPressed() {
   if (key === 'd' || key === 'D') {
     dynamicsEnabled = !dynamicsEnabled;
     console.log("Dynamics " + (dynamicsEnabled ? "ENABLED" : "DISABLED"));
+  }
+  if (key === '+' || key === '=') {
+    forceScale = Math.min(5.0, forceScale + 0.1);
+    var sl = document.getElementById('forceSlider');
+    if (sl) sl.value = Math.round(forceScale * 100);
+    var el = document.getElementById('forceScaleVal');
+    if (el) el.textContent = ' ' + forceScale.toFixed(1) + 'x';
+  }
+  if (key === '-' || key === '_') {
+    forceScale = Math.max(0.0, forceScale - 0.1);
+    var sl = document.getElementById('forceSlider');
+    if (sl) sl.value = Math.round(forceScale * 100);
+    var el = document.getElementById('forceScaleVal');
+    if (el) el.textContent = ' ' + forceScale.toFixed(1) + 'x';
   }
   const scrollStep = Math.max(1, Math.round(NN / 60));
   if (keyCode === UP_ARROW) {

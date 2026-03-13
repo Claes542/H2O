@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html><body style="margin:0;background:#000;color:#fff;font-family:monospace">
+<pre id="log">Building Asp-Pro dipeptide...</pre>
+<script>
+var log = document.getElementById('log');
+window.onerror = function(msg, url, line) {
+  log.textContent += '\nERROR: ' + msg + '\nLine: ' + line;
+};
+
+(function() {
+  var gridN = 300, scr = 30;
+  var h = scr / gridN;
+  var N2 = Math.round(gridN / 2);
+  var A = 1.8897;
+  var atoms = [];
+
+  function addAtom(ax, ay, az, Z, el) {
+    // ax, ay, az in Angstroms
+    var x = ax * A, y = ay * A, z = az * A;
+    var gi = Math.round(N2 + x / h);
+    var gj = Math.round(N2 + y / h);
+    var gk = Math.round(N2 + z / h);
+    gi = Math.max(3, Math.min(gridN - 3, gi));
+    gj = Math.max(3, Math.min(gridN - 3, gj));
+    gk = Math.max(3, Math.min(gridN - 3, gk));
+    atoms.push({ i: gi, j: gj, k: gk, Z: Z, el: el });
+  }
+
+  // ===== Asp-Pro dipeptide with proper proline ring =====
+  // All coordinates in Angstroms, roughly extended conformation
+  // Backbone in the xy plane, sidechains extend into z
+
+  // --- Asp residue (N-terminal) ---
+
+  // Backbone
+  var Asp_N  = [0.0, 0.0, 0.0];
+  var Asp_Ca = [1.2, 0.85, 0.0];
+  var Asp_C  = [2.5, 0.15, 0.0];
+  var Asp_O  = [2.6, -1.05, 0.0];
+
+  // N-terminal NH2
+  addAtom(Asp_N[0], Asp_N[1], Asp_N[2], 3, 'N');
+  addAtom(-0.4, 0.85, 0.0, 1, 'H');   // H1 on NH2
+  addAtom(-0.4, -0.85, 0.0, 1, 'H');  // H2 on NH2
+
+  // Asp Ca + Ha
+  addAtom(Asp_Ca[0], Asp_Ca[1], Asp_Ca[2], 4, 'C');
+  addAtom(1.2, 0.85, 1.09, 1, 'H');  // Ha (out of plane)
+
+  // Asp sidechain: Cb, 2Hb, Cg (carboxyl C), Od1 (C=O), Od2 (C-OH), Hd
+  addAtom(1.0, 2.2, -0.4, 4, 'C');    // Cb
+  addAtom(0.0, 2.5, -0.1, 1, 'H');    // Hb1
+  addAtom(1.0, 2.3, -1.5, 1, 'H');    // Hb2
+  addAtom(1.5, 3.4, 0.3, 4, 'C');     // Cg (carboxyl carbon)
+  addAtom(0.9, 4.4, -0.1, 2, 'O');    // Od1 (C=O)
+  addAtom(2.5, 3.5, 1.1, 2, 'O');     // Od2 (C-OH)
+  addAtom(2.8, 4.3, 1.3, 1, 'H');     // Hd on Od2
+
+  // Asp backbone carbonyl
+  addAtom(Asp_C[0], Asp_C[1], Asp_C[2], 4, 'C');
+  addAtom(Asp_O[0], Asp_O[1], Asp_O[2], 2, 'O');
+
+  // --- Peptide bond ---
+
+  // --- Pro residue (C-terminal) ---
+  // Pro N is part of the ring — no H on proline N in peptide bond
+  var Pro_N  = [3.7, 0.85, 0.0];
+  var Pro_Ca = [5.0, 0.35, 0.0];
+  var Pro_C  = [6.3, 1.15, 0.0];
+  var Pro_O  = [6.4, 2.35, 0.0];
+
+  // Proline 5-membered ring: N - Ca - Cb - Cg - Cd - N
+  // Ring tilted out of backbone plane (into +z)
+  // Construct ring: N and Ca are known, build Cb, Cg, Cd
+  // Pentagon geometry: internal angle ~108 deg
+  // Ring extends into +z direction
+
+  var Pro_Cb = [5.3, -0.3, 1.3];
+  var Pro_Cg = [4.3, 0.4, 2.1];
+  var Pro_Cd = [3.5, 1.0, 1.1];  // connects back to Pro_N
+
+  // Pro backbone N (no H — secondary amine)
+  addAtom(Pro_N[0], Pro_N[1], Pro_N[2], 3, 'N');
+
+  // Pro Ca + Ha
+  addAtom(Pro_Ca[0], Pro_Ca[1], Pro_Ca[2], 4, 'C');
+  addAtom(5.1, 0.3, -1.05, 1, 'H');  // Ha (opposite side from ring)
+
+  // Proline ring carbons + H atoms
+  // Cb
+  addAtom(Pro_Cb[0], Pro_Cb[1], Pro_Cb[2], 4, 'C');
+  addAtom(6.1, -0.95, 1.2, 1, 'H');   // Hb1
+  addAtom(5.5, 0.15, 2.2, 1, 'H');    // Hb2
+
+  // Cg
+  addAtom(Pro_Cg[0], Pro_Cg[1], Pro_Cg[2], 4, 'C');
+  addAtom(4.6, 0.1, 3.1, 1, 'H');     // Hg1
+  addAtom(3.5, -0.2, 1.8, 1, 'H');    // Hg2
+
+  // Cd
+  addAtom(Pro_Cd[0], Pro_Cd[1], Pro_Cd[2], 4, 'C');
+  addAtom(2.7, 1.5, 1.6, 1, 'H');     // Hd1
+  addAtom(3.9, 1.8, 1.5, 1, 'H');     // Hd2
+
+  // Pro backbone carbonyl
+  addAtom(Pro_C[0], Pro_C[1], Pro_C[2], 4, 'C');
+  addAtom(Pro_O[0], Pro_O[1], Pro_O[2], 2, 'O');
+
+  // C-terminal OH
+  addAtom(7.3, 0.5, 0.0, 2, 'O');     // OXT
+  addAtom(8.2, 0.85, 0.0, 1, 'H');    // HXT
+
+  // --- 1 water molecule near the peptide bond ---
+  addAtom(3.0, -2.0, 0.0, 2, 'O');
+  addAtom(2.3, -2.3, 0.4, 1, 'H');
+  addAtom(3.6, -2.5, 0.3, 1, 'H');
+
+  log.textContent = 'Asp-Pro dipeptide: ' + atoms.length + ' atoms';
+  log.textContent += '\nWith proper proline pyrrolidine ring (N-Ca-Cb-Cg-Cd)';
+  log.textContent += '\nBackbone extended, dynamics will show if Pro ring forces a bend';
+  log.textContent += '\n' + gridN + '^3 grid, screen=' + scr + ' au';
+
+  window.USER_NN = gridN;
+  window.USER_ATOMS = atoms;
+  window.USER_SCREEN = scr;
+  window.USER_STEPS = 1000000;
+  window.USER_Z = atoms.map(function(a) { return a.Z; });
+  window.USER_RC = atoms.map(function(a) {
+    if (a.el === 'H') return 0;
+    if (a.el === 'C') return 0.3;
+    if (a.el === 'N') return 0.3;
+    if (a.el === 'O') return 0.4;
+    return 0;
+  });
+})();
+
+var s = document.createElement('script');
+s.src = 'molecule.js?t=' + Date.now();
+s.onerror = function() { log.textContent += '\nFailed to load molecule.js!'; };
+s.onload = function() {
+  log.textContent += '\nmolecule.js loaded, loading p5...';
+  var p5s = document.createElement('script');
+  p5s.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+  p5s.crossOrigin = 'anonymous';
+  p5s.onerror = function() { log.textContent += '\nFailed to load p5.js!'; };
+  p5s.onload = function() { log.textContent += '\np5.js loaded'; };
+  document.body.appendChild(p5s);
+};
+document.body.appendChild(s);
+</script>
+</body></html>
