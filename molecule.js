@@ -583,9 +583,8 @@ ${atomStructWGSL}
 @group(0) @binding(5) var<storage, read> label: array<u32>;
 @group(0) @binding(6) var<storage, read> atoms: array<Atom>;
 
-fn isInsideRc(ci: u32, cj: u32, ck: u32, lbl: u32) -> bool {
-  let rc = atoms[lbl].rc;
-  if (rc <= 0.0) { return false; }
+fn isInsideExcl(ci: u32, cj: u32, ck: u32, lbl: u32) -> bool {
+  let rc = max(atoms[lbl].rc, ${R_SING});
   let dx = (f32(ci) - f32(atoms[lbl].posI)) * p.h;
   let dy = (f32(cj) - f32(atoms[lbl].posJ)) * p.h;
   let dz = (f32(ck) - f32(atoms[lbl].posK)) * p.h;
@@ -617,13 +616,13 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>,
     let rho = v * v;
     let myL = label[id];
 
-    // Skip points inside r_c (U=0 there, no energy contribution)
-    if (isInsideRc(i, j, k, myL)) { cell = cell + stride; continue; }
+    // Skip points inside exclusion sphere max(r_c, R_SING) — replaced by analytical correction
+    if (isInsideExcl(i, j, k, myL)) { cell = cell + stride; continue; }
 
-    // Only include gradients within same domain, skip if neighbor is inside r_c (Neumann BC)
-    let sameL_ip = label[id + p.S2] == myL && !isInsideRc(i+1u, j, k, myL);
-    let sameL_jp = label[id + p.S]  == myL && !isInsideRc(i, j+1u, k, myL);
-    let sameL_kp = label[id + 1u]   == myL && !isInsideRc(i, j, k+1u, myL);
+    // Only include gradients within same domain, skip if neighbor is inside exclusion sphere
+    let sameL_ip = label[id + p.S2] == myL && !isInsideExcl(i+1u, j, k, myL);
+    let sameL_jp = label[id + p.S]  == myL && !isInsideExcl(i, j+1u, k, myL);
+    let sameL_kp = label[id + 1u]   == myL && !isInsideExcl(i, j, k+1u, myL);
     let a = select(0.0, U[id + p.S2] - v, sameL_ip);
     let b = select(0.0, U[id + p.S]  - v, sameL_jp);
     let c = select(0.0, U[id + 1u]   - v, sameL_kp);
@@ -862,6 +861,12 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
 // Recompute nuclear potential K on GPU after nuclei move — adapted for atomBuf (loop)
 const R_SING = 0.1;  // fixed singularity limit for 1/r potential (au)
+// Analytical inner-sphere corrections for H (ψ = exp(-r)/√π, r < R_SING)
+// T_inner = 2·[1/4 - exp(-2a)(a²/2 + a/2 + 1/4)]
+// V_inner = -4·[1/4 - exp(-2a)(a/2 + 1/4)]
+const _a = R_SING, _e2a = Math.exp(-2 * _a);
+const H_T_INNER = 2 * (0.25 - _e2a * (_a * _a / 2 + _a / 2 + 0.25));
+const H_V_INNER = -4 * (0.25 - _e2a * (_a / 2 + 0.25));
 const recomputeK_WGSL = `
 ${paramStructWGSL}
 ${atomStructWGSL}
@@ -994,6 +999,7 @@ let E_T = 0, E_eK = 0, E_ee = 0, E_KK = 0, dipole_au = 0, dipole_D = 0, E_bind =
 // Minimizes E(α) = T + V_eK = ½Zα² - Z·(Z/I₂)·I₁
 function isolatedAtomEnergy(Zn, rc) {
   if (Zn <= 0) return 0;
+  if (Zn === 1 && rc === 0) return -0.5;  // exact hydrogen
   let bestE = 0;
   const aMax = Zn * 4;
   for (let a = 0.1; a <= aMax; a += 0.005) {
@@ -1802,6 +1808,12 @@ async function doSteps(n) {
   E_T = sumsData[0];
   E_eK = sumsData[1];
   E_ee = sumsData[2];
+  // Add analytical inner-sphere correction for each active H atom (r_c=0, Z_eff=1)
+  for (let a = 0; a < NELEC; a++) {
+    if (Z[a] !== 1 || r_cut[a] > 0) continue;  // only bare H (no pseudopotential)
+    E_T += H_T_INNER;
+    E_eK += H_V_INNER;
+  }
 
   // Dipole moment: μ = Σ Z_a·R_a - ∫ ρ(r)·r dV
   // sumsData[3..5] = electronic part ∫ ρ·r dV (positive, negate for electron charge)
