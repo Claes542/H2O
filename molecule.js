@@ -583,6 +583,15 @@ ${atomStructWGSL}
 @group(0) @binding(5) var<storage, read> label: array<u32>;
 @group(0) @binding(6) var<storage, read> atoms: array<Atom>;
 
+fn isInsideRc(ci: u32, cj: u32, ck: u32, lbl: u32) -> bool {
+  let rc = atoms[lbl].rc;
+  if (rc <= 0.0) { return false; }
+  let dx = (f32(ci) - f32(atoms[lbl].posI)) * p.h;
+  let dy = (f32(cj) - f32(atoms[lbl].posJ)) * p.h;
+  let dz = (f32(ck) - f32(atoms[lbl].posK)) * p.h;
+  return sqrt(dx*dx + dy*dy + dz*dz) < rc;
+}
+
 var<workgroup> sn: array<f32, ${NRED_E * REDUCE_WG}>;
 
 @compute @workgroup_size(${REDUCE_WG})
@@ -608,16 +617,21 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>,
     let rho = v * v;
     let myL = label[id];
 
-    // Only include gradients within same domain (skip cross-boundary)
-    let a = select(0.0, U[id + p.S2] - v, label[id + p.S2] == myL);
-    let b = select(0.0, U[id + p.S]  - v, label[id + p.S]  == myL);
-    let c = select(0.0, U[id + 1u]   - v, label[id + 1u]   == myL);
+    // Skip points inside r_c (U=0 there, no energy contribution)
+    if (isInsideRc(i, j, k, myL)) { cell = cell + stride; continue; }
+
+    // Only include gradients within same domain, skip if neighbor is inside r_c (Neumann BC)
+    let sameL_ip = label[id + p.S2] == myL && !isInsideRc(i+1u, j, k, myL);
+    let sameL_jp = label[id + p.S]  == myL && !isInsideRc(i, j+1u, k, myL);
+    let sameL_kp = label[id + 1u]   == myL && !isInsideRc(i, j, k+1u, myL);
+    let a = select(0.0, U[id + p.S2] - v, sameL_ip);
+    let b = select(0.0, U[id + p.S]  - v, sameL_jp);
+    let c = select(0.0, U[id + 1u]   - v, sameL_kp);
+    sn[lid * NR]        += 0.5 * (a * a + b * b + c * c) * p.h;
+    sn[lid * NR + 1u]   += -K[id] * rho * p.h3;
     let Zeff = atoms[myL].Z;
-    let invZ = select(0.0, 1.0 / Zeff, Zeff > 0.0);
-    sn[lid * NR]        += 0.5 * (a * a + b * b + c * c) * p.h * invZ;
-    sn[lid * NR + 1u]   += -K[id] * rho * p.h3 * invZ;
     let sicF = select(0.0, (Zeff - 1.0) / Zeff, Zeff > 1.0);
-    sn[lid * NR + 2u]   += Pv[id] * rho * p.h3 * invZ * sicF;
+    sn[lid * NR + 2u]   += Pv[id] * rho * p.h3 * sicF;
 
     // Electronic dipole: -∫ ρ(r)·r dV  (negative sign applied on CPU)
     let xi = f32(i) * p.h;
@@ -977,7 +991,7 @@ let tStep = 0, E = 0, lastMs = 0;
 let E_T = 0, E_eK = 0, E_ee = 0, E_KK = 0, dipole_au = 0, dipole_D = 0, E_bind = 0;
 
 // Isolated atom energies via 1D variational: U(r) = A·exp(-α·r), r > r_c
-// Minimizes E(α) = T/Z_eff + V_eK/Z_eff = ½α² - (Z/I₂)·I₁
+// Minimizes E(α) = T + V_eK = ½Zα² - Z·(Z/I₂)·I₁
 function isolatedAtomEnergy(Zn, rc) {
   if (Zn <= 0) return 0;
   let bestE = 0;
@@ -990,8 +1004,8 @@ function isolatedAtomEnergy(Zn, rc) {
     // I₁ = 4π ∫(rc..∞) r exp(-cr) dr  (for ∫U²/r dV)
     const I1 = 4 * Math.PI * erc * (rc / c + 1 / (c * c));
     if (I2 <= 0) continue;
-    const T = 0.5 * a * a;
-    const V = -(Zn / I2) * I1;
+    const T = 0.5 * Zn * a * a;
+    const V = -Zn * (Zn / I2) * I1;
     const E = T + V;
     if (E < bestE) bestE = E;
   }
