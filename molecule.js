@@ -42,6 +42,7 @@ const dv = NELEC > 100 ? 0.03 : 0.12;  // smaller timestep for large systems (hi
 let dtv = dv * h2v, half_dv = 0.5 * dv;
 const PX = 700 / NN;
 const INTERIOR = (NN - 1) * (NN - 1) * (NN - 1);
+const R_SING = 0.1;  // singularity limit for 1/r potential (au)
 
 // 2D dispatch to handle >65535 workgroups (300^3 grid needs ~104K)
 const DISPATCH_X = 256;  // workgroups in x dimension (fixed)
@@ -860,7 +861,6 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 `;
 
 // Recompute nuclear potential K on GPU after nuclei move — adapted for atomBuf (loop)
-const R_SING = 0.1;  // fixed singularity limit for 1/r potential (au)
 // Analytical inner-sphere corrections for H (ψ = exp(-r)/√π, r < R_SING)
 // T_inner = 2·[1/4 - exp(-2a)(a²/2 + a/2 + 1/4)]
 // V_inner = -4·[1/4 - exp(-2a)(a/2 + 1/4)]
