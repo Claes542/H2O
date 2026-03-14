@@ -62,7 +62,7 @@ const W_STEPS_PER_FRAME = Math.max(1, STEPS_PER_FRAME);  // match U steps per fr
 const BOUNDARY_INTERVAL = 20;
 const NORM_INTERVAL = 20;
 const POISSON_INTERVAL = 50;
-const SIC_INTERVAL = 999999;  // SIC disabled — using (Z_eff-1)/Z_eff factor on total Hartree potential instead
+const SIC_INTERVAL = NELEC <= 15 ? 1 : NELEC <= 30 ? 5 : 999999;  // SIC in dynamics to remove self-interaction from wavefunction evolution
 const SIC_JACOBI = NELEC <= 15 ? 10 : 4;
 
 // === Nuclear dynamics state ===
