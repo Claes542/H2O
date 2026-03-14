@@ -1455,7 +1455,7 @@ async function initGPU() {
       reduceEnergyBG[c] = device.createBindGroup({ layout: reduceEnergyPL.getBindGroupLayout(0), entries: [
         { binding: 0, resource: { buffer: paramsBuf } },
         { binding: 1, resource: { buffer: U_buf[c] } },
-        { binding: 2, resource: { buffer: P_buf[0] } },
+        { binding: 2, resource: { buffer: PotherBuf } },
         { binding: 3, resource: { buffer: K_buf } },
         { binding: 4, resource: { buffer: partialsBuf } },
         { binding: 5, resource: { buffer: labelBuf } },
@@ -1806,9 +1806,7 @@ async function doSteps(n) {
   sumsReadBuf.unmap();
   E_T = sumsData[0];
   E_eK = sumsData[1];
-  // Global SIC: V_ee = E_Hartree × (N-1)/N where N = total valence electrons
-  const Ne_active = Z.reduce((s, z) => s + z, 0);
-  E_ee = sumsData[2] * (Ne_active > 1 ? (Ne_active - 1) / Ne_active : 0);
+  E_ee = sumsData[2];  // SIC already removed self-interaction from PotherBuf
   // Add analytical inner-sphere correction for each active H atom (r_c=0, Z_eff=1)
   for (let a = 0; a < NELEC; a++) {
     if (Z[a] !== 1 || r_cut[a] > 0) continue;  // only bare H (no pseudopotential)
