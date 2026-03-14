@@ -9,6 +9,7 @@ const MAX_ATOMS = 1024;
 const _uz = window.USER_Z || [2, 3, 1, 0, 0];
 while (_uz.length < MAX_ATOMS) _uz.push(0);
 const NELEC = _uz.filter(z => z > 0).length || 3;
+const N_ELECTRONS = _uz.reduce((s, z) => s + z, 0);  // total valence electrons
 const NRED_E = 6;  // Energy reduce: T + V_eK + V_ee + dipole(x,y,z)
 const r_cut = window.USER_RC || [0, 0, 0, 0, 0];
 while (r_cut.length < MAX_ATOMS) r_cut.push(0);
@@ -629,9 +630,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>,
     let c = select(0.0, U[id + 1u]   - v, sameL_kp);
     sn[lid * NR]        += 0.5 * (a * a + b * b + c * c) * p.h;
     sn[lid * NR + 1u]   += -K[id] * rho * p.h3;
-    let Zeff = atoms[myL].Z;
-    let sicF = select(0.0, (Zeff - 1.0) / Zeff, Zeff > 1.0);
-    sn[lid * NR + 2u]   += Pv[id] * rho * p.h3 * sicF;
+    sn[lid * NR + 2u]   += Pv[id] * rho * p.h3;
 
     // Electronic dipole: -∫ ρ(r)·r dV  (negative sign applied on CPU)
     let xi = f32(i) * p.h;
@@ -1807,7 +1806,9 @@ async function doSteps(n) {
   sumsReadBuf.unmap();
   E_T = sumsData[0];
   E_eK = sumsData[1];
-  E_ee = sumsData[2];
+  // Global SIC: V_ee = E_Hartree × (N-1)/N where N = total valence electrons
+  const Ne_active = Z.reduce((s, z) => s + z, 0);
+  E_ee = sumsData[2] * (Ne_active > 1 ? (Ne_active - 1) / Ne_active : 0);
   // Add analytical inner-sphere correction for each active H atom (r_c=0, Z_eff=1)
   for (let a = 0; a < NELEC; a++) {
     if (Z[a] !== 1 || r_cut[a] > 0) continue;  // only bare H (no pseudopotential)
