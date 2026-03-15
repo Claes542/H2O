@@ -1563,6 +1563,61 @@ async function uploadInitialData() {
     window._initDebug = "initU: max=" + dbgMax.toExponential(2) + " nz=" + dbgNonZero;
   }
 
+  // Shell-based initialization: override Voronoi with radial shells
+  // SHELL_INIT = [ { domains: [0,1], rmax: R, zeff: Z }, { domains: [2], rmin: R, zeff: Z }, ... ]
+  if (window.SHELL_INIT) {
+    console.log("Shell init: overriding Voronoi with radial shells");
+    const uData = new Float32Array(S3);
+    const lData = new Uint32Array(S3);
+    // Center = average of all atom positions
+    let cx = 0, cy = 0, cz = 0;
+    for (let a = 0; a < NELEC; a++) {
+      cx += nucPos[a][0]; cy += nucPos[a][1]; cz += nucPos[a][2];
+    }
+    cx /= NELEC; cy /= NELEC; cz /= NELEC;
+
+    for (let i = 0; i < S; i++) {
+      for (let j = 0; j < S; j++) {
+        for (let k = 0; k < S; k++) {
+          const id = i * S2 + j * S + k;
+          const r = Math.sqrt(((i - cx) * hGrid) ** 2 + ((j - cy) * hGrid) ** 2 + ((k - cz) * hGrid) ** 2);
+
+          // Find which shell this point belongs to
+          let assigned = false;
+          for (const shell of window.SHELL_INIT) {
+            const rmin = shell.rmin || 0;
+            const rmax = shell.rmax || Infinity;
+            if (r >= rmin && r < rmax) {
+              // Assign to one of the shell's domains based on angular partition
+              const doms = shell.domains;
+              let domIdx;
+              if (doms.length === 1) {
+                domIdx = doms[0];
+              } else {
+                // Split hemisphere: use angle from x-axis for 2, thirds for 3, etc.
+                const angle = Math.atan2((j - cy), (i - cx));
+                const sector = Math.floor((angle + Math.PI) / (2 * Math.PI) * doms.length);
+                domIdx = doms[Math.min(sector, doms.length - 1)];
+              }
+              lData[id] = domIdx;
+              const zeff = shell.zeff || 1;
+              uData[id] = zeff * zeff / Math.sqrt(Math.PI) * Math.exp(-zeff * r);
+              assigned = true;
+              break;
+            }
+          }
+          if (!assigned) {
+            lData[id] = 0;
+            uData[id] = 0;
+          }
+        }
+      }
+    }
+    device.queue.writeBuffer(U_buf[0], 0, uData);
+    device.queue.writeBuffer(labelBuf, 0, lData);
+    console.log("Shell init complete");
+  }
+
   // Copy to double-buffered slots
   const cpEnc = device.createCommandEncoder();
   cpEnc.copyBufferToBuffer(U_buf[0], 0, U_buf[1], 0, S3 * 4);

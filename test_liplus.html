@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Li⁺: Z=3, 1s² (200³)</title>
+  <style>
+    body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #000; overflow: hidden; flex-direction: column; }
+    canvas { border: none; }
+  </style>
+</head>
+<body>
+  <script>
+    window.onerror = function(msg, url, line) {
+      document.body.style.color = 'red';
+      document.body.innerHTML = '<pre>ERROR: ' + msg + '\nLine: ' + line + '\nFile: ' + url + '</pre>';
+    };
+
+    (function() {
+      var N = 200, scr = 10;
+      var hg = scr / N;
+      var ci = Math.round(0.5 * scr / hg);
+      var cj = Math.round(0.5 * scr / hg);
+
+      // Li+ : Z=3 nucleus, 2 electrons (1s²)
+      // Model as 2 atoms with Z=1.5 each at same position → total nuclear potential = -3/r
+      window.USER_NN = N;
+      window.USER_ATOMS = [
+        { i: ci, j: cj, Z: 1.5, el: 'H' },
+        { i: ci + 1, j: cj, Z: 1.5, el: 'H' }
+      ];
+      window.USER_SCREEN = scr;
+      window.USER_STEPS = 30000;
+      window.USER_Z = [1.5, 1.5];
+      window.USER_RC = [0, 0];
+      window.CONVERGENCE_THRESHOLD = 0.001;
+      window.NO_NUC_REPULSION = true;
+      window.INIT_ZEFF = 3;
+
+      // Li+ reference energies:
+      // Exact:        E = -7.280 Ha
+      // Hartree-Fock: E = -7.236 Ha
+      // Without V_ee: E = 2 × (-Z²/2) = 2 × (-4.5) = -9.0 Ha
+      console.log('Li+: Z=3 (2×1.5), 1s², grid ' + N + '^3 / ' + scr + ' au');
+    })();
+
+    var s = document.createElement('script');
+    s.src = 'molecule.js?t=' + Date.now();
+    s.onerror = function() { document.body.innerHTML = '<pre style="color:red">Failed to load molecule.js</pre>'; };
+    s.onload = function() {
+      var p5s = document.createElement('script');
+      p5s.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+      document.body.appendChild(p5s);
+    };
+    document.body.appendChild(s);
+  </script>
+</body>
+</html>

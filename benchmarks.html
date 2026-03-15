@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Benchmarks — HOH Quantum Simulation</title>
+  <style>
+    body { margin: 0; background: #111; color: #eee; font-family: 'Courier New', monospace; padding: 40px; }
+    h1 { color: #0cf; margin-bottom: 10px; }
+    h2 { color: #0cf; margin-top: 40px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+    p { color: #aaa; max-width: 700px; line-height: 1.6; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; margin-top: 20px; }
+    .card { background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 20px; transition: border-color 0.2s; }
+    .card:hover { border-color: #0cf; }
+    .card h3 { margin: 0 0 8px 0; color: #fff; }
+    .card .desc { color: #888; font-size: 13px; margin-bottom: 12px; }
+    .card table { border-collapse: collapse; width: 100%; font-size: 13px; }
+    .card th { color: #0cf; text-align: left; padding: 4px 8px; border-bottom: 1px solid #333; }
+    .card td { padding: 4px 8px; border-bottom: 1px solid #222; }
+    .card .ref { color: #888; }
+    .card .val { color: #0f0; }
+    a.launch { display: inline-block; margin-top: 12px; padding: 6px 16px; background: #0cf; color: #000; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 13px; }
+    a.launch:hover { background: #0ef; }
+    a.back { color: #0cf; text-decoration: none; }
+    a.back:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <a class="back" href="index.html">&larr; Back to main</a>
+  <h1>Benchmarks</h1>
+  <p>WebGPU quantum chemistry simulations compared against published reference values.
+     All calculations use imaginary time propagation on a 200&sup3; real-space grid.</p>
+
+  <h2>H&#8322; Molecule</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>H&#8322; at equilibrium (R = 1.4 au)</h3>
+      <div class="desc">200&sup3; grid, 10 au box, r<sub>c</sub> = 0.1 au</div>
+      <table>
+        <tr><th>Quantity</th><th>Value</th></tr>
+        <tr><td class="ref">Kolos-Wolniewicz D<sub>e</sub></td><td>0.1745 Ha (4.75 eV)</td></tr>
+        <tr><td class="ref">Experimental D&#8320;</td><td>0.1646 Ha (4.478 eV)</td></tr>
+        <tr><td class="ref">Exact E(R=1.4)</td><td>&minus;1.1745 Ha</td></tr>
+      </table>
+      <a class="launch" href="test_h2.html">Launch simulation</a>
+    </div>
+
+    <div class="card">
+      <h3>H&#8322; bond length sweep</h3>
+      <div class="desc">Adaptive convergence, R = 1.0 &ndash; 6.0 au, live comparison table</div>
+      <table>
+        <tr><th>Quantity</th><th>Value</th></tr>
+        <tr><td class="ref">R<sub>e</sub> (equilibrium)</td><td>1.401 au</td></tr>
+        <tr><td class="ref">D<sub>e</sub> (well depth)</td><td>0.1745 Ha</td></tr>
+        <tr><td class="ref">Dissociation limit</td><td>&minus;1.00 Ha</td></tr>
+      </table>
+      <a class="launch" href="sweep_h2_adaptive.html">Launch sweep</a>
+    </div>
+
+    <div class="card">
+      <h3>Single H atom</h3>
+      <div class="desc">200&sup3; grid, 10 au box, r<sub>c</sub> = 0.1 au</div>
+      <table>
+        <tr><th>Quantity</th><th>Value</th></tr>
+        <tr><td class="ref">Exact energy</td><td>&minus;0.500 Ha</td></tr>
+        <tr><td class="ref">Measured (this grid)</td><td>&minus;0.52 Ha</td></tr>
+      </table>
+      <a class="launch" href="test_1atom.html">Launch simulation</a>
+    </div>
+  </div>
+
+  <h2>He and He-like ions</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>He atom (Z = 2)</h3>
+      <div class="desc">2 electrons, 1s&sup2;, 200&sup3; / 5 au, r<sub>c</sub> = 0</div>
+      <table>
+        <tr><th>Quantity</th><th>Value</th></tr>
+        <tr><td class="ref">Exact energy</td><td>&minus;2.904 Ha</td></tr>
+        <tr><td class="ref">Hartree-Fock</td><td>&minus;2.862 Ha</td></tr>
+        <tr><td class="ref">Without V<sub>ee</sub></td><td>&minus;4.000 Ha</td></tr>
+      </table>
+      <a class="launch" href="test_he.html">Launch simulation</a>
+    </div>
+
+    <div class="card">
+      <h3>Li&#8314; ion (Z = 3, 2e&minus;)</h3>
+      <div class="desc">He-like, 1s&sup2;, 200&sup3; / 10 au, r<sub>c</sub> = 0</div>
+      <table>
+        <tr><th>Quantity</th><th>Value</th></tr>
+        <tr><td class="ref">Exact energy</td><td>&minus;7.280 Ha</td></tr>
+        <tr><td class="ref">Hartree-Fock</td><td>&minus;7.236 Ha</td></tr>
+        <tr><td class="ref">Without V<sub>ee</sub></td><td>&minus;9.000 Ha</td></tr>
+      </table>
+      <a class="launch" href="test_liplus.html">Launch simulation</a>
+    </div>
+
+    <div class="card">
+      <h3>Li atom (Z = 3, 3e&minus;)</h3>
+      <div class="desc">1s&sup2; 2s&sup1;, shell init, 200&sup3; / 10 au, r<sub>c</sub> = 0</div>
+      <table>
+        <tr><th>Quantity</th><th>Value</th></tr>
+        <tr><td class="ref">Exact energy</td><td>&minus;7.478 Ha</td></tr>
+        <tr><td class="ref">Hartree-Fock</td><td>&minus;7.433 Ha</td></tr>
+      </table>
+      <a class="launch" href="test_li.html">Launch simulation</a>
+    </div>
+  </div>
+
+</body>
+</html>

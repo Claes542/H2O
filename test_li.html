@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Li atom: 1s² 2s¹ (200³)</title>
+  <style>
+    body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #000; overflow: hidden; flex-direction: column; }
+    canvas { border: none; }
+  </style>
+</head>
+<body>
+  <script>
+    window.onerror = function(msg, url, line) {
+      document.body.style.color = 'red';
+      document.body.innerHTML = '<pre>ERROR: ' + msg + '\nLine: ' + line + '\nFile: ' + url + '</pre>';
+    };
+
+    (function() {
+      var N = 200, scr = 10;
+      var hg = scr / N;
+      var ci = Math.round(0.5 * scr / hg);
+      var cj = Math.round(0.5 * scr / hg);
+
+      // 3 H nuclei at same position — Li-like (Z=3), 3 electron domains
+      // 2 inner (1s shell) + 1 outer (2s shell)
+      window.USER_NN = N;
+      window.USER_ATOMS = [
+        { i: ci,     j: cj, Z: 1, el: 'H' },
+        { i: ci + 1, j: cj, Z: 1, el: 'H' },
+        { i: ci,     j: cj + 1, Z: 1, el: 'H' }
+      ];
+      window.USER_SCREEN = scr;
+      window.USER_STEPS = 30000;
+      window.USER_Z = [1, 1, 1];
+      window.USER_RC = [0, 0, 0];
+      window.CONVERGENCE_THRESHOLD = 0.001;
+      window.NO_NUC_REPULSION = true;
+
+      // Shell-based init: 1s² (inner, exp(-3r)) + 2s¹ (outer, exp(-r))
+      // R_shell ~ 1.2 au separates 1s from 2s
+      window.SHELL_INIT = [
+        { domains: [0, 1], rmax: 1.2, zeff: 3 },   // 1s: 2 electrons in hemispheres
+        { domains: [2],    rmin: 1.2, zeff: 1 }     // 2s: 1 electron outside
+      ];
+
+      // Li reference energies:
+      // Exact:        E = -7.478 Ha
+      // Hartree-Fock: E = -7.433 Ha
+      console.log('Li-like: 3H at same pos (Z_eff=3), 1s² 2s¹, grid ' + N + '^3 / ' + scr + ' au');
+    })();
+
+    var s = document.createElement('script');
+    s.src = 'molecule.js?t=' + Date.now();
+    s.onerror = function() { document.body.innerHTML = '<pre style="color:red">Failed to load molecule.js</pre>'; };
+    s.onload = function() {
+      var p5s = document.createElement('script');
+      p5s.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+      document.body.appendChild(p5s);
+    };
+    document.body.appendChild(s);
+  </script>
+</body>
+</html>
