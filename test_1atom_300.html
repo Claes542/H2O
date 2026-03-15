@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Single Atom Test</title>
+  <title>Single Atom Test (N=300)</title>
   <style>
     body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #000; overflow: hidden; flex-direction: column; }
     canvas { border: none; }
@@ -16,15 +16,14 @@
     };
 
     (function() {
-      window.USER_NN = 200;
+      window.USER_NN = 300;
       window.USER_ATOMS = [
-        { i: 100, j: 100, Z: 1, el: 'H' }
+        { i: 150, j: 150, Z: 1, el: 'H' }
       ];
       window.USER_SCREEN = 10;
       window.USER_STEPS = 10000;
       window.USER_Z = [1];
-      window.USER_RC = [0.1];
-      window.CONVERGENCE_THRESHOLD = 0.001;
+      window.USER_RC = [0];
     })();
 
     var s = document.createElement('script');

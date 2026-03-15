@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Single Atom Test</title>
+  <title>H2 — bond 1.4 au</title>
   <style>
     body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #000; overflow: hidden; flex-direction: column; }
     canvas { border: none; }
@@ -16,15 +16,25 @@
     };
 
     (function() {
-      window.USER_NN = 200;
+      var N = 200, scr = 10;
+      var hg = scr / N;
+      var bond = 1.4;  // au — equilibrium H-H distance
+      var halfCells = Math.round(0.5 * bond / hg);
+      var ci = Math.round(5.0 / hg);
+      var cj = Math.round(5.0 / hg);
+
+      window.USER_NN = N;
       window.USER_ATOMS = [
-        { i: 100, j: 100, Z: 1, el: 'H' }
+        { i: ci - halfCells, j: cj, Z: 1, el: 'H' },
+        { i: ci + halfCells, j: cj, Z: 1, el: 'H' }
       ];
-      window.USER_SCREEN = 10;
-      window.USER_STEPS = 10000;
-      window.USER_Z = [1];
-      window.USER_RC = [0.1];
+      window.USER_SCREEN = scr;
+      window.USER_STEPS = 20000;
+      window.USER_Z = [1, 1];
+      window.USER_RC = [0.1, 0.1];
       window.CONVERGENCE_THRESHOLD = 0.001;
+
+      console.log('H2: bond=' + bond + ' au, halfCells=' + halfCells + ', grid ' + N + '^3');
     })();
 
     var s = document.createElement('script');

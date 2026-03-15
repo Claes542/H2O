@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>H2 Adaptive Sweep (200³)</title>
+  <style>
+    body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #000; overflow: hidden; flex-direction: column; color: #fff; font-family: monospace; }
+    canvas { border: none; }
+    #resultsTable { position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.85); border: 1px solid #444; padding: 10px; z-index: 100; font-size: 13px; }
+    #resultsTable table { border-collapse: collapse; }
+    #resultsTable th, #resultsTable td { padding: 4px 10px; text-align: right; border-bottom: 1px solid #333; }
+    #resultsTable th { color: #0cf; border-bottom: 2px solid #0cf; }
+    #resultsTable .best { color: #0f0; font-weight: bold; }
+    #resultsTable .pending { color: #666; }
+  </style>
+</head>
+<body>
+  <script>
+    window.onerror = function(msg, url, line) {
+      document.body.style.color = 'red';
+      document.body.innerHTML = '<pre>ERROR: ' + msg + '\nLine: ' + line + '\nFile: ' + url + '</pre>';
+    };
+
+    var bondLengths = [1.0, 1.4, 1.6, 1.8, 2.0, 3.0, 6.0];
+    var sweepIdx = 0;
+    var sweepResults = [];
+
+    var N = 200, scr = 10;
+    var hg = scr / N;
+
+    function makeAtoms(bond) {
+      var halfCells = Math.round(0.5 * bond / hg);
+      var ci = Math.round(5.0 / hg);
+      var cj = Math.round(5.0 / hg);
+      return [
+        { i: ci - halfCells, j: cj, Z: 1, el: 'H' },
+        { i: ci + halfCells, j: cj, Z: 1, el: 'H' }
+      ];
+    }
+
+    window.USER_NN = N;
+    window.USER_ATOMS = makeAtoms(bondLengths[0]);
+    window.USER_SCREEN = scr;
+    window.USER_STEPS = 50000;  // high cap — convergence stops it early
+    window.USER_Z = [1, 1];
+    window.USER_RC = [0.1, 0.1];
+    window.CONVERGENCE_THRESHOLD = 0.01;
+
+    // Kolos-Wolniewicz exact energies (Ha) for H2 ground state
+    var exactE = {
+      1.0: -1.1245, 1.2: -1.1649, 1.4: -1.1745, 1.6: -1.1685, 1.8: -1.1535,
+      2.0: -1.1336, 2.2: -1.1115, 2.4: -1.0893, 2.6: -1.0683, 2.8: -1.0494,
+      3.0: -1.0330, 3.4: -1.0121, 3.8: -1.0035, 4.2: -1.0009, 4.6: -1.0002,
+      5.0: -1.0001
+    };
+    function getExact(r) {
+      // linear interpolation
+      var keys = Object.keys(exactE).map(Number).sort(function(a,b){return a-b;});
+      if (r <= keys[0]) return exactE[keys[0]];
+      if (r >= keys[keys.length-1]) return exactE[keys[keys.length-1]];
+      for (var i = 0; i < keys.length - 1; i++) {
+        if (r >= keys[i] && r <= keys[i+1]) {
+          var t = (r - keys[i]) / (keys[i+1] - keys[i]);
+          return exactE[keys[i]] * (1-t) + exactE[keys[i+1]] * t;
+        }
+      }
+      return -1.0;
+    }
+
+    // Exact binding energies: E_bind = E(R) - E(∞), where E(∞) = -1.0 Ha
+    // D_e = 0.1745 Ha = 4.75 eV at R_e = 1.401 bohr (experimental: D_0 = 4.478 eV)
+    function getExactBind(r) {
+      return getExact(r) - (-1.0);  // negative means bound
+    }
+
+    function updateTable() {
+      var div = document.getElementById('resultsTable');
+      if (!div) {
+        div = document.createElement('div');
+        div.id = 'resultsTable';
+        document.body.appendChild(div);
+      }
+      // E_bind = -1.04 - E_raw, where -1.04 = 2 * measured single H energy
+      var Ediss = -1.04;
+      var D0_exp = 0.1646;   // measured D_0 = 4.478 eV = 0.1646 Ha
+      var De_KW  = 0.1745;   // KW D_e (D_0 + ZPE) = 4.75 eV = 0.1745 Ha
+      var html = '<table><tr><th>R (au)</th><th>E_raw</th><th>D (Ha)</th><th>D KW</th><th>Err</th><th>Steps</th></tr>';
+      var bestBind = 0, bestIdx = -1;
+      for (var i = 0; i < sweepResults.length; i++) {
+        var eb = Ediss - sweepResults[i].E;
+        if (eb > bestBind) { bestBind = eb; bestIdx = i; }
+      }
+      for (var i = 0; i < bondLengths.length; i++) {
+        if (i < sweepResults.length) {
+          var r = sweepResults[i];
+          var eb = Ediss - r.E;
+          var ebKW = -(getExactBind(r.bond));
+          var err = eb - ebKW;
+          var cls = (i === bestIdx) ? ' class="best"' : '';
+          html += '<tr' + cls + '><td>' + r.bond.toFixed(1) + '</td><td>' + r.E.toFixed(4) + '</td><td>' + eb.toFixed(4) + '</td><td>' + ebKW.toFixed(4) + '</td><td>' + (err >= 0 ? '+' : '') + err.toFixed(4) + '</td><td>' + r.steps + '</td></tr>';
+        } else {
+          var ebKW = -(getExactBind(bondLengths[i]));
+          var marker = (i === sweepIdx) ? '...' : '-';
+          html += '<tr class="pending"><td>' + bondLengths[i].toFixed(1) + '</td><td>' + marker + '</td><td>' + marker + '</td><td>' + ebKW.toFixed(4) + '</td><td>' + marker + '</td><td>' + marker + '</td></tr>';
+        }
+      }
+      html += '</table>';
+      if (sweepResults.length === bondLengths.length) {
+        html += '<div style="margin-top:10px;font-size:12px;color:#fff">Comparison at equilibrium (R=1.4 au):</div>';
+        html += '<table style="margin-top:4px"><tr><th></th><th>D (Ha)</th><th>D (eV)</th></tr>';
+        html += '<tr><td style="text-align:left;color:#0f0">This work</td><td>' + bestBind.toFixed(4) + '</td><td>' + (bestBind * 27.211).toFixed(2) + '</td></tr>';
+        html += '<tr><td style="text-align:left;color:#0cf">D\u2080 exp</td><td>' + D0_exp.toFixed(4) + '</td><td>' + (D0_exp * 27.211).toFixed(2) + '</td></tr>';
+        html += '<tr><td style="text-align:left;color:#888">D\u2091 KW</td><td>' + De_KW.toFixed(4) + '</td><td>' + (De_KW * 27.211).toFixed(2) + '</td></tr>';
+        html += '</table>';
+        html += '<div style="color:#888;font-size:11px;margin-top:6px">D\u2080 = measured dissociation energy (incl. ZPE)</div>';
+        html += '<div style="color:#888;font-size:11px">D\u2091 = electronic well depth (D\u2080 + ZPE, Kolos-Wolniewicz)</div>';
+        html += '<div style="color:#888;font-size:11px">D = -1.04 - E_raw (dissoc. limit: 2\u00d7-0.52 Ha)</div>';
+      }
+      div.innerHTML = html;
+    }
+
+    // Show initial empty table
+    setTimeout(updateTable, 100);
+
+    window.onSweepDone = function(Emin, steps) {
+      var bond = bondLengths[sweepIdx];
+      sweepResults.push({ bond: bond, E: Emin, steps: steps });
+      console.log('SWEEP [' + (sweepIdx+1) + '/' + bondLengths.length + '] bond=' + bond.toFixed(2) + ' au  E_min=' + Emin.toFixed(6) + '  steps=' + steps);
+      updateTable();
+
+      sweepIdx++;
+      if (sweepIdx < bondLengths.length) {
+        var atoms = makeAtoms(bondLengths[sweepIdx]);
+        var positions = atoms.map(function(a) { return [a.i, a.j, a.k || Math.round(5.0/hg)]; });
+        window.restartWithPositions(positions);
+      } else {
+        console.log('=== H2 ADAPTIVE SWEEP COMPLETE (200^3, threshold=' + window.CONVERGENCE_THRESHOLD + ' Ha) ===');
+        var bestE = Infinity, bestIdx = 0;
+        for (var i = 0; i < sweepResults.length; i++) {
+          console.log('  bond=' + sweepResults[i].bond.toFixed(2) + '  E=' + sweepResults[i].E.toFixed(6) + '  steps=' + sweepResults[i].steps);
+          if (sweepResults[i].E < bestE) { bestE = sweepResults[i].E; bestIdx = i; }
+        }
+        console.log('BEST: bond=' + sweepResults[bestIdx].bond.toFixed(2) + ' au  E=' + bestE.toFixed(6) + '  steps=' + sweepResults[bestIdx].steps + ' (exact: 1.4 au, -1.17 Ha)');
+        window.SWEEP_RESULTS = sweepResults;
+        window.SWEEP_BEST = bestIdx;
+        updateTable();
+      }
+    };
+
+    var s = document.createElement('script');
+    s.src = 'molecule.js?t=' + Date.now();
+    s.onerror = function() { document.body.innerHTML = '<pre style="color:red">Failed to load molecule.js</pre>'; };
+    s.onload = function() {
+      var p5s = document.createElement('script');
+      p5s.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+      document.body.appendChild(p5s);
+    };
+    document.body.appendChild(s);
+  </script>
+</body>
+</html>

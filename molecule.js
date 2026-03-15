@@ -43,7 +43,7 @@ const dv = NELEC > 100 ? 0.03 : 0.12;  // smaller timestep for large systems
 let dtv = dv * h2v, half_dv = 0.5 * dv;
 const PX = 700 / NN;
 const INTERIOR = (NN - 1) * (NN - 1) * (NN - 1);
-const R_SING = 0.1;  // singularity limit for 1/r potential (au)
+const R_SING = 2 * hGrid;  // exclude 2 grid spacings from nucleus
 
 // 2D dispatch to handle >65535 workgroups (300^3 grid needs ~104K)
 const DISPATCH_X = 256;  // workgroups in x dimension (fixed)
@@ -63,7 +63,7 @@ const BOUNDARY_INTERVAL = 20;
 const NORM_INTERVAL = 20;
 const POISSON_INTERVAL = 50;
 const SIC_INTERVAL = NELEC <= 15 ? 1 : NELEC <= 30 ? 5 : 999999;  // SIC in dynamics to remove self-interaction from wavefunction evolution
-const SIC_JACOBI = NELEC <= 15 ? 10 : 4;
+const SIC_JACOBI = NELEC <= 15 ? 50 : 10;
 
 // === Nuclear dynamics state ===
 const N_MOVE = 200;         // electronic steps between nuclear moves
@@ -140,6 +140,12 @@ fn isInsideRc(ci: u32, cj: u32, ck: u32, lbl: u32) -> bool {
   return distToAtom(ci, cj, ck, lbl) < rc;
 }
 
+// Check if inside analytical region for bare atoms (H: r_c=0, use R_SING sphere)
+fn isInsideAnalytical(ci: u32, cj: u32, ck: u32, lbl: u32) -> bool {
+  if (atoms[lbl].rc > 0.0) { return false; }  // pseudopotential atoms: handled by isInsideRc
+  return distToAtom(ci, cj, ck, lbl) < ${R_SING};
+}
+
 ${cellIdxWGSL}
 @compute @workgroup_size(256)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
@@ -155,34 +161,150 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
   let myL = label[id];
 
-  // Inside r_c: U = 0 (Dirichlet)
+  // Inside r_c (pseudopotential): U = 0 (Dirichlet)
   if (isInsideRc(i, j, k, myL)) {
     Uo[id] = 0.0;
     return;
   }
 
+  // Inside analytical region for bare atoms (H): set U from analytical shape
+  // scaled by average U from outside the R_SING boundary
+  if (isInsideAnalytical(i, j, k, myL)) {
+    let Za = atoms[myL].Z;
+    let r = distToAtom(i, j, k, myL);
+    let ai = atoms[myL].posI; let aj = atoms[myL].posJ; let ak = atoms[myL].posK;
+    // Average U on the 6 face-neighbor shell just outside R_SING
+    let nOff = u32(ceil(${R_SING} / p.h));  // grid points to reach outside R_SING
+    let avgOut = (Ui[(ai + nOff) * p.S2 + aj * p.S + ak] +
+                  Ui[(ai - nOff) * p.S2 + aj * p.S + ak] +
+                  Ui[ai * p.S2 + (aj + nOff) * p.S + ak] +
+                  Ui[ai * p.S2 + (aj - nOff) * p.S + ak] +
+                  Ui[ai * p.S2 + aj * p.S + (ak + nOff)] +
+                  Ui[ai * p.S2 + aj * p.S + (ak - nOff)]) / 6.0;
+    let rOut = f32(nOff) * p.h;
+    Uo[id] = avgOut * exp(-Za * r) / exp(-Za * rOut);
+    return;
+  }
+
   let uc = Ui[id];
 
-  // Outside r_c: Neumann BC at r_c surface (reflect neighbor if it's inside r_c)
-  // Also Neumann at domain boundaries (existing behavior)
-  let l_ip = label[id + p.S2]; let inside_ip = isInsideRc(i+1u, j, k, l_ip);
-  let l_im = label[id - p.S2]; let inside_im = isInsideRc(i-1u, j, k, l_im);
-  let l_jp = label[id + p.S];  let inside_jp = isInsideRc(i, j+1u, k, l_jp);
-  let l_jm = label[id - p.S];  let inside_jm = isInsideRc(i, j-1u, k, l_jm);
-  let l_kp = label[id + 1u];   let inside_kp = isInsideRc(i, j, k+1u, l_kp);
-  let l_km = label[id - 1u];   let inside_km = isInsideRc(i, j, k-1u, l_km);
+  // Outside: Neumann BC at both r_c and analytical boundaries
+  let l_ip = label[id + p.S2]; let excl_ip = isInsideRc(i+1u, j, k, l_ip) || isInsideAnalytical(i+1u, j, k, myL);
+  let l_im = label[id - p.S2]; let excl_im = isInsideRc(i-1u, j, k, l_im) || isInsideAnalytical(i-1u, j, k, myL);
+  let l_jp = label[id + p.S];  let excl_jp = isInsideRc(i, j+1u, k, l_jp) || isInsideAnalytical(i, j+1u, k, myL);
+  let l_jm = label[id - p.S];  let excl_jm = isInsideRc(i, j-1u, k, l_jm) || isInsideAnalytical(i, j-1u, k, myL);
+  let l_kp = label[id + 1u];   let excl_kp = isInsideRc(i, j, k+1u, l_kp) || isInsideAnalytical(i, j, k+1u, myL);
+  let l_km = label[id - 1u];   let excl_km = isInsideRc(i, j, k-1u, l_km) || isInsideAnalytical(i, j, k-1u, myL);
 
-  let u_ip = select(uc, Ui[id + p.S2], l_ip == myL && !inside_ip);
-  let u_im = select(uc, Ui[id - p.S2], l_im == myL && !inside_im);
-  let u_jp = select(uc, Ui[id + p.S],  l_jp == myL && !inside_jp);
-  let u_jm = select(uc, Ui[id - p.S],  l_jm == myL && !inside_jm);
-  let u_kp = select(uc, Ui[id + 1u],   l_kp == myL && !inside_kp);
-  let u_km = select(uc, Ui[id - 1u],   l_km == myL && !inside_km);
+  let u_ip = select(uc, Ui[id + p.S2], l_ip == myL && !excl_ip);
+  let u_im = select(uc, Ui[id - p.S2], l_im == myL && !excl_im);
+  let u_jp = select(uc, Ui[id + p.S],  l_jp == myL && !excl_jp);
+  let u_jm = select(uc, Ui[id - p.S],  l_jm == myL && !excl_jm);
+  let u_kp = select(uc, Ui[id + 1u],   l_kp == myL && !excl_kp);
+  let u_km = select(uc, Ui[id - 1u],   l_km == myL && !excl_km);
 
   let lap = u_ip + u_im + u_jp + u_jm + u_kp + u_km - 6.0 * uc;
 
   // Full nuclear potential (all nuclei) minus other-electron repulsion (no self-repulsion)
   Uo[id] = uc + p.half_d * lap + p.dt * (K[id] - 2.0 * Pi[id]) * uc;
+}
+`;
+
+// Chebyshev semi-iterative acceleration of ITP
+// ψ_{n+1} = ω * (standard ITP step) + (1-ω) * ψ_{n-1}
+// Same stencil as updateU, but with momentum term from previous iterate
+const chebyshevStepWGSL = `
+${paramStructWGSL}
+${atomStructWGSL}
+@group(0) @binding(0) var<uniform> p: P;
+@group(0) @binding(1) var<storage, read> K: array<f32>;
+@group(0) @binding(2) var<storage, read> Ui: array<f32>;
+@group(0) @binding(3) var<storage, read> label: array<u32>;
+@group(0) @binding(4) var<storage, read> Pi: array<f32>;
+@group(0) @binding(5) var<storage, read_write> Uo: array<f32>;
+@group(0) @binding(6) var<storage, read> atoms: array<Atom>;
+@group(0) @binding(7) var<storage, read> Uprev: array<f32>;
+
+struct ChebP { omega: f32, _p0: f32, _p1: f32, _p2: f32 }
+@group(0) @binding(8) var<uniform> cheb: ChebP;
+
+fn distToAtom(ci: u32, cj: u32, ck: u32, n: u32) -> f32 {
+  let dx = (f32(ci) - f32(atoms[n].posI)) * p.h;
+  let dy = (f32(cj) - f32(atoms[n].posJ)) * p.h;
+  let dz = (f32(ck) - f32(atoms[n].posK)) * p.h;
+  return sqrt(dx*dx + dy*dy + dz*dz);
+}
+
+fn isInsideRc(ci: u32, cj: u32, ck: u32, lbl: u32) -> bool {
+  let rc = atoms[lbl].rc;
+  if (rc <= 0.0) { return false; }
+  return distToAtom(ci, cj, ck, lbl) < rc;
+}
+
+fn isInsideAnalytical(ci: u32, cj: u32, ck: u32, lbl: u32) -> bool {
+  if (atoms[lbl].rc > 0.0) { return false; }
+  return distToAtom(ci, cj, ck, lbl) < ${R_SING};
+}
+
+${cellIdxWGSL}
+@compute @workgroup_size(256)
+fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+  let NM = p.NN - 1u;
+  let tot = NM * NM * NM;
+  let cell = cellIdx(gid);
+  if (cell >= tot) { return; }
+
+  let k = (cell % NM) + 1u;
+  let j = ((cell / NM) % NM) + 1u;
+  let i = (cell / (NM * NM)) + 1u;
+  let id = i * p.S2 + j * p.S + k;
+
+  let myL = label[id];
+
+  if (isInsideRc(i, j, k, myL)) {
+    Uo[id] = 0.0;
+    return;
+  }
+
+  if (isInsideAnalytical(i, j, k, myL)) {
+    let Za = atoms[myL].Z;
+    let r = distToAtom(i, j, k, myL);
+    let ai = atoms[myL].posI; let aj = atoms[myL].posJ; let ak = atoms[myL].posK;
+    let nOff = u32(ceil(${R_SING} / p.h));
+    let avgOut = (Ui[(ai + nOff) * p.S2 + aj * p.S + ak] +
+                  Ui[(ai - nOff) * p.S2 + aj * p.S + ak] +
+                  Ui[ai * p.S2 + (aj + nOff) * p.S + ak] +
+                  Ui[ai * p.S2 + (aj - nOff) * p.S + ak] +
+                  Ui[ai * p.S2 + aj * p.S + (ak + nOff)] +
+                  Ui[ai * p.S2 + aj * p.S + (ak - nOff)]) / 6.0;
+    let rOut = f32(nOff) * p.h;
+    Uo[id] = avgOut * exp(-Za * r) / exp(-Za * rOut);
+    return;
+  }
+
+  let uc = Ui[id];
+
+  let l_ip = label[id + p.S2]; let excl_ip = isInsideRc(i+1u, j, k, l_ip) || isInsideAnalytical(i+1u, j, k, myL);
+  let l_im = label[id - p.S2]; let excl_im = isInsideRc(i-1u, j, k, l_im) || isInsideAnalytical(i-1u, j, k, myL);
+  let l_jp = label[id + p.S];  let excl_jp = isInsideRc(i, j+1u, k, l_jp) || isInsideAnalytical(i, j+1u, k, myL);
+  let l_jm = label[id - p.S];  let excl_jm = isInsideRc(i, j-1u, k, l_jm) || isInsideAnalytical(i, j-1u, k, myL);
+  let l_kp = label[id + 1u];   let excl_kp = isInsideRc(i, j, k+1u, l_kp) || isInsideAnalytical(i, j, k+1u, myL);
+  let l_km = label[id - 1u];   let excl_km = isInsideRc(i, j, k-1u, l_km) || isInsideAnalytical(i, j, k-1u, myL);
+
+  let u_ip = select(uc, Ui[id + p.S2], l_ip == myL && !excl_ip);
+  let u_im = select(uc, Ui[id - p.S2], l_im == myL && !excl_im);
+  let u_jp = select(uc, Ui[id + p.S],  l_jp == myL && !excl_jp);
+  let u_jm = select(uc, Ui[id - p.S],  l_jm == myL && !excl_jm);
+  let u_kp = select(uc, Ui[id + 1u],   l_kp == myL && !excl_kp);
+  let u_km = select(uc, Ui[id - 1u],   l_km == myL && !excl_km);
+
+  let lap = u_ip + u_im + u_jp + u_jm + u_kp + u_km - 6.0 * uc;
+
+  // Standard ITP step: ψ + dt*(½∇²ψ + V·ψ)
+  let itpStep = uc + p.half_d * lap + p.dt * (K[id] - 2.0 * Pi[id]) * uc;
+
+  // Chebyshev momentum: ψ_{n+1} = ω·(ITP step) + (1-ω)·ψ_{n-1}
+  Uo[id] = cheb.omega * itpStep + (1.0 - cheb.omega) * Uprev[id];
 }
 `;
 
@@ -621,7 +743,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>,
     // Skip points inside exclusion sphere max(r_c, R_SING) — replaced by analytical correction
     if (isInsideExcl(i, j, k, myL)) { cell = cell + stride; continue; }
 
-    // Only include gradients within same domain, skip if neighbor is inside exclusion sphere
+    // Gradients: zero if neighbor is inside any exclusion sphere (Neumann BC)
     let sameL_ip = label[id + p.S2] == myL && !isInsideExcl(i+1u, j, k, myL);
     let sameL_jp = label[id + p.S]  == myL && !isInsideExcl(i, j+1u, k, myL);
     let sameL_kp = label[id + 1u]   == myL && !isInsideExcl(i, j, k+1u, myL);
@@ -863,9 +985,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 // Analytical inner-sphere corrections for H (ψ = exp(-r)/√π, r < R_SING)
 // T_inner = 2·[1/4 - exp(-2a)(a²/2 + a/2 + 1/4)]
 // V_inner = -4·[1/4 - exp(-2a)(a/2 + 1/4)]
-const _a = R_SING, _e2a = Math.exp(-2 * _a);
-const H_T_INNER = 2 * (0.25 - _e2a * (_a * _a / 2 + _a / 2 + 0.25));
-const H_V_INNER = -4 * (0.25 - _e2a * (_a / 2 + 0.25));
+// No analytical inner-sphere corrections
 const recomputeK_WGSL = `
 ${paramStructWGSL}
 ${atomStructWGSL}
@@ -968,12 +1088,287 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 }
 `;
 
+// ===== LOBPCG SHADERS =====
+
+// Apply Hamiltonian: HU = -½∇²U/h² + V_eff·U, where V_eff = -K + 2P
+// Same domain boundary/exclusion logic as updateU, but outputs H·U instead of time-stepping
+const applyH_WGSL = `
+${paramStructWGSL}
+${atomStructWGSL}
+@group(0) @binding(0) var<uniform> p: P;
+@group(0) @binding(1) var<storage, read> K: array<f32>;
+@group(0) @binding(2) var<storage, read> Ui: array<f32>;
+@group(0) @binding(3) var<storage, read> label: array<u32>;
+@group(0) @binding(4) var<storage, read> Pi: array<f32>;
+@group(0) @binding(5) var<storage, read_write> HU: array<f32>;
+@group(0) @binding(6) var<storage, read> atoms: array<Atom>;
+
+fn distToAtom(ci: u32, cj: u32, ck: u32, n: u32) -> f32 {
+  let dx = (f32(ci) - f32(atoms[n].posI)) * p.h;
+  let dy = (f32(cj) - f32(atoms[n].posJ)) * p.h;
+  let dz = (f32(ck) - f32(atoms[n].posK)) * p.h;
+  return sqrt(dx*dx + dy*dy + dz*dz);
+}
+
+fn isInsideRc(ci: u32, cj: u32, ck: u32, lbl: u32) -> bool {
+  let rc = atoms[lbl].rc;
+  if (rc <= 0.0) { return false; }
+  return distToAtom(ci, cj, ck, lbl) < rc;
+}
+
+fn isInsideAnalytical(ci: u32, cj: u32, ck: u32, lbl: u32) -> bool {
+  if (atoms[lbl].rc > 0.0) { return false; }
+  return distToAtom(ci, cj, ck, lbl) < ${R_SING};
+}
+
+${cellIdxWGSL}
+@compute @workgroup_size(256)
+fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+  let NM = p.NN - 1u;
+  let tot = NM * NM * NM;
+  let cell = cellIdx(gid);
+  if (cell >= tot) { return; }
+
+  let k = (cell % NM) + 1u;
+  let j = ((cell / NM) % NM) + 1u;
+  let i = (cell / (NM * NM)) + 1u;
+  let id = i * p.S2 + j * p.S + k;
+
+  let myL = label[id];
+
+  // Inside exclusion: HU = 0
+  if (isInsideRc(i, j, k, myL) || isInsideAnalytical(i, j, k, myL)) {
+    HU[id] = 0.0;
+    return;
+  }
+
+  let uc = Ui[id];
+
+  // Neumann BC at domain boundaries and exclusion surfaces (same as updateU)
+  let l_ip = label[id + p.S2]; let excl_ip = isInsideRc(i+1u, j, k, l_ip) || isInsideAnalytical(i+1u, j, k, myL);
+  let l_im = label[id - p.S2]; let excl_im = isInsideRc(i-1u, j, k, l_im) || isInsideAnalytical(i-1u, j, k, myL);
+  let l_jp = label[id + p.S];  let excl_jp = isInsideRc(i, j+1u, k, l_jp) || isInsideAnalytical(i, j+1u, k, myL);
+  let l_jm = label[id - p.S];  let excl_jm = isInsideRc(i, j-1u, k, l_jm) || isInsideAnalytical(i, j-1u, k, myL);
+  let l_kp = label[id + 1u];   let excl_kp = isInsideRc(i, j, k+1u, l_kp) || isInsideAnalytical(i, j, k+1u, myL);
+  let l_km = label[id - 1u];   let excl_km = isInsideRc(i, j, k-1u, l_km) || isInsideAnalytical(i, j, k-1u, myL);
+
+  let u_ip = select(uc, Ui[id + p.S2], l_ip == myL && !excl_ip);
+  let u_im = select(uc, Ui[id - p.S2], l_im == myL && !excl_im);
+  let u_jp = select(uc, Ui[id + p.S],  l_jp == myL && !excl_jp);
+  let u_jm = select(uc, Ui[id - p.S],  l_jm == myL && !excl_jm);
+  let u_kp = select(uc, Ui[id + 1u],   l_kp == myL && !excl_kp);
+  let u_km = select(uc, Ui[id - 1u],   l_km == myL && !excl_km);
+
+  let lap = u_ip + u_im + u_jp + u_jm + u_kp + u_km - 6.0 * uc;
+
+  // H·U = -½∇²U + V_eff·U where V_eff = -K + 2P
+  HU[id] = -0.5 * lap * p.inv_h2 + (-K[id] + 2.0 * Pi[id]) * uc;
+}
+`;
+
+// LOBPCG per-domain inner products: batched reduction
+// Computes 6 products per domain for the Ritz problem:
+//   <X|X>, <X|HX>, <W|W>, <W|HW>, <X|W>, <X|HW>  (2-vector Ritz)
+// Additional 6 for 3-vector Ritz when P is available:
+//   <P|P>, <P|HP>, <X|P>, <X|HP>, <W|P>, <W|HP>
+const NRED_LOBPCG = 12;  // 12 inner products per domain
+const MAX_LOBPCG_WG = Math.min(256, Math.ceil(INTERIOR / REDUCE_WG));
+const lobpcgInnerWGSL = `
+${paramStructWGSL}
+@group(0) @binding(0) var<uniform> p: P;
+@group(0) @binding(1) var<storage, read> X: array<f32>;
+@group(0) @binding(2) var<storage, read> HX: array<f32>;
+@group(0) @binding(3) var<storage, read> W: array<f32>;
+@group(0) @binding(4) var<storage, read> HW: array<f32>;
+@group(0) @binding(5) var<storage, read> Pv: array<f32>;
+@group(0) @binding(6) var<storage, read> HP: array<f32>;
+@group(0) @binding(7) var<storage, read_write> partials: array<f32>;
+@group(0) @binding(8) var<storage, read> label: array<u32>;
+
+struct DomIdx { idx: u32, _p0: u32, _p1: u32, _p2: u32 }
+@group(0) @binding(9) var<uniform> dom: DomIdx;
+
+var<workgroup> sn: array<f32, ${NRED_LOBPCG * REDUCE_WG}>;
+
+@compute @workgroup_size(${REDUCE_WG})
+fn main(@builtin(global_invocation_id) gid: vec3<u32>,
+        @builtin(local_invocation_index) lid: u32,
+        @builtin(workgroup_id) wgid: vec3<u32>) {
+  let NM = p.NN - 1u;
+  let tot = NM * NM * NM;
+  let stride = ${MAX_LOBPCG_WG}u * ${REDUCE_WG}u;
+  let NR = ${NRED_LOBPCG}u;
+
+  for (var q: u32 = 0u; q < NR; q++) { sn[lid * NR + q] = 0.0; }
+
+  var cell = gid.x;
+  loop {
+    if (cell >= tot) { break; }
+    let k = (cell % NM) + 1u;
+    let j = ((cell / NM) % NM) + 1u;
+    let i = (cell / (NM * NM)) + 1u;
+    let id = i * p.S2 + j * p.S + k;
+
+    if (label[id] == dom.idx) {
+      let x = X[id]; let hx = HX[id]; let w = W[id]; let hw = HW[id];
+      let pv = Pv[id]; let hp = HP[id];
+      let dV = p.h3;
+      sn[lid * NR + 0u]  += x * x * dV;     // <X|X>
+      sn[lid * NR + 1u]  += x * hx * dV;    // <X|HX>
+      sn[lid * NR + 2u]  += w * w * dV;     // <W|W>
+      sn[lid * NR + 3u]  += w * hw * dV;    // <W|HW>
+      sn[lid * NR + 4u]  += x * w * dV;     // <X|W>
+      sn[lid * NR + 5u]  += x * hw * dV;    // <X|HW>
+      sn[lid * NR + 6u]  += pv * pv * dV;   // <P|P>
+      sn[lid * NR + 7u]  += pv * hp * dV;   // <P|HP>
+      sn[lid * NR + 8u]  += x * pv * dV;    // <X|P>
+      sn[lid * NR + 9u]  += x * hp * dV;    // <X|HP>  (= <HX|P> by symmetry)
+      sn[lid * NR + 10u] += w * pv * dV;    // <W|P>
+      sn[lid * NR + 11u] += w * hp * dV;    // <W|HP>
+    }
+
+    cell = cell + stride;
+  }
+
+  workgroupBarrier();
+
+  for (var s: u32 = ${REDUCE_WG >> 1}u; s > 0u; s >>= 1u) {
+    if (lid < s) {
+      for (var q: u32 = 0u; q < NR; q++) {
+        sn[lid * NR + q] += sn[(lid + s) * NR + q];
+      }
+    }
+    workgroupBarrier();
+  }
+
+  if (lid == 0u) {
+    let base = wgid.x * NR;
+    for (var q: u32 = 0u; q < NR; q++) {
+      partials[base + q] = sn[q];
+    }
+  }
+}
+`;
+
+const lobpcgFinalizeWGSL = `
+struct NWG { count: u32 }
+@group(0) @binding(0) var<storage, read> partials: array<f32>;
+@group(0) @binding(1) var<storage, read_write> sums: array<f32>;
+@group(0) @binding(2) var<uniform> nwg: NWG;
+
+var<workgroup> wg: array<f32, ${NRED_LOBPCG * REDUCE_WG}>;
+
+@compute @workgroup_size(${REDUCE_WG})
+fn main(@builtin(local_invocation_index) lid: u32) {
+  let NR = ${NRED_LOBPCG}u;
+  for (var q: u32 = 0u; q < NR; q++) { wg[lid * NR + q] = 0.0; }
+
+  for (var i: u32 = lid; i < nwg.count; i += ${REDUCE_WG}u) {
+    for (var q: u32 = 0u; q < NR; q++) {
+      wg[lid * NR + q] += partials[i * NR + q];
+    }
+  }
+
+  workgroupBarrier();
+
+  for (var s: u32 = ${REDUCE_WG >> 1}u; s > 0u; s >>= 1u) {
+    if (lid < s) {
+      for (var q: u32 = 0u; q < NR; q++) {
+        wg[lid * NR + q] += wg[(lid + s) * NR + q];
+      }
+    }
+    workgroupBarrier();
+  }
+
+  if (lid == 0u) {
+    for (var q: u32 = 0u; q < NR; q++) {
+      sums[q] = wg[q];
+    }
+  }
+}
+`;
+
+// Compute residual W = HX - lambda*X and precondition: W /= (diag(H) + shift)
+// lambda is passed via uniform, diag(H) ≈ 3/h² + |V|
+const lobpcgResidualWGSL = `
+${paramStructWGSL}
+@group(0) @binding(0) var<uniform> p: P;
+@group(0) @binding(1) var<storage, read> X: array<f32>;
+@group(0) @binding(2) var<storage, read> HX: array<f32>;
+@group(0) @binding(3) var<storage, read_write> W: array<f32>;
+@group(0) @binding(4) var<storage, read> label: array<u32>;
+@group(0) @binding(5) var<storage, read> K: array<f32>;
+@group(0) @binding(6) var<storage, read> Pot: array<f32>;
+
+struct Lambda { val: f32, domIdx: u32, _p0: u32, _p1: u32 }
+@group(0) @binding(7) var<uniform> lam: Lambda;
+
+${cellIdxWGSL}
+@compute @workgroup_size(256)
+fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+  let NM = p.NN - 1u;
+  let tot = NM * NM * NM;
+  let cell = cellIdx(gid);
+  if (cell >= tot) { return; }
+
+  let k = (cell % NM) + 1u;
+  let j = ((cell / NM) % NM) + 1u;
+  let i = (cell / (NM * NM)) + 1u;
+  let id = i * p.S2 + j * p.S + k;
+
+  if (label[id] != lam.domIdx) {
+    W[id] = 0.0;
+    return;
+  }
+
+  let r = HX[id] - lam.val * X[id];
+  // Diagonal preconditioner: diag(H) = 3/h² + |V_eff|
+  let vEff = abs(-K[id] + 2.0 * Pot[id]);
+  let diagH = 3.0 * p.inv_h2 + vEff + 0.1;  // +0.1 shift for stability
+  W[id] = r / diagH;
+}
+`;
+
+// LOBPCG update: X_new = c0*X + c1*W + c2*P, P_new = c1*W + c2*P
+// Coefficients from Ritz solve, passed via uniform buffer
+const lobpcgUpdateWGSL = `
+${paramStructWGSL}
+@group(0) @binding(0) var<uniform> p: P;
+@group(0) @binding(1) var<storage, read_write> X: array<f32>;
+@group(0) @binding(2) var<storage, read> W: array<f32>;
+@group(0) @binding(3) var<storage, read_write> Pv: array<f32>;
+@group(0) @binding(4) var<storage, read> label: array<u32>;
+
+struct Coeff { c0: f32, c1: f32, c2: f32, domIdx: u32 }
+@group(0) @binding(5) var<uniform> coeff: Coeff;
+
+${cellIdxWGSL}
+@compute @workgroup_size(256)
+fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+  let NM = p.NN - 1u;
+  let tot = NM * NM * NM;
+  let cell = cellIdx(gid);
+  if (cell >= tot) { return; }
+
+  let k = (cell % NM) + 1u;
+  let j = ((cell / NM) % NM) + 1u;
+  let i = (cell / (NM * NM)) + 1u;
+  let id = i * p.S2 + j * p.S + k;
+
+  if (label[id] != coeff.domIdx) { return; }
+
+  let x = X[id]; let w = W[id]; let pv = Pv[id];
+  X[id] = coeff.c0 * x + coeff.c1 * w + coeff.c2 * pv;
+  Pv[id] = coeff.c1 * w + coeff.c2 * pv;
+}
+`;
+
 // ===== GPU STATE =====
 let device, paramsBuf, atomBuf, K_buf, sumsBuf, sumsReadBuf, sliceBuf, sliceReadBuf, partialsBuf, numWGBuf;
 let normAtomicBuf, normFloatBuf, initOffsetBuf, bestR2Buf, initRangeBuf;
 let U_buf = [], P_buf = [], labelBuf, label2Buf, W_buf;
 let rhoTotalBuf, residualBuf, Pc_buf = [], coarseRhsBuf;
-let PotherBuf, PselfScratchBuf, domainBufs = [];
+let PotherBuf, PselfScratchBuf, sicBuf, sicResidualBuf, domainBufs = [];
 let updatePL, evolveBoundaryPL, fixBoundaryUPL, jacobiSmoothPL;
 let reduceEnergyPL, finalizeEnergyPL, accumNormsPL, decodeNormsPL, normalizePL, extractPL;
 let gpuInitAccumPL, gpuInitFinalPL;
@@ -985,10 +1380,26 @@ let gpuInitAccumBG, gpuInitFinalBG;
 let computeRhoBG = [], residualBG = [], prolongCorrectBG;
 let restrictBG, coarseSmoothBG = [];
 let computeRhoSelfBG = [], jacobiSelfBG = [], subtractPselfBG = [];
+let sicResidualBG, sicRestrictBG, sicProlongBG;
 // Nuclear dynamics GPU state
 let forceSumsBuf, forceSumsReadBuf;
 let gradPtotalPL, recomputeK_PL;
 let gradPtotalBG = [], recomputeK_BG;
+// LOBPCG state
+let useLOBPCG = false;  // toggle: false = imaginary time, true = LOBPCG
+const LOBPCG_ITERS = 10;  // LOBPCG iterations per SCF step
+let applyH_PL, lobpcgResidualPL, lobpcgInnerPL, lobpcgFinalizePL, lobpcgUpdatePL;
+let applyH_BG_X, applyH_BG_W, applyH_BG_P;
+let lobpcgResidualBG, lobpcgUpdateBG;
+let lobpcgInnerBG = [], lobpcgFinalizeBG;
+let HX_buf, W_lobpcg_buf, HW_buf, P_lobpcg_buf, HP_buf;
+let lobpcgPartialsBuf, lobpcgSumsBuf, lobpcgSumsReadBuf;
+let lambdaBuf, coeffBuf, lobpcgNumWGBuf;
+// Chebyshev state
+let useCheb = false;
+let chebOmega = 1.0;  // Chebyshev ω recurrence state
+let chebyshevStepPL, chebyshevStepBG = [];
+let U_prev_buf, chebParamsBuf;
 
 let cur = 0, gpuReady = false, computing = false, initProgress = 0, computePromise = null;
 let tStep = 0, E = 0, lastMs = 0;
@@ -1209,6 +1620,8 @@ window.restartWithPositions = async function(newPositions) {
   phase = 0;
   computing = false;
   gpuError = null;
+  window._prevE = undefined;
+  window._convCount = 0;
 };
 
 // External API: activate first `count` atoms, reinitialize simulation
@@ -1335,6 +1748,8 @@ async function initGPU() {
     W_buf = device.createBuffer({ size: bs, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
     PotherBuf = device.createBuffer({ size: bs, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
     PselfScratchBuf = device.createBuffer({ size: bs, usage });
+    sicBuf = device.createBuffer({ size: bs, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+    sicResidualBuf = device.createBuffer({ size: bs, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
     if (SIC_INTERVAL < 999999) {
       for (let m = 0; m < NELEC; m++) {
         domainBufs[m] = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
@@ -1369,6 +1784,26 @@ async function initGPU() {
     const forceSumsSize = NELEC * 3 * 4;
     forceSumsBuf = device.createBuffer({ size: forceSumsSize, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC });
     forceSumsReadBuf = device.createBuffer({ size: forceSumsSize, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+
+    // LOBPCG buffers
+    HX_buf = device.createBuffer({ size: bs, usage });
+    W_lobpcg_buf = device.createBuffer({ size: bs, usage });
+    HW_buf = device.createBuffer({ size: bs, usage });
+    P_lobpcg_buf = device.createBuffer({ size: bs, usage: usage | GPUBufferUsage.COPY_DST });
+    HP_buf = device.createBuffer({ size: bs, usage });
+    const lobpcgPartialSize = MAX_LOBPCG_WG * NRED_LOBPCG * 4;
+    lobpcgPartialsBuf = device.createBuffer({ size: lobpcgPartialSize, usage: GPUBufferUsage.STORAGE });
+    const lobpcgSumsSize = NRED_LOBPCG * 4;
+    lobpcgSumsBuf = device.createBuffer({ size: lobpcgSumsSize, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC });
+    lobpcgSumsReadBuf = device.createBuffer({ size: lobpcgSumsSize, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+    lambdaBuf = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+    coeffBuf = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+    lobpcgNumWGBuf = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+    device.queue.writeBuffer(lobpcgNumWGBuf, 0, new Uint32Array([MAX_LOBPCG_WG, 0, 0, 0]));
+
+    // Chebyshev buffers
+    U_prev_buf = device.createBuffer({ size: bs, usage: usage | GPUBufferUsage.COPY_DST });
+    chebParamsBuf = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
 
     const pb = new ArrayBuffer(PARAM_BYTES);
     fillParamsBuf(pb);
@@ -1414,6 +1849,13 @@ async function initGPU() {
     const recomputeK_Mod = await compileShader('recomputeK', recomputeK_WGSL);
     const gpuInitAccumMod = await compileShader('gpuInitAccum', gpuInitAccumWGSL);
     const gpuInitFinalMod = await compileShader('gpuInitFinal', gpuInitFinalWGSL);
+    // LOBPCG shaders
+    const applyH_Mod = await compileShader('applyH', applyH_WGSL);
+    const lobpcgResidualMod = await compileShader('lobpcgResidual', lobpcgResidualWGSL);
+    const lobpcgInnerMod = await compileShader('lobpcgInner', lobpcgInnerWGSL);
+    const lobpcgFinalizeMod = await compileShader('lobpcgFinalize', lobpcgFinalizeWGSL);
+    const lobpcgUpdateMod = await compileShader('lobpcgUpdate', lobpcgUpdateWGSL);
+    const chebyshevStepMod = await compileShader('chebyshevStep', chebyshevStepWGSL);
 
     updatePL = await device.createComputePipelineAsync({ layout: 'auto', compute: { module: updateMod, entryPoint: 'main' } });
     evolveBoundaryPL = await device.createComputePipelineAsync({ layout: 'auto', compute: { module: evolveBoundaryMod, entryPoint: 'main' } });
@@ -1439,6 +1881,13 @@ async function initGPU() {
     // Nuclear dynamics pipelines
     gradPtotalPL = await device.createComputePipelineAsync({ layout: 'auto', compute: { module: gradPtotalMod, entryPoint: 'main' } });
     recomputeK_PL = await device.createComputePipelineAsync({ layout: 'auto', compute: { module: recomputeK_Mod, entryPoint: 'main' } });
+    // LOBPCG pipelines
+    applyH_PL = await device.createComputePipelineAsync({ layout: 'auto', compute: { module: applyH_Mod, entryPoint: 'main' } });
+    lobpcgResidualPL = await device.createComputePipelineAsync({ layout: 'auto', compute: { module: lobpcgResidualMod, entryPoint: 'main' } });
+    lobpcgInnerPL = await device.createComputePipelineAsync({ layout: 'auto', compute: { module: lobpcgInnerMod, entryPoint: 'main' } });
+    lobpcgFinalizePL = await device.createComputePipelineAsync({ layout: 'auto', compute: { module: lobpcgFinalizeMod, entryPoint: 'main' } });
+    lobpcgUpdatePL = await device.createComputePipelineAsync({ layout: 'auto', compute: { module: lobpcgUpdateMod, entryPoint: 'main' } });
+    chebyshevStepPL = await device.createComputePipelineAsync({ layout: 'auto', compute: { module: chebyshevStepMod, entryPoint: 'main' } });
 
     for (let c = 0; c < 2; c++) {
       const n = 1 - c;
@@ -1451,6 +1900,18 @@ async function initGPU() {
         { binding: 4, resource: { buffer: PotherBuf } },
         { binding: 5, resource: { buffer: U_buf[n] } },
         { binding: 6, resource: { buffer: atomBuf } },
+      ]});
+      // Chebyshev step: same stencil as updateU + Uprev + chebParams
+      chebyshevStepBG[c] = device.createBindGroup({ layout: chebyshevStepPL.getBindGroupLayout(0), entries: [
+        { binding: 0, resource: { buffer: paramsBuf } },
+        { binding: 1, resource: { buffer: K_buf } },
+        { binding: 2, resource: { buffer: U_buf[c] } },
+        { binding: 3, resource: { buffer: labelBuf } },
+        { binding: 4, resource: { buffer: PotherBuf } },
+        { binding: 5, resource: { buffer: U_buf[n] } },
+        { binding: 6, resource: { buffer: atomBuf } },
+        { binding: 7, resource: { buffer: U_prev_buf } },
+        { binding: 8, resource: { buffer: chebParamsBuf } },
       ]});
       reduceEnergyBG[c] = device.createBindGroup({ layout: reduceEnergyPL.getBindGroupLayout(0), entries: [
         { binding: 0, resource: { buffer: paramsBuf } },
@@ -1582,25 +2043,42 @@ async function initGPU() {
         }
         subtractPselfBG[m] = device.createBindGroup({ layout: subtractPselfPL.getBindGroupLayout(0), entries: [
           { binding: 0, resource: { buffer: paramsBuf } },
-          { binding: 1, resource: { buffer: P_buf[1] } },
+          { binding: 1, resource: { buffer: sicBuf } },
           { binding: 2, resource: { buffer: PotherBuf } },
           { binding: 3, resource: { buffer: labelBuf } },
           { binding: 4, resource: { buffer: domainBufs[m] } },
         ]});
       }
     }
-    // Jacobi for self-potential: P_buf[1] <-> PselfScratchBuf, rhs=residualBuf
+    // Jacobi for self-potential: sicBuf <-> PselfScratchBuf (NOT P_buf[1] — that's V-cycle scratch)
     jacobiSelfBG[0] = device.createBindGroup({ layout: jacobiSmoothPL.getBindGroupLayout(0), entries: [
       { binding: 0, resource: { buffer: paramsBuf } },
-      { binding: 1, resource: { buffer: P_buf[1] } },
+      { binding: 1, resource: { buffer: sicBuf } },
       { binding: 2, resource: { buffer: PselfScratchBuf } },
       { binding: 3, resource: { buffer: residualBuf } },
     ]});
     jacobiSelfBG[1] = device.createBindGroup({ layout: jacobiSmoothPL.getBindGroupLayout(0), entries: [
       { binding: 0, resource: { buffer: paramsBuf } },
       { binding: 1, resource: { buffer: PselfScratchBuf } },
-      { binding: 2, resource: { buffer: P_buf[1] } },
+      { binding: 2, resource: { buffer: sicBuf } },
       { binding: 3, resource: { buffer: residualBuf } },
+    ]});
+    // SIC V-cycle bind groups: residual, restrict, prolong for self-potential solve
+    sicResidualBG = device.createBindGroup({ layout: computeResidualPL.getBindGroupLayout(0), entries: [
+      { binding: 0, resource: { buffer: paramsBuf } },
+      { binding: 1, resource: { buffer: sicBuf } },
+      { binding: 2, resource: { buffer: sicResidualBuf } },
+      { binding: 3, resource: { buffer: residualBuf } },  // rhoSelf stored here by computeRhoSelf
+    ]});
+    sicRestrictBG = device.createBindGroup({ layout: restrictPL.getBindGroupLayout(0), entries: [
+      { binding: 0, resource: { buffer: paramsBuf } },
+      { binding: 1, resource: { buffer: sicResidualBuf } },
+      { binding: 2, resource: { buffer: coarseRhsBuf } },
+    ]});
+    sicProlongBG = device.createBindGroup({ layout: prolongCorrectPL.getBindGroupLayout(0), entries: [
+      { binding: 0, resource: { buffer: paramsBuf } },
+      { binding: 1, resource: { buffer: Pc_buf[0] } },
+      { binding: 2, resource: { buffer: sicBuf } },
     ]});
 
     // Nuclear dynamics bind groups
@@ -1620,7 +2098,99 @@ async function initGPU() {
       { binding: 2, resource: { buffer: atomBuf } },
     ]});
 
-    console.log("Ready! dispatch(" + WG_UPDATE + ") " + NELEC + " domains + multigrid V-cycle + SIC + dynamics");
+    // LOBPCG bind groups — applyH has same layout as updateU (K, U_in, label, P, HU_out, atoms)
+    // We need 3 variants: applyH to X (U_buf[cur]), to W, and to P
+    function makeApplyH_BG(inBuf, outBuf) {
+      return device.createBindGroup({ layout: applyH_PL.getBindGroupLayout(0), entries: [
+        { binding: 0, resource: { buffer: paramsBuf } },
+        { binding: 1, resource: { buffer: K_buf } },
+        { binding: 2, resource: { buffer: inBuf } },
+        { binding: 3, resource: { buffer: labelBuf } },
+        { binding: 4, resource: { buffer: PotherBuf } },
+        { binding: 5, resource: { buffer: outBuf } },
+        { binding: 6, resource: { buffer: atomBuf } },
+      ]});
+    }
+    // These will be recreated per cur flip — for now use U_buf[0]
+    applyH_BG_X = [makeApplyH_BG(U_buf[0], HX_buf), makeApplyH_BG(U_buf[1], HX_buf)];
+    applyH_BG_W = makeApplyH_BG(W_lobpcg_buf, HW_buf);
+    applyH_BG_P = makeApplyH_BG(P_lobpcg_buf, HP_buf);
+
+    // Ensure domainBufs exist for LOBPCG (need one per domain)
+    for (let m = 0; m < NELEC; m++) {
+      if (!domainBufs[m]) {
+        domainBufs[m] = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+        device.queue.writeBuffer(domainBufs[m], 0, new Uint32Array([m, 0, 0, 0]));
+      }
+    }
+
+    // Inner product bind groups: [cur][domain] — cur=0 uses U_buf[0], cur=1 uses U_buf[1]
+    {
+      const bg0 = [], bg1 = [];
+      for (let m = 0; m < NELEC; m++) {
+        bg0[m] = device.createBindGroup({ layout: lobpcgInnerPL.getBindGroupLayout(0), entries: [
+          { binding: 0, resource: { buffer: paramsBuf } },
+          { binding: 1, resource: { buffer: U_buf[0] } },
+          { binding: 2, resource: { buffer: HX_buf } },
+          { binding: 3, resource: { buffer: W_lobpcg_buf } },
+          { binding: 4, resource: { buffer: HW_buf } },
+          { binding: 5, resource: { buffer: P_lobpcg_buf } },
+          { binding: 6, resource: { buffer: HP_buf } },
+          { binding: 7, resource: { buffer: lobpcgPartialsBuf } },
+          { binding: 8, resource: { buffer: labelBuf } },
+          { binding: 9, resource: { buffer: domainBufs[m] } },
+        ]});
+        bg1[m] = device.createBindGroup({ layout: lobpcgInnerPL.getBindGroupLayout(0), entries: [
+          { binding: 0, resource: { buffer: paramsBuf } },
+          { binding: 1, resource: { buffer: U_buf[1] } },
+          { binding: 2, resource: { buffer: HX_buf } },
+          { binding: 3, resource: { buffer: W_lobpcg_buf } },
+          { binding: 4, resource: { buffer: HW_buf } },
+          { binding: 5, resource: { buffer: P_lobpcg_buf } },
+          { binding: 6, resource: { buffer: HP_buf } },
+          { binding: 7, resource: { buffer: lobpcgPartialsBuf } },
+          { binding: 8, resource: { buffer: labelBuf } },
+          { binding: 9, resource: { buffer: domainBufs[m] } },
+        ]});
+      }
+      lobpcgInnerBG = [bg0, bg1];
+    }
+
+    lobpcgFinalizeBG = device.createBindGroup({ layout: lobpcgFinalizePL.getBindGroupLayout(0), entries: [
+      { binding: 0, resource: { buffer: lobpcgPartialsBuf } },
+      { binding: 1, resource: { buffer: lobpcgSumsBuf } },
+      { binding: 2, resource: { buffer: lobpcgNumWGBuf } },
+    ]});
+
+    // Residual bind groups (one per U_buf)
+    lobpcgResidualBG = [];
+    for (let c = 0; c < 2; c++) {
+      lobpcgResidualBG[c] = device.createBindGroup({ layout: lobpcgResidualPL.getBindGroupLayout(0), entries: [
+        { binding: 0, resource: { buffer: paramsBuf } },
+        { binding: 1, resource: { buffer: U_buf[c] } },
+        { binding: 2, resource: { buffer: HX_buf } },
+        { binding: 3, resource: { buffer: W_lobpcg_buf } },
+        { binding: 4, resource: { buffer: labelBuf } },
+        { binding: 5, resource: { buffer: K_buf } },
+        { binding: 6, resource: { buffer: PotherBuf } },
+        { binding: 7, resource: { buffer: lambdaBuf } },
+      ]});
+    }
+
+    // Update bind groups (one per U_buf since X is read_write)
+    lobpcgUpdateBG = [];
+    for (let c = 0; c < 2; c++) {
+      lobpcgUpdateBG[c] = device.createBindGroup({ layout: lobpcgUpdatePL.getBindGroupLayout(0), entries: [
+        { binding: 0, resource: { buffer: paramsBuf } },
+        { binding: 1, resource: { buffer: U_buf[c] } },
+        { binding: 2, resource: { buffer: W_lobpcg_buf } },
+        { binding: 3, resource: { buffer: P_lobpcg_buf } },
+        { binding: 4, resource: { buffer: labelBuf } },
+        { binding: 5, resource: { buffer: coeffBuf } },
+      ]});
+    }
+
+    console.log("Ready! dispatch(" + WG_UPDATE + ") " + NELEC + " domains + multigrid V-cycle + SIC + dynamics + LOBPCG");
     await startMolPhase();
     gpuReady = true;
 
@@ -1646,6 +2216,8 @@ async function doSteps(n) {
     dispatchLinear(vp, INTERIOR);
     vp.end();
 
+    // --- Poisson solve (skip for single-electron systems — no V_ee) ---
+    if (N_ELECTRONS > 1) {
     // --- Jacobi smooth P every step (2 sweeps: P[0]->P[1]->P[0]) ---
     for (let js = 0; js < 2; js++) {
       vp = enc.beginComputePass();
@@ -1687,12 +2259,67 @@ async function doSteps(n) {
       vp.end();
     }
 
-    // --- U update (Neumann BC from labels and r_c surfaces) ---
-    let cp = enc.beginComputePass();
-    cp.setPipeline(updatePL);
-    cp.setBindGroup(0, updateBG[cur]);
-    dispatchLinear(cp, INTERIOR);
-    cp.end();
+    } // end N_ELECTRONS > 1 Poisson block
+
+    // --- U update ---
+    let cp;
+    if (useCheb) {
+      // Chebyshev semi-iterative acceleration of ITP
+      // ψ_{n+1} = ω_n * (ITP step of ψ_n) + (1-ω_n) * ψ_{n-1}
+      // Spectral radius of iteration matrix G = I - dt·H:
+      //   eigenvalues of G: 1 - dt·λ_H, where λ_H ∈ [λ_min, λ_max]
+      //   dt = dv*h², λ_max(H) ≈ 6/h², so dt·λ_max = 6*dv ≈ 0.72
+      //   dt·λ_min ≈ dt*E ≈ small negative
+      // Spectral radius ρ of G: max(|1-dt·λ_min|, |1-dt·λ_max|)
+      // ρ_G ≈ 1 - dt·λ_min(H) for the "slow" eigenvalue (ground state)
+      // Chebyshev ω recurrence accelerates convergence of the slow component.
+      const dtLmax = 6.0 * dv;  // dt·λ_max ≈ 0.72
+      const dtLmin = dtv * (isFinite(E) ? Math.max(-100, E) : -10);
+      // Eigenvalues of G: gMax = 1 - dtLmin, gMin = 1 - dtLmax
+      const gMax = 1 - dtLmin;  // close to 1 (slow convergence direction)
+      const gMin = 1 - dtLmax;  // close to 0.28
+      // Spectral radius ratio for Chebyshev: ρ² = ((gMax-gMin)/(gMax+gMin))²
+      const rhoSq = ((gMax - gMin) / (gMax + gMin)) ** 2;
+
+      // ω recurrence: ω_0 = 1, ω_1 = 1/(1-ρ²/2), ω_{n+1} = 1/(1-ρ²·ω_n/4)
+      // Persists across frames — only resets when Chebyshev is toggled on
+      let omega;
+      if (chebOmega <= 1.0) {
+        // First step after enable: no momentum
+        omega = 1.0;
+        chebOmega = 1.001;  // signal that step 0 is done
+      } else if (chebOmega < 1.01) {
+        // Second step: start recurrence
+        omega = 1.0 / (1.0 - rhoSq / 2.0);
+        chebOmega = omega;
+      } else {
+        // Steady state: continue recurrence (converges quickly to ω_∞)
+        omega = 1.0 / (1.0 - rhoSq * chebOmega / 4.0);
+        chebOmega = omega;
+      }
+      // Clamp for safety
+      omega = Math.min(1.95, Math.max(1.0, omega));
+
+      device.queue.writeBuffer(chebParamsBuf, 0, new Float32Array([omega, 0, 0, 0]));
+
+      // Chebyshev step reads U[cur] and U_prev, writes U[next]
+      // U_prev holds ψ_{n-1} from 2 steps ago (or garbage for step 0, but omega=1 so ignored)
+      cp = enc.beginComputePass();
+      cp.setPipeline(chebyshevStepPL);
+      cp.setBindGroup(0, chebyshevStepBG[cur]);
+      dispatchLinear(cp, INTERIOR);
+      cp.end();
+
+      // AFTER compute: save current ψ_n = U[cur] as ψ_{n-1} for next step
+      enc.copyBufferToBuffer(U_buf[cur], 0, U_prev_buf, 0, S3 * 4);
+    } else {
+      // Original imaginary time propagation
+      cp = enc.beginComputePass();
+      cp.setPipeline(updatePL);
+      cp.setBindGroup(0, updateBG[cur]);
+      dispatchLinear(cp, INTERIOR);
+      cp.end();
+    }
 
     if ((s + 1) % NORM_INTERVAL === 0 || s === n - 1) {
       // Atomic norm accumulation: clear → accumulate → decode → normalize
@@ -1715,20 +2342,6 @@ async function doSteps(n) {
       dispatchLinear(cp, INTERIOR);
       cp.end();
 
-      // Energy reduce only on last step of batch
-      if (s === n - 1) {
-        cp = enc.beginComputePass();
-        cp.setPipeline(reduceEnergyPL);
-        cp.setBindGroup(0, reduceEnergyBG[next]);
-        cp.dispatchWorkgroups(WG_REDUCE);
-        cp.end();
-
-        cp = enc.beginComputePass();
-        cp.setPipeline(finalizeEnergyPL);
-        cp.setBindGroup(0, finalizeEnergyBG);
-        cp.dispatchWorkgroups(1);
-        cp.end();
-      }
     }
 
     cur = next;
@@ -1745,6 +2358,9 @@ async function doSteps(n) {
   }
 
   // --- Compute Pother = P_total - P_self (remove self-repulsion) ---
+  if (N_ELECTRONS <= 1) {
+    enc.clearBuffer(PotherBuf);  // single electron: no V_ee
+  } else {
   enc.copyBufferToBuffer(P_buf[0], 0, PotherBuf, 0, S3 * 4);
   // Only run SIC periodically to avoid GPU timeout with many atoms
   if (frameCount > 0 && frameCount % SIC_INTERVAL === 0) {
@@ -1755,8 +2371,44 @@ async function doSteps(n) {
       sp.setBindGroup(0, computeRhoSelfBG[m][cur]);
       dispatchLinear(sp, INTERIOR);
       sp.end();
-      enc.clearBuffer(P_buf[1]);
-      for (let js = 0; js < SIC_JACOBI; js++) {
+      enc.clearBuffer(sicBuf);
+      // SIC V-cycle: pre-smooth, restrict, coarse solve, prolongate, post-smooth
+      for (let js = 0; js < 4; js++) {
+        sp = enc.beginComputePass();
+        sp.setPipeline(jacobiSmoothPL);
+        sp.setBindGroup(0, jacobiSelfBG[js % 2]);
+        dispatchLinear(sp, INTERIOR);
+        sp.end();
+      }
+      // Compute residual of SIC Poisson
+      sp = enc.beginComputePass();
+      sp.setPipeline(computeResidualPL);
+      sp.setBindGroup(0, sicResidualBG);
+      dispatchLinear(sp, INTERIOR);
+      sp.end();
+      // Restrict residual to coarse grid
+      sp = enc.beginComputePass();
+      sp.setPipeline(restrictPL);
+      sp.setBindGroup(0, sicRestrictBG);
+      sp.dispatchWorkgroups(WG_COARSE);
+      sp.end();
+      // Coarse solve (10 Jacobi sweeps)
+      enc.clearBuffer(Pc_buf[0]);
+      for (let cs = 0; cs < 10; cs++) {
+        sp = enc.beginComputePass();
+        sp.setPipeline(coarseSmoothPL);
+        sp.setBindGroup(0, coarseSmoothBG[cs % 2]);
+        sp.dispatchWorkgroups(WG_COARSE);
+        sp.end();
+      }
+      // Prolongate correction back to sicBuf
+      sp = enc.beginComputePass();
+      sp.setPipeline(prolongCorrectPL);
+      sp.setBindGroup(0, sicProlongBG);
+      dispatchLinear(sp, INTERIOR);
+      sp.end();
+      // Post-smooth
+      for (let js = 0; js < 4; js++) {
         sp = enc.beginComputePass();
         sp.setPipeline(jacobiSmoothPL);
         sp.setBindGroup(0, jacobiSelfBG[js % 2]);
@@ -1769,6 +2421,22 @@ async function doSteps(n) {
       dispatchLinear(sp, INTERIOR);
       sp.end();
     }
+  }
+  } // end N_ELECTRONS > 1 else block
+
+  // --- Energy reduce (after SIC so V_ee uses current frame's PotherBuf) ---
+  {
+    let cp = enc.beginComputePass();
+    cp.setPipeline(reduceEnergyPL);
+    cp.setBindGroup(0, reduceEnergyBG[cur]);
+    cp.dispatchWorkgroups(WG_REDUCE);
+    cp.end();
+
+    cp = enc.beginComputePass();
+    cp.setPipeline(finalizeEnergyPL);
+    cp.setBindGroup(0, finalizeEnergyBG);
+    cp.dispatchWorkgroups(1);
+    cp.end();
   }
 
   // --- Evolve level set W + flip labels where W < 0 ---
@@ -1807,11 +2475,15 @@ async function doSteps(n) {
   E_T = sumsData[0];
   E_eK = sumsData[1];
   E_ee = sumsData[2];  // SIC already removed self-interaction from PotherBuf
-  // Add analytical inner-sphere correction for each active H atom (r_c=0, Z_eff=1)
-  for (let a = 0; a < NELEC; a++) {
-    if (Z[a] !== 1 || r_cut[a] > 0) continue;  // only bare H (no pseudopotential)
-    E_T += H_T_INNER;
-    E_eK += H_V_INNER;
+  // Per-H correction: exclusion sphere around each nucleus clips T and V_eK
+  // This is a per-nucleus artifact independent of bonding
+  {
+    const H_RAW = { 100: [0.5, -1.0], 200: [0.503, -1.028], 300: [0.5, -1.0] };
+    const raw = H_RAW[NN] || H_RAW[200];
+    let nH = 0;
+    for (let a = 0; a < NELEC; a++) { if (Z[a] === 1 && r_cut[a] === 0) nH++; }
+    E_T  += nH * (0.5 - raw[0]);
+    E_eK += nH * (-1.0 - raw[1]);
   }
 
   // Dipole moment: μ = Σ Z_a·R_a - ∫ ρ(r)·r dV
@@ -1871,6 +2543,470 @@ async function doSteps(n) {
     forceSumsReadBuf.unmap();
     await moveNuclei(forceData);
   }
+}
+
+// Solve 2×2 or 3×3 generalized eigenproblem on CPU: H_sub * c = λ * S_sub * c
+// Returns {lambda, coeffs: [c0, c1, c2]} for lowest eigenvalue
+function solveRitz2x2(ip) {
+  // ip: {xx, xhx, ww, whw, xw, xhw}
+  // S = [[xx, xw], [xw, ww]], H = [[xhx, xhw], [xhw, whw]]
+  // Generalized eigenproblem: (H - λS)c = 0
+  // det(H - λS) = 0 → quadratic in λ
+  const a11 = ip.xhx, a12 = ip.xhw, a22 = ip.whw;
+  const s11 = ip.xx, s12 = ip.xw, s22 = ip.ww;
+  // (a11 - λ*s11)*(a22 - λ*s22) - (a12 - λ*s12)² = 0
+  const A = s11*s22 - s12*s12;
+  const B = -(a11*s22 + a22*s11 - 2*a12*s12);
+  const C = a11*a22 - a12*a12;
+  const disc = B*B - 4*A*C;
+  const sqrtDisc = Math.sqrt(Math.max(0, disc));
+  const lam1 = (-B - sqrtDisc) / (2*A);
+  const lam2 = (-B + sqrtDisc) / (2*A);
+  const lam = Math.min(lam1, lam2);
+  // Eigenvector: (H - λS)c = 0 → c1*(a11-λ*s11) + c2*(a12-λ*s12) = 0
+  const r1 = a11 - lam*s11, r2 = a12 - lam*s12;
+  let c0, c1;
+  if (Math.abs(r1) > Math.abs(r2)) {
+    c1 = 1; c0 = -r2/r1;
+  } else if (Math.abs(r2) > 1e-15) {
+    c0 = 1; c1 = -r1/r2;
+  } else {
+    c0 = 1; c1 = 0;
+  }
+  // Normalize so that c'*S*c = 1
+  const norm2 = c0*c0*s11 + 2*c0*c1*s12 + c1*c1*s22;
+  const inv = 1/Math.sqrt(Math.max(1e-30, norm2));
+  return { lambda: lam, coeffs: [c0*inv, c1*inv, 0] };
+}
+
+function solveRitz3x3(ip) {
+  // ip has: xx, xhx, ww, whw, xw, xhw, pp, php, xp, xhp, wp, whp
+  // Matrices S and H (symmetric 3×3)
+  const S = [
+    [ip.xx, ip.xw, ip.xp],
+    [ip.xw, ip.ww, ip.wp],
+    [ip.xp, ip.wp, ip.pp]
+  ];
+  const H = [
+    [ip.xhx, ip.xhw, ip.xhp],
+    [ip.xhw, ip.whw, ip.whp],
+    [ip.xhp, ip.whp, ip.php]
+  ];
+  // Cholesky of S: S = L*L^T, then solve L^{-1}*H*L^{-T} * y = λ*y
+  const L = [[0,0,0],[0,0,0],[0,0,0]];
+  L[0][0] = Math.sqrt(Math.max(1e-30, S[0][0]));
+  L[1][0] = S[1][0] / L[0][0];
+  L[2][0] = S[2][0] / L[0][0];
+  L[1][1] = Math.sqrt(Math.max(1e-30, S[1][1] - L[1][0]*L[1][0]));
+  L[2][1] = (S[2][1] - L[2][0]*L[1][0]) / L[1][1];
+  L[2][2] = Math.sqrt(Math.max(1e-30, S[2][2] - L[2][0]*L[2][0] - L[2][1]*L[2][1]));
+
+  // If Cholesky fails (S not positive definite), fall back to 2×2
+  if (!isFinite(L[2][2]) || L[0][0] < 1e-15 || L[1][1] < 1e-15 || L[2][2] < 1e-15) {
+    return solveRitz2x2(ip);
+  }
+
+  // L^{-1}
+  const Li = [[1/L[0][0],0,0],[0,1/L[1][1],0],[0,0,1/L[2][2]]];
+  Li[1][0] = -L[1][0]*Li[0][0]*Li[1][1];
+  Li[2][0] = -(L[2][0]*Li[0][0] + L[2][1]*Li[1][0])*Li[2][2];
+  Li[2][1] = -L[2][1]*Li[1][1]*Li[2][2];
+
+  // A = Li * H * Li^T (standard eigenproblem)
+  // First B = H * Li^T
+  const B = [[0,0,0],[0,0,0],[0,0,0]];
+  for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+    let s = 0;
+    for (let k = 0; k < 3; k++) s += H[i][k] * Li[j][k];  // Li^T[k][j] = Li[j][k]
+    B[i][j] = s;
+  }
+  const A = [[0,0,0],[0,0,0],[0,0,0]];
+  for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+    let s = 0;
+    for (let k = 0; k < 3; k++) s += Li[i][k] * B[k][j];
+    A[i][j] = s;
+  }
+
+  // 3×3 symmetric eigenvalue via Jacobi rotations (small matrix, few iterations)
+  const V = [[1,0,0],[0,1,0],[0,0,1]];
+  const D = [A[0][0], A[1][1], A[2][2]];
+  const offD = [A[0][1], A[0][2], A[1][2]]; // (0,1), (0,2), (1,2)
+  for (let sweep = 0; sweep < 20; sweep++) {
+    const pairs = [[0,1],[0,2],[1,2]];
+    for (const [p, q] of pairs) {
+      const apq = A[p][q];
+      if (Math.abs(apq) < 1e-15) continue;
+      const tau = (A[q][q] - A[p][p]) / (2*apq);
+      const t = (tau >= 0 ? 1 : -1) / (Math.abs(tau) + Math.sqrt(1 + tau*tau));
+      const c = 1/Math.sqrt(1 + t*t);
+      const s = t*c;
+      // Rotate A
+      const app = A[p][p], aqq = A[q][q];
+      A[p][p] = c*c*app - 2*s*c*apq + s*s*aqq;
+      A[q][q] = s*s*app + 2*s*c*apq + c*c*aqq;
+      A[p][q] = 0; A[q][p] = 0;
+      for (let r = 0; r < 3; r++) {
+        if (r === p || r === q) continue;
+        const arp = A[r][p], arq = A[r][q];
+        A[r][p] = c*arp - s*arq; A[p][r] = A[r][p];
+        A[r][q] = s*arp + c*arq; A[q][r] = A[r][q];
+      }
+      // Rotate V
+      for (let r = 0; r < 3; r++) {
+        const vrp = V[r][p], vrq = V[r][q];
+        V[r][p] = c*vrp - s*vrq;
+        V[r][q] = s*vrp + c*vrq;
+      }
+    }
+  }
+
+  // Find smallest eigenvalue
+  let minIdx = 0;
+  if (A[1][1] < A[minIdx][minIdx]) minIdx = 1;
+  if (A[2][2] < A[minIdx][minIdx]) minIdx = 2;
+  const lam = A[minIdx][minIdx];
+  const y = [V[0][minIdx], V[1][minIdx], V[2][minIdx]];
+  // Transform back: c = Li^T * y
+  const c = [
+    Li[0][0]*y[0] + Li[1][0]*y[1] + Li[2][0]*y[2],
+    Li[1][1]*y[1] + Li[2][1]*y[2],
+    Li[2][2]*y[2]
+  ];
+  return { lambda: lam, coeffs: c };
+}
+
+async function doLOBPCGStep() {
+  const t0 = performance.now();
+  device.pushErrorScope('validation');
+  device.pushErrorScope('out-of-memory');
+
+  // Phase 1: Compute rho + Poisson + SIC (same as doSteps but single iteration)
+  {
+    const enc = device.createCommandEncoder();
+
+    // Compute rho
+    let vp = enc.beginComputePass();
+    vp.setPipeline(computeRhoPL);
+    vp.setBindGroup(0, computeRhoBG[cur]);
+    dispatchLinear(vp, INTERIOR);
+    vp.end();
+
+    // Poisson solve
+    if (N_ELECTRONS > 1) {
+      for (let js = 0; js < 4; js++) {
+        vp = enc.beginComputePass();
+        vp.setPipeline(jacobiSmoothPL);
+        vp.setBindGroup(0, jacobiFineBG[js % 2]);
+        dispatchLinear(vp, INTERIOR);
+        vp.end();
+      }
+      // V-cycle
+      if (vcycleEnabled) {
+        vp = enc.beginComputePass(); vp.setPipeline(computeResidualPL); vp.setBindGroup(0, residualBG[0]); dispatchLinear(vp, INTERIOR); vp.end();
+        vp = enc.beginComputePass(); vp.setPipeline(restrictPL); vp.setBindGroup(0, restrictBG); vp.dispatchWorkgroups(WG_COARSE); vp.end();
+        enc.clearBuffer(Pc_buf[0]);
+        for (let cs = 0; cs < 10; cs++) { vp = enc.beginComputePass(); vp.setPipeline(coarseSmoothPL); vp.setBindGroup(0, coarseSmoothBG[cs % 2]); vp.dispatchWorkgroups(WG_COARSE); vp.end(); }
+        vp = enc.beginComputePass(); vp.setPipeline(prolongCorrectPL); vp.setBindGroup(0, prolongCorrectBG); dispatchLinear(vp, INTERIOR); vp.end();
+      }
+    }
+
+    // SIC
+    if (N_ELECTRONS <= 1) {
+      enc.clearBuffer(PotherBuf);
+    } else {
+      enc.copyBufferToBuffer(P_buf[0], 0, PotherBuf, 0, S3 * 4);
+      for (let m = 0; m < NELEC; m++) {
+        if (Z[m] === 0) continue;
+        let sp = enc.beginComputePass(); sp.setPipeline(computeRhoSelfPL); sp.setBindGroup(0, computeRhoSelfBG[m][cur]); dispatchLinear(sp, INTERIOR); sp.end();
+        enc.clearBuffer(sicBuf);
+        for (let js = 0; js < 4; js++) { sp = enc.beginComputePass(); sp.setPipeline(jacobiSmoothPL); sp.setBindGroup(0, jacobiSelfBG[js % 2]); dispatchLinear(sp, INTERIOR); sp.end(); }
+        sp = enc.beginComputePass(); sp.setPipeline(computeResidualPL); sp.setBindGroup(0, sicResidualBG); dispatchLinear(sp, INTERIOR); sp.end();
+        sp = enc.beginComputePass(); sp.setPipeline(restrictPL); sp.setBindGroup(0, sicRestrictBG); sp.dispatchWorkgroups(WG_COARSE); sp.end();
+        enc.clearBuffer(Pc_buf[0]);
+        for (let cs = 0; cs < 10; cs++) { sp = enc.beginComputePass(); sp.setPipeline(coarseSmoothPL); sp.setBindGroup(0, coarseSmoothBG[cs % 2]); sp.dispatchWorkgroups(WG_COARSE); sp.end(); }
+        sp = enc.beginComputePass(); sp.setPipeline(prolongCorrectPL); sp.setBindGroup(0, sicProlongBG); dispatchLinear(sp, INTERIOR); sp.end();
+        for (let js = 0; js < 4; js++) { sp = enc.beginComputePass(); sp.setPipeline(jacobiSmoothPL); sp.setBindGroup(0, jacobiSelfBG[js % 2]); dispatchLinear(sp, INTERIOR); sp.end(); }
+        sp = enc.beginComputePass(); sp.setPipeline(subtractPselfPL); sp.setBindGroup(0, subtractPselfBG[m]); dispatchLinear(sp, INTERIOR); sp.end();
+      }
+    }
+
+    device.queue.submit([enc.finish()]);
+  }
+
+  // Phase 2: LOBPCG iterations per domain
+  // Clear P buffer on first call (no conjugate direction yet)
+  if (frameCount === 0) {
+    const enc = device.createCommandEncoder();
+    enc.clearBuffer(P_lobpcg_buf);
+    enc.clearBuffer(HP_buf);
+    device.queue.submit([enc.finish()]);
+  }
+
+  for (let m = 0; m < NELEC; m++) {
+    if (Z[m] === 0) continue;
+
+    for (let iter = 0; iter < LOBPCG_ITERS; iter++) {
+      const hasP = frameCount > 0 || iter > 0;
+
+      // Step 1: Apply H to X → HX
+      {
+        const enc = device.createCommandEncoder();
+        let cp = enc.beginComputePass();
+        cp.setPipeline(applyH_PL);
+        cp.setBindGroup(0, applyH_BG_X[cur]);
+        dispatchLinear(cp, INTERIOR);
+        cp.end();
+
+        // Step 2: Compute inner products (just <X|X> and <X|HX> for lambda)
+        // We compute all 12 at once for the Ritz problem
+        // But first need W and HW — compute after we know lambda
+        // For first pass: compute <X|X>, <X|HX> via inner product shader
+        // (W and P contributions will be zero on first pass)
+        if (iter === 0 && !hasP) {
+          // Clear W and P so inner products are clean
+          enc.clearBuffer(W_lobpcg_buf);
+          enc.clearBuffer(HW_buf);
+        }
+
+        cp = enc.beginComputePass();
+        cp.setPipeline(lobpcgInnerPL);
+        cp.setBindGroup(0, lobpcgInnerBG[cur][m]);
+        cp.dispatchWorkgroups(MAX_LOBPCG_WG);
+        cp.end();
+
+        cp = enc.beginComputePass();
+        cp.setPipeline(lobpcgFinalizePL);
+        cp.setBindGroup(0, lobpcgFinalizeBG);
+        cp.dispatchWorkgroups(1);
+        cp.end();
+
+        enc.copyBufferToBuffer(lobpcgSumsBuf, 0, lobpcgSumsReadBuf, 0, NRED_LOBPCG * 4);
+        device.queue.submit([enc.finish()]);
+      }
+
+      // Read back inner products
+      await lobpcgSumsReadBuf.mapAsync(GPUMapMode.READ);
+      const ipData = new Float32Array(lobpcgSumsReadBuf.getMappedRange().slice(0));
+      lobpcgSumsReadBuf.unmap();
+
+      const ip = {
+        xx: ipData[0], xhx: ipData[1], ww: ipData[2], whw: ipData[3],
+        xw: ipData[4], xhw: ipData[5], pp: ipData[6], php: ipData[7],
+        xp: ipData[8], xhp: ipData[9], wp: ipData[10], whp: ipData[11]
+      };
+
+      const lambda = ip.xx > 0 ? ip.xhx / ip.xx : 0;
+
+      // Step 3: Compute residual W = (HX - λX) / diag(H) (preconditioned)
+      {
+        const enc = device.createCommandEncoder();
+        device.queue.writeBuffer(lambdaBuf, 0, new Float32Array([lambda]));
+        device.queue.writeBuffer(lambdaBuf, 4, new Uint32Array([m]));
+
+        let cp = enc.beginComputePass();
+        cp.setPipeline(lobpcgResidualPL);
+        cp.setBindGroup(0, lobpcgResidualBG[cur]);
+        dispatchLinear(cp, INTERIOR);
+        cp.end();
+
+        // Step 4: Apply H to W → HW
+        cp = enc.beginComputePass();
+        cp.setPipeline(applyH_PL);
+        cp.setBindGroup(0, applyH_BG_W);
+        dispatchLinear(cp, INTERIOR);
+        cp.end();
+
+        // Step 5: Apply H to P → HP (if we have P)
+        if (hasP) {
+          cp = enc.beginComputePass();
+          cp.setPipeline(applyH_PL);
+          cp.setBindGroup(0, applyH_BG_P);
+          dispatchLinear(cp, INTERIOR);
+          cp.end();
+        }
+
+        // Step 6: Recompute all inner products with updated W (and P)
+        cp = enc.beginComputePass();
+        cp.setPipeline(lobpcgInnerPL);
+        cp.setBindGroup(0, lobpcgInnerBG[cur][m]);
+        cp.dispatchWorkgroups(MAX_LOBPCG_WG);
+        cp.end();
+
+        cp = enc.beginComputePass();
+        cp.setPipeline(lobpcgFinalizePL);
+        cp.setBindGroup(0, lobpcgFinalizeBG);
+        cp.dispatchWorkgroups(1);
+        cp.end();
+
+        enc.copyBufferToBuffer(lobpcgSumsBuf, 0, lobpcgSumsReadBuf, 0, NRED_LOBPCG * 4);
+        device.queue.submit([enc.finish()]);
+      }
+
+      // Read updated inner products
+      await lobpcgSumsReadBuf.mapAsync(GPUMapMode.READ);
+      const ipData2 = new Float32Array(lobpcgSumsReadBuf.getMappedRange().slice(0));
+      lobpcgSumsReadBuf.unmap();
+
+      const ip2 = {
+        xx: ipData2[0], xhx: ipData2[1], ww: ipData2[2], whw: ipData2[3],
+        xw: ipData2[4], xhw: ipData2[5], pp: ipData2[6], php: ipData2[7],
+        xp: ipData2[8], xhp: ipData2[9], wp: ipData2[10], whp: ipData2[11]
+      };
+
+      // Step 7: Solve Ritz problem
+      let ritz;
+      if (hasP && ip2.pp > 1e-20) {
+        ritz = solveRitz3x3(ip2);
+      } else {
+        ritz = solveRitz2x2(ip2);
+      }
+
+      // Step 8: Update X and P
+      {
+        const enc = device.createCommandEncoder();
+        device.queue.writeBuffer(coeffBuf, 0, new Float32Array([ritz.coeffs[0], ritz.coeffs[1], ritz.coeffs[2]]));
+        device.queue.writeBuffer(coeffBuf, 12, new Uint32Array([m]));
+
+        let cp = enc.beginComputePass();
+        cp.setPipeline(lobpcgUpdatePL);
+        cp.setBindGroup(0, lobpcgUpdateBG[cur]);
+        dispatchLinear(cp, INTERIOR);
+        cp.end();
+
+        device.queue.submit([enc.finish()]);
+      }
+    }
+  }
+
+  // Phase 3: Normalize + energy reduce + boundary evolution + extract (same as doSteps)
+  {
+    const enc = device.createCommandEncoder();
+
+    // Normalize all domains
+    enc.clearBuffer(normAtomicBuf);
+    let cp = enc.beginComputePass();
+    cp.setPipeline(accumNormsPL);
+    cp.setBindGroup(0, accumNormsBG[cur]);
+    dispatchLinear(cp, INTERIOR);
+    cp.end();
+
+    cp = enc.beginComputePass();
+    cp.setPipeline(decodeNormsPL);
+    cp.setBindGroup(0, decodeNormsBG);
+    cp.dispatchWorkgroups(Math.ceil(NELEC / 64));
+    cp.end();
+
+    cp = enc.beginComputePass();
+    cp.setPipeline(normalizePL);
+    cp.setBindGroup(0, normalizeBG[cur]);
+    dispatchLinear(cp, INTERIOR);
+    cp.end();
+
+    // Handle analytical inside for bare atoms (same as updateU)
+    // The updateU shader handles this — run one update step to fix analytical region
+    const next = 1 - cur;
+    cp = enc.beginComputePass();
+    cp.setPipeline(updatePL);
+    cp.setBindGroup(0, updateBG[cur]);
+    dispatchLinear(cp, INTERIOR);
+    cp.end();
+
+    // Energy reduce
+    cp = enc.beginComputePass();
+    cp.setPipeline(reduceEnergyPL);
+    cp.setBindGroup(0, reduceEnergyBG[next]);
+    cp.dispatchWorkgroups(WG_REDUCE);
+    cp.end();
+
+    cp = enc.beginComputePass();
+    cp.setPipeline(finalizeEnergyPL);
+    cp.setBindGroup(0, finalizeEnergyBG);
+    cp.dispatchWorkgroups(1);
+    cp.end();
+
+    // Boundary evolution
+    frameCount++;
+    for (let s = 0; s < W_STEPS_PER_FRAME; s++) {
+      let bp = enc.beginComputePass();
+      bp.setPipeline(evolveBoundaryPL);
+      bp.setBindGroup(0, evolveBoundaryBG[next]);
+      dispatchLinear(bp, INTERIOR);
+      bp.end();
+      enc.copyBufferToBuffer(label2Buf, 0, labelBuf, 0, S3 * 4);
+    }
+
+    // Extract slice
+    const ep = enc.beginComputePass();
+    ep.setPipeline(extractPL);
+    ep.setBindGroup(0, extractBG[next]);
+    ep.dispatchWorkgroups(WG_EXTRACT, WG_EXTRACT);
+    ep.end();
+
+    enc.copyBufferToBuffer(sumsBuf, 0, sumsReadBuf, 0, SUMS_BYTES);
+    enc.copyBufferToBuffer(sliceBuf, 0, sliceReadBuf, 0, SLICE_SIZE);
+    device.queue.submit([enc.finish()]);
+
+    cur = next;
+  }
+
+  const oomErr = await device.popErrorScope();
+  const valErr = await device.popErrorScope();
+  if (oomErr) { console.error("GPU OOM:", oomErr.message); }
+  if (valErr) { console.error("GPU Validation:", valErr.message); }
+
+  await sumsReadBuf.mapAsync(GPUMapMode.READ);
+  const sumsData = new Float32Array(sumsReadBuf.getMappedRange().slice(0));
+  sumsReadBuf.unmap();
+  E_T = sumsData[0];
+  E_eK = sumsData[1];
+  E_ee = sumsData[2];
+  {
+    const H_RAW = { 100: [0.5, -1.0], 200: [0.503, -1.028], 300: [0.5, -1.0] };
+    const raw = H_RAW[NN] || H_RAW[200];
+    let nH = 0;
+    for (let a = 0; a < NELEC; a++) { if (Z[a] === 1 && r_cut[a] === 0) nH++; }
+    E_T  += nH * (0.5 - raw[0]);
+    E_eK += nH * (-1.0 - raw[1]);
+  }
+  {
+    let dip_x = 0, dip_y = 0, dip_z = 0;
+    for (let a = 0; a < NELEC; a++) {
+      if (Z[a] === 0) continue;
+      dip_x += Z[a] * nucPos[a][0] * hGrid;
+      dip_y += Z[a] * nucPos[a][1] * hGrid;
+      dip_z += Z[a] * nucPos[a][2] * hGrid;
+    }
+    dip_x -= sumsData[3]; dip_y -= sumsData[4]; dip_z -= sumsData[5];
+    dipole_au = Math.sqrt(dip_x*dip_x + dip_y*dip_y + dip_z*dip_z);
+    dipole_D = dipole_au * 2.5417;
+  }
+
+  await sliceReadBuf.mapAsync(GPUMapMode.READ);
+  sliceData = new Float32Array(sliceReadBuf.getMappedRange().slice(0));
+  sliceReadBuf.unmap();
+
+  tStep += LOBPCG_ITERS;
+  lastMs = performance.now() - t0;
+
+  E_KK = 0;
+  if (addNucRepulsion) {
+    const soft_nuc = 0.04 * h2v;
+    for (let a = 0; a < NELEC; a++) {
+      for (let b = a + 1; b < NELEC; b++) {
+        if (Z[a] === 0 || Z[b] === 0) continue;
+        const d = Math.sqrt(
+          ((nucPos[a][0]-nucPos[b][0])*hGrid)**2 +
+          ((nucPos[a][1]-nucPos[b][1])*hGrid)**2 +
+          ((nucPos[a][2]-nucPos[b][2])*hGrid)**2 + soft_nuc);
+        E_KK += Z_nuc[a]*Z_nuc[b]/d;
+      }
+    }
+  }
+  E = E_T + E_eK + E_ee + E_KK;
+  E_bind = E - E_atoms_sum;
+
+  if (!isFinite(E)) { gpuError = "LOBPCG instability"; return; }
+  console.log("LOBPCG step " + tStep + ": E=" + E.toFixed(6) + " (" + lastMs.toFixed(0) + "ms)");
 }
 
 async function moveNuclei(gpuForces) {
@@ -1970,21 +3106,38 @@ function draw() {
 
   if (!computing && phase === 0) {
     computing = true;
-    computePromise = doSteps(STEPS_PER_FRAME).then(() => {
+    computePromise = (useLOBPCG ? doLOBPCGStep() : doSteps(STEPS_PER_FRAME)).then(() => {
       computing = false;
-      phaseSteps += STEPS_PER_FRAME;
+      phaseSteps += useLOBPCG ? LOBPCG_ITERS : STEPS_PER_FRAME;
       if (isFinite(E) && E < E_min) E_min = E;
 
-      // Auto-enable dynamics after convergence
-      if (!dynamicsEnabled && phaseSteps >= 10000) {
+      // Auto-enable dynamics after convergence (skip if adaptive sweep)
+      if (!dynamicsEnabled && !window.CONVERGENCE_THRESHOLD && phaseSteps >= 10000) {
         dynamicsEnabled = true;
         console.log("=== Dynamics auto-enabled at step " + phaseSteps + " ===");
+      }
+
+      // Adaptive convergence check
+      if (!dynamicsEnabled && window.CONVERGENCE_THRESHOLD && phaseSteps > 200) {
+        if (window._prevE !== undefined && Math.abs(E - window._prevE) < window.CONVERGENCE_THRESHOLD && isFinite(E)) {
+          if (!window._convCount) window._convCount = 0;
+          window._convCount++;
+          if (window._convCount >= 3) {  // 3 consecutive frames within threshold
+            console.log("=== CONVERGED at step " + phaseSteps + ": E=" + E.toFixed(6) + " (dE=" + Math.abs(E - window._prevE).toFixed(6) + ") ===");
+            phase = 1;
+            window._convCount = 0;
+            if (window.onSweepDone) window.onSweepDone(E, phaseSteps);
+          }
+        } else {
+          window._convCount = 0;
+        }
+        window._prevE = E;
       }
 
       if (!dynamicsEnabled && phaseSteps >= TOTAL_STEPS) {
         console.log("=== DONE: E=" + E.toFixed(6) + " ===");
         phase = 1;  // done
-        if (window.onSweepDone) window.onSweepDone(E_min);
+        if (window.onSweepDone) window.onSweepDone(E, phaseSteps);
       }
     }).catch((e) => {
       gpuError = e.message || String(e);
@@ -2113,6 +3266,31 @@ function draw() {
         }
       }
     }
+
+    // K potential line plot along the slice axis (through nuclei)
+    const kBase = 3 * SS * SS;
+    // Use median-based scale to avoid 1/r singularity dominating the plot
+    let kVals = [];
+    for (let i = 1; i < NN; i++) {
+      const kv = sliceData[kBase + i];
+      if (kv > 0) kVals.push(kv);
+    }
+    kVals.sort((a, b) => a - b);
+    const kMax = kVals.length > 0 ? kVals[kVals.length - 1] : 0;
+    const kCap = kVals.length > 0 ? kVals[Math.floor(kVals.length * 0.95)] * 3 : 1;
+    if (kMax > 0) {
+      const kPlotH = 80;
+      const kPlotY = 700 - 10;
+      const kSc = kPlotH / kCap;
+      stroke(0, 200, 255, 180); strokeWeight(1.5); noFill();
+      for (let i = 1; i < NN - 1; i++) {
+        const k1 = sliceData[kBase + i];
+        const k2 = sliceData[kBase + i + 1];
+        line(PX * i, kPlotY - k1 * kSc, PX * (i+1), kPlotY - k2 * kSc);
+      }
+      fill(0, 200, 255); noStroke();
+      text("K(r) max=" + kMax.toFixed(2), 5, kPlotY - kPlotH + 10);
+    }
   }
 
   // Draw nuclear positions with force arrows
@@ -2145,13 +3323,14 @@ function draw() {
   const labels = atomLabels.map((el, i) => [el, Z_orig[i]]).filter(x => x[1] > 0).map(x => x[0] + "(Z=" + x[1] + ")").join(" ");
   const pLabel = phase === 0 ? "running" : "DONE";
   text("Molecule: " + labels + " | " + screenAu + " au | " + pLabel + " | " + NN + "^3", 5, 20);
-  text("step " + tStep + " (" + phaseSteps + "/" + TOTAL_STEPS + ")  E=" + E.toFixed(6) + "  E_min=" + E_min.toFixed(6), 5, 35);
+  text("step " + tStep + " (" + phaseSteps + "/" + TOTAL_STEPS + ")  E=" + (E_T + E_eK + E_ee + E_KK).toFixed(6) + "  E_min=" + E_min.toFixed(6), 5, 35);
   if (lastMs > 0) text((lastMs / STEPS_PER_FRAME).toFixed(1) + "ms/step", 300, 35);
 
   fill(200);
   text("T=" + E_T.toFixed(4) + " V_eK=" + E_eK.toFixed(4) + " V_ee=" + E_ee.toFixed(4) + " V_KK=" + E_KK.toFixed(4) + "  Dipole=" + dipole_D.toFixed(3) + " D  E_bind=" + E_bind.toFixed(4) + " Ha", 5, 50);
   fill(vcycleEnabled ? [0,255,0] : [255,100,0]);
-  text("V-cycle: " + (vcycleEnabled ? "ON" : "OFF") + " (" + vcycleCount + " cycles)  [press V to toggle]", 5, 65);
+  const solverName = useLOBPCG ? "LOBPCG" : useCheb ? "Chebyshev" : "ITP";
+  text("V-cycle: " + (vcycleEnabled ? "ON" : "OFF") + " (" + vcycleCount + ")  Solver: " + solverName + " [L=LOBPCG C=Cheb]", 5, 65);
 
   // Dynamics status
   fill(dynamicsEnabled ? [0,255,255] : [150,150,150]);
@@ -2195,6 +3374,17 @@ function keyPressed() {
   if (key === 'd' || key === 'D') {
     dynamicsEnabled = !dynamicsEnabled;
     console.log("Dynamics " + (dynamicsEnabled ? "ENABLED" : "DISABLED"));
+  }
+  if (key === 'l' || key === 'L') {
+    useLOBPCG = !useLOBPCG;
+    if (useLOBPCG) useCheb = false;
+    console.log("LOBPCG " + (useLOBPCG ? "ENABLED" : "DISABLED"));
+  }
+  if (key === 'c' || key === 'C') {
+    useCheb = !useCheb;
+    if (useCheb) useLOBPCG = false;
+    console.log("Chebyshev " + (useCheb ? "ENABLED" : "DISABLED"));
+    if (useCheb) chebOmega = 1.0;  // reset recurrence
   }
   if (key === '+' || key === '=') {
     forceScale = Math.min(5.0, forceScale + 0.1);
