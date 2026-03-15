@@ -873,7 +873,7 @@ fn main(@builtin(global_invocation_id) g: vec3<u32>) {
 
   let sk = p.sliceK;
 
-  // K line data along j=sliceK axis
+  // K line data along j=sliceK axis — true 1/r (uncapped for display)
   if (j == 0u) {
     out[3u * SS * SS + i] = K[i * p.S2 + sk * p.S + sk];
   }
@@ -890,7 +890,8 @@ fn main(@builtin(global_invocation_id) g: vec3<u32>) {
   let lbl = label[idx];
   let Zlbl = atoms[lbl].Z;
   out[i * SS + j] = u * u;
-  out[SS * SS + i * SS + j] = Zlbl;
+  // Pack both Z and domain label: Z + label/1000 (label recoverable as fract * 1000)
+  out[SS * SS + i * SS + j] = f32(lbl) + Zlbl * 1000.0;
 
   // Boundary: only where density exists (skip empty Voronoi regions)
   let dens = u * u;
@@ -1060,9 +1061,10 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let r2 = dx*dx + dy*dy + dz*dz + soft;
     let r = sqrt(r2);
     Kval += Za / max(r, max(atoms[n].rc, ${R_SING}));
-    // Normalized trial: ∫U²dV = Z_eff analytically (U = Z²/√π · exp(-Z·r))
+    // Normalized trial: ∫U²dV = Z_eff analytically (U = Zeff²/√π · exp(-Zeff·r))
     // Domains assigned by highest normalized density
-    let uTrial = Za * Za * ${(1/Math.sqrt(Math.PI)).toFixed(10)} * exp(-Za * r);
+    let Ze = select(Za, ${(window.INIT_ZEFF || 0).toFixed(1)}, ${window.INIT_ZEFF ? 'true' : 'false'});
+    let uTrial = Ze * Ze * ${(1/Math.sqrt(Math.PI)).toFixed(10)} * exp(-Ze * r);
     if (uTrial > bU) { bU = uTrial; bestN = n; }
   }
 
@@ -1449,7 +1451,7 @@ let gpuError = null;
 // Single phase run
 let phase = 0, phaseSteps = 0, frameCount = 0;
 const TOTAL_STEPS = window.USER_STEPS || 20000;
-let addNucRepulsion = true;
+let addNucRepulsion = window.NO_NUC_REPULSION ? false : true;
 let vcycleEnabled = true;
 let vcycleCount = 0;
 
@@ -1589,7 +1591,7 @@ async function startMolPhase() {
   nucPos = molNucPos.map(p => [...p]);
   Z = [...Z_orig]; Ne = [...Ne_orig];
   R_out = 1.0;
-  addNucRepulsion = true;
+  addNucRepulsion = !window.NO_NUC_REPULSION;
   updateParamsBuf();
   await uploadInitialData();
   tStep = 0;
@@ -1609,7 +1611,7 @@ window.restartWithPositions = async function(newPositions) {
     molNucPos[n] = [...newPositions[n]];
   }
   R_out = 1.0;
-  addNucRepulsion = true;
+  addNucRepulsion = !window.NO_NUC_REPULSION;
   updateParamsBuf();
   await uploadInitialData();
   tStep = 0;
@@ -2216,8 +2218,8 @@ async function doSteps(n) {
     dispatchLinear(vp, INTERIOR);
     vp.end();
 
-    // --- Poisson solve (skip for single-electron systems — no V_ee) ---
-    if (N_ELECTRONS > 1) {
+    // --- Poisson solve (skip for single-electron systems or NO_VEE) ---
+    if (N_ELECTRONS > 1 && !window.NO_VEE) {
     // --- Jacobi smooth P every step (2 sweeps: P[0]->P[1]->P[0]) ---
     for (let js = 0; js < 2; js++) {
       vp = enc.beginComputePass();
@@ -2358,8 +2360,8 @@ async function doSteps(n) {
   }
 
   // --- Compute Pother = P_total - P_self (remove self-repulsion) ---
-  if (N_ELECTRONS <= 1) {
-    enc.clearBuffer(PotherBuf);  // single electron: no V_ee
+  if (N_ELECTRONS <= 1 || window.NO_VEE) {
+    enc.clearBuffer(PotherBuf);  // no V_ee
   } else {
   enc.copyBufferToBuffer(P_buf[0], 0, PotherBuf, 0, S3 * 4);
   // Only run SIC periodically to avoid GPU timeout with many atoms
@@ -2711,7 +2713,7 @@ async function doLOBPCGStep() {
     }
 
     // SIC
-    if (N_ELECTRONS <= 1) {
+    if (N_ELECTRONS <= 1 || window.NO_VEE) {
       enc.clearBuffer(PotherBuf);
     } else {
       enc.copyBufferToBuffer(P_buf[0], 0, PotherBuf, 0, S3 * 4);
@@ -3176,7 +3178,13 @@ function draw() {
     for (let p = 0; p < W * H * 4; p += 4) {
       pixels[p] = 0; pixels[p+1] = 0; pixels[p+2] = 0; pixels[p+3] = 255;
     }
-    // Element colors: H=yellow, O=red, N=blue, C=green
+    // Per-domain colors: cycle through distinct hues
+    const domainRGB = [
+      [1,0.3,0.3], [0.3,0.6,1], [0.3,1,0.3], [1,1,0],
+      [1,0.5,0], [0.6,0.3,1], [0,1,1], [1,0.3,0.7],
+      [0.5,1,0.5], [1,0.7,0.3], [0.3,1,0.8], [0.8,0.5,1],
+    ];
+    // Element colors fallback: H=yellow, O=red, N=blue, C=green
     const zRGB = {1:[1,1,0], 2:[1,0,0], 3:[0,0.5,1], 4:[0,1,0]};
     // Auto-scale: use 99th percentile to avoid nuclear spikes dominating
     const densVals = [];
@@ -3197,11 +3205,14 @@ function draw() {
         const py1 = Math.floor(PX * (j + 1) * d);
         const b = i * SS + j;
         const dens = sliceData[b];              // slot 0: total density
-        const Zel = sliceData[SS2 + b];         // slot 1: element Z
+        const packed = sliceData[SS2 + b];       // slot 1: label + Z*1000
+        const domLabel = Math.round(packed % 1000);
+        const Zel = Math.round(packed / 1000);
         const bnd = sliceData[2 * SS2 + b];     // slot 2: boundary
         const norm = Math.min(1.0, dens * invMax);
         const brightness = 255 * Math.sqrt(norm);
-        const rgb = zRGB[Math.round(Zel)] || [0.5, 0.5, 0.5];
+        // Use domain color if multiple atoms share same element, else element color
+        const rgb = domainRGB[domLabel % domainRGB.length] || zRGB[Zel] || [0.5, 0.5, 0.5];
         let ri = Math.min(255, Math.floor(brightness * rgb[0]));
         let gi = Math.min(255, Math.floor(brightness * rgb[1]));
         let bi = Math.min(255, Math.floor(brightness * rgb[2]));
@@ -3246,7 +3257,7 @@ function draw() {
       }
     }
     if (globalMax > 0) {
-      const zRGBplot = {1:[255,255,0], 2:[255,60,60], 3:[60,130,255], 4:[60,255,60]};
+      const domRGBplot = domainRGB.map(c => [Math.round(c[0]*255), Math.round(c[1]*255), Math.round(c[2]*255)]);
       const lineH = 60;
       const sc = lineH / globalMax;
       for (let li = 0; li < nLines; li++) {
@@ -3259,8 +3270,9 @@ function draw() {
           const v1 = sliceData[i * SS + row];
           const v2 = sliceData[(i+1) * SS + row];
           if (v1 < 1e-12 && v2 < 1e-12) continue;
-          const z = Math.round(sliceData[SS2 + i * SS + row]);
-          const c = zRGBplot[z] || [180,180,180];
+          const pk = sliceData[SS2 + i * SS + row];
+          const dl = Math.round(pk % 1000);
+          const c = domRGBplot[dl % domRGBplot.length] || [180,180,180];
           stroke(c[0], c[1], c[2], 220);
           line(PX * i, rowY - v1 * sc, PX * (i+1), rowY - v2 * sc);
         }
@@ -3269,28 +3281,6 @@ function draw() {
 
     // K potential line plot along the slice axis (through nuclei)
     const kBase = 3 * SS * SS;
-    // Use median-based scale to avoid 1/r singularity dominating the plot
-    let kVals = [];
-    for (let i = 1; i < NN; i++) {
-      const kv = sliceData[kBase + i];
-      if (kv > 0) kVals.push(kv);
-    }
-    kVals.sort((a, b) => a - b);
-    const kMax = kVals.length > 0 ? kVals[kVals.length - 1] : 0;
-    const kCap = kVals.length > 0 ? kVals[Math.floor(kVals.length * 0.95)] * 3 : 1;
-    if (kMax > 0) {
-      const kPlotH = 80;
-      const kPlotY = 700 - 10;
-      const kSc = kPlotH / kCap;
-      stroke(0, 200, 255, 180); strokeWeight(1.5); noFill();
-      for (let i = 1; i < NN - 1; i++) {
-        const k1 = sliceData[kBase + i];
-        const k2 = sliceData[kBase + i + 1];
-        line(PX * i, kPlotY - k1 * kSc, PX * (i+1), kPlotY - k2 * kSc);
-      }
-      fill(0, 200, 255); noStroke();
-      text("K(r) max=" + kMax.toFixed(2), 5, kPlotY - kPlotH + 10);
-    }
   }
 
   // Draw nuclear positions with force arrows

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>He-like: 2H at 0.1 au (200³)</title>
+  <style>
+    body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #000; overflow: hidden; flex-direction: column; }
+    canvas { border: none; }
+  </style>
+</head>
+<body>
+  <script>
+    window.onerror = function(msg, url, line) {
+      document.body.style.color = 'red';
+      document.body.innerHTML = '<pre>ERROR: ' + msg + '\nLine: ' + line + '\nFile: ' + url + '</pre>';
+    };
+
+    (function() {
+      var N = 200, scr = 5;
+      var hg = scr / N;
+      var ci = Math.round(0.5 * scr / hg);
+      var cj = Math.round(0.5 * scr / hg);
+
+      // Two H nuclei at same position — He-like, domains split at midplane
+      window.USER_NN = N;
+      window.USER_ATOMS = [
+        { i: ci, j: cj, Z: 1, el: 'H' },
+        { i: ci + 1, j: cj, Z: 1, el: 'H' }
+      ];
+      window.USER_SCREEN = scr;
+      window.USER_STEPS = 20000;
+      window.USER_Z = [1, 1];
+      window.USER_RC = [0, 0];
+      window.CONVERGENCE_THRESHOLD = 0.001;
+      window.NO_NUC_REPULSION = true;
+      // window.NO_VEE = true;  // V_ee enabled
+      window.INIT_ZEFF = 2;
+      // Without V_ee: each electron sees -2/r, E = 2 × (-Z²/2) = -4.0 Ha
+      console.log('He-like: 2H at same pos, r_c=0, NO_VEE, init exp(-2r), grid ' + N + '^3');
+    })();
+
+    var s = document.createElement('script');
+    s.src = 'molecule.js?t=' + Date.now();
+    s.onerror = function() { document.body.innerHTML = '<pre style="color:red">Failed to load molecule.js</pre>'; };
+    s.onload = function() {
+      var p5s = document.createElement('script');
+      p5s.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+      document.body.appendChild(p5s);
+    };
+    document.body.appendChild(s);
+  </script>
+</body>
+</html>
