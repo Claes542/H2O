@@ -107,6 +107,7 @@ document.getElementById('goBtn').onclick = function() {
     zList.push(Z);
   }
 
+  var caIndices = [];  // track Ca atom indices for fold angle
   for (var r = 0; r < nRes; r++) {
     var res = bb[r];
     var Np = res.N, Cap = res.Ca, Cp = res.C;
@@ -135,6 +136,7 @@ document.getElementById('goBtn').onclick = function() {
     }
 
     // Ca
+    caIndices.push(positions.length);
     pushAtom(Cap[0], Cap[1], 0, 'C', 4);
 
     // Ha1, Ha2 — perpendicular to backbone
@@ -259,6 +261,8 @@ document.getElementById('goBtn').onclick = function() {
   log.textContent = 'Solvated hairpin (fold=' + Math.round(t * 100) + '%): ' + nProtein + ' protein + ' + nWater + ' waters = ' + atoms.length + ' atoms';
   log.textContent += '\n' + gridN + '^3 grid, screen=' + scr.toFixed(1) + ' au';
 
+  // Fold angle: Ca of res 1 (strand1), Ca of res 5 (hinge), Ca of res 10 (strand2)
+  window.USER_FOLD_ATOMS = [caIndices[1], caIndices[5], caIndices[10]];
   window.USER_DT_NUC = 0.1;   // small nuclear timestep for dense solvation
   window.USER_DAMPING = 0.95;  // stronger damping to prevent blowup
   window.USER_PROTEIN_COUNT = nProtein;

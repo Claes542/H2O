@@ -3526,16 +3526,33 @@ function draw() {
   const solverName = useLOBPCG ? "LOBPCG" : useCheb ? "Chebyshev" : "ITP";
   text("V-cycle: " + (vcycleEnabled ? "ON" : "OFF") + " (" + vcycleCount + ")  Solver: " + solverName + " [L=LOBPCG C=Cheb]", 5, 65);
 
+  // Fold angle measurement
+  if (window.USER_FOLD_ATOMS) {
+    const fa = window.USER_FOLD_ATOMS;  // [strand1_idx, hinge_idx, strand2_idx]
+    const a = nucPos[fa[0]], b = nucPos[fa[1]], c = nucPos[fa[2]];
+    const ba = [a[0]-b[0], a[1]-b[1], a[2]-b[2]];
+    const bc = [c[0]-b[0], c[1]-b[1], c[2]-b[2]];
+    const dot = ba[0]*bc[0] + ba[1]*bc[1] + ba[2]*bc[2];
+    const magBA = Math.sqrt(ba[0]*ba[0]+ba[1]*ba[1]+ba[2]*ba[2]);
+    const magBC = Math.sqrt(bc[0]*bc[0]+bc[1]*bc[1]+bc[2]*bc[2]);
+    const foldAngle = Math.acos(Math.max(-1, Math.min(1, dot / (magBA * magBC)))) * 180 / Math.PI;
+    const foldPct = (1 - foldAngle / 180) * 100;  // 0%=straight(180°), 100%=folded(0°)
+    fill(255, 255, 0);
+    text("Fold: " + foldAngle.toFixed(1) + "\u00B0  (" + foldPct.toFixed(1) + "%)  [180\u00B0=open, 0\u00B0=folded]", 5, 80);
+    window._foldAngle = foldAngle;
+    window._foldPct = foldPct;
+  }
+
   // Dynamics status
   fill(dynamicsEnabled ? [0,255,255] : [150,150,150]);
-  text("Dynamics: " + (dynamicsEnabled ? "ON" : "OFF") + " (nucStep=" + nucStepCount + ")  Force=" + forceScale.toFixed(1) + "x  [D toggle, +/- force]", 5, 80);
+  text("Dynamics: " + (dynamicsEnabled ? "ON" : "OFF") + " (nucStep=" + nucStepCount + ")  Force=" + forceScale.toFixed(1) + "x  [D toggle, +/- force]", 5, 95);
 
   // r_c values
   fill(200, 180, 255);
   var rcInfo = atomLabels.map((el, i) => [el, Z_orig[i], r_cut[i]]).filter(x => x[1] > 0);
   var rcSeen = {};
   rcInfo.forEach(x => { rcSeen[x[0]] = x[2]; });
-  text("r_c: " + Object.keys(rcSeen).map(k => k + "=" + rcSeen[k]).join(" "), 5, 95);
+  text("r_c: " + Object.keys(rcSeen).map(k => k + "=" + rcSeen[k]).join(" "), 5, 110);
 
   // Diagnostics
   fill(255, 255, 0);
