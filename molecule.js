@@ -3286,6 +3286,42 @@ async function moveNuclei(gpuForces) {
   console.log("Forces (elec+nuc): " + nucForce.filter((_,i) => Z[i]>0).map((f,i) =>
     atomLabels[i]+"=("+f.map(x=>x.toExponential(3)).join(",")+")").join(" "));
 
+  // Log net force on each branch for fold analysis
+  if (window.USER_FOLD_ATOMS) {
+    const fa = window.USER_FOLD_ATOMS; // [strand1_end, hinge, strand2_end]
+    // Strand1 atoms: indices 0..44 (residues 0-5), Strand2: 45..86 (residues 6-11)
+    const hingeAtom = fa[1]; // atom 45
+    let s1fx=0, s1fy=0, s2fx=0, s2fy=0;
+    let s1n=0, s2n=0;
+    for (let a = 0; a < NELEC; a++) {
+      if (Z[a] === 0) continue;
+      if (a < hingeAtom) { s1fx += nucForce[a][0]; s1fy += nucForce[a][1]; s1n++; }
+      else { s2fx += nucForce[a][0]; s2fy += nucForce[a][1]; s2n++; }
+    }
+    // Compute center of mass of each strand
+    let s1cx=0, s1cy=0, s2cx=0, s2cy=0;
+    for (let a = 0; a < NELEC; a++) {
+      if (Z[a] === 0) continue;
+      if (a < hingeAtom) { s1cx += nucPos[a][0]; s1cy += nucPos[a][1]; s1n; }
+      else { s2cx += nucPos[a][0]; s2cy += nucPos[a][1]; s2n; }
+    }
+    s1cx /= s1n; s1cy /= s1n; s2cx /= s2n; s2cy /= s2n;
+    // Vector from strand1 COM to strand2 COM
+    const dx12 = s2cx - s1cx, dy12 = s2cy - s1cy;
+    const d12 = Math.sqrt(dx12*dx12 + dy12*dy12);
+    // Project net forces along inter-strand axis (positive = strands moving apart = unfolding)
+    const s1proj = (s1fx * (-dx12) + s1fy * (-dy12)) / d12; // strand1 force away from strand2
+    const s2proj = (s2fx * dx12 + s2fy * dy12) / d12;       // strand2 force away from strand1
+    const netUnfold = s1proj + s2proj; // positive = unfolding, negative = folding
+    window._foldNetUnfold = netUnfold;
+    window._foldS1proj = s1proj;
+    window._foldS2proj = s2proj;
+    console.log("FOLD FORCES: strand1=(" + s1fx.toExponential(3) + "," + s1fy.toExponential(3) +
+      ") strand2=(" + s2fx.toExponential(3) + "," + s2fy.toExponential(3) +
+      ") | along axis: s1=" + s1proj.toExponential(3) + " s2=" + s2proj.toExponential(3) +
+      " | NET=" + netUnfold.toExponential(3) + (netUnfold > 0 ? " UNFOLDING" : " FOLDING"));
+  }
+
   for (let sub = 0; sub < NUC_SUBSTEPS; sub++) {
     for (let a = 0; a < NELEC; a++) {
       if (Z[a] === 0) continue;
@@ -3590,12 +3626,21 @@ function draw() {
   text("Dynamics: " + (dynamicsEnabled ? "ON" : "OFF") + " (nucStep=" + nucStepCount + ")  Force=" + forceScale.toFixed(1) + "x  [D toggle, +/- force]", 5, 95);
   fill(255, 255, 0); text("yellow=net force", 5, 110);
 
+  // Display net fold forces on screen
+  if (window.USER_FOLD_ATOMS && window._foldNetUnfold !== undefined) {
+    fill(window._foldNetUnfold > 0 ? [255, 100, 100] : [100, 255, 100]);
+    text("Net fold force: " + window._foldNetUnfold.toExponential(2) +
+      (window._foldNetUnfold > 0 ? " UNFOLDING" : " FOLDING") +
+      "  s1=" + window._foldS1proj.toExponential(2) +
+      " s2=" + window._foldS2proj.toExponential(2), 5, 155);
+  }
+
   // r_c values
   fill(200, 180, 255);
   var rcInfo = atomLabels.map((el, i) => [el, Z_orig[i], r_cut[i]]).filter(x => x[1] > 0);
   var rcSeen = {};
   rcInfo.forEach(x => { rcSeen[x[0]] = x[2]; });
-  text("r_c: " + Object.keys(rcSeen).map(k => k + "=" + rcSeen[k]).join(" "), 5, 110);
+  text("r_c: " + Object.keys(rcSeen).map(k => k + "=" + rcSeen[k]).join(" "), 5, 170);
 
   // Diagnostics
   fill(255, 255, 0);
@@ -3616,7 +3661,7 @@ function draw() {
 
   // Slice position
   fill(180, 180, 255);
-  text("Slice k=" + sliceK + "/" + NN + "  [Up/Down to scroll]", 5, 125);
+  text("Slice k=" + sliceK + "/" + NN + "  [Up/Down to scroll]", 5, 185);
 }
 
 function keyPressed() {

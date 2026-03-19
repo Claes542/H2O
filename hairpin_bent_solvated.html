@@ -22,35 +22,65 @@
   var resAdv = 3.4 * A;   // ~6.4 au per residue
   var zig = 0.5 * A;
 
-  // Lay out backbone along a gentle arc
-  // Arc bends ~30° total (150° opening angle) centered at residue 6
-  var bendAngle = 90 * Math.PI / 180; // total bend
-  var arcLen = (nRes - 1) * resAdv;
-  var arcRadius = arcLen / bendAngle; // large radius = gentle curve
+  // Lay out backbone as two straight strands with sharp turn at middle
+  // Fold angle = angle between strands at hinge (20°)
+  var openingAngle = 30 * Math.PI / 180; // angle between the two strands at top
 
-  // Place backbone positions along the arc
+  // Place backbone: U-shape with smooth turn at bottom
   var bb = [];
+  var hingeIdx = 5.5;
+  var turnWidth = 2.5; // smoothness of turn
+
+  // Tangent angles: strand1 goes up-left, U-turn at bottom, strand2 goes up-right
+  // Strand1 direction: PI/2 + opening/2 (up and slightly left)
+  // Strand2 direction: PI/2 - opening/2 (up and slightly right)
+  // Total sweep through the turn: PI - openingAngle
+  var angle1 = Math.PI / 2 + openingAngle / 2; // strand1 tangent (up-left)
+  var angle2 = Math.PI / 2 - openingAngle / 2; // strand2 tangent (up-right)
+  // But strand1 residues go from tip DOWN to turn, so tangent is reversed
+  var startAngle = -(Math.PI - angle1); // going downward along strand1
+  var endAngle = angle2;                // going upward along strand2
+
+  var angles = [];
   for (var r = 0; r < nRes; r++) {
-    // Angle along arc, centered at 0
-    var t = (r / (nRes - 1) - 0.5) * bendAngle;
-    // Position on arc (arc center at y = -arcRadius)
-    var cx = arcRadius * Math.sin(t);
-    var cy = arcRadius * (1 - Math.cos(t));
-    // Local tangent direction
-    var tx = Math.cos(t);
-    var ty = Math.sin(t);
-    // Normal (perpendicular, pointing outward)
-    var nx = -ty;
-    var ny = tx;
+    var blend = 0.5 * (1 + Math.tanh((r - hingeIdx) / turnWidth));
+    angles.push(startAngle * (1 - blend) + endAngle * blend);
+  }
+
+  // Integrate positions along the chain
+  var positions = [{x: 0, y: 0}];
+  for (var r = 1; r < nRes; r++) {
+    var avgAngle = (angles[r - 1] + angles[r]) / 2;
+    positions.push({
+      x: positions[r - 1].x + resAdv * Math.cos(avgAngle),
+      y: positions[r - 1].y + resAdv * Math.sin(avgAngle)
+    });
+  }
+
+  // Center the chain
+  var sumX = 0, sumY = 0;
+  for (var r = 0; r < nRes; r++) { sumX += positions[r].x; sumY += positions[r].y; }
+  var cenX = sumX / nRes, cenY = sumY / nRes;
+
+  for (var r = 0; r < nRes; r++) {
+    var cx = positions[r].x - cenX;
+    var cy = positions[r].y - cenY;
+    var tlx = Math.cos(angles[r]);
+    var tly = Math.sin(angles[r]);
+    // Normal (perpendicular)
+    var nx = -tly;
+    var ny = tlx;
     var zigSign = (r % 2 === 0) ? 1 : -1;
 
+    // Shift hinge down so full hairpin fits on screen
+    var yShift = 0;
     bb.push({
-      N:  [cx - 0.35 * resAdv * tx + zigSign * zig * 0.6 * nx,
-           cy - 0.35 * resAdv * ty + zigSign * zig * 0.6 * ny],
+      N:  [cx - 0.35 * resAdv * tlx + zigSign * zig * 0.6 * nx,
+           cy - 0.35 * resAdv * tly + zigSign * zig * 0.6 * ny + yShift],
       Ca: [cx,
-           cy - zigSign * zig * 0.4 * ny],  // slight offset
-      C:  [cx + 0.35 * resAdv * tx + zigSign * zig * 0.3 * nx,
-           cy + 0.35 * resAdv * ty + zigSign * zig * 0.3 * ny]
+           cy - zigSign * zig * 0.4 * ny + yShift],
+      C:  [cx + 0.35 * resAdv * tlx + zigSign * zig * 0.3 * nx,
+           cy + 0.35 * resAdv * tly + zigSign * zig * 0.3 * ny + yShift]
     });
   }
 
@@ -146,8 +176,9 @@
   window.USER_SCREEN = scr;
   window.USER_STEPS = 1000000;
   window.USER_DYNAMICS = true;      // start with nuclear motion on
-  window.USER_FORCE_SCALE = 50.0;  // 50x force for dynamics
-  window.USER_ARROW_SCALE = 5;     // small arrow display
+  window.USER_FORCE_SCALE = 5.0;  // 5x force for dynamics
+  window.USER_DAMPING = 0.90;  // stronger damping to prevent overshoot
+  window.USER_ARROW_SCALE = 2.0;   // arrow display
   window.USER_PROTEIN_COUNT = nProtein;  // for coloring force arrows
   window.USER_Z = atoms.map(function(a) { return a.Z; });
   window.USER_RC = atoms.map(function(a) {
