@@ -61,7 +61,8 @@ void initTrial(float* U, int* label, float* K_buf, float* bestU,
 _update_kernel = cp.RawKernel(r'''
 extern "C" __global__
 void updateU(const float* U, float* Unew, const float* K, const float* P,
-             const int* label, int S, float half_dv, float dv) {
+             const int* label, int S, float half_dv, float dtv) {
+    // half_dv = 0.5*dv, dtv = dv*h^2
     int id = blockIdx.x * blockDim.x + threadIdx.x;
     int S3 = S * S * S;
     if (id >= S3) return;
@@ -75,7 +76,7 @@ void updateU(const float* U, float* Unew, const float* K, const float* P,
     }
     int myLabel = label[id];
     float u = U[id];
-    // Laplacian with Neumann BC at domain boundaries
+    // Laplacian with Neumann BC at domain boundaries (not divided by h^2)
     float uip = (label[id + S*S] == myLabel) ? U[id + S*S] : u;
     float uim = (label[id - S*S] == myLabel) ? U[id - S*S] : u;
     float ujp = (label[id + S] == myLabel) ? U[id + S] : u;
@@ -83,9 +84,67 @@ void updateU(const float* U, float* Unew, const float* K, const float* P,
     float ukp = (label[id + 1] == myLabel) ? U[id + 1] : u;
     float ukm = (label[id - 1] == myLabel) ? U[id - 1] : u;
     float lap = uip + uim + ujp + ujm + ukp + ukm - 6.0f * u;
-    Unew[id] = u + half_dv * lap + dv * (K[id] - 2.0f * P[id]) * u;
+    // ITP: U_new = U + 0.5*dv*lap + dv*h^2*(K - 2P)*U
+    Unew[id] = u + half_dv * lap + dtv * (K[id] - 2.0f * P[id]) * u;
 }
 ''', 'updateU')
+
+_boundary_evolve_kernel = cp.RawKernel(r'''
+extern "C" __global__
+void boundaryEvolve(const float* U, int* label, const float* atoms,
+                    int nAtoms, int S, float h, float h2, float h3,
+                    float boundarySpeed) {
+    // For each grid point, compute density-weighted score for each domain
+    // and flip label if another domain has higher score
+    int id = blockIdx.x * blockDim.x + threadIdx.x;
+    int S3 = S * S * S;
+    if (id >= S3) return;
+    int NN = S - 1;
+    int i = id / (S * S);
+    int j = (id / S) % S;
+    int k = id % S;
+    if (i < 1 || i >= NN || j < 1 || j >= NN || k < 1 || k >= NN) return;
+
+    float xi = i * h, yj = j * h, zk = k * h;
+    float u2 = U[id] * U[id];
+    int curLabel = label[id];
+
+    // Count neighbors in each domain
+    int myCount = 0, otherBest = -1;
+    int otherCount = 0;
+    int neighbors[6] = {id+S*S, id-S*S, id+S, id-S, id+1, id-1};
+    for (int n = 0; n < 6; n++) {
+        if (label[neighbors[n]] == curLabel) myCount++;
+        else {
+            otherCount++;
+            otherBest = label[neighbors[n]];
+        }
+    }
+
+    // Only consider flipping at domain boundaries (has at least 1 other-domain neighbor)
+    if (otherCount == 0) return;
+
+    // Compare density-weighted nuclear attraction: Z/r * u^2
+    float curScore = 0.0f, bestScore = 0.0f;
+    int bestN = curLabel;
+    for (int n = 0; n < nAtoms; n++) {
+        float Za = atoms[n * 5 + 3];
+        if (Za <= 0.0f) continue;
+        float dx = xi - atoms[n * 5 + 0] * h;
+        float dy = yj - atoms[n * 5 + 1] * h;
+        float dz = zk - atoms[n * 5 + 2] * h;
+        float r2 = dx*dx + dy*dy + dz*dz + h2;
+        float score = Za / sqrtf(r2);
+        if (n == curLabel) curScore = score;
+        if (score > bestScore) { bestScore = score; bestN = n; }
+    }
+
+    // Flip if another nucleus has stronger attraction and enough neighbors agree
+    if (bestN != curLabel && bestScore > curScore * 1.1f && otherCount >= 2) {
+        label[id] = bestN;
+    }
+}
+''', 'boundaryEvolve')
 
 _compute_rho_kernel = cp.RawKernel(r'''
 extern "C" __global__
@@ -278,6 +337,7 @@ class RealQMSolver:
         else:
             self.dv = 0.12
         self.half_dv = 0.5 * self.dv
+        self.dtv = self.dv * self.h2  # dt = dv * h^2 for potential term
 
         # Dynamics params
         self.force_scale = config.get('forceScale', 1.0)
@@ -321,6 +381,7 @@ class RealQMSolver:
         self._atom_ref = {'H': -0.5, 'O': -2.04, 'C': -5.43, 'N': -3.64}
         self.E_atoms_sum = sum(self._atom_ref.get(a.get('el', ''), 0) for a in atoms if a['Z'] > 0)
 
+        self._Z_gpu = cp.asarray(self.Z_eff)
         self._initialized = False
 
     def initialize(self):
@@ -337,25 +398,21 @@ class RealQMSolver:
         self._normalize()
 
         # Bootstrap Poisson solve so P isn't zero on first ITP step
-        for _ in range(50):
+        for _ in range(100):
             self._poisson_step()
 
         self._initialized = True
 
     def _normalize(self):
         """Normalize U per domain so ∫U²dV = Z_eff."""
-        Z_gpu = cp.asarray(self.Z_eff)
-        norms = cp.zeros(self.nAtoms, dtype=cp.float32)
-        # Compute per-domain norms on GPU
+        # Compute per-domain norms entirely on GPU using scatter_add
         rho = self.U * self.U * self.h3
-        label_cpu = self.label  # stays on GPU
-        for n in range(self.nAtoms):
-            if self.Z_eff[n] > 0:
-                mask = (label_cpu == n)
-                norms[n] = cp.sum(rho[mask])
+        norms = cp.zeros(self.nAtoms, dtype=cp.float32)
+        import cupyx
+        cupyx.scatter_add(norms, self.label.clip(0, self.nAtoms - 1), rho)
         _normalize_kernel(
             (self.grid,), (self.block,),
-            (self.U, self.label, norms, Z_gpu,
+            (self.U, self.label, norms, self._Z_gpu,
              np.int32(self.S3), np.int32(self.nAtoms), np.float32(self.h3))
         )
 
@@ -363,7 +420,7 @@ class RealQMSolver:
         """Jacobi iteration for Poisson equation: ∇²P = -2π·ρ."""
         _compute_rho_kernel((self.grid,), (self.block,), (self.rho, self.U, np.int32(self.S3)))
         coeff = 2.0 * np.pi
-        for _ in range(4):
+        for _ in range(2):
             _jacobi_kernel(
                 (self.grid,), (self.block,),
                 (self.P, self.P2, self.rho,
@@ -487,13 +544,23 @@ class RealQMSolver:
             _update_kernel(
                 (self.grid,), (self.block,),
                 (self.U, self.U2, self.K_buf, self.P, self.label,
-                 np.int32(self.S), np.float32(self.half_dv), np.float32(self.dv))
+                 np.int32(self.S), np.float32(self.half_dv), np.float32(self.dtv))
             )
             self.U, self.U2 = self.U2, self.U
 
             # Normalize
             if step % norm_interval == 0:
                 self._normalize()
+
+            # Boundary evolution — reassign domain labels (less frequent)
+            if step % (norm_interval * 5) == 0:
+                _boundary_evolve_kernel(
+                    (self.grid,), (self.block,),
+                    (self.U, self.label, self.atom_data_gpu,
+                     np.int32(self.nAtoms), np.int32(self.S),
+                     np.float32(self.h), np.float32(self.h2), np.float32(self.h3),
+                     np.float32(0.5))
+                )
 
             # Forces and dynamics
             if self.dynamics_enabled and step % force_interval == 0:

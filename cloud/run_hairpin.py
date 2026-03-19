@@ -152,14 +152,14 @@ def build_hairpin_config():
         'screen': scr,
         'atoms': atoms,
         'steps': 10000,
-        'report_interval': 500,
-        'dynamics': True,
+        'report_interval': 1000,
+        'dynamics': False,     # converge electron density first
         'forceScale': 50.0,
         'fold_atoms': [0, 45, 83],  # N-term, mid Ca, C-term
     }
 
 
-@app.function(gpu="A100", image=image, timeout=600)
+@app.function(gpu="A100", image=image, timeout=1800)
 def run_hairpin(config: dict) -> dict:
     import sys
     sys.path.insert(0, '/root')
