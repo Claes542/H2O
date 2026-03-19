@@ -42,28 +42,50 @@ def build_hairpin_config():
     resAdv = 3.4 * A
     zig = 0.5 * A
 
-    # Arc geometry
-    bendAngle = 90 * math.pi / 180
-    arcLen = (nRes - 1) * resAdv
-    arcRadius = arcLen / bendAngle
+    # U-shape geometry with tanh-blended turn (matches local HTML)
+    openingAngle = 30 * math.pi / 180  # angle between strands at top
+    hingeIdx = 5.5
+    turnWidth = 2.5
+
+    angle1 = math.pi / 2 + openingAngle / 2
+    angle2 = math.pi / 2 - openingAngle / 2
+    startAngle = -(math.pi - angle1)
+    endAngle = angle2
+
+    angles = []
+    for r in range(nRes):
+        blend = 0.5 * (1 + math.tanh((r - hingeIdx) / turnWidth))
+        angles.append(startAngle * (1 - blend) + endAngle * blend)
+
+    positions = [{'x': 0, 'y': 0}]
+    for r in range(1, nRes):
+        avgAngle = (angles[r - 1] + angles[r]) / 2
+        positions.append({
+            'x': positions[r-1]['x'] + resAdv * math.cos(avgAngle),
+            'y': positions[r-1]['y'] + resAdv * math.sin(avgAngle),
+        })
+
+    sumX = sum(p['x'] for p in positions)
+    sumY = sum(p['y'] for p in positions)
+    cenX, cenY = sumX / nRes, sumY / nRes
 
     bb = []
     for r in range(nRes):
-        t = (r / (nRes - 1) - 0.5) * bendAngle
-        cx = arcRadius * math.sin(t)
-        cy = arcRadius * (1 - math.cos(t))
-        tx = math.cos(t)
-        ty = math.sin(t)
-        nx = -ty
-        ny = tx
+        cx = positions[r]['x'] - cenX
+        cy = positions[r]['y'] - cenY
+        tlx = math.cos(angles[r])
+        tly = math.sin(angles[r])
+        nx = -tly
+        ny = tlx
         zigSign = 1 if (r % 2 == 0) else -1
+        yShift = 15
 
         bb.append({
-            'N': [cx - 0.35 * resAdv * tx + zigSign * zig * 0.6 * nx,
-                  cy - 0.35 * resAdv * ty + zigSign * zig * 0.6 * ny],
-            'Ca': [cx, cy - zigSign * zig * 0.4 * ny],
-            'C': [cx + 0.35 * resAdv * tx + zigSign * zig * 0.3 * nx,
-                  cy + 0.35 * resAdv * ty + zigSign * zig * 0.3 * ny],
+            'N': [cx - 0.35 * resAdv * tlx + zigSign * zig * 0.6 * nx,
+                  cy - 0.35 * resAdv * tly + zigSign * zig * 0.6 * ny + yShift],
+            'Ca': [cx, cy - zigSign * zig * 0.4 * ny + yShift],
+            'C': [cx + 0.35 * resAdv * tlx + zigSign * zig * 0.3 * nx,
+                  cy + 0.35 * resAdv * tly + zigSign * zig * 0.3 * ny + yShift],
         })
 
     bNH = 1.01 * A
@@ -153,8 +175,8 @@ def build_hairpin_config():
         'atoms': atoms,
         'steps': 10000,
         'report_interval': 1000,
-        'dynamics': False,     # converge electron density first
-        'forceScale': 50.0,
+        'dynamics': True,
+        'forceScale': 500.0,
         'fold_atoms': [0, 45, 83],  # N-term, mid Ca, C-term
     }
 

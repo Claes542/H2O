@@ -146,6 +146,38 @@ void boundaryEvolve(const float* U, int* label, const float* atoms,
 }
 ''', 'boundaryEvolve')
 
+_recompute_K_kernel = cp.RawKernel(r'''
+extern "C" __global__
+void recomputeK(float* K, const float* atoms, int nAtoms, int S, float h, float h2) {
+    int id = blockIdx.x * blockDim.x + threadIdx.x;
+    int S3 = S * S * S;
+    if (id >= S3) return;
+    int NN = S - 1;
+    int i = id / (S * S);
+    int j = (id / S) % S;
+    int k = id % S;
+    if (i < 1 || i >= NN || j < 1 || j >= NN || k < 1 || k >= NN) {
+        K[id] = 0.0f; return;
+    }
+    float xi = i * h, yj = j * h, zk = k * h;
+    float Kval = 0.0f;
+    for (int n = 0; n < nAtoms; n++) {
+        float Za = atoms[n * 5 + 3];
+        if (Za <= 0.0f) continue;
+        float rc = atoms[n * 5 + 4];
+        float dx = xi - atoms[n * 5 + 0] * h;
+        float dy = yj - atoms[n * 5 + 1] * h;
+        float dz = zk - atoms[n * 5 + 2] * h;
+        float r2 = dx*dx + dy*dy + dz*dz;
+        float r;
+        if (rc > 0.0f) r = fmaxf(sqrtf(r2 + 0.04f * h2), rc);
+        else r = sqrtf(r2 + h2);
+        Kval += Za / r;
+    }
+    K[id] = Kval;
+}
+''', 'recomputeK')
+
 _compute_rho_kernel = cp.RawKernel(r'''
 extern "C" __global__
 void computeRho(float* rho, const float* U, int S3) {
@@ -247,59 +279,40 @@ void computeEnergy(const float* U, const float* K, const float* P,
 }
 ''', 'computeEnergy')
 
-_force_kernel = cp.RawKernel(r'''
+_force_kernel_batched = cp.RawKernel(r'''
 extern "C" __global__
-void computeForce(const float* U, float* forces,
-                  float atomI, float atomJ, float atomK, float Za,
-                  int S, float h, float h2, float h3) {
-    // forces[0]=Fx, forces[1]=Fy, forces[2]=Fz
-    extern __shared__ float sdata[];
-    int tid = threadIdx.x;
-    int id = blockIdx.x * blockDim.x + tid;
+void computeForceAll(const float* U, float* forces, const float* atoms,
+                     int nAtoms, int S, float h, float h2, float h3) {
+    // forces[n*3+0..2] = Fx,Fy,Fz for atom n
+    // Each thread processes one grid point and contributes to ALL atoms
+    int id = blockIdx.x * blockDim.x + threadIdx.x;
     int S3 = S * S * S;
+    if (id >= S3) return;
     int NN = S - 1;
+    int i = id / (S * S);
+    int j = (id / S) % S;
+    int k = id % S;
+    if (i < 1 || i >= NN || j < 1 || j >= NN || k < 1 || k >= NN) return;
 
-    float lFx = 0.0f, lFy = 0.0f, lFz = 0.0f;
+    float rho = U[id] * U[id];
+    if (rho < 1e-20f) return;
+    float xi = i * h, yj = j * h, zk = k * h;
 
-    if (id < S3) {
-        int i = id / (S * S);
-        int j = (id / S) % S;
-        int k = id % S;
-        if (i >= 1 && i < NN && j >= 1 && j < NN && k >= 1 && k < NN) {
-            float rho = U[id] * U[id];
-            float dx = i * h - atomI * h;
-            float dy = j * h - atomJ * h;
-            float dz = k * h - atomK * h;
-            float r2 = dx*dx + dy*dy + dz*dz + h2;
-            float inv_r3 = 1.0f / (r2 * sqrtf(r2));
-            float w = Za * rho * inv_r3 * h3;
-            lFx = w * dx;
-            lFy = w * dy;
-            lFz = w * dz;
-        }
-    }
-
-    sdata[tid] = lFx;
-    sdata[tid + blockDim.x] = lFy;
-    sdata[tid + 2*blockDim.x] = lFz;
-    __syncthreads();
-
-    for (int s = blockDim.x/2; s > 0; s >>= 1) {
-        if (tid < s) {
-            sdata[tid] += sdata[tid + s];
-            sdata[tid + blockDim.x] += sdata[tid + blockDim.x + s];
-            sdata[tid + 2*blockDim.x] += sdata[tid + 2*blockDim.x + s];
-        }
-        __syncthreads();
-    }
-
-    if (tid == 0) {
-        atomicAdd(&forces[0], sdata[0]);
-        atomicAdd(&forces[1], sdata[blockDim.x]);
-        atomicAdd(&forces[2], sdata[2*blockDim.x]);
+    for (int n = 0; n < nAtoms; n++) {
+        float Za = atoms[n * 5 + 3];
+        if (Za <= 0.0f) continue;
+        float dx = xi - atoms[n * 5 + 0] * h;
+        float dy = yj - atoms[n * 5 + 1] * h;
+        float dz = zk - atoms[n * 5 + 2] * h;
+        float r2 = dx*dx + dy*dy + dz*dz + h2;
+        float inv_r3 = 1.0f / (r2 * sqrtf(r2));
+        float w = Za * rho * inv_r3 * h3;
+        atomicAdd(&forces[n * 3 + 0], w * dx);
+        atomicAdd(&forces[n * 3 + 1], w * dy);
+        atomicAdd(&forces[n * 3 + 2], w * dz);
     }
 }
-''', 'computeForce')
+''', 'computeForceAll')
 
 
 class RealQMSolver:
@@ -461,27 +474,35 @@ class RealQMSolver:
         self.E = self.E_T + self.E_eK + self.E_ee + self.E_KK
 
     def _compute_forces(self):
-        """Hellmann-Feynman forces on all nuclei."""
-        smem = 3 * self.block * 4
+        """Hellmann-Feynman forces on all nuclei — batched with limited atoms per pass."""
+        # Use batched kernel but limit atomicAdd contention with smaller batches
+        BATCH = 32
+        self.nuc_force = np.zeros((self.nAtoms, 3), dtype=np.float32)
+        for b0 in range(0, self.nAtoms, BATCH):
+            b1 = min(b0 + BATCH, self.nAtoms)
+            batchSize = b1 - b0
+            # Build sub-atom array for this batch
+            batch_data = np.zeros(batchSize * 5, dtype=np.float32)
+            for n in range(batchSize):
+                idx = b0 + n
+                batch_data[n*5:n*5+5] = [self.atom_pos[idx][0], self.atom_pos[idx][1],
+                                          self.atom_pos[idx][2], self.Z_eff[idx], self.atom_rc[idx]]
+            batch_gpu = cp.asarray(batch_data)
+            forces_gpu = cp.zeros(batchSize * 3, dtype=cp.float32)
+            _force_kernel_batched(
+                (self.grid,), (self.block,),
+                (self.U, forces_gpu, batch_gpu,
+                 np.int32(batchSize), np.int32(self.S),
+                 np.float32(self.h), np.float32(self.h2), np.float32(self.h3))
+            )
+            cp.cuda.Stream.null.synchronize()
+            f = forces_gpu.get().reshape(batchSize, 3)
+            self.nuc_force[b0:b1] = f
+
+        # Add nuclear-nuclear forces (CPU, small)
         for n in range(self.nAtoms):
             if self.Z_eff[n] <= 0:
                 continue
-            forces_gpu = cp.zeros(3, dtype=cp.float32)
-            _force_kernel(
-                (self.grid,), (self.block,),
-                (self.U, forces_gpu,
-                 np.float32(self.atom_pos[n][0]),
-                 np.float32(self.atom_pos[n][1]),
-                 np.float32(self.atom_pos[n][2]),
-                 np.float32(self.Z_eff[n]),
-                 np.int32(self.S), np.float32(self.h),
-                 np.float32(self.h2), np.float32(self.h3)),
-                shared_mem=smem
-            )
-            f = forces_gpu.get()
-            self.nuc_force[n] = f
-
-            # Add nuclear-nuclear forces
             for m in range(self.nAtoms):
                 if m == n or self.Z_eff[m] <= 0:
                     continue
@@ -510,24 +531,20 @@ class RealQMSolver:
                 self.atom_pos[n][d] += self.nuc_vel[n][d] * self.dt_nuc / self.h
                 self.atom_pos[n][d] = np.clip(self.atom_pos[n][d], 5, self.NN - 5)
 
-        # Rebuild K buffer after nuclear motion
+        # Rebuild K buffer and atom data after nuclear motion
         atom_data = np.zeros(self.nAtoms * 5, dtype=np.float32)
         for n in range(self.nAtoms):
             atom_data[n*5:n*5+5] = [self.atom_pos[n][0], self.atom_pos[n][1],
                                      self.atom_pos[n][2], self.Z_eff[n], self.atom_rc[n]]
         self.atom_data_gpu = cp.asarray(atom_data)
-        # Recompute K
-        self.K_buf[:] = 0
-        _init_trial_kernel(
+        _recompute_K_kernel(
             (self.grid,), (self.block,),
-            (self.bestU, self.label, self.K_buf, self.bestU,
-             self.atom_data_gpu, np.int32(self.nAtoms),
+            (self.K_buf, self.atom_data_gpu, np.int32(self.nAtoms),
              np.int32(self.S), np.float32(self.h), np.float32(self.h2))
         )
-        # Don't overwrite U — just update K and labels
 
     def run(self, total_steps, norm_interval=20, poisson_interval=2,
-            force_interval=10, report_interval=500):
+            force_interval=200, report_interval=500):
         """Run the solver for total_steps. Returns list of snapshots."""
         if not self._initialized:
             self.initialize()
