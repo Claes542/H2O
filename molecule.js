@@ -31,9 +31,21 @@ const _atoms = window.USER_ATOMS || [
 ];
 while (_atoms.length < MAX_ATOMS) _atoms.push({ i: N2, j: N2, Z: 0, el: '' });
 const atomLabels = _atoms.map(a => a.el);
-// True nuclear charges (Z) for V_KK — distinct from Z_eff used for electron energies
-const _elZ = { H:1, He:2, Li:3, Be:4, B:5, C:6, N:7, O:8, F:9, Ne:10, Na:11, S:16 };
-const Z_nuc = _atoms.map(a => _elZ[a.el] || a.Z);
+// Build unique nucleus list for V_KK (electrons on same nucleus share position)
+// Each nucleus gets Z_eff = sum of Z over its electrons
+const _nucMap = new Map(); // key "i,j,k" -> { idx, Z_eff, elecIndices }
+for (let e = 0; e < _atoms.length; e++) {
+  if (_atoms[e].Z === 0) continue;
+  const a = _atoms[e];
+  const k = a.k !== undefined ? a.k : N2;
+  const key = a.i + "," + a.j + "," + k;
+  if (_nucMap.has(key)) { _nucMap.get(key).Z_eff += a.Z; _nucMap.get(key).elecIndices.push(e); }
+  else _nucMap.set(key, { idx: _nucMap.size, Z_eff: a.Z, elecIndices: [e] });
+}
+const uniqueNuclei = [..._nucMap.values()]; // [{idx, Z_eff, elecIndices}, ...]
+// Map electron index -> unique nucleus index
+const elecToNuc = new Array(_atoms.length).fill(-1);
+for (const nuc of uniqueNuclei) for (const e of nuc.elecIndices) elecToNuc[e] = nuc.idx;
 let nucPos = _atoms.map(a => [a.i, a.j, a.k !== undefined ? a.k : N2]);
 const molNucPos = nucPos.map(p => [...p]);
 
@@ -70,7 +82,7 @@ const SIC_INTERVAL = NELEC <= 15 ? 1 : NELEC <= 30 ? 5 : 999999;  // SIC in dyna
 const SIC_JACOBI = NELEC <= 15 ? 50 : 10;
 
 // === Nuclear dynamics state ===
-const N_MOVE = NELEC <= 5 ? 50 : 200;  // electronic steps between nuclear moves
+const N_MOVE = 10;  // electronic steps between nuclear moves
 const DT_NUC = window.USER_DT_NUC || (NELEC <= 5 ? 2.0 : NELEC > 200 ? 0.2 : 0.8);  // au
 const NUC_SUBSTEPS = NELEC <= 5 ? 2 : 1;
 const DAMPING = window.USER_DAMPING || 0.98;       // light damping
@@ -79,6 +91,9 @@ let forceScale = 1.0;       // adjustable via slider/keys
 let boundarySpeed = 0.5;    // dt_w for free boundary evolution
 let nucVel = Array.from({length: MAX_ATOMS}, () => [0, 0, 0]);
 let nucForce = Array.from({length: MAX_ATOMS}, () => [0, 0, 0]);
+let nucForceElec = Array.from({length: MAX_ATOMS}, () => [0, 0, 0]);
+let nucForceNuc = Array.from({length: MAX_ATOMS}, () => [0, 0, 0]);
+let nucForceTotal = Array.from({length: MAX_ATOMS}, () => [0, 0, 0]);
 let nucStepCount = 0, dynamicsEnabled = false;
 function nucMass(z) { return ({1:1, 2:16, 3:14, 4:12}[z] || 1) * 1836; }
 
@@ -932,13 +947,13 @@ fn main(@builtin(global_invocation_id) g: vec3<u32>) {
 
 // === Nuclear dynamics shaders ===
 
-// Gradient of electron potential P at nuclear positions — reads directly from P_buf[0]
-const FORCE_RADIUS = Math.max(3, Math.round(1.0 / hGrid));  // ~1 au sphere in grid cells
+// Direct Coulomb force on nuclei from electron density:
+// F_A = Z_A * ∫ ρ(r) * (r - R_A) / |r - R_A|³ dV  (Hellmann-Feynman)
 const gradPtotal_WGSL = `
 ${paramStructWGSL}
 ${atomStructWGSL}
 @group(0) @binding(0) var<uniform> p: P;
-@group(0) @binding(1) var<storage, read> Pt: array<f32>;
+@group(0) @binding(1) var<storage, read> U: array<f32>;
 @group(0) @binding(2) var<storage, read_write> forceSums: array<f32>;
 @group(0) @binding(3) var<storage, read> atoms: array<Atom>;
 
@@ -955,52 +970,42 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     return;
   }
 
-  let ci = i32(atoms[atom].posI);
-  let cj = i32(atoms[atom].posJ);
-  let ck = i32(atoms[atom].posK);
-  let R = ${FORCE_RADIUS}i;
-  let R2f = f32(R * R);
-  let inv2h = 0.5 * p.inv_h;
-  let S = i32(p.S);
+  let Ri = f32(atoms[atom].posI) * p.h;
+  let Rj = f32(atoms[atom].posJ) * p.h;
+  let Rk = f32(atoms[atom].posK) * p.h;
+  let h3 = p.h * p.h * p.h;
+  let soft = p.h2;  // Coulomb softening ~ h²
 
-  var sumFi: f32 = 0.0;
-  var sumFj: f32 = 0.0;
-  var sumFk: f32 = 0.0;
-  var count: f32 = 0.0;
+  var fi: f32 = 0.0;
+  var fj: f32 = 0.0;
+  var fk: f32 = 0.0;
 
-  for (var di: i32 = -R; di <= R; di++) {
-    let ii = ci + di;
-    if (ii < 1 || ii >= S - 1) { continue; }
-    for (var dj: i32 = -R; dj <= R; dj++) {
-      let jj = cj + dj;
-      if (jj < 1 || jj >= S - 1) { continue; }
-      for (var dk: i32 = -R; dk <= R; dk++) {
-        let kk = ck + dk;
-        if (kk < 1 || kk >= S - 1) { continue; }
-        let r2 = f32(di*di + dj*dj + dk*dk);
-        if (r2 > R2f) { continue; }
-
-        let ui = u32(ii); let uj = u32(jj); let uk = u32(kk);
-        let gI = (Pt[(ui+1u)*p.S2 + uj*p.S + uk] - Pt[(ui-1u)*p.S2 + uj*p.S + uk]) * inv2h;
-        let gJ = (Pt[ui*p.S2 + (uj+1u)*p.S + uk] - Pt[ui*p.S2 + (uj-1u)*p.S + uk]) * inv2h;
-        let gK = (Pt[ui*p.S2 + uj*p.S + (uk+1u)] - Pt[ui*p.S2 + uj*p.S + (uk-1u)]) * inv2h;
-        sumFi += gI;
-        sumFj += gJ;
-        sumFk += gK;
-        count += 1.0;
+  let NM = i32(p.NN) - 1;
+  for (var i: i32 = 1; i <= NM; i++) {
+    let xi = f32(i) * p.h;
+    let di = xi - Ri;
+    for (var j: i32 = 1; j <= NM; j++) {
+      let yj = f32(j) * p.h;
+      let dj = yj - Rj;
+      for (var k: i32 = 1; k <= NM; k++) {
+        let zk = f32(k) * p.h;
+        let dk = zk - Rk;
+        let r2 = di*di + dj*dj + dk*dk + soft;
+        let r = sqrt(r2);
+        let inv_r3 = 1.0 / (r * r2);
+        let id = u32(i) * p.S2 + u32(j) * p.S + u32(k);
+        let rho = U[id] * U[id];  // ρ = U²
+        let w = rho * inv_r3 * h3;
+        fi += di * w;
+        fj += dj * w;
+        fk += dk * w;
       }
     }
   }
 
-  if (count > 0.0) {
-    sumFi /= count;
-    sumFj /= count;
-    sumFk /= count;
-  }
-
-  forceSums[atom * 3u]      = 2.0 * ZA * sumFi;
-  forceSums[atom * 3u + 1u] = 2.0 * ZA * sumFj;
-  forceSums[atom * 3u + 2u] = 2.0 * ZA * sumFk;
+  forceSums[atom * 3u]      = ZA * fi;
+  forceSums[atom * 3u + 1u] = ZA * fj;
+  forceSums[atom * 3u + 2u] = ZA * fk;
 }
 `;
 
@@ -2260,11 +2265,11 @@ async function initGPU() {
     }
 
     // Nuclear dynamics bind groups
-    // gradPtotal: reads P_buf[0] directly (already converged from main V-cycle)
+    // gradPtotal: direct Coulomb force from U² density on nuclei
     for (let c = 0; c < 2; c++) {
       gradPtotalBG[c] = device.createBindGroup({ layout: gradPtotalPL.getBindGroupLayout(0), entries: [
         { binding: 0, resource: { buffer: paramsBuf } },
-        { binding: 1, resource: { buffer: P_buf[0] } },
+        { binding: 1, resource: { buffer: U_buf[c] } },
         { binding: 2, resource: { buffer: forceSumsBuf } },
         { binding: 3, resource: { buffer: atomBuf } },
       ]});
@@ -2556,7 +2561,7 @@ async function doSteps(n) {
     cur = next;
 
     // Nuclear force computation at N_MOVE intervals — gradient of P directly
-    if (dynamicsEnabled && (tStep + s + 1) % N_MOVE === 0) {
+    if ((tStep + s + 1) % N_MOVE === 0) {
       cp = enc.beginComputePass();
       cp.setPipeline(gradPtotalPL);
       cp.setBindGroup(0, gradPtotalBG[cur]);
@@ -2718,18 +2723,15 @@ async function doSteps(n) {
   E_KK = 0;
   if (addNucRepulsion) {
     const soft_nuc = 0.04 * h2v;
-    const grp = window.NUCLEAR_GROUPS;
-    for (let a = 0; a < NELEC; a++) {
-      for (let b = a + 1; b < NELEC; b++) {
-        if (Z[a] === 0 || Z[b] === 0) continue;
-        if (grp && grp[a] === grp[b]) continue;  // same physical nucleus
+    for (let a = 0; a < uniqueNuclei.length; a++) {
+      const ea = uniqueNuclei[a].elecIndices[0]; // representative electron index for position
+      for (let b = a + 1; b < uniqueNuclei.length; b++) {
+        const eb = uniqueNuclei[b].elecIndices[0];
         const d = Math.sqrt(
-          ((nucPos[a][0]-nucPos[b][0])*hGrid)**2 +
-          ((nucPos[a][1]-nucPos[b][1])*hGrid)**2 +
-          ((nucPos[a][2]-nucPos[b][2])*hGrid)**2 + soft_nuc);
-        const Za = grp ? Z[a] : Z_nuc[a];
-        const Zb = grp ? Z[b] : Z_nuc[b];
-        E_KK += Za*Zb/d;
+          ((nucPos[ea][0]-nucPos[eb][0])*hGrid)**2 +
+          ((nucPos[ea][1]-nucPos[eb][1])*hGrid)**2 +
+          ((nucPos[ea][2]-nucPos[eb][2])*hGrid)**2 + soft_nuc);
+        E_KK += uniqueNuclei[a].Z_eff * uniqueNuclei[b].Z_eff / d;
       }
     }
   }
@@ -2748,7 +2750,43 @@ async function doSteps(n) {
     await forceSumsReadBuf.mapAsync(GPUMapMode.READ);
     const forceData = new Float32Array(forceSumsReadBuf.getMappedRange().slice(0));
     forceSumsReadBuf.unmap();
-    await moveNuclei(forceData);
+    // Store electronic forces
+    for (let a = 0; a < NELEC; a++) {
+      if (Z[a] === 0) { nucForceElec[a] = [0,0,0]; nucForceNuc[a] = [0,0,0]; nucForceTotal[a] = [0,0,0]; continue; }
+      nucForceElec[a] = [forceData[a*3], forceData[a*3+1], forceData[a*3+2]];
+      nucForceNuc[a] = [0, 0, 0];
+    }
+    // Compute nuclear-nuclear Coulomb repulsion forces
+    for (let a = 0; a < uniqueNuclei.length; a++) {
+      const ea = uniqueNuclei[a].elecIndices[0];
+      let fx = 0, fy = 0, fz = 0;
+      for (let b = 0; b < uniqueNuclei.length; b++) {
+        if (b === a) continue;
+        const eb = uniqueNuclei[b].elecIndices[0];
+        const dx = (nucPos[ea][0] - nucPos[eb][0]) * hGrid;
+        const dy = (nucPos[ea][1] - nucPos[eb][1]) * hGrid;
+        const dz = (nucPos[ea][2] - nucPos[eb][2]) * hGrid;
+        const r2 = dx*dx + dy*dy + dz*dz + hGrid*hGrid;
+        const r = Math.sqrt(r2);
+        const inv_r3 = 1.0 / (r * r2);
+        fx += uniqueNuclei[a].Z_eff * uniqueNuclei[b].Z_eff * dx * inv_r3;
+        fy += uniqueNuclei[a].Z_eff * uniqueNuclei[b].Z_eff * dy * inv_r3;
+        fz += uniqueNuclei[a].Z_eff * uniqueNuclei[b].Z_eff * dz * inv_r3;
+      }
+      for (const e of uniqueNuclei[a].elecIndices) {
+        nucForceNuc[e] = [fx, fy, fz];
+      }
+    }
+    // Compute total forces
+    for (let a = 0; a < NELEC; a++) {
+      if (Z[a] === 0) continue;
+      nucForceTotal[a] = [
+        nucForceElec[a][0] + nucForceNuc[a][0],
+        nucForceElec[a][1] + nucForceNuc[a][1],
+        nucForceElec[a][2] + nucForceNuc[a][2]
+      ];
+    }
+    if (dynamicsEnabled) await moveNuclei(forceData);
   }
 }
 
@@ -3191,18 +3229,15 @@ async function doLOBPCGStep() {
   E_KK = 0;
   if (addNucRepulsion) {
     const soft_nuc = 0.04 * h2v;
-    const grp = window.NUCLEAR_GROUPS;
-    for (let a = 0; a < NELEC; a++) {
-      for (let b = a + 1; b < NELEC; b++) {
-        if (Z[a] === 0 || Z[b] === 0) continue;
-        if (grp && grp[a] === grp[b]) continue;  // same physical nucleus
+    for (let a = 0; a < uniqueNuclei.length; a++) {
+      const ea = uniqueNuclei[a].elecIndices[0];
+      for (let b = a + 1; b < uniqueNuclei.length; b++) {
+        const eb = uniqueNuclei[b].elecIndices[0];
         const d = Math.sqrt(
-          ((nucPos[a][0]-nucPos[b][0])*hGrid)**2 +
-          ((nucPos[a][1]-nucPos[b][1])*hGrid)**2 +
-          ((nucPos[a][2]-nucPos[b][2])*hGrid)**2 + soft_nuc);
-        const Za = grp ? Z[a] : Z_nuc[a];
-        const Zb = grp ? Z[b] : Z_nuc[b];
-        E_KK += Za*Zb/d;
+          ((nucPos[ea][0]-nucPos[eb][0])*hGrid)**2 +
+          ((nucPos[ea][1]-nucPos[eb][1])*hGrid)**2 +
+          ((nucPos[ea][2]-nucPos[eb][2])*hGrid)**2 + soft_nuc);
+        E_KK += uniqueNuclei[a].Z_eff * uniqueNuclei[b].Z_eff / d;
       }
     }
   }
@@ -3216,27 +3251,34 @@ async function doLOBPCGStep() {
 async function moveNuclei(gpuForces) {
   // Start with electron density gradient forces from GPU
   for (let a = 0; a < NELEC; a++) {
-    if (Z[a] === 0) { nucForce[a] = [0,0,0]; continue; }
+    if (Z[a] === 0) { nucForce[a] = [0,0,0]; nucForceElec[a] = [0,0,0]; continue; }
     nucForce[a] = [gpuForces[a*3], gpuForces[a*3+1], gpuForces[a*3+2]];
+    nucForceElec[a] = [gpuForces[a*3], gpuForces[a*3+1], gpuForces[a*3+2]];
   }
 
-  // Add nuclear-nuclear (kernel-kernel) Coulomb repulsion forces
-  // F_A += sum_{B≠A} Z_A * Z_B * (R_A - R_B) / |R_A - R_B|^3
-  const grp = window.NUCLEAR_GROUPS;
-  for (let a = 0; a < NELEC; a++) {
-    if (Z[a] === 0) continue;
-    for (let b = 0; b < NELEC; b++) {
-      if (b === a || Z[b] === 0) continue;
-      if (grp && grp[a] === grp[b]) continue;  // same physical nucleus
-      const dx = (nucPos[a][0] - nucPos[b][0]) * hGrid;
-      const dy = (nucPos[a][1] - nucPos[b][1]) * hGrid;
-      const dz = (nucPos[a][2] - nucPos[b][2]) * hGrid;
-      const r2 = dx*dx + dy*dy + dz*dz + hGrid*hGrid;  // softened to prevent division by zero
+  // Add nuclear-nuclear (kernel-kernel) Coulomb repulsion forces using unique nuclei
+  // F_A += sum_{B≠A} Z_eff_A * Z_eff_B * (R_A - R_B) / |R_A - R_B|^3
+  for (let a = 0; a < uniqueNuclei.length; a++) {
+    const ea = uniqueNuclei[a].elecIndices[0];
+    let fx = 0, fy = 0, fz = 0;
+    for (let b = 0; b < uniqueNuclei.length; b++) {
+      if (b === a) continue;
+      const eb = uniqueNuclei[b].elecIndices[0];
+      const dx = (nucPos[ea][0] - nucPos[eb][0]) * hGrid;
+      const dy = (nucPos[ea][1] - nucPos[eb][1]) * hGrid;
+      const dz = (nucPos[ea][2] - nucPos[eb][2]) * hGrid;
+      const r2 = dx*dx + dy*dy + dz*dz + hGrid*hGrid;
       const r = Math.sqrt(r2);
       const inv_r3 = 1.0 / (r * r2);
-      nucForce[a][0] += Z[a] * Z[b] * dx * inv_r3;
-      nucForce[a][1] += Z[a] * Z[b] * dy * inv_r3;
-      nucForce[a][2] += Z[a] * Z[b] * dz * inv_r3;
+      fx += uniqueNuclei[a].Z_eff * uniqueNuclei[b].Z_eff * dx * inv_r3;
+      fy += uniqueNuclei[a].Z_eff * uniqueNuclei[b].Z_eff * dy * inv_r3;
+      fz += uniqueNuclei[a].Z_eff * uniqueNuclei[b].Z_eff * dz * inv_r3;
+    }
+    // Apply same force to all electrons of this nucleus
+    for (const e of uniqueNuclei[a].elecIndices) {
+      nucForce[e][0] += fx;
+      nucForce[e][1] += fy;
+      nucForce[e][2] += fz;
     }
   }
 
@@ -3491,18 +3533,16 @@ function draw() {
   fill(255); stroke(255); strokeWeight(1);
   for (let n = 0; n < NELEC; n++) {
     if (Z[n] > 0) {
-      circle(nucPos[n][0] * PX, nucPos[n][1] * PX, 6);
-      // Draw force arrows when dynamics enabled (protein atoms only)
-      if (dynamicsEnabled && nucForce[n] && n < PROTEIN_COUNT) {
-        const fx = nucForce[n][0], fy = nucForce[n][1];
-        const fmag = Math.sqrt(fx*fx + fy*fy);
-        if (fmag > 1e-8) {
-          const arrowScale = 250 * forceScale;
-          const ax = nucPos[n][0] * PX + fx * arrowScale;
-          const ay = nucPos[n][1] * PX + fy * arrowScale;
-          stroke(0, 255, 0); strokeWeight(3);
-          line(nucPos[n][0] * PX, nucPos[n][1] * PX, ax, ay);
+      const nx = nucPos[n][0] * PX, ny = nucPos[n][1] * PX;
+      circle(nx, ny, 6);
+      if (n < PROTEIN_COUNT && nucForceTotal[n]) {
+        const arrowScale = 250 * forceScale;
+        const fx = nucForceTotal[n][0], fy = nucForceTotal[n][1];
+        if (fx*fx + fy*fy > 1e-16) {
+          stroke(255, 255, 0); strokeWeight(3);
+          line(nx, ny, nx + fx * arrowScale, ny + fy * arrowScale);
         }
+        stroke(255); strokeWeight(1);
       }
     }
   }
@@ -3546,6 +3586,7 @@ function draw() {
   // Dynamics status
   fill(dynamicsEnabled ? [0,255,255] : [150,150,150]);
   text("Dynamics: " + (dynamicsEnabled ? "ON" : "OFF") + " (nucStep=" + nucStepCount + ")  Force=" + forceScale.toFixed(1) + "x  [D toggle, +/- force]", 5, 95);
+  fill(255, 255, 0); text("yellow=net force", 5, 110);
 
   // r_c values
   fill(200, 180, 255);

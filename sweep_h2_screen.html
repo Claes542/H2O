@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>H2 Bond Length Sweep</title>
+  <style>
+    body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #000; overflow: hidden; flex-direction: column; }
+    canvas { border: none; }
+    #results {
+      position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.85);
+      color: #fff; font-family: monospace; font-size: 13px; padding: 12px;
+      border: 1px solid #444; border-radius: 6px; z-index: 1000;
+      min-width: 520px;
+    }
+    #results h3 { margin: 0 0 8px; color: #0f0; font-size: 14px; }
+    #results table { border-collapse: collapse; width: 100%; }
+    #results th { color: #8cf; text-align: right; padding: 2px 8px; border-bottom: 1px solid #444; }
+    #results td { text-align: right; padding: 2px 8px; }
+    #results .running { color: #ff0; }
+    #results .done { color: #0f0; }
+    #results .best { background: rgba(0,255,0,0.15); }
+    #results .pending { color: #666; }
+    #progress { color: #ff0; margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <div id="results">
+    <h3>H₂ Bond Length Sweep</h3>
+    <table>
+      <thead>
+        <tr><th>R (au)</th><th>E_total</th><th>E_bind</th><th>E_T</th><th>E_eK</th><th>E_ee</th><th>E_KK</th></tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+    <div id="progress">Starting sweep from large R...</div>
+  </div>
+  <script>
+    window.onerror = function(msg, url, line) {
+      document.body.style.color = 'red';
+      document.body.innerHTML = '<pre>ERROR: ' + msg + '\nLine: ' + line + '\nFile: ' + url + '</pre>';
+    };
+
+    // Sweep from large distance down to 1.0 so first result = separated atoms reference
+    var bondLengths = [4.0, 3.0, 2.0, 1.6, 1.4, 1.0];
+    var sweepIdx = 0;
+    var sweepResults = [];
+    var E_ref = null;  // energy at largest separation
+
+    var N = 100, scr = 10;
+    var hg = scr / N;
+
+    // Build initial table rows
+    var tbody = document.getElementById('tableBody');
+    for (var i = 0; i < bondLengths.length; i++) {
+      var tr = document.createElement('tr');
+      tr.id = 'row' + i;
+      tr.className = 'pending';
+      tr.innerHTML = '<td>' + bondLengths[i].toFixed(1) + '</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td>';
+      tbody.appendChild(tr);
+    }
+
+    function updateRow(idx, r) {
+      var Eb = E_ref !== null ? (r.E - E_ref) : 0;
+      var tr = document.getElementById('row' + idx);
+      tr.className = 'done';
+      tr.innerHTML =
+        '<td>' + r.bond.toFixed(1) + '</td>' +
+        '<td>' + r.E.toFixed(6) + '</td>' +
+        '<td>' + Eb.toFixed(6) + '</td>' +
+        '<td>' + r.E_T.toFixed(6) + '</td>' +
+        '<td>' + r.E_eK.toFixed(6) + '</td>' +
+        '<td>' + r.E_ee.toFixed(6) + '</td>' +
+        '<td>' + r.E_KK.toFixed(6) + '</td>';
+    }
+
+    function highlightBest() {
+      var bestIdx = 0, bestE = Infinity;
+      for (var i = 0; i < sweepResults.length; i++) {
+        if (sweepResults[i].E < bestE) { bestE = sweepResults[i].E; bestIdx = i; }
+      }
+      document.getElementById('row' + bestIdx).classList.add('best');
+    }
+
+    function makeAtoms(bond) {
+      var halfCells = Math.round(0.5 * bond / hg);
+      var ci = Math.round(5.0 / hg);
+      var cj = Math.round(5.0 / hg);
+      return [
+        { i: ci - halfCells, j: cj, Z: 1, el: 'H' },
+        { i: ci + halfCells, j: cj, Z: 1, el: 'H' }
+      ];
+    }
+
+    window.USER_NN = N;
+    window.USER_ATOMS = makeAtoms(bondLengths[0]);
+    window.USER_SCREEN = scr;
+    window.USER_STEPS = 5000;
+    window.USER_Z = [1, 1];
+    window.USER_RC = [0, 0];
+
+    window.onSweepDone = function(Etot, steps, E_T, E_eK, E_ee, E_KK) {
+      var bond = bondLengths[sweepIdx];
+      sweepResults.push({ bond: bond, E: Etot, E_T: E_T, E_eK: E_eK, E_ee: E_ee, E_KK: E_KK });
+
+      // First result (largest R) is the reference
+      if (sweepIdx === 0) E_ref = Etot;
+
+      updateRow(sweepIdx, sweepResults[sweepIdx]);
+      // Update E_bind for first row now that ref is set
+      if (sweepIdx === 0) updateRow(0, sweepResults[0]);
+
+      console.log('SWEEP [' + (sweepIdx+1) + '/' + bondLengths.length + '] R=' + bond.toFixed(2) +
+        ' E=' + Etot.toFixed(6) + '  E_bind=' + (Etot - E_ref).toFixed(6));
+
+      sweepIdx++;
+      if (sweepIdx < bondLengths.length) {
+        document.getElementById('progress').textContent =
+          'Running R=' + bondLengths[sweepIdx].toFixed(1) + ' au  (' + (sweepIdx+1) + '/' + bondLengths.length + ')';
+        document.getElementById('row' + sweepIdx).className = 'running';
+        var atoms = makeAtoms(bondLengths[sweepIdx]);
+        var positions = atoms.map(function(a) { return [a.i, a.j, a.k || Math.round(5.0/hg)]; });
+        window.restartWithPositions(positions);
+      } else {
+        highlightBest();
+        var bestIdx = 0, bestE = Infinity;
+        for (var i = 0; i < sweepResults.length; i++) {
+          if (sweepResults[i].E < bestE) { bestE = sweepResults[i].E; bestIdx = i; }
+        }
+        document.getElementById('progress').innerHTML =
+          '<span style="color:#0f0">COMPLETE</span> — Best: R=' + sweepResults[bestIdx].bond.toFixed(1) +
+          ' au, E_bind=' + (bestE - E_ref).toFixed(6) + ' Ha  (exact: R≈1.4 au, E_bind≈−0.17 Ha)';
+      }
+    };
+
+    document.getElementById('progress').textContent = 'Running R=' + bondLengths[0].toFixed(1) + ' au  (1/' + bondLengths.length + ')';
+    document.getElementById('row0').className = 'running';
+
+    var s = document.createElement('script');
+    s.src = 'molecule.js?t=' + Date.now();
+    s.onerror = function() { document.body.innerHTML = '<pre style="color:red">Failed to load molecule.js</pre>'; };
+    s.onload = function() {
+      var p5s = document.createElement('script');
+      p5s.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+      document.body.appendChild(p5s);
+    };
+    document.body.appendChild(s);
+  </script>
+</body>
+</html>
