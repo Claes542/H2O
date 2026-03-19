@@ -178,6 +178,7 @@ def build_hairpin_config():
         'dynamics': True,
         'forceScale': 500.0,
         'fold_atoms': [0, 45, 83],  # N-term, mid Ca, C-term
+        'nProtein': nProtein,
     }
 
 

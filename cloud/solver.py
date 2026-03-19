@@ -358,6 +358,7 @@ class RealQMSolver:
         self.dt_nuc = config.get('dt_nuc', 0.8 if self.nElec <= 5 else 0.2 if self.nElec > 200 else 0.8)
         self.max_vel = 0.3 if self.nElec <= 5 else 0.03 if self.nElec > 200 else 0.1
         self.dynamics_enabled = config.get('dynamics', False)
+        self._nProtein = config.get('nProtein', self.nAtoms)
 
         # GPU arrays
         self.U = cp.zeros(self.S3, dtype=cp.float32)
@@ -474,11 +475,11 @@ class RealQMSolver:
         self.E = self.E_T + self.E_eK + self.E_ee + self.E_KK
 
     def _compute_forces(self):
-        """Hellmann-Feynman forces on all nuclei — batched with limited atoms per pass."""
-        # Use batched kernel but limit atomicAdd contention with smaller batches
+        """Hellmann-Feynman forces — batched, protein atoms only."""
         BATCH = 32
+        nForce = self._nProtein if hasattr(self, '_nProtein') else self.nAtoms
         self.nuc_force = np.zeros((self.nAtoms, 3), dtype=np.float32)
-        for b0 in range(0, self.nAtoms, BATCH):
+        for b0 in range(0, nForce, BATCH):
             b1 = min(b0 + BATCH, self.nAtoms)
             batchSize = b1 - b0
             # Build sub-atom array for this batch
@@ -500,7 +501,8 @@ class RealQMSolver:
             self.nuc_force[b0:b1] = f
 
         # Add nuclear-nuclear forces (CPU, small)
-        for n in range(self.nAtoms):
+        nForce2 = self._nProtein if hasattr(self, '_nProtein') else self.nAtoms
+        for n in range(nForce2):
             if self.Z_eff[n] <= 0:
                 continue
             for m in range(self.nAtoms):
@@ -517,9 +519,10 @@ class RealQMSolver:
                 self.nuc_force[n][2] += ff * dz
 
     def _move_nuclei(self):
-        """Velocity Verlet nuclear dynamics."""
+        """Velocity Verlet nuclear dynamics — protein atoms only."""
         mass_map = {1: 1*1836, 2: 16*1836, 3: 14*1836, 4: 12*1836}
-        for n in range(self.nAtoms):
+        nMove = self._nProtein if hasattr(self, '_nProtein') else self.nAtoms
+        for n in range(nMove):
             z = int(self.Z_eff[n])
             if z <= 0:
                 continue
@@ -544,7 +547,7 @@ class RealQMSolver:
         )
 
     def run(self, total_steps, norm_interval=20, poisson_interval=2,
-            force_interval=200, report_interval=500):
+            force_interval=500, report_interval=500):
         """Run the solver for total_steps. Returns list of snapshots."""
         if not self._initialized:
             self.initialize()
