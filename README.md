@@ -101,7 +101,29 @@ Watch molecules assemble one atom at a time — heavy skeleton first, then hydro
 - `USER_Z` — Nuclear charges
 - `USER_RC` — Pseudopotential cutoff radii
 
+### Benchmarks: Protein Folding
+
+Validation of quantum forces for protein structure prediction:
+
+| Test | Atoms | Result |
+|------|-------|--------|
+| [Alanine dipeptide](ala_dipeptide.html) | 22 (3D) | Bond lengths match PySCF HF reference for pseudopotentials |
+| [Formamide dimer](formamide_dimer.html) | 12 (3D) | N-H···O=C hydrogen bond geometry correct (H···O ~1.9 Å) |
+| [Alpha-helix stability](alpha_helix.html) | 35 (3D) | 5-residue polyglycine helix stable under quantum dynamics |
+| [Hairpin folding](hairpin_bent_dry.html) | 87 (2D) | Rigid-strand pivot with quantum forces, fold angle tracked |
+| [Hairpin solvated](hairpin_bent_solvated.html) | ~200 (2D) | Solvated hairpin with elastic backbone dynamics |
+| [Phi/psi scan](ala_dipeptide_scan.html) | 22 | Ramachandran energy surface generator |
+
+**Dynamics models** (combined quantum + classical):
+- **Rigid-strand pivot** — Two strands rotate at hinge, quantum torques drive folding
+- **Elastic backbone** — Residues as beads on elastic string with SHAKE constraints
+- **3D rigid-group rotation** — Per-residue rotation around Ca-Ca axes for phi/psi changes
+- **Full quantum restart** — Wavefunctions re-initialized after each geometry update
+
+**Reference calculations**: PySCF HF/STO-3G and HF/6-31G* scripts included (`*_pyscf.py`)
+
 ### Keyboard controls (click canvas first)
+- **3** — Toggle 3D molecule viewer (auto-rotating, depth-sorted)
 - **D** — Toggle nuclear dynamics
 - **V** — Toggle multigrid V-cycle
 - **+/-** — Adjust force scale
