@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html><body style="margin:0;background:#000;color:#fff;font-family:monospace;padding:20px">
+<h2>Alanine Dipeptide Phi/Psi Scan</h2>
+<p>Generates multiple configurations at different phi/psi angles.<br>
+Each must be run separately to get the energy. Click a link to open.</p>
+<div id="configs"></div>
+<script>
+// Generate alanine dipeptide configs at different phi/psi angles
+// phi = C(ace)-N1-Ca-C(ala), psi = N1-Ca-C(ala)-N2
+
+var A = 1.8897;
+var configs = [];
+
+// Scan key conformations
+var points = [
+  {name: "C7eq",    phi: -85,  psi: 75},
+  {name: "C5",      phi: -155, psi: 160},
+  {name: "alphaR",  phi: -60,  psi: -40},
+  {name: "alphaL",  phi: 60,   psi: 40},
+  {name: "beta",    phi: -120, psi: 120},
+  {name: "PPII",    phi: -75,  psi: 150},
+  {name: "ext",     phi: -180, psi: 180},
+  // Additional grid points for energy surface
+  {name: "p0_0",    phi: 0,    psi: 0},
+  {name: "p-60_60", phi: -60,  psi: 60},
+  {name: "p-120_0", phi: -120, psi: 0},
+  {name: "p-60_120",phi: -60,  psi: 120},
+  {name: "p60_-60", phi: 60,   psi: -60},
+];
+
+var div = document.getElementById('configs');
+var table = '<table border="1" cellpadding="5" style="border-collapse:collapse;color:#fff">';
+table += '<tr><th>Name</th><th>Phi</th><th>Psi</th><th>Expected</th><th>Run</th></tr>';
+
+for (var i = 0; i < points.length; i++) {
+  var p = points[i];
+  var expected = "";
+  if (p.name === "C7eq") expected = "Global minimum (~0 kcal/mol)";
+  else if (p.name === "C5") expected = "Local minimum (~1-2 kcal/mol)";
+  else if (p.name === "alphaR") expected = "Local minimum (~2-3 kcal/mol)";
+  else if (p.name === "alphaL") expected = "High energy (~5-7 kcal/mol)";
+  else if (p.name === "beta") expected = "Low energy (~1 kcal/mol)";
+  else if (p.name === "ext") expected = "Extended (~2 kcal/mol)";
+
+  // Generate HTML file for each
+  var fname = "ala_phi" + p.phi + "_psi" + p.psi + ".html";
+  table += '<tr><td>' + p.name + '</td><td>' + p.phi + '°</td><td>' + p.psi + '°</td>';
+  table += '<td>' + expected + '</td>';
+  table += '<td><button onclick="generate(' + p.phi + ',' + p.psi + ',\'' + p.name + '\')">Generate & Open</button></td></tr>';
+}
+table += '</table>';
+table += '<br><div id="status"></div>';
+table += '<br><h3>Results (paste E_min from each run):</h3>';
+table += '<textarea id="results" rows="15" cols="80" style="background:#111;color:#0f0;font-family:monospace">';
+table += 'Name\tPhi\tPsi\tE_min (Ha)\n';
+for (var i = 0; i < points.length; i++) {
+  table += points[i].name + '\t' + points[i].phi + '\t' + points[i].psi + '\t\n';
+}
+table += '</textarea>';
+div.innerHTML = table;
+
+function generate(phi, psi, name) {
+  // Build 3D coordinates for given phi/psi
+  // Method: place backbone atoms using internal coordinates
+  // Bond lengths
+  var CC = 1.54*A, CaC = 1.52*A, CO_len = 1.23*A;
+  var CN = 1.34*A, NCa = 1.45*A, CH = 1.09*A, NH_len = 1.01*A, CaCb = 1.54*A;
+  var phiR = phi * Math.PI / 180;
+  var psiR = psi * Math.PI / 180;
+  var omega = Math.PI; // trans peptide bond
+
+  // Place backbone using Z-matrix style
+  // Start with Ace C=O in xz plane
+  var atoms = [];
+  // Helper: rotation matrix around axis
+  function rotZ(v, a) { var c=Math.cos(a),s=Math.sin(a); return [c*v[0]-s*v[1], s*v[0]+c*v[1], v[2]]; }
+  function rotY(v, a) { var c=Math.cos(a),s=Math.sin(a); return [c*v[0]+s*v[2], v[1], -s*v[0]+c*v[2]]; }
+  function rotX(v, a) { var c=Math.cos(a),s=Math.sin(a); return [v[0], c*v[1]-s*v[2], s*v[1]+c*v[2]]; }
+  function add(a,b) { return [a[0]+b[0], a[1]+b[1], a[2]+b[2]]; }
+  function scale(v,s) { return [v[0]*s, v[1]*s, v[2]*s]; }
+  function norm(v) { var l=Math.sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]); return [v[0]/l,v[1]/l,v[2]/l]; }
+  function cross(a,b) { return [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]]; }
+
+  // Simplified: place along x-axis with proper dihedrals
+  // Ace: Cme-Cace along x, peptide plane in xz
+  var ang = 120 * Math.PI / 180; // bond angle ~120° for sp2, ~109.5° for sp3
+  var tet = 109.5 * Math.PI / 180;
+
+  // Backbone positions
+  var Cme =  [-5.5*A, 0, 0];
+  var Cace = [-4.0*A, 0, 0];
+  var Oace = add(Cace, [CO_len*Math.cos(ang), 0, CO_len*Math.sin(ang)]);
+
+  // N1: peptide bond from Cace, in xz plane initially
+  var N1 = add(Cace, [CN, 0, 0]);
+
+  // Ca: from N1, apply phi dihedral
+  // phi = dihedral(Cace-N1-Ca-Cala)
+  var ca_dir = [NCa*Math.cos(Math.PI-tet), NCa*Math.sin(Math.PI-tet)*Math.cos(phiR), NCa*Math.sin(Math.PI-tet)*Math.sin(phiR)];
+  // Rotate into N1-Cace frame
+  var nx = norm([N1[0]-Cace[0], N1[1]-Cace[1], N1[2]-Cace[2]]);
+  var Ca = add(N1, [NCa*Math.cos(Math.PI-tet), NCa*Math.sin(Math.PI-tet)*Math.cos(phiR), NCa*Math.sin(Math.PI-tet)*Math.sin(phiR)]);
+
+  // Cala: from Ca, apply psi dihedral
+  var Cala = add(Ca, [CaC*Math.cos(Math.PI-tet), CaC*Math.sin(Math.PI-tet)*Math.cos(psiR), CaC*Math.sin(Math.PI-tet)*Math.sin(psiR)]);
+
+  // Oala
+  var Oala = add(Cala, [CO_len*Math.cos(ang), CO_len*Math.sin(ang)*Math.cos(psiR+1), CO_len*Math.sin(ang)*Math.sin(psiR+1)]);
+
+  // N2: peptide bond from Cala
+  var N2 = add(Cala, [CN*Math.cos(Math.PI-ang), CN*Math.sin(Math.PI-ang)*Math.cos(psiR), CN*Math.sin(Math.PI-ang)*Math.sin(psiR)]);
+
+  // Cnme
+  var Cnme = add(N2, [NCa*Math.cos(Math.PI-tet), NCa*Math.sin(Math.PI-tet)*Math.cos(psiR+omega), NCa*Math.sin(Math.PI-tet)*Math.sin(psiR+omega)]);
+
+  // Center molecule
+  var all = [Cme, Cace, Oace, N1, Ca, Cala, Oala, N2, Cnme];
+  var cx=0,cy=0,cz=0;
+  for(var i=0;i<all.length;i++){cx+=all[i][0];cy+=all[i][1];cz+=all[i][2];}
+  cx/=all.length;cy/=all.length;cz/=all.length;
+  for(var i=0;i<all.length;i++){all[i][0]-=cx;all[i][1]-=cy;all[i][2]-=cz;}
+
+  // Build HTML content
+  var html = '<!DOCTYPE html><html><body style="margin:0;background:#000"><script>\n';
+  html += '// Alanine dipeptide: ' + name + ' (phi=' + phi + ', psi=' + psi + ')\n';
+  html += '(function(){\n';
+  html += 'var gridN=200,scr=20,N2=100,h=scr/gridN,A=1.8897;\n';
+  html += 'var atoms=[];\n';
+  html += 'function addAtom(x,y,z,Z,el){atoms.push({i:Math.round(N2+x/h),j:Math.round(N2+y/h),k:Math.round(N2+z/h),Z:Z,el:el});}\n';
+
+  // Write atom positions
+  function emit(pos,Z,el) { html += 'addAtom(' + pos[0].toFixed(4) + ',' + pos[1].toFixed(4) + ',' + pos[2].toFixed(4) + ',' + Z + ",'" + el + "');\n"; }
+  function hpos(base, dx,dy,dz) { return [base[0]+dx*CH,base[1]+dy*CH,base[2]+dz*CH]; }
+
+  emit(Cme, 4, 'C');
+  emit(hpos(Cme,-0.6,0.8,0), 1, 'H');
+  emit(hpos(Cme,-0.6,-0.8,0), 1, 'H');
+  emit(hpos(Cme,-0.6,0,0.8), 1, 'H');
+  emit(Cace, 4, 'C');
+  emit(Oace, 2, 'O');
+  emit(N1, 3, 'N');
+  emit(add(N1,[0,0,-NH_len]), 1, 'H');
+  emit(Ca, 4, 'C');
+  emit(add(Ca,[0,0,-CH]), 1, 'H');
+  emit(add(Ca,[0,CaCb,0]), 4, 'C'); // Cb
+  emit(add(Ca,[0.5*A,CaCb+0.6*A,0.5*A]), 1, 'H');
+  emit(add(Ca,[-0.5*A,CaCb+0.6*A,0]), 1, 'H');
+  emit(add(Ca,[0,CaCb+0.6*A,-0.5*A]), 1, 'H');
+  emit(Cala, 4, 'C');
+  emit(Oala, 2, 'O');
+  emit(N2, 3, 'N');
+  emit(add(N2,[0,0,-NH_len]), 1, 'H');
+  emit(Cnme, 4, 'C');
+  emit(add(Cnme,[0.6*A,0.8*A,0]), 1, 'H');
+  emit(add(Cnme,[0.6*A,-0.8*A,0]), 1, 'H');
+  emit(add(Cnme,[0.6*A,0,0.8*A]), 1, 'H');
+
+  html += 'console.log("Ala dipeptide ' + name + ': "+atoms.length+" atoms");\n';
+  html += 'window.USER_NN=gridN;window.USER_ATOMS=atoms;window.USER_SCREEN=scr;\n';
+  html += 'window.USER_STEPS=1000000;window.USER_DYNAMICS=false;\n';
+  html += 'window.USER_FORCE_SCALE=0;window.USER_ARROW_SCALE=5;\n';
+  html += 'window.USER_Z=atoms.map(function(a){return a.Z;});\n';
+  html += 'window.USER_RC=atoms.map(function(a){if(a.el==="H")return 0;if(a.el==="C")return 0.3;if(a.el==="N")return 0.3;if(a.el==="O")return 0.4;return 0;});\n';
+  html += '})();\n';
+  html += 'var s=document.createElement("script");s.src="molecule.js?t="+Date.now();\n';
+  html += 's.onload=function(){var p=document.createElement("script");p.src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js";document.body.appendChild(p);};\n';
+  html += 'document.body.appendChild(s);\n';
+  html += '<\/script></body></html>';
+
+  // Download as file
+  var blob = new Blob([html], {type: 'text/html'});
+  var url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+  document.getElementById('status').textContent = 'Generated ' + name + ' (phi=' + phi + ', psi=' + psi + ')';
+}
+</script>
+</body></html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html><body style="margin:0;background:#000">
+<script>
+// 5-residue polyglycine in ideal alpha-helix geometry — hand-placed 3D
+// Tests i→i+4 hydrogen bond (res0 C=O → res4 N-H)
+// ~35 atoms on 200^3
+(function() {
+  var gridN = 200, scr = 25, N2 = 100;
+  var h = scr / gridN;
+  var A = 1.8897;
+  var atoms = [];
+
+  function addAtom(x, y, z, Z, el) {
+    atoms.push({
+      i: Math.round(N2 + x / h),
+      j: Math.round(N2 + y / h),
+      k: Math.round(N2 + z / h),
+      Z: Z, el: el
+    });
+  }
+
+  // Alpha-helix backbone: 3.6 residues/turn, rise 1.5 Å/res, radius 2.3 Å
+  // Place backbone N-Ca-C for each residue on helix, then add H and O
+  var rise = 1.5 * A;
+  var radius = 2.3 * A;
+  var dAngle = 2 * Math.PI / 3.6; // ~100° per residue
+
+  // Bond lengths
+  var bCO = 1.23 * A;
+  var bNH = 1.01 * A;
+  var bCH = 1.09 * A;
+
+  var nRes = 5;
+
+  // Generate backbone positions on helix
+  // N at -0.3, Ca at 0, C at +0.3 of the residue's angular position
+  var bbN = [], bbCa = [], bbC = [];
+  for (var r = 0; r < nRes; r++) {
+    var theta = r * dAngle;
+    var z0 = r * rise;
+    bbN.push([
+      radius * Math.cos(theta - 0.25 * dAngle),
+      radius * Math.sin(theta - 0.25 * dAngle),
+      z0 - 0.25 * rise
+    ]);
+    bbCa.push([
+      radius * Math.cos(theta),
+      radius * Math.sin(theta),
+      z0
+    ]);
+    bbC.push([
+      radius * Math.cos(theta + 0.25 * dAngle),
+      radius * Math.sin(theta + 0.25 * dAngle),
+      z0 + 0.25 * rise
+    ]);
+  }
+
+  // Center everything
+  var all = bbN.concat(bbCa, bbC);
+  var cx = 0, cy = 0, cz = 0;
+  for (var i = 0; i < all.length; i++) { cx += all[i][0]; cy += all[i][1]; cz += all[i][2]; }
+  cx /= all.length; cy /= all.length; cz /= all.length;
+  for (var r = 0; r < nRes; r++) {
+    bbN[r][0] -= cx; bbN[r][1] -= cy; bbN[r][2] -= cz;
+    bbCa[r][0] -= cx; bbCa[r][1] -= cy; bbCa[r][2] -= cz;
+    bbC[r][0] -= cx; bbC[r][1] -= cy; bbC[r][2] -= cz;
+  }
+
+  // Helper: unit vector from A to B
+  function uvec(A, B) {
+    var dx = B[0]-A[0], dy = B[1]-A[1], dz = B[2]-A[2];
+    var l = Math.sqrt(dx*dx + dy*dy + dz*dz);
+    return [dx/l, dy/l, dz/l];
+  }
+  // Helper: radial outward direction at a point on helix
+  function radial(p) {
+    var l = Math.sqrt(p[0]*p[0] + p[1]*p[1]) + 1e-10;
+    return [p[0]/l, p[1]/l, 0];
+  }
+  // Helper: cross product
+  function cross(a, b) {
+    return [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
+  }
+
+  // Place atoms for each residue
+  // Track atom indices for bond display
+  var atomIdx = { N:[], H:[], Ca:[], C:[], O:[] };
+
+  for (var r = 0; r < nRes; r++) {
+    var N = bbN[r], Ca = bbCa[r], C = bbC[r];
+    var rad = radial(Ca);
+    var tang = uvec(N, C); // tangent along backbone
+    var perp = cross(tang, rad); // perpendicular
+
+    // N
+    atomIdx.N.push(atoms.length);
+    addAtom(N[0], N[1], N[2], 3, 'N');
+
+    // H on N (pointing outward radially + back along chain)
+    atomIdx.H.push(atoms.length);
+    var prevDir = (r > 0) ? uvec(bbC[r-1], N) : uvec(Ca, N);
+    addAtom(N[0] + prevDir[0]*bNH*0.7 + rad[0]*bNH*0.7,
+            N[1] + prevDir[1]*bNH*0.7 + rad[1]*bNH*0.7,
+            N[2] + prevDir[2]*bNH*0.7 + rad[2]*bNH*0.7, 1, 'H');
+
+    // Extra H on N-terminus
+    if (r === 0) {
+      addAtom(N[0] - perp[0]*bNH, N[1] - perp[1]*bNH, N[2] - perp[2]*bNH, 1, 'H');
+    }
+
+    // Ca
+    atomIdx.Ca.push(atoms.length);
+    addAtom(Ca[0], Ca[1], Ca[2], 4, 'C');
+
+    // 2 Ha on Ca (glycine)
+    addAtom(Ca[0] + perp[0]*bCH, Ca[1] + perp[1]*bCH, Ca[2] + perp[2]*bCH, 1, 'H');
+    addAtom(Ca[0] - perp[0]*bCH, Ca[1] - perp[1]*bCH, Ca[2] - perp[2]*bCH, 1, 'H');
+
+    // C (carbonyl)
+    atomIdx.C.push(atoms.length);
+    addAtom(C[0], C[1], C[2], 4, 'C');
+
+    // O on C (pointing outward + perpendicular)
+    atomIdx.O.push(atoms.length);
+    addAtom(C[0] + rad[0]*bCO*0.8 + perp[0]*bCO*0.6,
+            C[1] + rad[1]*bCO*0.8 + perp[1]*bCO*0.6,
+            C[2] + rad[2]*bCO*0.8 + perp[2]*bCO*0.6, 2, 'O');
+  }
+
+  // C-terminal OH
+  var lastC = bbC[nRes-1];
+  var lastRad = radial(lastC);
+  addAtom(lastC[0] + lastRad[0]*1.34*A, lastC[1] + lastRad[1]*1.34*A, lastC[2] + rise*0.3, 2, 'O');
+  addAtom(lastC[0] + lastRad[0]*2.0*A, lastC[1] + lastRad[1]*2.0*A, lastC[2] + rise*0.5, 1, 'H');
+
+  console.log('Alpha-helix Gly5 3D: ' + atoms.length + ' atoms');
+  console.log('Atom indices - N:', atomIdx.N, 'H:', atomIdx.H, 'Ca:', atomIdx.Ca, 'C:', atomIdx.C, 'O:', atomIdx.O);
+
+  // Bond pairs — backbone + i→i+4 H-bond
+  window.USER_BOND_PAIRS = [
+    // Backbone bonds (first residue)
+    [atomIdx.N[0], atomIdx.Ca[0], "N-Ca:"],
+    [atomIdx.Ca[0], atomIdx.C[0], "Ca-C:"],
+    [atomIdx.C[0], atomIdx.O[0], "C=O:"],
+    [atomIdx.C[0], atomIdx.N[1], "C-N:"],
+    [atomIdx.N[1], atomIdx.H[1], "N-H:"],
+    // i→i+4 H-bond: res0 O → res4 H
+    [atomIdx.O[0], atomIdx.H[4], "O0···H4:"],
+    // N...O donor-acceptor distance
+    [atomIdx.O[0], atomIdx.N[4], "O0···N4:"],
+  ];
+
+  window.USER_REFERENCE = {
+    bonds: {
+      "N-Ca": "1.46", "Ca-C": "1.52", "C=O": "1.23",
+      "C-N": "1.33", "N-H": "1.01",
+      "O0···H4": "1.90", "O0···N4": "2.90"
+    },
+    energy: "Alpha-helix: i→i+4 H-bond test",
+    binding: "H-bond ~5 kcal/mol if helix forms"
+  };
+
+  window.USER_NN = gridN;
+  window.USER_ATOMS = atoms;
+  window.USER_SCREEN = scr;
+  window.USER_STEPS = 1000000;
+  window.USER_DYNAMICS = false;
+  window.USER_FORCE_SCALE = 5.0;
+  window.USER_ARROW_SCALE = 5.0;
+  window.USER_N_MOVE = 100;
+  window.USER_Z = atoms.map(function(a) { return a.Z; });
+  window.USER_RC = atoms.map(function(a) {
+    if (a.el === 'H') return 0;
+    if (a.el === 'C') return 0.3;
+    if (a.el === 'N') return 0.3;
+    if (a.el === 'O') return 0.4;
+    return 0;
+  });
+})();
+
+var s = document.createElement('script');
+s.src = 'molecule.js?t=' + Date.now();
+s.onload = function() {
+  var p5s = document.createElement('script');
+  p5s.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+  document.body.appendChild(p5s);
+};
+document.body.appendChild(s);
+</script>
+</body></html>

@@ -3804,6 +3804,70 @@ function draw() {
     const kBase = 3 * SS * SS;
   }
 
+  // 3D view mode: press '3' to toggle
+  if (window._view3D) {
+    // Draw all atoms as 3D projection with auto-rotation
+    const t3d = (frameCount || 0) * 0.02; // rotation angle
+    const cosT = Math.cos(t3d), sinT = Math.sin(t3d);
+    const cosT2 = Math.cos(0.3), sinT2 = Math.sin(0.3); // slight tilt
+    const cx3 = NN / 2, cy3 = NN / 2, cz3 = NN / 2;
+    const scale3 = PX * 0.8;
+    const canvMid = CANVAS_SIZE / 2;
+
+    // Element colors
+    const elCol = {1:[255,255,255], 2:[255,50,50], 3:[50,50,255], 4:[100,255,100]};
+
+    // Draw bonds between close atoms
+    stroke(80); strokeWeight(1);
+    for (let a = 0; a < NELEC; a++) {
+      if (Z[a] === 0) continue;
+      for (let b = a+1; b < NELEC; b++) {
+        if (Z[b] === 0) continue;
+        const dx = (nucPos[a][0]-nucPos[b][0])*hGrid;
+        const dy = (nucPos[a][1]-nucPos[b][1])*hGrid;
+        const dz = (nucPos[a][2]-nucPos[b][2])*hGrid;
+        const d = Math.sqrt(dx*dx+dy*dy+dz*dz);
+        if (d < 3.5) { // bond threshold in au
+          // Project both points
+          let ax = nucPos[a][0]-cx3, ay = nucPos[a][1]-cy3, az = nucPos[a][2]-cz3;
+          let bx3 = nucPos[b][0]-cx3, by3 = nucPos[b][1]-cy3, bz3 = nucPos[b][2]-cz3;
+          // Rotate around y-axis
+          let rax = ax*cosT + az*sinT, raz = -ax*sinT + az*cosT;
+          let rbx = bx3*cosT + bz3*sinT, rbz = -bx3*sinT + bz3*cosT;
+          // Tilt
+          let ray = ay*cosT2 - raz*sinT2, raz2 = ay*sinT2 + raz*cosT2;
+          let rby = by3*cosT2 - rbz*sinT2, rbz2 = by3*sinT2 + rbz*cosT2;
+          line(canvMid + rax*scale3, canvMid + ray*scale3, canvMid + rbx*scale3, canvMid + rby*scale3);
+        }
+      }
+    }
+
+    // Draw atoms (sorted by depth for proper overlap)
+    let atomList = [];
+    for (let n = 0; n < NELEC; n++) {
+      if (Z[n] === 0) continue;
+      let ax = nucPos[n][0]-cx3, ay = nucPos[n][1]-cy3, az = nucPos[n][2]-cz3;
+      let rx = ax*cosT + az*sinT, rz = -ax*sinT + az*cosT;
+      let ry = ay*cosT2 - rz*sinT2, rz2 = ay*sinT2 + rz*cosT2;
+      atomList.push({n:n, sx: canvMid + rx*scale3, sy: canvMid + ry*scale3, depth: rz2, z: Z[n]});
+    }
+    atomList.sort((a,b) => a.depth - b.depth); // back to front
+
+    noStroke();
+    for (const at of atomList) {
+      const col = elCol[at.z] || [200,200,200];
+      const sz = at.z === 1 ? 5 : 10; // H smaller
+      fill(col[0], col[1], col[2], 200);
+      circle(at.sx, at.sy, sz);
+    }
+
+    // Label
+    fill(255, 255, 0);
+    noStroke();
+    text("3D VIEW (press 3 to toggle) — H=white C=green N=blue O=red", 5, 20);
+    return; // skip normal 2D draw
+  }
+
   // Draw nuclear positions with force arrows
   fill(255); stroke(255); strokeWeight(1);
   for (let n = 0; n < NELEC; n++) {
@@ -3880,14 +3944,52 @@ function draw() {
   rcInfo.forEach(x => { rcSeen[x[0]] = x[2]; });
   text("r_c: " + Object.keys(rcSeen).map(k => k + "=" + rcSeen[k]).join(" "), 5, 170);
 
+  // Bond length display (after r_c to avoid overlap)
+  if (window.USER_BOND_PAIRS) {
+    fill(200, 200, 255);
+    const bp = window.USER_BOND_PAIRS;
+    const bohrToAng = 0.529177;
+    var bondY = 215;
+    let bondStr = "Calc:  ";
+    var ref = window.USER_REFERENCE;
+    var refStr = (ref && ref.bonds) ? "Ref:   " : null;
+    for (let b = 0; b < bp.length; b++) {
+      const a1 = bp[b][0], a2 = bp[b][1], label = bp[b][2] || "";
+      const dx = nucPos[a1][0] - nucPos[a2][0];
+      const dy = nucPos[a1][1] - nucPos[a2][1];
+      const dz = nucPos[a1][2] - nucPos[a2][2];
+      const dAu = Math.sqrt(dx*dx + dy*dy + dz*dz) * hGrid;
+      const dAng = dAu * bohrToAng;
+      bondStr += label + dAng.toFixed(2) + "\u00C5 ";
+      if (refStr !== null) refStr += label + ref.bonds[label.replace(":","")] + "\u00C5 ";
+      if (b === 6) {
+        text(bondStr, 5, bondY); bondY += 15; bondStr = "      ";
+        if (refStr !== null) { fill(150, 255, 150); text(refStr, 5, bondY); bondY += 15; refStr = "      "; fill(200, 200, 255); }
+      }
+    }
+    if (bondStr.trim()) { text(bondStr, 5, bondY); bondY += 15; }
+    if (refStr !== null && refStr.trim()) { fill(150, 255, 150); text(refStr, 5, bondY); bondY += 15; }
+
+    // Show reference energy and binding
+    if (window.USER_REFERENCE) {
+      fill(150, 255, 150);
+      if (window.USER_REFERENCE.energy) {
+        text("Ref: " + window.USER_REFERENCE.energy, 5, bondY); bondY += 15;
+      }
+      if (window.USER_REFERENCE.binding) {
+        text("Binding: " + window.USER_REFERENCE.binding, 5, bondY);
+      }
+    }
+  }
+
   // Diagnostics
   fill(255, 255, 0);
   text("maxDens=" + (window._diagMaxD || 0).toExponential(2) +
     " pos=" + (window._diagPos || 0) + " nan=" + (window._diagNan || 0) +
-    " neg=" + (window._diagNeg || 0), 5, 110);
+    " neg=" + (window._diagNeg || 0), 5, 195);
   if (window._initDebug) {
     fill(0, 255, 255);
-    text(window._initDebug, 300, 110);
+    text(window._initDebug, 300, 195);
   }
   if (window._gpuValErr) {
     fill(255, 0, 0);
@@ -3903,6 +4005,10 @@ function draw() {
 }
 
 function keyPressed() {
+  if (key === '3') {
+    window._view3D = !window._view3D;
+    console.log("3D view " + (window._view3D ? "ON" : "OFF"));
+  }
   if (key === 'v' || key === 'V') {
     vcycleEnabled = !vcycleEnabled;
     vcycleCount = 0;
