@@ -5,7 +5,7 @@
 // Rigid-group dynamics with SHAKE constraints
 // ~35 atoms on 200^3
 (function() {
-  var gridN = 200, scr = 70, N2 = 100;
+  var gridN = 200, scr = 30, N2 = 100;
   var h = scr / gridN;
   var A = 1.8897;
   var atoms = [];
@@ -19,11 +19,10 @@
     });
   }
 
-  // Extended chain: nearly straight (tiny radius, no twist)
-  // If quantum forces favor helix, it should start curling
-  var rise = 3.8 * A;     // large rise = extended
-  var radius = 0.3 * A;   // tiny radius = nearly straight
-  var dAngle = 2 * Math.PI / 3.6; // keep angular spacing for slight zigzag
+  // Near-ideal helix, slightly perturbed — test if torques restore it
+  var rise = 2.0 * A;     // stretched from ideal 1.5 Å
+  var radius = 2.8 * A;   // widened from ideal 2.3 Å
+  var dAngle = 2 * Math.PI / 3.6;
 
   // Bond lengths
   var bCO = 1.23 * A;
@@ -152,7 +151,8 @@
     bonds: {
       "N-Ca": "1.46", "Ca-C": "1.52", "C=O": "1.23",
       "C-N": "1.33", "N-H": "1.01",
-      "O0···H4": "1.90", "O0···N4": "2.90"
+      "O0···H4": "1.90", "O1···H5": "1.90",
+      "O2···H6": "1.90", "O3···H7": "1.90"
     },
     energy: "Alpha-helix: i→i+4 H-bond test",
     binding: "H-bond ~5 kcal/mol if helix forms"
@@ -185,9 +185,9 @@
   window.USER_SCREEN = scr;
   window.USER_STEPS = 1000000;
   window.USER_DYNAMICS = true;
-  window.USER_FORCE_SCALE = 50.0;
+  window.USER_FORCE_SCALE = 100.0;
   window.USER_ARROW_SCALE = 2.0;
-  window.USER_N_MOVE = 200;
+  window.USER_N_MOVE = 100;
   window.USER_Z = atoms.map(function(a) { return a.Z; });
   window.USER_RC = atoms.map(function(a) {
     if (a.el === 'H') return 0;

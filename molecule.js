@@ -3358,10 +3358,38 @@ async function moveNuclei(gpuForces) {
       }
     }
 
-    // 2. Move entire residue by net force — 3D rigid translation
-    const maxDisp = 1.0;
+    // Excluded volume: prevent non-neighboring residues from overlapping
+    const exclDist = 8.0; // minimum Ca-Ca distance (grid units) ~4 au ~2.1 Å
+    const exclK = 3.0;
+    for (let g = 0; g < nRes; g++) {
+      for (let g2 = g + 2; g2 < nRes; g2++) {
+        const ai = caIdx[g], bi = caIdx[g2];
+        const dx = nucPos[ai][0]-nucPos[bi][0];
+        const dy = nucPos[ai][1]-nucPos[bi][1];
+        const dz = nucPos[ai][2]-nucPos[bi][2];
+        const d = Math.sqrt(dx*dx+dy*dy+dz*dz) + 1e-10;
+        if (d < exclDist) {
+          const push = exclK * (exclDist - d) / d;
+          for (const a of groups[g]) {
+            if (a >= NELEC || Z[a] === 0) continue;
+            nucPos[a][0] += push * dx * 0.5;
+            nucPos[a][1] += push * dy * 0.5;
+            nucPos[a][2] += push * dz * 0.5;
+          }
+          for (const a of groups[g2]) {
+            if (a >= NELEC || Z[a] === 0) continue;
+            nucPos[a][0] -= push * dx * 0.5;
+            nucPos[a][1] -= push * dy * 0.5;
+            nucPos[a][2] -= push * dz * 0.5;
+          }
+        }
+      }
+    }
+
+    // 3a. Rigid translation: small displacement by net force
+    const maxDisp = 0.3; // small to prevent collapse, rotation does the work
     for (let g = 0; g < groups.length; g++) {
-      const fg = g < nRes ? g : nRes - 1; // C-term follows last residue
+      const fg = g < nRes ? g : nRes - 1;
       let dx = resFx[fg] * forceScale * mdDt;
       let dy = resFy[fg] * forceScale * mdDt;
       let dz = resFz[fg] * forceScale * mdDt;
@@ -3372,6 +3400,61 @@ async function moveNuclei(gpuForces) {
         nucPos[a][0] += dx;
         nucPos[a][1] += dy;
         nucPos[a][2] += dz;
+      }
+    }
+
+    // 2b. Rigid rotation: rotate downstream residues around each Ca-Ca bond axis
+    // based on torque from quantum forces. This allows phi/psi angle changes.
+    const maxAngle = 0.03; // max rotation per step (radians)
+    for (let g = 0; g < nRes - 1; g++) {
+      const ai = caIdx[g], bi = caIdx[g+1];
+      // Rotation axis: Ca[g] -> Ca[g+1]
+      let ax = nucPos[bi][0] - nucPos[ai][0];
+      let ay = nucPos[bi][1] - nucPos[ai][1];
+      let az = nucPos[bi][2] - nucPos[ai][2];
+      const al = Math.sqrt(ax*ax + ay*ay + az*az) + 1e-10;
+      ax /= al; ay /= al; az /= al; // unit rotation axis
+
+      // Compute torque on downstream residues (g+1 to end) around this axis
+      let torque = 0;
+      for (let gg = g + 1; gg < nRes; gg++) {
+        for (const a of groups[gg]) {
+          if (a >= NELEC || Z[a] === 0) continue;
+          // Lever arm: atom position relative to Ca[g]
+          const rx = nucPos[a][0] - nucPos[ai][0];
+          const ry = nucPos[a][1] - nucPos[ai][1];
+          const rz = nucPos[a][2] - nucPos[ai][2];
+          // Force on this atom
+          const fx = nucForce[a][0], fy = nucForce[a][1], fz = nucForce[a][2];
+          // Torque = (r × F) · axis
+          const tx = ry*fz - rz*fy;
+          const ty = rz*fx - rx*fz;
+          const tz = rx*fy - ry*fx;
+          torque += tx*ax + ty*ay + tz*az;
+        }
+      }
+
+      // Convert torque to rotation angle
+      let dTheta = torque * forceScale * mdDt * 0.01;
+      dTheta = Math.max(-maxAngle, Math.min(maxAngle, dTheta));
+
+      if (Math.abs(dTheta) < 1e-8) continue;
+
+      // Rotate all downstream atoms around axis through Ca[g]
+      const c = Math.cos(dTheta), s = Math.sin(dTheta);
+      for (let gg = g + 1; gg < groups.length; gg++) {
+        for (const a of groups[gg]) {
+          if (a >= NELEC || Z[a] === 0) continue;
+          // Rodrigues' rotation formula
+          const px = nucPos[a][0] - nucPos[ai][0];
+          const py = nucPos[a][1] - nucPos[ai][1];
+          const pz = nucPos[a][2] - nucPos[ai][2];
+          const dot = px*ax + py*ay + pz*az;
+          const cx2 = ay*pz - az*py, cy2 = az*px - ax*pz, cz2 = ax*py - ay*px;
+          nucPos[a][0] = nucPos[ai][0] + px*c + cx2*s + ax*dot*(1-c);
+          nucPos[a][1] = nucPos[ai][1] + py*c + cy2*s + ay*dot*(1-c);
+          nucPos[a][2] = nucPos[ai][2] + pz*c + cz2*s + az*dot*(1-c);
+        }
       }
     }
 
@@ -3953,7 +4036,7 @@ function draw() {
       const dAu = Math.sqrt(dx*dx + dy*dy + dz*dz) * hGrid;
       const dAng = dAu * bohrToAng;
       bondStr += label + dAng.toFixed(2) + "\u00C5 ";
-      if (refStr !== null) refStr += label + ref.bonds[label.replace(":","")] + "\u00C5 ";
+      if (refStr !== null) { var rv = ref.bonds[label.replace(":", "")]; refStr += label + (rv || "?") + "\u00C5 "; }
       if (b === 6) {
         text(bondStr, 5, bondY); bondY += 15; bondStr = "      ";
         if (refStr !== null) { fill(150, 255, 150); text(refStr, 5, bondY); bondY += 15; refStr = "      "; fill(200, 200, 255); }
