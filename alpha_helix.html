@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html><body style="margin:0;background:#000">
 <script>
-// 5-residue polyglycine in ideal alpha-helix geometry — hand-placed 3D
-// Tests i→i+4 hydrogen bond (res0 C=O → res4 N-H)
+// 5-residue polyglycine — EXTENDED chain, test if helix develops
+// Rigid-group dynamics with SHAKE constraints
 // ~35 atoms on 200^3
 (function() {
-  var gridN = 200, scr = 25, N2 = 100;
+  var gridN = 200, scr = 70, N2 = 100;
   var h = scr / gridN;
   var A = 1.8897;
   var atoms = [];
@@ -19,40 +19,37 @@
     });
   }
 
-  // Alpha-helix backbone: 3.6 residues/turn, rise 1.5 Å/res, radius 2.3 Å
-  // Place backbone N-Ca-C for each residue on helix, then add H and O
-  var rise = 1.5 * A;
-  var radius = 2.3 * A;
-  var dAngle = 2 * Math.PI / 3.6; // ~100° per residue
+  // Extended chain: nearly straight (tiny radius, no twist)
+  // If quantum forces favor helix, it should start curling
+  var rise = 3.8 * A;     // large rise = extended
+  var radius = 0.3 * A;   // tiny radius = nearly straight
+  var dAngle = 2 * Math.PI / 3.6; // keep angular spacing for slight zigzag
 
   // Bond lengths
   var bCO = 1.23 * A;
   var bNH = 1.01 * A;
   var bCH = 1.09 * A;
 
-  var nRes = 5;
+  var nRes = 8;
 
-  // Generate backbone positions on helix
-  // N at -0.3, Ca at 0, C at +0.3 of the residue's angular position
+  // Generate backbone positions on helix with correct bond-length spacing
+  // Bond fractions along helix arc: N-Ca=0.338, Ca-C=0.353, C-N=0.308
+  var fNCa = 0.338, fCaC = 0.353, fCN = 0.308;
+  // Cumulative positions within one residue (N at start, then Ca, then C)
+  // N is at fraction 0, Ca at fCN (after peptide bond from prev C), C at fCN+fNCa
+  // Actually: within residue r, N starts at the peptide bond from prev C
+  // Let's place: N at 0, Ca at fNCa, C at fNCa+fCaC of the residue's arc
   var bbN = [], bbCa = [], bbC = [];
   for (var r = 0; r < nRes; r++) {
-    var theta = r * dAngle;
-    var z0 = r * rise;
-    bbN.push([
-      radius * Math.cos(theta - 0.25 * dAngle),
-      radius * Math.sin(theta - 0.25 * dAngle),
-      z0 - 0.25 * rise
-    ]);
-    bbCa.push([
-      radius * Math.cos(theta),
-      radius * Math.sin(theta),
-      z0
-    ]);
-    bbC.push([
-      radius * Math.cos(theta + 0.25 * dAngle),
-      radius * Math.sin(theta + 0.25 * dAngle),
-      z0 + 0.25 * rise
-    ]);
+    var tN  = (r + 0) * dAngle;
+    var tCa = (r + fNCa) * dAngle;
+    var tC  = (r + fNCa + fCaC) * dAngle;
+    var zN  = (r + 0) * rise;
+    var zCa = (r + fNCa) * rise;
+    var zC  = (r + fNCa + fCaC) * rise;
+    bbN.push([radius * Math.cos(tN), radius * Math.sin(tN), zN]);
+    bbCa.push([radius * Math.cos(tCa), radius * Math.sin(tCa), zCa]);
+    bbC.push([radius * Math.cos(tC), radius * Math.sin(tC), zC]);
   }
 
   // Center everything
@@ -144,10 +141,11 @@
     [atomIdx.C[0], atomIdx.O[0], "C=O:"],
     [atomIdx.C[0], atomIdx.N[1], "C-N:"],
     [atomIdx.N[1], atomIdx.H[1], "N-H:"],
-    // i→i+4 H-bond: res0 O → res4 H
+    // i→i+4 H-bonds
     [atomIdx.O[0], atomIdx.H[4], "O0···H4:"],
-    // N...O donor-acceptor distance
-    [atomIdx.O[0], atomIdx.N[4], "O0···N4:"],
+    [atomIdx.O[1], atomIdx.H[5], "O1···H5:"],
+    [atomIdx.O[2], atomIdx.H[6], "O2···H6:"],
+    [atomIdx.O[3], atomIdx.H[7], "O3···H7:"],
   ];
 
   window.USER_REFERENCE = {
@@ -160,14 +158,36 @@
     binding: "H-bond ~5 kcal/mol if helix forms"
   };
 
+  // Rigid-group classical MD: each residue moves as a unit, SHAKE on Ca-Ca
+  // Build groups from atom indices
+  var mdGroups = [];
+  for (var r = 0; r < nRes; r++) {
+    var group = [];
+    // Each residue: N, H, [extra H for r=0], Ca, Ha, Ha2, C, O
+    var start = atomIdx.N[r];
+    var end = (r < nRes-1) ? atomIdx.N[r+1] : atoms.length - 2; // before C-term OH
+    for (var a = start; a < end; a++) group.push(a);
+    mdGroups.push(group);
+  }
+  // C-terminal OH group
+  mdGroups.push([atoms.length - 2, atoms.length - 1]);
+
+  window.USER_CLASSICAL_MD = {
+    caIndices: atomIdx.Ca,
+    groups: mdGroups,
+    offsets: null, // not needed for rigid translation
+    mdSteps: 50,
+    mdDt: 0.01
+  };
+
   window.USER_NN = gridN;
   window.USER_ATOMS = atoms;
   window.USER_SCREEN = scr;
   window.USER_STEPS = 1000000;
-  window.USER_DYNAMICS = false;
-  window.USER_FORCE_SCALE = 5.0;
-  window.USER_ARROW_SCALE = 5.0;
-  window.USER_N_MOVE = 100;
+  window.USER_DYNAMICS = true;
+  window.USER_FORCE_SCALE = 50.0;
+  window.USER_ARROW_SCALE = 2.0;
+  window.USER_N_MOVE = 200;
   window.USER_Z = atoms.map(function(a) { return a.Z; });
   window.USER_RC = atoms.map(function(a) {
     if (a.el === 'H') return 0;

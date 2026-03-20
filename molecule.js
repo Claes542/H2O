@@ -3344,87 +3344,79 @@ async function moveNuclei(gpuForces) {
     const offsets = cmd.offsets;
     const nRes = caIdx.length;
 
-    // 1. Sum quantum forces per residue
+    // 1. Sum quantum forces per residue (3D)
     const resFx = new Array(nRes).fill(0);
     const resFy = new Array(nRes).fill(0);
+    const resFz = new Array(nRes).fill(0);
     for (let g = 0; g < nRes; g++) {
       for (const a of groups[g]) {
         if (a < NELEC && Z[a] > 0) {
           resFx[g] += nucForce[a][0];
           resFy[g] += nucForce[a][1];
+          resFz[g] += nucForce[a][2];
         }
       }
     }
 
-    // 2. Two rigid strands pivoting at hinge
-    // Strand 1: residues 0-5, Strand 2: residues 6-11 (+C-term)
-    // Hinge point: midpoint between Ca[5] and Ca[6]
-    const hingeX = (nucPos[caIdx[5]][0] + nucPos[caIdx[6]][0]) / 2;
-    const hingeY = (nucPos[caIdx[5]][1] + nucPos[caIdx[6]][1]) / 2;
-
-    // Compute net torque on each strand around the hinge
-    let torque1 = 0, torque2 = 0;
-    for (let g = 0; g < 6; g++) {  // strand 1
-      const rx = nucPos[caIdx[g]][0] - hingeX;
-      const ry = nucPos[caIdx[g]][1] - hingeY;
-      torque1 += rx * resFy[g] - ry * resFx[g]; // cross product = torque
-    }
-    for (let g = 6; g < nRes; g++) {  // strand 2
-      const rx = nucPos[caIdx[g]][0] - hingeX;
-      const ry = nucPos[caIdx[g]][1] - hingeY;
-      torque2 += rx * resFy[g] - ry * resFx[g];
-    }
-
-    // Convert torque to rotation angle (small angle approximation)
-    const maxAngle = 0.02; // max rotation per step (radians)
-    let dTheta1 = torque1 * forceScale * mdDt * 0.0001;
-    let dTheta2 = torque2 * forceScale * mdDt * 0.0001;
-    dTheta1 = Math.max(-maxAngle, Math.min(maxAngle, dTheta1));
-    dTheta2 = Math.max(-maxAngle, Math.min(maxAngle, dTheta2));
-
-    // Rotate strand 1 around hinge
-    const cos1 = Math.cos(dTheta1), sin1 = Math.sin(dTheta1);
-    for (let g = 0; g <= 5; g++) {
+    // 2. Move entire residue by net force — 3D rigid translation
+    const maxDisp = 1.0;
+    for (let g = 0; g < groups.length; g++) {
+      const fg = g < nRes ? g : nRes - 1; // C-term follows last residue
+      let dx = resFx[fg] * forceScale * mdDt;
+      let dy = resFy[fg] * forceScale * mdDt;
+      let dz = resFz[fg] * forceScale * mdDt;
+      const mag = Math.sqrt(dx*dx + dy*dy + dz*dz);
+      if (mag > maxDisp) { dx *= maxDisp/mag; dy *= maxDisp/mag; dz *= maxDisp/mag; }
       for (const a of groups[g]) {
         if (a >= NELEC || Z[a] === 0) continue;
-        const rx = nucPos[a][0] - hingeX;
-        const ry = nucPos[a][1] - hingeY;
-        nucPos[a][0] = hingeX + rx * cos1 - ry * sin1;
-        nucPos[a][1] = hingeY + rx * sin1 + ry * cos1;
+        nucPos[a][0] += dx;
+        nucPos[a][1] += dy;
+        nucPos[a][2] += dz;
       }
     }
 
-    // Rotate strand 2 around hinge
-    const cos2 = Math.cos(dTheta2), sin2 = Math.sin(dTheta2);
-    for (let g = 6; g < nRes; g++) {
-      for (const a of groups[g]) {
-        if (a >= NELEC || Z[a] === 0) continue;
-        const rx = nucPos[a][0] - hingeX;
-        const ry = nucPos[a][1] - hingeY;
-        nucPos[a][0] = hingeX + rx * cos2 - ry * sin2;
-        nucPos[a][1] = hingeY + rx * sin2 + ry * cos2;
+    // 3. SHAKE on Ca-Ca distances — 3D, move whole residue groups
+    if (!cmd._caR0) {
+      cmd._caR0 = [];
+      for (let g = 0; g < nRes - 1; g++) {
+        const ai = caIdx[g], bi = caIdx[g+1];
+        const dx = nucPos[ai][0]-nucPos[bi][0];
+        const dy = nucPos[ai][1]-nucPos[bi][1];
+        const dz = nucPos[ai][2]-nucPos[bi][2];
+        cmd._caR0.push(Math.sqrt(dx*dx + dy*dy + dz*dz));
       }
     }
-    // C-term OH follows strand 2
-    if (groups.length > nRes) {
-      for (const a of groups[nRes]) {
-        if (a >= NELEC || Z[a] === 0) continue;
-        const rx = nucPos[a][0] - hingeX;
-        const ry = nucPos[a][1] - hingeY;
-        nucPos[a][0] = hingeX + rx * cos2 - ry * sin2;
-        nucPos[a][1] = hingeY + rx * sin2 + ry * cos2;
+    for (let iter = 0; iter < mdSteps; iter++) {
+      for (let g = 0; g < nRes - 1; g++) {
+        const ai = caIdx[g], bi = caIdx[g+1];
+        const dx = nucPos[ai][0]-nucPos[bi][0];
+        const dy = nucPos[ai][1]-nucPos[bi][1];
+        const dz = nucPos[ai][2]-nucPos[bi][2];
+        const d = Math.sqrt(dx*dx + dy*dy + dz*dz) + 1e-10;
+        const err = (d - cmd._caR0[g]) / d * 0.5;
+        for (const a of groups[g]) {
+          if (a >= NELEC || Z[a] === 0) continue;
+          nucPos[a][0] -= err * dx;
+          nucPos[a][1] -= err * dy;
+          nucPos[a][2] -= err * dz;
+        }
+        for (const a of groups[g+1]) {
+          if (a >= NELEC || Z[a] === 0) continue;
+          nucPos[a][0] += err * dx;
+          nucPos[a][1] += err * dy;
+          nucPos[a][2] += err * dz;
+        }
       }
     }
 
-    console.log("RIGID STRANDS: torque1=" + torque1.toExponential(2) +
-      " torque2=" + torque2.toExponential(2) +
-      " dTheta1=" + (dTheta1*180/Math.PI).toFixed(3) + "° dTheta2=" + (dTheta2*180/Math.PI).toFixed(3) + "°");
+    console.log("CLASSICAL MD 3D: " + nRes + " residues, rigid translation + SHAKE — FULL RESTART");
 
-    // Boundary clamp
+    // Boundary clamp (3D)
     for (let a = 0; a < NELEC; a++) {
       if (Z[a] === 0) continue;
       nucPos[a][0] = Math.max(5, Math.min(NN - 5, nucPos[a][0]));
       nucPos[a][1] = Math.max(5, Math.min(NN - 5, nucPos[a][1]));
+      nucPos[a][2] = Math.max(5, Math.min(NN - 5, nucPos[a][2]));
     }
 
     console.log("CLASSICAL MD: SHAKE + offsets, " + nRes + " residues — FULL RESTART");
@@ -3827,7 +3819,7 @@ function draw() {
         const dy = (nucPos[a][1]-nucPos[b][1])*hGrid;
         const dz = (nucPos[a][2]-nucPos[b][2])*hGrid;
         const d = Math.sqrt(dx*dx+dy*dy+dz*dz);
-        if (d < 3.5) { // bond threshold in au
+        if (d < 5.5) { // bond threshold in au (covers C-N peptide ~2.5, Ca-Ca ~3.8)
           // Project both points
           let ax = nucPos[a][0]-cx3, ay = nucPos[a][1]-cy3, az = nucPos[a][2]-cz3;
           let bx3 = nucPos[b][0]-cx3, by3 = nucPos[b][1]-cy3, bz3 = nucPos[b][2]-cz3;
