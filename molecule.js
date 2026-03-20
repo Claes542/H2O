@@ -82,9 +82,9 @@ const SIC_INTERVAL = NELEC <= 15 ? 1 : NELEC <= 30 ? 5 : 999999;  // SIC in dyna
 const SIC_JACOBI = NELEC <= 15 ? 50 : 10;
 
 // === Nuclear dynamics state ===
-const N_MOVE = 10;  // electronic steps between nuclear moves
+const N_MOVE = window.USER_N_MOVE || 10;  // electronic steps between nuclear moves
 const DT_NUC = window.USER_DT_NUC || (NELEC <= 5 ? 2.0 : NELEC > 200 ? 0.2 : 0.8);  // au
-const NUC_SUBSTEPS = NELEC <= 5 ? 2 : 1;
+const NUC_SUBSTEPS = window.USER_NUC_SUBSTEPS || (NELEC <= 5 ? 2 : 1);
 const DAMPING = window.USER_DAMPING || 0.98;       // light damping
 const MAX_VEL = NELEC <= 5 ? 0.3 : NELEC > 200 ? 0.03 : 0.1;  // au/au_time
 let forceScale = window.USER_FORCE_SCALE || 1.0;       // adjustable via slider/keys
@@ -2787,6 +2787,12 @@ async function doSteps(n) {
         nucForceElec[a][2] + nucForceNuc[a][2]
       ];
     }
+    // Zero display forces on hinge atoms
+    if (window.USER_HINGE_ATOMS) {
+      for (const a of window.USER_HINGE_ATOMS) {
+        if (a < NELEC) nucForceTotal[a] = [0, 0, 0];
+      }
+    }
     if (dynamicsEnabled) await moveNuclei(forceData);
   }
 }
@@ -3283,8 +3289,209 @@ async function moveNuclei(gpuForces) {
     }
   }
 
+  // Zero out forces on hinge atoms (free pivot)
+  if (window.USER_HINGE_ATOMS) {
+    for (const a of window.USER_HINGE_ATOMS) {
+      if (a < NELEC) nucForce[a] = [0, 0, 0];
+    }
+  }
+
   console.log("Forces (elec+nuc): " + nucForce.filter((_,i) => Z[i]>0).map((f,i) =>
     atomLabels[i]+"=("+f.map(x=>x.toExponential(3)).join(",")+")").join(" "));
+
+  // Log net force on each branch for fold analysis (before elastic update)
+  if (window.USER_FOLD_ATOMS) {
+    const fa = window.USER_FOLD_ATOMS;
+    const hingeAtom = fa[1];
+    let s1fx=0, s1fy=0, s2fx=0, s2fy=0;
+    let s1n=0, s2n=0;
+    for (let a = 0; a < NELEC; a++) {
+      if (Z[a] === 0) continue;
+      if (a < hingeAtom) { s1fx += nucForce[a][0]; s1fy += nucForce[a][1]; s1n++; }
+      else { s2fx += nucForce[a][0]; s2fy += nucForce[a][1]; s2n++; }
+    }
+    let s1cx=0, s1cy=0, s2cx=0, s2cy=0;
+    for (let a = 0; a < NELEC; a++) {
+      if (Z[a] === 0) continue;
+      if (a < hingeAtom) { s1cx += nucPos[a][0]; s1cy += nucPos[a][1]; }
+      else { s2cx += nucPos[a][0]; s2cy += nucPos[a][1]; }
+    }
+    s1cx /= s1n; s1cy /= s1n; s2cx /= s2n; s2cy /= s2n;
+    const dx12 = s2cx - s1cx, dy12 = s2cy - s1cy;
+    const d12 = Math.sqrt(dx12*dx12 + dy12*dy12);
+    const s1proj = (s1fx * (-dx12) + s1fy * (-dy12)) / d12;
+    const s2proj = (s2fx * dx12 + s2fy * dy12) / d12;
+    const netUnfold = s1proj + s2proj;
+    window._foldNetUnfold = netUnfold;
+    window._foldS1proj = s1proj;
+    window._foldS2proj = s2proj;
+    console.log("FOLD FORCES: NET=" + netUnfold.toExponential(3) + (netUnfold > 0 ? " UNFOLDING" : " FOLDING"));
+  }
+
+  // Elastic backbone: replace per-atom dynamics with elastic string on Ca atoms
+  const eb = window.USER_ELASTIC_BACKBONE;
+  if (eb) {
+    const nBeads = eb.caIndices.length; // 12 residues
+    // 1. Sum quantum forces per residue (in grid units)
+    const resFx = new Array(nBeads).fill(0);
+    const resFy = new Array(nBeads).fill(0);
+    for (let g = 0; g < nBeads; g++) {
+      for (const a of eb.groups[g]) {
+        if (a < NELEC && Z[a] > 0) {
+          resFx[g] += nucForce[a][0];
+          resFy[g] += nucForce[a][1];
+        }
+      }
+    }
+
+    // 2. Get current Ca positions (grid units)
+    const cx = eb.caIndices.map(a => nucPos[a][0]);
+    const cy = eb.caIndices.map(a => nucPos[a][1]);
+
+    // 3. Elastic string relaxation: overdamped dynamics
+    const K = eb.springK;
+    const r0 = eb.r0;
+    const dt = eb.elasticDt;
+    for (let step = 0; step < eb.elasticSteps; step++) {
+      for (let g = 0; g < nBeads; g++) {
+        let sfx = 0, sfy = 0;
+        // Spring to previous bead
+        if (g > 0) {
+          const dx = cx[g] - cx[g-1], dy = cy[g] - cy[g-1];
+          const d = Math.sqrt(dx*dx + dy*dy) + 1e-10;
+          const stretch = (d - r0) / d;
+          sfx -= K * stretch * dx;
+          sfy -= K * stretch * dy;
+        }
+        // Spring to next bead
+        if (g < nBeads - 1) {
+          const dx = cx[g] - cx[g+1], dy = cy[g] - cy[g+1];
+          const d = Math.sqrt(dx*dx + dy*dy) + 1e-10;
+          const stretch = (d - r0) / d;
+          sfx -= K * stretch * dx;
+          sfy -= K * stretch * dy;
+        }
+        // Total: spring + quantum force (scaled)
+        cx[g] += (sfx + resFx[g] * forceScale) * dt;
+        cy[g] += (sfy + resFy[g] * forceScale) * dt;
+        // Boundary clamp
+        cx[g] = Math.max(10, Math.min(NN - 10, cx[g]));
+        cy[g] = Math.max(10, Math.min(NN - 10, cy[g]));
+      }
+    }
+
+    // 4. Rebuild all atom positions from new Ca positions
+    // Compute local frame (tangent + normal) at each Ca
+    for (let g = 0; g < nBeads; g++) {
+      // Tangent from neighbors
+      let tx, ty;
+      if (g === 0) { tx = cx[1] - cx[0]; ty = cy[1] - cy[0]; }
+      else if (g === nBeads-1) { tx = cx[g] - cx[g-1]; ty = cy[g] - cy[g-1]; }
+      else { tx = cx[g+1] - cx[g-1]; ty = cy[g+1] - cy[g-1]; }
+      const tl = Math.sqrt(tx*tx + ty*ty) + 1e-10;
+      tx /= tl; ty /= tl;
+      const nx = -ty, ny = tx; // normal
+
+      // Old tangent (from initial offsets — use offset of C relative to N as proxy)
+      // For simplicity, rotate offsets by angle difference between old and new tangent
+      const caIdx = eb.caIndices[g];
+      const oldTx = nucPos[caIdx][0]; // will use a simpler approach
+
+      // Apply offsets rotated to new frame
+      // Old frame: initial tangent was encoded in offsets
+      // New frame: (tx, ty) tangent, (nx, ny) normal
+      // Since offsets were stored in the initial frame, and we need to rotate them:
+      // For now, apply offsets scaled by new tangent/normal
+      const offsets = eb.offsets[g];
+      const group = eb.groups[g];
+      for (let k = 0; k < group.length; k++) {
+        const a = group[k];
+        if (a >= NELEC) continue;
+        const di = offsets[k].di, dj = offsets[k].dj;
+        // Reconstruct: Ca + offset rotated into new local frame
+        // offset = di * old_tangent + dj * old_normal → di * new_tangent + dj * new_normal
+        nucPos[a][0] = cx[g] + di * tx + dj * nx;
+        nucPos[a][1] = cy[g] + di * ty + dj * ny;
+      }
+    }
+    // C-term OH follows last residue
+    if (eb.groups.length > nBeads) {
+      const lastG = nBeads - 1;
+      const offsets = eb.offsets[nBeads];
+      const group = eb.groups[nBeads];
+      let tx, ty;
+      tx = cx[lastG] - cx[lastG-1]; ty = cy[lastG] - cy[lastG-1];
+      const tl = Math.sqrt(tx*tx + ty*ty) + 1e-10;
+      tx /= tl; ty /= tl;
+      const nx = -ty, ny = tx;
+      for (let k = 0; k < group.length; k++) {
+        const a = group[k];
+        if (a >= NELEC) continue;
+        nucPos[a][0] = cx[lastG] + offsets[k].di * tx + offsets[k].dj * nx;
+        nucPos[a][1] = cy[lastG] + offsets[k].di * ty + offsets[k].dj * ny;
+      }
+    }
+
+    console.log("ELASTIC BACKBONE: Ca positions updated, " + eb.elasticSteps + " relaxation steps — FULL RESTART");
+    nucStepCount++;
+
+    // Full restart: re-initialize wavefunctions, labels, K, P from scratch
+    fillAtomBuf();
+
+    // Clear K, labels, U, P
+    const clrEnc = device.createCommandEncoder();
+    clrEnc.clearBuffer(K_buf);
+    clrEnc.clearBuffer(labelBuf);
+    clrEnc.clearBuffer(U_buf[0]);
+    clrEnc.clearBuffer(P_buf[0]);
+    device.queue.submit([clrEnc.finish()]);
+
+    // Clear bestR2
+    const bU = new Float32Array(S3);
+    bU.fill(0.0);
+    device.queue.writeBuffer(bestR2Buf, 0, bU);
+
+    // Batched init: recompute K and assign labels
+    const nBatches = Math.ceil(NELEC / INIT_BATCH);
+    for (let b = 0; b < nBatches; b++) {
+      const start = b * INIT_BATCH;
+      const count = Math.min(INIT_BATCH, NELEC - start);
+      device.queue.writeBuffer(initRangeBuf, 0, new Uint32Array([start, count, 0, 0]));
+      const enc = device.createCommandEncoder();
+      const ip = enc.beginComputePass();
+      ip.setPipeline(gpuInitAccumPL);
+      ip.setBindGroup(0, gpuInitAccumBG);
+      dispatchLinear(ip, S3);
+      ip.end();
+      device.queue.submit([enc.finish()]);
+    }
+
+    // Final pass: set U and P from bestR2
+    {
+      const enc = device.createCommandEncoder();
+      const ip = enc.beginComputePass();
+      ip.setPipeline(gpuInitFinalPL);
+      ip.setBindGroup(0, gpuInitFinalBG);
+      dispatchLinear(ip, S3);
+      ip.end();
+      device.queue.submit([enc.finish()]);
+    }
+
+    // Copy U[0] to U[1]
+    {
+      const enc = device.createCommandEncoder();
+      enc.copyBufferToBuffer(U_buf[0], 0, U_buf[1], 0, S3 * 4);
+      device.queue.submit([enc.finish()]);
+    }
+
+    await device.queue.onSubmittedWorkDone();
+
+    // Reset step counter so it runs N_MOVE steps before next force computation
+    tStep = 0;
+    phaseSteps = 0;
+
+    return; // skip normal per-atom dynamics
+  }
 
   // Log net force on each branch for fold analysis
   if (window.USER_FOLD_ATOMS) {
@@ -3322,16 +3529,52 @@ async function moveNuclei(gpuForces) {
       " | NET=" + netUnfold.toExponential(3) + (netUnfold > 0 ? " UNFOLDING" : " FOLDING"));
   }
 
+  // If USER_RIGID_GROUPS defined, move each group as rigid body (average force)
+  // Format: [[a0,a1,...], [a2,a3,...], ...] — atom indices per group
+  const rigidGroups = window.USER_RIGID_GROUPS;
+
   for (let sub = 0; sub < NUC_SUBSTEPS; sub++) {
-    for (let a = 0; a < NELEC; a++) {
-      if (Z[a] === 0) continue;
-      const m = nucMass(Z[a]);
-      for (let d = 0; d < 3; d++) {
-        nucVel[a][d] += nucForce[a][d] / m * DT_NUC * forceScale;
-        nucVel[a][d] *= DAMPING;
-        nucVel[a][d] = Math.max(-MAX_VEL, Math.min(MAX_VEL, nucVel[a][d]));
-        nucPos[a][d] += nucVel[a][d] * DT_NUC / hGrid;
-        nucPos[a][d] = Math.max(5, Math.min(NN - 5, nucPos[a][d]));
+    if (rigidGroups) {
+      // Rigid group dynamics: average force over group, move all atoms together
+      for (const group of rigidGroups) {
+        let gfx = 0, gfy = 0, gfz = 0, totalMass = 0;
+        for (const a of group) {
+          if (a >= NELEC || Z[a] === 0) continue;
+          gfx += nucForce[a][0];
+          gfy += nucForce[a][1];
+          gfz += nucForce[a][2];
+          totalMass += nucMass(Z[a]);
+        }
+        if (totalMass === 0) continue;
+        // Shared velocity for the group (use first atom's velocity as group velocity)
+        const g0 = group[0];
+        for (let d = 0; d < 3; d++) {
+          const gf = d === 0 ? gfx : d === 1 ? gfy : gfz;
+          nucVel[g0][d] += gf / totalMass * DT_NUC * forceScale;
+          nucVel[g0][d] *= DAMPING;
+          nucVel[g0][d] = Math.max(-MAX_VEL, Math.min(MAX_VEL, nucVel[g0][d]));
+        }
+        // Move all atoms in group by same displacement
+        for (const a of group) {
+          if (a >= NELEC || Z[a] === 0) continue;
+          for (let d = 0; d < 3; d++) {
+            nucPos[a][d] += nucVel[g0][d] * DT_NUC / hGrid;
+            nucPos[a][d] = Math.max(5, Math.min(NN - 5, nucPos[a][d]));
+          }
+        }
+      }
+    } else {
+      // Per-atom dynamics (original)
+      for (let a = 0; a < NELEC; a++) {
+        if (Z[a] === 0) continue;
+        const m = nucMass(Z[a]);
+        for (let d = 0; d < 3; d++) {
+          nucVel[a][d] += nucForce[a][d] / m * DT_NUC * forceScale;
+          nucVel[a][d] *= DAMPING;
+          nucVel[a][d] = Math.max(-MAX_VEL, Math.min(MAX_VEL, nucVel[a][d]));
+          nucPos[a][d] += nucVel[a][d] * DT_NUC / hGrid;
+          nucPos[a][d] = Math.max(5, Math.min(NN - 5, nucPos[a][d]));
+        }
       }
     }
   }

@@ -3,7 +3,7 @@
 <script>
 // Beta hairpin 12-residue polyglycine — U-shaped, NO water
 (function() {
-  var gridN = 300, scr = 80, N2 = 150;
+  var gridN = 200, scr = 80, N2 = 100;
   var h = scr / gridN;
   var A = 1.8897; // angstrom to au
   var atoms = [];
@@ -105,14 +105,75 @@
 
   window.USER_FOLD_ATOMS = [0, 45, 83];
 
+  // Elastic backbone: each residue is a bead on an elastic string
+  var caIndices = [3];
+  for (var r = 1; r < 12; r++) caIndices.push(7*r + 3);
+
+  var elasticGroups = [];
+  elasticGroups.push([0,1,2,3,4,5,6,7]);
+  for (var r = 1; r < 12; r++) {
+    var g = [];
+    for (var a = 7*r+1; a <= 7*r+7; a++) g.push(a);
+    elasticGroups.push(g);
+  }
+  elasticGroups.push([85, 86]);
+
+  var elasticOffsets = [];
+  for (var g = 0; g < 12; g++) {
+    var caIdx = caIndices[g];
+    var tx, ty;
+    if (g === 0) { tx = atoms[caIndices[1]].i - atoms[caIndices[0]].i; ty = atoms[caIndices[1]].j - atoms[caIndices[0]].j; }
+    else if (g === 11) { tx = atoms[caIndices[11]].i - atoms[caIndices[10]].i; ty = atoms[caIndices[11]].j - atoms[caIndices[10]].j; }
+    else { tx = atoms[caIndices[g+1]].i - atoms[caIndices[g-1]].i; ty = atoms[caIndices[g+1]].j - atoms[caIndices[g-1]].j; }
+    var tl = Math.sqrt(tx*tx + ty*ty);
+    tx /= tl; ty /= tl;
+    var nx = -ty, ny = tx;
+    var groupOffsets = [];
+    for (var k = 0; k < elasticGroups[g].length; k++) {
+      var ai = elasticGroups[g][k];
+      var dx = atoms[ai].i - atoms[caIdx].i;
+      var dy = atoms[ai].j - atoms[caIdx].j;
+      groupOffsets.push({ di: dx * tx + dy * ty, dj: dx * nx + dy * ny });
+    }
+    elasticOffsets.push(groupOffsets);
+  }
+  var lastCaIdx = caIndices[11];
+  var ltx = atoms[caIndices[11]].i - atoms[caIndices[10]].i;
+  var lty = atoms[caIndices[11]].j - atoms[caIndices[10]].j;
+  var ltl = Math.sqrt(ltx*ltx + lty*lty);
+  ltx /= ltl; lty /= ltl;
+  var lnx = -lty, lny = ltx;
+  elasticOffsets.push([
+    { di: (atoms[85].i - atoms[lastCaIdx].i) * ltx + (atoms[85].j - atoms[lastCaIdx].j) * lty,
+      dj: (atoms[85].i - atoms[lastCaIdx].i) * lnx + (atoms[85].j - atoms[lastCaIdx].j) * lny },
+    { di: (atoms[86].i - atoms[lastCaIdx].i) * ltx + (atoms[86].j - atoms[lastCaIdx].j) * lty,
+      dj: (atoms[86].i - atoms[lastCaIdx].i) * lnx + (atoms[86].j - atoms[lastCaIdx].j) * lny }
+  ]);
+
+  var r0_grid = Math.sqrt(
+    (atoms[caIndices[1]].i - atoms[caIndices[0]].i) * (atoms[caIndices[1]].i - atoms[caIndices[0]].i) +
+    (atoms[caIndices[1]].j - atoms[caIndices[0]].j) * (atoms[caIndices[1]].j - atoms[caIndices[0]].j)
+  );
+
+  window.USER_ELASTIC_BACKBONE = {
+    caIndices: caIndices,
+    groups: elasticGroups,
+    offsets: elasticOffsets,
+    r0: r0_grid,
+    springK: 100.0,
+    elasticSteps: 10,
+    elasticDt: 0.005
+  };
+
   window.USER_NN = gridN;
   window.USER_ATOMS = atoms;
   window.USER_SCREEN = scr;
   window.USER_STEPS = 1000000;
   window.USER_DYNAMICS = true;
-  window.USER_FORCE_SCALE = 5.0;
-  window.USER_DAMPING = 0.90;
-  window.USER_ARROW_SCALE = 2.0;
+  window.USER_N_MOVE = 200;  // 200 electronic steps to settle before elastic update
+  window.USER_FORCE_SCALE = 2.0;
+  window.USER_DAMPING = 0.5;
+  window.USER_ARROW_SCALE = 10.0;
   window.USER_Z = atoms.map(function(a) { return a.Z; });
   window.USER_RC = atoms.map(function(a) {
     if (a.el === 'H') return 0;

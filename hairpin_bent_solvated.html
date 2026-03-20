@@ -132,11 +132,32 @@
   var waterSpacing = 2.8 * A;
   var minDist = 2.5 * A;
   var shellDist = 8 * A;   // place water within this distance of any protein atom
-  var gridLimit = scr / 2 - 3; // stay within grid boundaries
+  var gridLimit = scr / 2 - 8; // stay well within grid boundaries
+
+  // Inside/outside U test using angular wedge from turn center
+  // Turn center = midpoint of positions 5 and 6 (centered)
+  var turnCx = (positions[5].x + positions[6].x) / 2 - cenX;
+  var turnCy = (positions[5].y + positions[6].y) / 2 - cenY;
+  // Strand tips (centered)
+  var tip1x = positions[0].x - cenX, tip1y = positions[0].y - cenY;
+  var tip2x = positions[11].x - cenX, tip2y = positions[11].y - cenY;
+  // Angles from turn center to each tip
+  var ang1 = Math.atan2(tip1y - turnCy, tip1x - turnCx);
+  var ang2 = Math.atan2(tip2y - turnCy, tip2x - turnCx);
+  // Ensure ang1 < ang2 (ang1 = left strand, ang2 = right strand)
+  if (ang1 > ang2) { var tmp = ang1; ang1 = ang2; ang2 = tmp; }
+
+  function isInsideU(wx, wy) {
+    var ang = Math.atan2(wy - turnCy, wx - turnCx);
+    // Inside if angle is between the two strand directions (within the wedge)
+    return ang > ang1 && ang < ang2;
+  }
 
   var nWater = 0;
   for (var wx = -gridLimit; wx <= gridLimit; wx += waterSpacing) {
     for (var wy = -gridLimit; wy <= gridLimit; wy += waterSpacing) {
+      // Place water all around (no inside/outside filtering)
+
       // Check proximity to protein: must be near some atom but not too close
       var tooClose = false;
       var nearProtein = false;
@@ -171,14 +192,91 @@
   // After 12 residues: 85 backbone atoms + C-term O(85) H(86) = 87 protein atoms
   window.USER_FOLD_ATOMS = [0, 45, 83];
 
+  // Elastic backbone: each residue is a bead on an elastic string
+  // Ca atom indices: res0=3, res_r(r>=1)=7r+3+1=7r+4...
+  // Res0: atoms 0-7, Ca at index 3
+  // Res r (r>=1): atoms 7r+1 to 7r+7, Ca at index 7r+3
+  var caIndices = [3]; // residue 0
+  for (var r = 1; r < 12; r++) caIndices.push(7*r + 3);
+
+  // Groups: which atoms belong to each residue
+  var elasticGroups = [];
+  elasticGroups.push([0,1,2,3,4,5,6,7]); // residue 0
+  for (var r = 1; r < 12; r++) {
+    var g = [];
+    for (var a = 7*r+1; a <= 7*r+7; a++) g.push(a);
+    elasticGroups.push(g);
+  }
+  elasticGroups.push([85, 86]); // C-terminal OH (no Ca, follows last residue)
+
+  // Store initial offsets in LOCAL frame (tangent, normal) relative to Ca
+  // This way offsets can be rotated when backbone bends
+  var elasticOffsets = [];
+  for (var g = 0; g < 12; g++) {
+    var caIdx = caIndices[g];
+    // Compute initial tangent at this Ca
+    var tx, ty;
+    if (g === 0) { tx = atoms[caIndices[1]].i - atoms[caIndices[0]].i; ty = atoms[caIndices[1]].j - atoms[caIndices[0]].j; }
+    else if (g === 11) { tx = atoms[caIndices[11]].i - atoms[caIndices[10]].i; ty = atoms[caIndices[11]].j - atoms[caIndices[10]].j; }
+    else { tx = atoms[caIndices[g+1]].i - atoms[caIndices[g-1]].i; ty = atoms[caIndices[g+1]].j - atoms[caIndices[g-1]].j; }
+    var tl = Math.sqrt(tx*tx + ty*ty);
+    tx /= tl; ty /= tl;
+    var nx = -ty, ny = tx; // normal
+
+    var groupOffsets = [];
+    for (var k = 0; k < elasticGroups[g].length; k++) {
+      var ai = elasticGroups[g][k];
+      var dx = atoms[ai].i - atoms[caIdx].i;
+      var dy = atoms[ai].j - atoms[caIdx].j;
+      // Project offset onto tangent and normal
+      groupOffsets.push({
+        di: dx * tx + dy * ty,   // tangent component
+        dj: dx * nx + dy * ny    // normal component
+      });
+    }
+    elasticOffsets.push(groupOffsets);
+  }
+  // C-term OH offsets relative to last Ca (use last Ca's frame)
+  var lastCaIdx = caIndices[11];
+  var ltx = atoms[caIndices[11]].i - atoms[caIndices[10]].i;
+  var lty = atoms[caIndices[11]].j - atoms[caIndices[10]].j;
+  var ltl = Math.sqrt(ltx*ltx + lty*lty);
+  ltx /= ltl; lty /= ltl;
+  var lnx = -lty, lny = ltx;
+  var ctOffsets = [];
+  for (var ct = 85; ct <= 86; ct++) {
+    var dx = atoms[ct].i - atoms[lastCaIdx].i;
+    var dy = atoms[ct].j - atoms[lastCaIdx].j;
+    ctOffsets.push({ di: dx * ltx + dy * lty, dj: dx * lnx + dy * lny });
+  }
+  elasticOffsets.push(ctOffsets);
+
+  // Equilibrium Ca-Ca distance (in grid units)
+  var ca0 = caIndices[0], ca1 = caIndices[1];
+  var r0_grid = Math.sqrt(
+    (atoms[ca1].i - atoms[ca0].i) * (atoms[ca1].i - atoms[ca0].i) +
+    (atoms[ca1].j - atoms[ca0].j) * (atoms[ca1].j - atoms[ca0].j)
+  );
+
+  window.USER_ELASTIC_BACKBONE = {
+    caIndices: caIndices,         // Ca atom index for each residue
+    groups: elasticGroups,        // atom indices per residue
+    offsets: elasticOffsets,       // initial offsets from Ca per group
+    r0: r0_grid,                  // equilibrium Ca-Ca distance (grid units)
+    springK: 50.0,                // spring constant
+    elasticSteps: 20,             // elastic relaxation steps per quantum force update
+    elasticDt: 0.05              // elastic timestep
+  };
+
   window.USER_NN = gridN;
   window.USER_ATOMS = atoms;
   window.USER_SCREEN = scr;
   window.USER_STEPS = 1000000;
   window.USER_DYNAMICS = true;      // start with nuclear motion on
   window.USER_FORCE_SCALE = 5.0;  // 5x force for dynamics
-  window.USER_DAMPING = 0.90;  // stronger damping to prevent overshoot
-  window.USER_ARROW_SCALE = 2.0;   // arrow display
+  window.USER_DAMPING = 0.5;  // heavy damping — overdamped regime
+  window.USER_NUC_SUBSTEPS = 10;  // 10 position updates per force computation
+  window.USER_ARROW_SCALE = 10.0;   // arrow display
   window.USER_PROTEIN_COUNT = nProtein;  // for coloring force arrows
   window.USER_Z = atoms.map(function(a) { return a.Z; });
   window.USER_RC = atoms.map(function(a) {
