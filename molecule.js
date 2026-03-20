@@ -3328,15 +3328,27 @@ async function moveNuclei(gpuForces) {
     console.log("FOLD FORCES: NET=" + netUnfold.toExponential(3) + (netUnfold > 0 ? " UNFOLDING" : " FOLDING"));
   }
 
-  // Elastic backbone: replace per-atom dynamics with elastic string on Ca atoms
-  const eb = window.USER_ELASTIC_BACKBONE;
-  if (eb) {
-    const nBeads = eb.caIndices.length; // 12 residues
-    // 1. Sum quantum forces per residue (in grid units)
-    const resFx = new Array(nBeads).fill(0);
-    const resFy = new Array(nBeads).fill(0);
-    for (let g = 0; g < nBeads; g++) {
-      for (const a of eb.groups[g]) {
+  // Classical MD: bonds + angles + quantum forces, then full restart
+  const cmd = window.USER_CLASSICAL_MD;
+  const eb = window.USER_ELASTIC_BACKBONE; // keep for backward compat
+  if (cmd && cmd.caIndices) {
+    const mdSteps = cmd.mdSteps;
+    const mdDt = cmd.mdDt;
+
+    // Coarse-grained approach: move Ca atoms by per-residue net quantum force
+    // then SHAKE Ca-Ca distances, then rebuild all atoms from Ca + offsets
+
+    // Need residue groups and Ca indices — reuse from config or detect
+    const caIdx = cmd.caIndices;
+    const groups = cmd.groups;
+    const offsets = cmd.offsets;
+    const nRes = caIdx.length;
+
+    // 1. Sum quantum forces per residue
+    const resFx = new Array(nRes).fill(0);
+    const resFy = new Array(nRes).fill(0);
+    for (let g = 0; g < nRes; g++) {
+      for (const a of groups[g]) {
         if (a < NELEC && Z[a] > 0) {
           resFx[g] += nucForce[a][0];
           resFy[g] += nucForce[a][1];
@@ -3344,95 +3356,78 @@ async function moveNuclei(gpuForces) {
       }
     }
 
-    // 2. Get current Ca positions (grid units)
-    const cx = eb.caIndices.map(a => nucPos[a][0]);
-    const cy = eb.caIndices.map(a => nucPos[a][1]);
+    // 2. Two rigid strands pivoting at hinge
+    // Strand 1: residues 0-5, Strand 2: residues 6-11 (+C-term)
+    // Hinge point: midpoint between Ca[5] and Ca[6]
+    const hingeX = (nucPos[caIdx[5]][0] + nucPos[caIdx[6]][0]) / 2;
+    const hingeY = (nucPos[caIdx[5]][1] + nucPos[caIdx[6]][1]) / 2;
 
-    // 3. Elastic string relaxation: overdamped dynamics
-    const K = eb.springK;
-    const r0 = eb.r0;
-    const dt = eb.elasticDt;
-    for (let step = 0; step < eb.elasticSteps; step++) {
-      for (let g = 0; g < nBeads; g++) {
-        let sfx = 0, sfy = 0;
-        // Spring to previous bead
-        if (g > 0) {
-          const dx = cx[g] - cx[g-1], dy = cy[g] - cy[g-1];
-          const d = Math.sqrt(dx*dx + dy*dy) + 1e-10;
-          const stretch = (d - r0) / d;
-          sfx -= K * stretch * dx;
-          sfy -= K * stretch * dy;
-        }
-        // Spring to next bead
-        if (g < nBeads - 1) {
-          const dx = cx[g] - cx[g+1], dy = cy[g] - cy[g+1];
-          const d = Math.sqrt(dx*dx + dy*dy) + 1e-10;
-          const stretch = (d - r0) / d;
-          sfx -= K * stretch * dx;
-          sfy -= K * stretch * dy;
-        }
-        // Total: spring + quantum force (scaled)
-        cx[g] += (sfx + resFx[g] * forceScale) * dt;
-        cy[g] += (sfy + resFy[g] * forceScale) * dt;
-        // Boundary clamp
-        cx[g] = Math.max(10, Math.min(NN - 10, cx[g]));
-        cy[g] = Math.max(10, Math.min(NN - 10, cy[g]));
+    // Compute net torque on each strand around the hinge
+    let torque1 = 0, torque2 = 0;
+    for (let g = 0; g < 6; g++) {  // strand 1
+      const rx = nucPos[caIdx[g]][0] - hingeX;
+      const ry = nucPos[caIdx[g]][1] - hingeY;
+      torque1 += rx * resFy[g] - ry * resFx[g]; // cross product = torque
+    }
+    for (let g = 6; g < nRes; g++) {  // strand 2
+      const rx = nucPos[caIdx[g]][0] - hingeX;
+      const ry = nucPos[caIdx[g]][1] - hingeY;
+      torque2 += rx * resFy[g] - ry * resFx[g];
+    }
+
+    // Convert torque to rotation angle (small angle approximation)
+    const maxAngle = 0.02; // max rotation per step (radians)
+    let dTheta1 = torque1 * forceScale * mdDt * 0.0001;
+    let dTheta2 = torque2 * forceScale * mdDt * 0.0001;
+    dTheta1 = Math.max(-maxAngle, Math.min(maxAngle, dTheta1));
+    dTheta2 = Math.max(-maxAngle, Math.min(maxAngle, dTheta2));
+
+    // Rotate strand 1 around hinge
+    const cos1 = Math.cos(dTheta1), sin1 = Math.sin(dTheta1);
+    for (let g = 0; g <= 5; g++) {
+      for (const a of groups[g]) {
+        if (a >= NELEC || Z[a] === 0) continue;
+        const rx = nucPos[a][0] - hingeX;
+        const ry = nucPos[a][1] - hingeY;
+        nucPos[a][0] = hingeX + rx * cos1 - ry * sin1;
+        nucPos[a][1] = hingeY + rx * sin1 + ry * cos1;
       }
     }
 
-    // 4. Rebuild all atom positions from new Ca positions
-    // Compute local frame (tangent + normal) at each Ca
-    for (let g = 0; g < nBeads; g++) {
-      // Tangent from neighbors
-      let tx, ty;
-      if (g === 0) { tx = cx[1] - cx[0]; ty = cy[1] - cy[0]; }
-      else if (g === nBeads-1) { tx = cx[g] - cx[g-1]; ty = cy[g] - cy[g-1]; }
-      else { tx = cx[g+1] - cx[g-1]; ty = cy[g+1] - cy[g-1]; }
-      const tl = Math.sqrt(tx*tx + ty*ty) + 1e-10;
-      tx /= tl; ty /= tl;
-      const nx = -ty, ny = tx; // normal
-
-      // Old tangent (from initial offsets — use offset of C relative to N as proxy)
-      // For simplicity, rotate offsets by angle difference between old and new tangent
-      const caIdx = eb.caIndices[g];
-      const oldTx = nucPos[caIdx][0]; // will use a simpler approach
-
-      // Apply offsets rotated to new frame
-      // Old frame: initial tangent was encoded in offsets
-      // New frame: (tx, ty) tangent, (nx, ny) normal
-      // Since offsets were stored in the initial frame, and we need to rotate them:
-      // For now, apply offsets scaled by new tangent/normal
-      const offsets = eb.offsets[g];
-      const group = eb.groups[g];
-      for (let k = 0; k < group.length; k++) {
-        const a = group[k];
-        if (a >= NELEC) continue;
-        const di = offsets[k].di, dj = offsets[k].dj;
-        // Reconstruct: Ca + offset rotated into new local frame
-        // offset = di * old_tangent + dj * old_normal → di * new_tangent + dj * new_normal
-        nucPos[a][0] = cx[g] + di * tx + dj * nx;
-        nucPos[a][1] = cy[g] + di * ty + dj * ny;
+    // Rotate strand 2 around hinge
+    const cos2 = Math.cos(dTheta2), sin2 = Math.sin(dTheta2);
+    for (let g = 6; g < nRes; g++) {
+      for (const a of groups[g]) {
+        if (a >= NELEC || Z[a] === 0) continue;
+        const rx = nucPos[a][0] - hingeX;
+        const ry = nucPos[a][1] - hingeY;
+        nucPos[a][0] = hingeX + rx * cos2 - ry * sin2;
+        nucPos[a][1] = hingeY + rx * sin2 + ry * cos2;
       }
     }
-    // C-term OH follows last residue
-    if (eb.groups.length > nBeads) {
-      const lastG = nBeads - 1;
-      const offsets = eb.offsets[nBeads];
-      const group = eb.groups[nBeads];
-      let tx, ty;
-      tx = cx[lastG] - cx[lastG-1]; ty = cy[lastG] - cy[lastG-1];
-      const tl = Math.sqrt(tx*tx + ty*ty) + 1e-10;
-      tx /= tl; ty /= tl;
-      const nx = -ty, ny = tx;
-      for (let k = 0; k < group.length; k++) {
-        const a = group[k];
-        if (a >= NELEC) continue;
-        nucPos[a][0] = cx[lastG] + offsets[k].di * tx + offsets[k].dj * nx;
-        nucPos[a][1] = cy[lastG] + offsets[k].di * ty + offsets[k].dj * ny;
+    // C-term OH follows strand 2
+    if (groups.length > nRes) {
+      for (const a of groups[nRes]) {
+        if (a >= NELEC || Z[a] === 0) continue;
+        const rx = nucPos[a][0] - hingeX;
+        const ry = nucPos[a][1] - hingeY;
+        nucPos[a][0] = hingeX + rx * cos2 - ry * sin2;
+        nucPos[a][1] = hingeY + rx * sin2 + ry * cos2;
       }
     }
 
-    console.log("ELASTIC BACKBONE: Ca positions updated, " + eb.elasticSteps + " relaxation steps — FULL RESTART");
+    console.log("RIGID STRANDS: torque1=" + torque1.toExponential(2) +
+      " torque2=" + torque2.toExponential(2) +
+      " dTheta1=" + (dTheta1*180/Math.PI).toFixed(3) + "° dTheta2=" + (dTheta2*180/Math.PI).toFixed(3) + "°");
+
+    // Boundary clamp
+    for (let a = 0; a < NELEC; a++) {
+      if (Z[a] === 0) continue;
+      nucPos[a][0] = Math.max(5, Math.min(NN - 5, nucPos[a][0]));
+      nucPos[a][1] = Math.max(5, Math.min(NN - 5, nucPos[a][1]));
+    }
+
+    console.log("CLASSICAL MD: SHAKE + offsets, " + nRes + " residues — FULL RESTART");
     nucStepCount++;
 
     // Full restart: re-initialize wavefunctions, labels, K, P from scratch

@@ -20,7 +20,7 @@
   var resAdv = 3.4 * A;   // ~6.4 au per residue
   var zig = 0.5 * A;
 
-  var openingAngle = 30 * Math.PI / 180;
+  var openingAngle = 40 * Math.PI / 180;
 
   var bb = [];
   var hingeIdx = 5.5;
@@ -105,20 +105,83 @@
 
   window.USER_FOLD_ATOMS = [0, 45, 83];
 
-  // Elastic backbone: each residue is a bead on an elastic string
+  // Classical MD force field: auto-detect bonds and angles from initial geometry
+  // Bonds: pairs within bonding distance, angles: triplets sharing a bond
+  var nAtoms = atoms.length;
+  var h_grid = scr / gridN; // au per grid cell
+
+  // Compute initial positions in grid units
+  var pos0 = atoms.map(function(a) { return [a.i, a.j]; });
+
+  // Bond detection: max bonding distance per element pair (in grid units)
+  var maxBondAu = {
+    'H-H': 0, 'H-C': 1.2*A, 'H-N': 1.1*A, 'H-O': 1.05*A,
+    'C-C': 1.7*A, 'C-N': 1.6*A, 'C-O': 1.5*A,
+    'N-N': 1.5*A, 'N-O': 1.5*A, 'O-O': 1.6*A
+  };
+  function bondKey(e1, e2) {
+    return [e1, e2].sort().join('-');
+  }
+
+  var bonds = []; // {a, b, r0} — atom indices and equilibrium distance (grid units)
+  for (var i = 0; i < nAtoms; i++) {
+    for (var j = i + 1; j < nAtoms; j++) {
+      var dx = pos0[i][0] - pos0[j][0], dy = pos0[i][1] - pos0[j][1];
+      var dist = Math.sqrt(dx*dx + dy*dy); // grid units
+      var distAu = dist * h_grid;
+      var key = bondKey(atoms[i].el, atoms[j].el);
+      var maxD = maxBondAu[key] || 0;
+      if (maxD > 0 && distAu < maxD) {
+        bonds.push({ a: i, b: j, r0: dist });
+      }
+    }
+  }
+
+  // Build neighbor list for angle detection
+  var neighbors = [];
+  for (var i = 0; i < nAtoms; i++) neighbors.push([]);
+  for (var b = 0; b < bonds.length; b++) {
+    neighbors[bonds[b].a].push(bonds[b].b);
+    neighbors[bonds[b].b].push(bonds[b].a);
+  }
+
+  // Angle detection: for each atom with 2+ neighbors, form angles
+  var angles = []; // {a, b, c, theta0} — b is central atom
+  for (var b = 0; b < nAtoms; b++) {
+    var nbrs = neighbors[b];
+    for (var ii = 0; ii < nbrs.length; ii++) {
+      for (var jj = ii + 1; jj < nbrs.length; jj++) {
+        var a = nbrs[ii], c = nbrs[jj];
+        // Compute initial angle
+        var bax = pos0[a][0] - pos0[b][0], bay = pos0[a][1] - pos0[b][1];
+        var bcx = pos0[c][0] - pos0[b][0], bcy = pos0[c][1] - pos0[b][1];
+        var dot = bax*bcx + bay*bcy;
+        var magBA = Math.sqrt(bax*bax + bay*bay);
+        var magBC = Math.sqrt(bcx*bcx + bcy*bcy);
+        var cosA = dot / (magBA * magBC);
+        cosA = Math.max(-1, Math.min(1, cosA));
+        angles.push({ a: a, b: b, c: c, theta0: Math.acos(cosA) });
+      }
+    }
+  }
+
+  console.log('Classical MD: ' + bonds.length + ' bonds, ' + angles.length + ' angles');
+
+  // Ca indices and residue groups for coarse-grained dynamics
   var caIndices = [3];
   for (var r = 1; r < 12; r++) caIndices.push(7*r + 3);
 
-  var elasticGroups = [];
-  elasticGroups.push([0,1,2,3,4,5,6,7]);
+  var mdGroups = [];
+  mdGroups.push([0,1,2,3,4,5,6,7]);
   for (var r = 1; r < 12; r++) {
     var g = [];
     for (var a = 7*r+1; a <= 7*r+7; a++) g.push(a);
-    elasticGroups.push(g);
+    mdGroups.push(g);
   }
-  elasticGroups.push([85, 86]);
+  mdGroups.push([85, 86]);
 
-  var elasticOffsets = [];
+  // Compute per-residue offsets in local frame (tangent/normal)
+  var mdOffsets = [];
   for (var g = 0; g < 12; g++) {
     var caIdx = caIndices[g];
     var tx, ty;
@@ -129,40 +192,34 @@
     tx /= tl; ty /= tl;
     var nx = -ty, ny = tx;
     var groupOffsets = [];
-    for (var k = 0; k < elasticGroups[g].length; k++) {
-      var ai = elasticGroups[g][k];
+    for (var k = 0; k < mdGroups[g].length; k++) {
+      var ai = mdGroups[g][k];
       var dx = atoms[ai].i - atoms[caIdx].i;
       var dy = atoms[ai].j - atoms[caIdx].j;
       groupOffsets.push({ di: dx * tx + dy * ty, dj: dx * nx + dy * ny });
     }
-    elasticOffsets.push(groupOffsets);
+    mdOffsets.push(groupOffsets);
   }
-  var lastCaIdx = caIndices[11];
-  var ltx = atoms[caIndices[11]].i - atoms[caIndices[10]].i;
-  var lty = atoms[caIndices[11]].j - atoms[caIndices[10]].j;
-  var ltl = Math.sqrt(ltx*ltx + lty*lty);
-  ltx /= ltl; lty /= ltl;
-  var lnx = -lty, lny = ltx;
-  elasticOffsets.push([
-    { di: (atoms[85].i - atoms[lastCaIdx].i) * ltx + (atoms[85].j - atoms[lastCaIdx].j) * lty,
-      dj: (atoms[85].i - atoms[lastCaIdx].i) * lnx + (atoms[85].j - atoms[lastCaIdx].j) * lny },
-    { di: (atoms[86].i - atoms[lastCaIdx].i) * ltx + (atoms[86].j - atoms[lastCaIdx].j) * lty,
-      dj: (atoms[86].i - atoms[lastCaIdx].i) * lnx + (atoms[86].j - atoms[lastCaIdx].j) * lny }
+  // C-term OH offsets
+  var lastCaIdx2 = caIndices[11];
+  var ltx2 = atoms[caIndices[11]].i - atoms[caIndices[10]].i;
+  var lty2 = atoms[caIndices[11]].j - atoms[caIndices[10]].j;
+  var ltl2 = Math.sqrt(ltx2*ltx2 + lty2*lty2);
+  ltx2 /= ltl2; lty2 /= ltl2;
+  var lnx2 = -lty2, lny2 = ltx2;
+  mdOffsets.push([
+    { di: (atoms[85].i - atoms[lastCaIdx2].i) * ltx2 + (atoms[85].j - atoms[lastCaIdx2].j) * lty2,
+      dj: (atoms[85].i - atoms[lastCaIdx2].i) * lnx2 + (atoms[85].j - atoms[lastCaIdx2].j) * lny2 },
+    { di: (atoms[86].i - atoms[lastCaIdx2].i) * ltx2 + (atoms[86].j - atoms[lastCaIdx2].j) * lty2,
+      dj: (atoms[86].i - atoms[lastCaIdx2].i) * lnx2 + (atoms[86].j - atoms[lastCaIdx2].j) * lny2 }
   ]);
 
-  var r0_grid = Math.sqrt(
-    (atoms[caIndices[1]].i - atoms[caIndices[0]].i) * (atoms[caIndices[1]].i - atoms[caIndices[0]].i) +
-    (atoms[caIndices[1]].j - atoms[caIndices[0]].j) * (atoms[caIndices[1]].j - atoms[caIndices[0]].j)
-  );
-
-  window.USER_ELASTIC_BACKBONE = {
+  window.USER_CLASSICAL_MD = {
     caIndices: caIndices,
-    groups: elasticGroups,
-    offsets: elasticOffsets,
-    r0: r0_grid,
-    springK: 100.0,
-    elasticSteps: 10,
-    elasticDt: 0.005
+    groups: mdGroups,
+    offsets: mdOffsets,
+    mdSteps: 50,      // SHAKE iterations for Ca-Ca constraints
+    mdDt: 0.01        // force displacement scale
   };
 
   window.USER_NN = gridN;
@@ -171,9 +228,9 @@
   window.USER_STEPS = 1000000;
   window.USER_DYNAMICS = true;
   window.USER_N_MOVE = 200;  // 200 electronic steps to settle before elastic update
-  window.USER_FORCE_SCALE = 2.0;
+  window.USER_FORCE_SCALE = 200.0;
   window.USER_DAMPING = 0.5;
-  window.USER_ARROW_SCALE = 10.0;
+  window.USER_ARROW_SCALE = 0.1;
   window.USER_Z = atoms.map(function(a) { return a.Z; });
   window.USER_RC = atoms.map(function(a) {
     if (a.el === 'H') return 0;
