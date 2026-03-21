@@ -283,6 +283,56 @@ footer a { color: #4fc3f7; text-decoration: none; }
 <!-- BENCHMARKS -->
 <div class="section">
   <h2>Benchmarks</h2>
+
+  <h3 style="color:#ba68c8;margin-bottom:10px">Protein Folding</h3>
+  <div class="grid">
+    <a class="card" href="hairpin_bent_dry.html" style="grid-column:1/-1;border-color:#ba68c8;background:#1a1a2a">
+      <h3 style="font-size:16px">Hairpin Folding — Quantum Forces Only</h3>
+      <div class="atoms">87 atoms &middot; 12-residue polyglycine &middot; 200&sup3; grid</div>
+      <div class="desc" style="font-size:13px;margin-top:8px">
+        Beta-hairpin folds from near-straight (175&deg;) to U-shape driven purely by ab initio quantum forces &mdash;
+        no empirical force field. The folding emerges from solving the Schr&ouml;dinger equation:
+        backbone NH/CO interactions on opposite strands create quantum hydrogen bonds.
+        Press <b>R</b> to record video.
+      </div>
+      <span class="tag tag-protein">protein</span>
+      <span class="tag tag-dyn">dynamics</span>
+      <span class="tag tag-record">video</span>
+    </a>
+    <a class="card" href="hairpin_bent_solvated.html">
+      <h3>Hairpin Solvated</h3>
+      <div class="atoms">~200 atoms &middot; 300&sup3; grid</div>
+      <div class="desc">Solvated hairpin with elastic backbone dynamics and water shell.</div>
+      <span class="tag tag-protein">protein</span>
+      <span class="tag tag-water">water</span>
+    </a>
+    <a class="card" href="alpha_helix.html">
+      <h3>Alpha Helix</h3>
+      <div class="atoms">35 atoms &middot; 200&sup3; grid</div>
+      <div class="desc">5-residue polyglycine helix stable under quantum dynamics.</div>
+      <span class="tag tag-protein">protein</span>
+    </a>
+    <a class="card" href="formamide_dimer.html">
+      <h3>Formamide Dimer</h3>
+      <div class="atoms">12 atoms &middot; 200&sup3; grid</div>
+      <div class="desc">N&ndash;H&middot;&middot;&middot;O=C hydrogen bond geometry (H&middot;&middot;&middot;O ~1.9 &Aring;).</div>
+      <span class="tag tag-small">benchmark</span>
+    </a>
+    <a class="card" href="ala_dipeptide.html">
+      <h3>Alanine Dipeptide</h3>
+      <div class="atoms">22 atoms &middot; 300&sup3; grid</div>
+      <div class="desc">Bond lengths match PySCF HF reference for pseudopotentials.</div>
+      <span class="tag tag-small">benchmark</span>
+    </a>
+    <a class="card" href="ala_dipeptide_scan.html">
+      <h3>Phi/Psi Scan</h3>
+      <div class="atoms">22 atoms &middot; 200&sup3; grid</div>
+      <div class="desc">Ramachandran energy surface generator.</div>
+      <span class="tag tag-small">benchmark</span>
+    </a>
+  </div>
+
+  <h3 style="color:#ffca28;margin-top:25px;margin-bottom:10px">Atoms &amp; Small Molecules</h3>
   <p class="desc">Energy convergence tests compared against published Hartree-Fock and exact reference values.</p>
   <div class="grid">
     <a class="card" href="test_1atom.html">
