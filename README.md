@@ -143,6 +143,8 @@ https://github.com/Claes542/H2O/raw/main/helix_solvated.webm
 | [Alpha-helix stability](alpha_helix.html) | 35 (3D) | 5-residue polyglycine helix stable under quantum dynamics |
 | [Alpha-helix formation](alpha_helix_dry_300.html) | ~50 (3D) | 8-residue near-linear → 67% helix, 2/4 H-bonds ([video](helix_formation.webm)) |
 | [Hairpin folding](hairpin_bent_dry.html) | 87 (2D) | Folds from 175° to U-shape via quantum forces ([video](hairpin_fold.webm)) |
+| [Chignolin folding](chignolin_extended.html) | ~90 (3D) | 10-residue GYDPETGTWG extended → hairpin, cross-strand H-bond tracking |
+| [Trp-cage folding](trpcage_fold.html) | ~200 (3D) | 20-residue TC5b extended → native fold, helix + hydrophobic core |
 | [Hairpin solvated](hairpin_bent_solvated.html) | ~200 (2D) | Solvated hairpin with elastic backbone dynamics |
 | [Phi/psi scan](ala_dipeptide_scan.html) | 22 | Ramachandran energy surface generator |
 
