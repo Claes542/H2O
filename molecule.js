@@ -3413,10 +3413,16 @@ async function moveNuclei(gpuForces) {
       const pinEnds = cmd.pinEnds !== false; // default true
       const maxDisp = 1.0; // max displacement per step (grid cells)
       for (let g = 0; g < nRes; g++) {
-        if (pinEnds && g === 0) continue; // anchor N-terminus only
-        let dx = resFx[g] * forceScale * mdDt * 0.01;
-        let dy = resFy[g] * forceScale * mdDt * 0.01;
-        let dz = resFz[g] * forceScale * mdDt * 0.01;
+        // End damping: scale down forces on terminal residues instead of freezing
+        const pinN = (typeof pinEnds === 'number') ? pinEnds : (pinEnds === true ? 2 : 0);
+        let endDamp = 1.0;
+        if (pinN > 0) {
+          const distFromEnd = Math.min(g, nRes - 1 - g);
+          if (distFromEnd < pinN) endDamp = (distFromEnd + 1) / (pinN + 1); // gradual: 0.25, 0.5, 0.75...
+        }
+        let dx = resFx[g] * forceScale * mdDt * 0.01 * endDamp;
+        let dy = resFy[g] * forceScale * mdDt * 0.01 * endDamp;
+        let dz = resFz[g] * forceScale * mdDt * 0.01 * endDamp;
         let mag = Math.sqrt(dx*dx + dy*dy + dz*dz);
         if (mag > maxDisp) { dx *= maxDisp/mag; dy *= maxDisp/mag; dz *= maxDisp/mag; }
         for (const a of groups[g]) {
