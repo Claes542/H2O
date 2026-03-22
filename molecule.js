@@ -3857,6 +3857,8 @@ function draw() {
           " E_T=" + E_T.toExponential(3) + " E_eK=" + E_eK.toExponential(3));
       }
     }
+    // Skip 2D density rendering when in 3D view mode
+    if (!window._view3D) {
     loadPixels();
     const d = pixelDensity();
     const W = CANVAS_SIZE * d, H = CANVAS_SIZE * d;
@@ -3967,9 +3969,11 @@ function draw() {
     // K potential line plot along the slice axis (through nuclei)
     const kBase = 3 * SS * SS;
   }
+  } // end skip 2D when _view3D
 
   // 3D view mode: press '3' to toggle
   if (window._view3D) {
+    background(0); // clear to black — no 2D heatmap underneath
     // Draw all atoms as 3D projection with auto-rotation
     const t3d = (frameCount || 0) * 0.02; // rotation angle
     const cosT = Math.cos(t3d), sinT = Math.sin(t3d);

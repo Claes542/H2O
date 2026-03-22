@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html><body style="margin:0;background:#000">
 <script>
-// Alpha helix: 8-residue polyglycine — LOOSE HELIX start + solvation shell
-// Starts from stretched helix, dynamics tighten toward ideal
-// Water shell provides H-bond partners to stabilize helix
+// Alpha helix: 12-residue polyglycine — LOOSE HELIX start, no solvation
+// Starts from a very wide, stretched helix (~2x ideal radius & rise)
+// Dynamics should tighten it toward ideal alpha-helix geometry
+// Rigid-group dynamics with SHAKE constraints
 (function() {
-  var gridN = 300, scr = 55;
+  var gridN = 300, scr = 45;
   var A = 1.8897; // angstrom to au
   var h = scr / gridN;
   var N2 = Math.round(gridN / 2);
@@ -26,12 +27,12 @@
 
   var nRes = 8;
 
-  // Weak helix — same as dry version
+  // Very weak helix — almost straight, minimal coil hint
   // Ideal: rise=1.5 A, radius=2.3 A, 3.6 res/turn
   // Start: rise=3.0 A, radius=0.5 A (very stretched, barely any wobble)
-  var rise = 3.0 * A;
-  var radius = 0.5 * A;
-  var turnAngle = 2 * Math.PI / 3.6;
+  var rise = 3.0 * A;        // 2x ideal — very elongated
+  var radius = 0.5 * A;      // ~0.2x ideal — almost no coil
+  var turnAngle = 2 * Math.PI / 3.6;  // keep 3.6 res/turn topology
 
   // Bond lengths
   var bNH = 1.01 * A;
@@ -49,26 +50,31 @@
     var phi = r * turnAngle;
     var zBase = zOff + r * rise;
 
+    // N position (on helix backbone)
     var nx = radius * Math.cos(phi);
     var ny = radius * Math.sin(phi);
     var nz = zBase;
 
+    // Ca position (slightly advanced along helix)
     var phiCa = phi + turnAngle * 0.35;
     var zCa = zBase + rise * 0.35;
     var cax = radius * Math.cos(phiCa);
     var cay = radius * Math.sin(phiCa);
     var caz = zCa;
 
+    // C position
     var phiC = phi + turnAngle * 0.7;
     var zC = zBase + rise * 0.7;
     var cx = radius * Math.cos(phiC);
     var cy = radius * Math.sin(phiC);
     var cz = zC;
 
+    // Helper: radial outward direction
     function radialAt(px, py) {
       var l = Math.sqrt(px*px + py*py) + 1e-10;
       return [px/l, py/l, 0];
     }
+    // Tangent perpendicular to radial in xy-plane
     function tangAt(px, py) {
       var l = Math.sqrt(px*px + py*py) + 1e-10;
       return [-py/l, px/l, 0];
@@ -78,11 +84,11 @@
     var tangCa = tangAt(cax, cay);
     var radC = radialAt(cx, cy);
 
-    // N
+    // N atom
     atomIdx.N.push(atoms.length);
     pushAtom(nx, ny, nz, 'N', 3);
 
-    // H on N
+    // H on N — points radially outward
     atomIdx.H.push(atoms.length);
     pushAtom(nx + radN[0]*bNH, ny + radN[1]*bNH, nz, 'H', 1);
 
@@ -91,11 +97,11 @@
       pushAtom(nx, ny, nz - bNH, 'H', 1);
     }
 
-    // Ca
+    // Ca atom
     atomIdx.Ca.push(atoms.length);
     pushAtom(cax, cay, caz, 'C', 4);
 
-    // 2 Ha on Ca
+    // 2 H on Ca (glycine) — tangential to helix
     pushAtom(cax + tangCa[0]*bCH, cay + tangCa[1]*bCH, caz, 'H', 1);
     pushAtom(cax - tangCa[0]*bCH, cay - tangCa[1]*bCH, caz, 'H', 1);
 
@@ -103,7 +109,7 @@
     atomIdx.C.push(atoms.length);
     pushAtom(cx, cy, cz, 'C', 4);
 
-    // Carbonyl O
+    // Carbonyl O — points radially outward
     atomIdx.O.push(atoms.length);
     pushAtom(cx + radC[0]*bCO, cy + radC[1]*bCO, cz, 'O', 2);
   }
@@ -116,73 +122,7 @@
   pushAtom(lastCx, lastCy, lastZC + 1.34 * A, 'O', 2);
   pushAtom(lastCx, lastCy, lastZC + 1.34 * A + bOH, 'H', 1);
 
-  var nProtein = atoms.length;
-  console.log('Protein atoms: ' + nProtein);
-
-  // --- Solvation shell ---
-  // Place waters on a grid around the protein, excluding overlap
-  var ohBond = 0.96 * A;
-  var halfAng = 52.25 * Math.PI / 180;
-  var waterSpacing = 3.0 * A;   // spacing between waters
-  var minWaterDist = 2.8 * A;   // min distance from protein atoms
-  var maxWaterDist = 6.0 * A;   // max distance — single shell only
-  var maxR = scr / 2 - 2 * A;   // stay within box
-
-  // Get protein positions in au for distance checks
-  var protPos = [];
-  for (var i = 0; i < nProtein; i++) {
-    protPos.push({
-      x: (atoms[i].i - N2) * h,
-      y: (atoms[i].j - N2) * h,
-      z: (atoms[i].k - N2) * h
-    });
-  }
-
-  // Protein centroid
-  var pcx = 0, pcy = 0, pcz = 0;
-  for (var i = 0; i < nProtein; i++) {
-    pcx += protPos[i].x; pcy += protPos[i].y; pcz += protPos[i].z;
-  }
-  pcx /= nProtein; pcy /= nProtein; pcz /= nProtein;
-
-  var nWater = 0;
-  // 3D solvation shell — waters around the helix
-  for (var wx = -maxR; wx <= maxR; wx += waterSpacing) {
-    for (var wy = -maxR; wy <= maxR; wy += waterSpacing) {
-      for (var wz = -maxR; wz <= maxR; wz += waterSpacing) {
-        // Stay within spherical shell
-        var dr = Math.sqrt(wx*wx + wy*wy + wz*wz);
-        if (dr > maxR) continue;
-
-        // Check distance from all protein atoms — must be in shell range
-        var tooClose = false;
-        var closestDist = Infinity;
-        for (var pi = 0; pi < nProtein; pi++) {
-          var ddx = wx - protPos[pi].x;
-          var ddy = wy - protPos[pi].y;
-          var ddz = wz - protPos[pi].z;
-          var d2 = ddx*ddx + ddy*ddy + ddz*ddz;
-          if (d2 < minWaterDist * minWaterDist) { tooClose = true; break; }
-          if (d2 < closestDist) closestDist = d2;
-        }
-        if (tooClose) continue;
-        // Only place water within single shell around protein
-        if (Math.sqrt(closestDist) > maxWaterDist) continue;
-
-        // Random-ish orientation based on position
-        var wAngle = (wx * 7.3 + wy * 11.1 + wz * 3.7) % (2 * Math.PI);
-
-        pushAtom(wx, wy, wz, 'O', 2);
-        pushAtom(wx + ohBond * Math.cos(wAngle + halfAng),
-                 wy + ohBond * Math.sin(wAngle + halfAng), wz, 'H', 1);
-        pushAtom(wx + ohBond * Math.cos(wAngle - halfAng),
-                 wy + ohBond * Math.sin(wAngle - halfAng), wz, 'H', 1);
-        nWater++;
-      }
-    }
-  }
-
-  console.log('Solvated helix: ' + nProtein + ' protein + ' + nWater + ' waters (' + (nWater*3) + ' atoms) = ' + atoms.length + ' total');
+  console.log('Loose helix Gly12 (dry): ' + atoms.length + ' atoms');
 
   // Bond pairs — backbone + i→i+4 H-bonds
   var bondPairs = [
@@ -192,6 +132,7 @@
     [atomIdx.C[0], atomIdx.N[1], "C-N:"],
     [atomIdx.N[1], atomIdx.H[1], "N-H:"],
   ];
+  // i→i+4 H-bonds (hallmark of alpha helix)
   for (var i = 0; i + 4 < nRes; i++) {
     bondPairs.push([atomIdx.O[i], atomIdx.H[i+4], "O"+i+"···H"+(i+4)+":"]);
   }
@@ -202,33 +143,32 @@
       "N-Ca": "1.46", "Ca-C": "1.52", "C=O": "1.23",
       "C-N": "1.33", "N-H": "1.01",
     },
-    energy: "Solvated loose helix → tight helix: 8-res Gly",
-    binding: "H-bond ~5 kcal/mol, water should stabilize"
+    energy: "Loose helix → tight helix: 12-res polyglycine dry",
+    binding: "H-bond ~5 kcal/mol as helix tightens"
   };
 
-  // Rigid-group classical MD — protein residues only
+  // Rigid-group classical MD
   var mdGroups = [];
   for (var r = 0; r < nRes; r++) {
     var group = [];
     var start = atomIdx.N[r];
-    var end = (r < nRes - 1) ? atomIdx.N[r+1] : nProtein - 2;
+    var end = (r < nRes - 1) ? atomIdx.N[r+1] : atoms.length - 2;
     for (var a = start; a < end; a++) group.push(a);
     mdGroups.push(group);
   }
   // C-terminal OH
-  mdGroups.push([nProtein - 2, nProtein - 1]);
+  mdGroups.push([atoms.length - 2, atoms.length - 1]);
 
   window.USER_CLASSICAL_MD = {
     mode: 'translate',
-    pinEnds: false,        // let all residues move freely — water cage provides containment
     caIndices: atomIdx.Ca,
     groups: mdGroups,
     offsets: null,
     mdSteps: 50,
     mdDt: 0.01,
     helicalBias: {
-      idealRadius: 2.3 * A,
-      strength: 0.03
+      idealRadius: 2.3 * A,  // target helix radius in au
+      strength: 0.03          // gentle radial nudge
     }
   };
 
@@ -237,12 +177,11 @@
     caIndices: atomIdx.Ca,
     oIndices: atomIdx.O,
     hIndices: atomIdx.H,
-    idealRadius: 2.3 * A,
-    idealRise: 1.5 * A,
-    hbondCutoff: 2.5 * A
+    idealRadius: 2.3 * A,   // 2.3 A in au
+    idealRise: 1.5 * A,     // 1.5 A per residue in au
+    hbondCutoff: 2.5 * A    // O···H < 2.5 A counts as H-bond
   };
 
-  window.USER_PROTEIN_COUNT = nProtein;
   window.USER_NN = gridN;
   window.USER_ATOMS = atoms;
   window.USER_SCREEN = scr;
@@ -267,7 +206,8 @@ s.onload = function() {
   var p5s = document.createElement('script');
   p5s.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
   p5s.onload = function() {
-    // Video recording: press R to start/stop
+    // Video recording: press R to start/stop, auto-downloads webm
+    // 20x timelapse: capture 1 frame every 3s → 1hr = 1200 frames → 40s at 30fps
     var recorder = null, chunks = [], recording = false;
     var recInterval = null;
     window._toggleRecording = function() {
@@ -275,7 +215,7 @@ s.onload = function() {
       if (!canvas) return;
       if (!recording) {
         chunks = [];
-        var stream = canvas.captureStream(0);
+        var stream = canvas.captureStream(0); // manual frame capture
         var track = stream.getVideoTracks()[0];
         window._recStreamTrack = track;
         var mimeType = MediaRecorder.isTypeSupported('video/webm; codecs=vp9')
@@ -285,6 +225,7 @@ s.onload = function() {
           : MediaRecorder.isTypeSupported('video/webm')
           ? 'video/webm'
           : 'video/mp4';
+        console.log('Recording with: ' + mimeType + ' (20x timelapse)');
         recorder = new MediaRecorder(stream, { mimeType: mimeType });
         recorder.ondataavailable = function(ev) { if (ev.data.size > 0) chunks.push(ev.data); };
         recorder.onstop = function() {
@@ -292,10 +233,12 @@ s.onload = function() {
           var ext = mimeType.indexOf('mp4') >= 0 ? 'mp4' : 'webm';
           var url = URL.createObjectURL(blob);
           var a = document.createElement('a');
-          a.href = url; a.download = 'helix_solvated.' + ext; a.click();
+          a.href = url; a.download = 'helix_fold_300.' + ext; a.click();
           URL.revokeObjectURL(url);
+          console.log('Recording saved: helix_fold_300.' + ext);
         };
         recorder.start(1000);
+        // Capture 1 frame/sec → 30min = 1800 frames → 60s at 30fps = 1 min video
         recInterval = setInterval(function() {
           try { track.requestFrame(); } catch(e) {}
         }, 1000);
@@ -303,9 +246,9 @@ s.onload = function() {
         var dot = document.createElement('div');
         dot.id = 'rec-indicator';
         dot.style.cssText = 'position:fixed;top:10px;right:10px;background:red;color:#fff;padding:4px 10px;border-radius:4px;font:bold 14px monospace;z-index:9999;';
-        dot.textContent = '\u25CF REC';
+        dot.textContent = '\u25CF REC 20x';
         document.body.appendChild(dot);
-        console.log('Recording started (R to stop)');
+        console.log('Recording started (R to stop) — 1 frame/sec, ~30min → ~1min video');
       } else {
         if (recInterval) { clearInterval(recInterval); recInterval = null; }
         recorder.stop();
@@ -313,14 +256,18 @@ s.onload = function() {
         window._recStreamTrack = null;
         var ind = document.getElementById('rec-indicator');
         if (ind) ind.remove();
+        console.log('Recording stopped, saving...');
       }
     };
 
-    // Auto-start: 3D view + recording
+    // Auto-start: enable 3D view and start recording after canvas is ready
     setTimeout(function() {
       window._view3D = true;
+      console.log('Auto-enabled 3D view');
       setTimeout(function() {
         window._toggleRecording();
+        console.log('Auto-started recording — will auto-stop after 30 min');
+        // Auto-stop after 30 minutes → ~1800 frames at 1fps → 60s at 30fps
         setTimeout(function() {
           if (recording) window._toggleRecording();
         }, 30 * 60 * 1000);
