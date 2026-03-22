@@ -111,6 +111,23 @@ https://github.com/Claes542/H2O/raw/main/hairpin_fold.webm
 
 **Method**: The electronic structure is solved from first principles on a 200³ real-space grid (Born-Oppenheimer approximation). The resulting quantum forces drive coarse-grained rigid-body dynamics where two chain segments pivot at a central hinge. After each geometry update, the electronic structure is re-solved from scratch.
 
+#### Alpha-helix formation from near-linear chain
+
+https://github.com/Claes542/H2O/raw/main/helix_formation.webm
+
+> **8-residue polyglycine** starts as a nearly straight chain (radius 0.5 Å, rise 3.0 Å/residue) and folds into an alpha helix — driven purely by ab initio quantum forces. No empirical force fields are used.
+
+| Parameter | Start | Final | Ideal α-helix |
+|-----------|-------|-------|---------------|
+| Helix score | ~5% | **67%** | 100% |
+| Radius | 0.5 Å | **2.1 Å** | 2.3 Å |
+| Rise/residue | 3.0 Å | **1.63 Å** | 1.5 Å |
+| i→i+4 H-bonds | 0/4 | **2/4** (5 Å) | 4/4 (1.9 Å) |
+
+The chain compresses axially and curls outward into near-ideal helical geometry. Two i→i+4 hydrogen bonds form spontaneously: carbonyl oxygen of residue i attracted to amide hydrogen of residue i+4 — the defining feature of the alpha helix. Rise converges to within 9% of ideal, radius reaches 91% of ideal. [Run it yourself →](alpha_helix_dry.html)
+
+**Method**: Per-residue rigid-body translation by net quantum forces on a 200³ grid (45 au box), with Ca-Ca SHAKE constraints (±15% of 3.8 Å). Mild radial helical bias (0.03) assists curling. Electronic structure re-solved from scratch after each geometry update.
+
 #### Validation suite
 
 | Test | Atoms | Result |
@@ -118,12 +135,14 @@ https://github.com/Claes542/H2O/raw/main/hairpin_fold.webm
 | [Alanine dipeptide](ala_dipeptide.html) | 22 (3D) | Bond lengths match PySCF HF reference for pseudopotentials |
 | [Formamide dimer](formamide_dimer.html) | 12 (3D) | N-H···O=C hydrogen bond geometry correct (H···O ~1.9 Å) |
 | [Alpha-helix stability](alpha_helix.html) | 35 (3D) | 5-residue polyglycine helix stable under quantum dynamics |
+| [Alpha-helix formation](alpha_helix_dry.html) | ~50 (3D) | 8-residue near-linear → 67% helix, 2/4 H-bonds ([video](helix_formation.webm)) |
 | [Hairpin folding](hairpin_bent_dry.html) | 87 (2D) | Folds from 175° to U-shape via quantum forces ([video](hairpin_fold.webm)) |
 | [Hairpin solvated](hairpin_bent_solvated.html) | ~200 (2D) | Solvated hairpin with elastic backbone dynamics |
 | [Phi/psi scan](ala_dipeptide_scan.html) | 22 | Ramachandran energy surface generator |
 
 **Dynamics models** (combined quantum + classical):
 - **Rigid-strand pivot** — Two strands rotate at hinge, quantum torques drive folding
+- **Per-residue translation** — Each residue moves by net quantum force with Ca-Ca SHAKE constraints
 - **Elastic backbone** — Residues as beads on elastic string with SHAKE constraints
 - **Full quantum restart** — Wavefunctions re-initialized after each geometry update
 

@@ -3395,84 +3395,197 @@ async function moveNuclei(gpuForces) {
     // 1. Sum quantum forces per residue
     const resFx = new Array(nRes).fill(0);
     const resFy = new Array(nRes).fill(0);
+    const resFz = new Array(nRes).fill(0);
     for (let g = 0; g < nRes; g++) {
       for (const a of groups[g]) {
         if (a < NELEC && Z[a] > 0) {
           resFx[g] += nucForce[a][0];
           resFy[g] += nucForce[a][1];
+          resFz[g] += nucForce[a][2];
         }
       }
     }
 
-    // 2. Two rigid strands pivoting at hinge
-    // Strand 1: residues 0-5, Strand 2: residues 6-11 (+C-term)
-    // Hinge point: midpoint between Ca[5] and Ca[6]
-    const hingeX = (nucPos[caIdx[5]][0] + nucPos[caIdx[6]][0]) / 2;
-    const hingeY = (nucPos[caIdx[5]][1] + nucPos[caIdx[6]][1]) / 2;
-
-    // Compute net torque on each strand around the hinge
-    let torque1 = 0, torque2 = 0;
-    for (let g = 0; g < 6; g++) {  // strand 1
-      const rx = nucPos[caIdx[g]][0] - hingeX;
-      const ry = nucPos[caIdx[g]][1] - hingeY;
-      torque1 += rx * resFy[g] - ry * resFx[g]; // cross product = torque
-    }
-    for (let g = 6; g < nRes; g++) {  // strand 2
-      const rx = nucPos[caIdx[g]][0] - hingeX;
-      const ry = nucPos[caIdx[g]][1] - hingeY;
-      torque2 += rx * resFy[g] - ry * resFx[g];
-    }
-
-    // Convert torque to rotation angle (small angle approximation)
-    const maxAngle = 0.02; // max rotation per step (radians)
-    let dTheta1 = torque1 * forceScale * mdDt * 0.0001;
-    let dTheta2 = torque2 * forceScale * mdDt * 0.0001;
-    dTheta1 = Math.max(-maxAngle, Math.min(maxAngle, dTheta1));
-    dTheta2 = Math.max(-maxAngle, Math.min(maxAngle, dTheta2));
-
-    // Rotate strand 1 around hinge
-    const cos1 = Math.cos(dTheta1), sin1 = Math.sin(dTheta1);
-    for (let g = 0; g <= 5; g++) {
-      for (const a of groups[g]) {
-        if (a >= NELEC || Z[a] === 0) continue;
-        const rx = nucPos[a][0] - hingeX;
-        const ry = nucPos[a][1] - hingeY;
-        nucPos[a][0] = hingeX + rx * cos1 - ry * sin1;
-        nucPos[a][1] = hingeY + rx * sin1 + ry * cos1;
+    // 2. Move residues — mode-dependent
+    if (cmd.mode === 'translate') {
+      // Per-residue rigid translation: each residue group moves by its net force (3D)
+      // Pin first residue only — chain can compress from free end
+      const pinEnds = cmd.pinEnds !== false; // default true
+      const maxDisp = 1.0; // max displacement per step (grid cells)
+      for (let g = 0; g < nRes; g++) {
+        if (pinEnds && g === 0) continue; // anchor N-terminus only
+        let dx = resFx[g] * forceScale * mdDt * 0.01;
+        let dy = resFy[g] * forceScale * mdDt * 0.01;
+        let dz = resFz[g] * forceScale * mdDt * 0.01;
+        let mag = Math.sqrt(dx*dx + dy*dy + dz*dz);
+        if (mag > maxDisp) { dx *= maxDisp/mag; dy *= maxDisp/mag; dz *= maxDisp/mag; }
+        for (const a of groups[g]) {
+          if (a >= NELEC || Z[a] === 0) continue;
+          nucPos[a][0] += dx;
+          nucPos[a][1] += dy;
+          nucPos[a][2] += dz;
+        }
       }
-    }
-
-    // Rotate strand 2 around hinge
-    const cos2 = Math.cos(dTheta2), sin2 = Math.sin(dTheta2);
-    for (let g = 6; g < nRes; g++) {
-      for (const a of groups[g]) {
-        if (a >= NELEC || Z[a] === 0) continue;
-        const rx = nucPos[a][0] - hingeX;
-        const ry = nucPos[a][1] - hingeY;
-        nucPos[a][0] = hingeX + rx * cos2 - ry * sin2;
-        nucPos[a][1] = hingeY + rx * sin2 + ry * cos2;
+      // C-term OH follows last residue
+      if (groups.length > nRes) {
+        let dx = resFx[nRes-1] * forceScale * mdDt * 0.01;
+        let dy = resFy[nRes-1] * forceScale * mdDt * 0.01;
+        let dz = resFz[nRes-1] * forceScale * mdDt * 0.01;
+        let mag = Math.sqrt(dx*dx + dy*dy + dz*dz);
+        if (mag > maxDisp) { dx *= maxDisp/mag; dy *= maxDisp/mag; dz *= maxDisp/mag; }
+        for (const a of groups[nRes]) {
+          if (a >= NELEC || Z[a] === 0) continue;
+          nucPos[a][0] += dx;
+          nucPos[a][1] += dy;
+          nucPos[a][2] += dz;
+        }
       }
-    }
-    // C-term OH follows strand 2
-    if (groups.length > nRes) {
-      for (const a of groups[nRes]) {
-        if (a >= NELEC || Z[a] === 0) continue;
-        const rx = nucPos[a][0] - hingeX;
-        const ry = nucPos[a][1] - hingeY;
-        nucPos[a][0] = hingeX + rx * cos2 - ry * sin2;
-        nucPos[a][1] = hingeY + rx * sin2 + ry * cos2;
+      // Helical constraint: as chain compresses, rotate residues around axis
+      // Alpha helix: 100° per residue around z-axis
+      if (cmd.helicalBias) {
+        // Find chain axis (first Ca to last Ca)
+        const ca0 = nucPos[caIdx[0]], caL = nucPos[caIdx[nRes-1]];
+        let hax = caL[0]-ca0[0], hay = caL[1]-ca0[1], haz = caL[2]-ca0[2];
+        let haLen = Math.sqrt(hax*hax+hay*hay+haz*haz) + 1e-10;
+        hax /= haLen; hay /= haLen; haz /= haLen;
+        // Centroid of chain
+        let ccx=0, ccy=0, ccz=0;
+        for (let g = 0; g < nRes; g++) {
+          ccx += nucPos[caIdx[g]][0]; ccy += nucPos[caIdx[g]][1]; ccz += nucPos[caIdx[g]][2];
+        }
+        ccx /= nRes; ccy /= nRes; ccz /= nRes;
+
+        const idealAnglePerRes = (2 * Math.PI / 3.6); // 100° in radians
+        const idealRadiusGrid = (cmd.helicalBias.idealRadius || 4.35) / hGrid;
+        const biasStrength = cmd.helicalBias.strength || 0.02;
+
+        for (let g = 1; g < nRes; g++) { // skip pinned res 0
+          const ca = nucPos[caIdx[g]];
+          // Project Ca onto axis to get axial position
+          let rx = ca[0]-ccx, ry = ca[1]-ccy, rz = ca[2]-ccz;
+          let axialProj = rx*hax + ry*hay + rz*haz;
+          // Perpendicular vector from axis to Ca
+          let px = rx - axialProj*hax;
+          let py = ry - axialProj*hay;
+          let pz = rz - axialProj*haz;
+          let pLen = Math.sqrt(px*px + py*py + pz*pz) + 1e-10;
+
+          // Target angle for this residue
+          let targetAngle = g * idealAnglePerRes;
+          // Target position: on helix at idealRadius from axis
+          // Use axis-perpendicular plane basis vectors
+          // e1 = initial perp direction of res 1, e2 = axis × e1
+          // Simplified: nudge radially outward if too close to axis
+          let radialForce = (idealRadiusGrid - pLen) * biasStrength;
+          let nudgeX = (px / pLen) * radialForce;
+          let nudgeY = (py / pLen) * radialForce;
+          let nudgeZ = (pz / pLen) * radialForce;
+
+          for (const a of groups[g]) {
+            if (a >= NELEC || Z[a] === 0) continue;
+            nucPos[a][0] += nudgeX;
+            nucPos[a][1] += nudgeY;
+            nucPos[a][2] += nudgeZ;
+          }
+        }
       }
+
+      // SHAKE: enforce min/max Ca-Ca distance to prevent over-compression
+      // Target Ca-Ca ~ 3.8 A = 7.18 au; allow ±30%
+      const targetCaCa = (cmd.targetCaCa || 7.18) / hGrid; // in grid cells
+      const shakeTol = cmd.shakeTolerance || 0.15; // ±15% default
+      const minCaCa = targetCaCa * (1 - shakeTol);
+      const maxCaCa = targetCaCa * (1 + shakeTol);
+      for (let iter = 0; iter < 5; iter++) {
+        for (let g = 0; g < nRes - 1; g++) {
+          const a1 = caIdx[g], a2 = caIdx[g+1];
+          let dx = nucPos[a2][0] - nucPos[a1][0];
+          let dy = nucPos[a2][1] - nucPos[a1][1];
+          let dz = nucPos[a2][2] - nucPos[a1][2];
+          let dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+          if (dist < minCaCa || dist > maxCaCa) {
+            let target = dist < minCaCa ? minCaCa : maxCaCa;
+            let corr = (target - dist) / (2 * dist + 1e-10);
+            let cx = dx * corr, cy = dy * corr, cz = dz * corr;
+            // Move both Ca and their entire residue groups
+            for (const a of groups[g]) {
+              if (a >= NELEC || Z[a] === 0) continue;
+              nucPos[a][0] -= cx; nucPos[a][1] -= cy; nucPos[a][2] -= cz;
+            }
+            for (const a of groups[g+1]) {
+              if (a >= NELEC || Z[a] === 0) continue;
+              nucPos[a][0] += cx; nucPos[a][1] += cy; nucPos[a][2] += cz;
+            }
+          }
+        }
+      }
+
+      console.log("TRANSLATE MD: " + nRes + " residues, forces=" +
+        resFx.map((f,i) => "(" + f.toExponential(1) + "," + resFy[i].toExponential(1) + "," + resFz[i].toExponential(1) + ")").join(" "));
+    } else {
+      // Default: Two rigid strands pivoting at hinge (for hairpin folding)
+      const hingeRes = cmd.hingeRes || Math.floor(nRes/2);
+      const hingeX = (nucPos[caIdx[hingeRes-1]][0] + nucPos[caIdx[hingeRes]][0]) / 2;
+      const hingeY = (nucPos[caIdx[hingeRes-1]][1] + nucPos[caIdx[hingeRes]][1]) / 2;
+
+      let torque1 = 0, torque2 = 0;
+      for (let g = 0; g < hingeRes; g++) {
+        const rx = nucPos[caIdx[g]][0] - hingeX;
+        const ry = nucPos[caIdx[g]][1] - hingeY;
+        torque1 += rx * resFy[g] - ry * resFx[g];
+      }
+      for (let g = hingeRes; g < nRes; g++) {
+        const rx = nucPos[caIdx[g]][0] - hingeX;
+        const ry = nucPos[caIdx[g]][1] - hingeY;
+        torque2 += rx * resFy[g] - ry * resFx[g];
+      }
+
+      const maxAngle = 0.02;
+      let dTheta1 = torque1 * forceScale * mdDt * 0.0001;
+      let dTheta2 = torque2 * forceScale * mdDt * 0.0001;
+      dTheta1 = Math.max(-maxAngle, Math.min(maxAngle, dTheta1));
+      dTheta2 = Math.max(-maxAngle, Math.min(maxAngle, dTheta2));
+
+      const cos1 = Math.cos(dTheta1), sin1 = Math.sin(dTheta1);
+      for (let g = 0; g < hingeRes; g++) {
+        for (const a of groups[g]) {
+          if (a >= NELEC || Z[a] === 0) continue;
+          const rx = nucPos[a][0] - hingeX;
+          const ry = nucPos[a][1] - hingeY;
+          nucPos[a][0] = hingeX + rx * cos1 - ry * sin1;
+          nucPos[a][1] = hingeY + rx * sin1 + ry * cos1;
+        }
+      }
+      const cos2 = Math.cos(dTheta2), sin2 = Math.sin(dTheta2);
+      for (let g = hingeRes; g < nRes; g++) {
+        for (const a of groups[g]) {
+          if (a >= NELEC || Z[a] === 0) continue;
+          const rx = nucPos[a][0] - hingeX;
+          const ry = nucPos[a][1] - hingeY;
+          nucPos[a][0] = hingeX + rx * cos2 - ry * sin2;
+          nucPos[a][1] = hingeY + rx * sin2 + ry * cos2;
+        }
+      }
+      if (groups.length > nRes) {
+        for (const a of groups[nRes]) {
+          if (a >= NELEC || Z[a] === 0) continue;
+          const rx = nucPos[a][0] - hingeX;
+          const ry = nucPos[a][1] - hingeY;
+          nucPos[a][0] = hingeX + rx * cos2 - ry * sin2;
+          nucPos[a][1] = hingeY + rx * sin2 + ry * cos2;
+        }
+      }
+      console.log("RIGID STRANDS: torque1=" + torque1.toExponential(2) +
+        " torque2=" + torque2.toExponential(2) +
+        " dTheta1=" + (dTheta1*180/Math.PI).toFixed(3) + "° dTheta2=" + (dTheta2*180/Math.PI).toFixed(3) + "°");
     }
 
-    console.log("RIGID STRANDS: torque1=" + torque1.toExponential(2) +
-      " torque2=" + torque2.toExponential(2) +
-      " dTheta1=" + (dTheta1*180/Math.PI).toFixed(3) + "° dTheta2=" + (dTheta2*180/Math.PI).toFixed(3) + "°");
-
-    // Boundary clamp
+    // Boundary clamp (3D)
     for (let a = 0; a < NELEC; a++) {
       if (Z[a] === 0) continue;
       nucPos[a][0] = Math.max(5, Math.min(NN - 5, nucPos[a][0]));
       nucPos[a][1] = Math.max(5, Math.min(NN - 5, nucPos[a][1]));
+      nucPos[a][2] = Math.max(5, Math.min(NN - 5, nucPos[a][2]));
     }
 
     console.log("CLASSICAL MD: SHAKE + offsets, " + nRes + " residues — FULL RESTART");
@@ -3972,6 +4085,86 @@ function draw() {
     text("Fold: " + foldAngle.toFixed(1) + "\u00B0  (" + foldPct.toFixed(1) + "%)  [180\u00B0=open, 0\u00B0=folded]", 5, 80);
     window._foldAngle = foldAngle;
     window._foldPct = foldPct;
+  }
+
+  // Helix progress measurement
+  if (window.USER_HELIX_PROGRESS) {
+    const hp = window.USER_HELIX_PROGRESS;
+    const caIdx = hp.caIndices;        // Ca atom indices
+    const oIdx = hp.oIndices;          // carbonyl O indices
+    const hIdx = hp.hIndices;          // amide H indices
+    const idealRadius = hp.idealRadius || 4.35; // 2.3 A in au
+    const idealRise = hp.idealRise || 2.83;     // 1.5 A in au
+    const hbondCutoff = hp.hbondCutoff || 4.72; // 2.5 A in au
+    const bohrToAng = 0.529177;
+
+    // 1. Average Ca radius from helix axis
+    // Convert all Ca positions to au first
+    let caAu = [];
+    for (let i = 0; i < caIdx.length; i++) {
+      caAu.push([
+        nucPos[caIdx[i]][0] * hGrid,
+        nucPos[caIdx[i]][1] * hGrid,
+        nucPos[caIdx[i]][2] * hGrid
+      ]);
+    }
+    let cx = 0, cy = 0, cz = 0;
+    for (let i = 0; i < caAu.length; i++) {
+      cx += caAu[i][0]; cy += caAu[i][1]; cz += caAu[i][2];
+    }
+    cx /= caAu.length; cy /= caAu.length; cz /= caAu.length;
+    // Helix axis ~ line from first Ca to last Ca (in au)
+    let ax = caAu[caAu.length-1][0] - caAu[0][0];
+    let ay = caAu[caAu.length-1][1] - caAu[0][1];
+    let az = caAu[caAu.length-1][2] - caAu[0][2];
+    let aLen = Math.sqrt(ax*ax + ay*ay + az*az) + 1e-10;
+    ax /= aLen; ay /= aLen; az /= aLen;
+    // Average perpendicular distance from axis
+    let avgRadius = 0;
+    for (let i = 0; i < caAu.length; i++) {
+      let dx = caAu[i][0] - cx;
+      let dy = caAu[i][1] - cy;
+      let dz = caAu[i][2] - cz;
+      let proj = dx*ax + dy*ay + dz*az;
+      let perpSq = dx*dx + dy*dy + dz*dz - proj*proj;
+      avgRadius += Math.sqrt(Math.max(0, perpSq));
+    }
+    avgRadius /= caAu.length;
+    let radiusScore = Math.min(1, avgRadius / idealRadius);
+
+    // 2. Average rise per residue (end-to-end along axis / nRes)
+    let risePerRes = aLen / (caAu.length - 1);
+    // Score: 1.0 when rise = ideal, decreasing as it deviates
+    let riseScore = 1 - Math.min(1, Math.abs(risePerRes - idealRise) / idealRise);
+
+    // 3. i→i+4 H-bond formation (O[i]···H[i+4] distance)
+    let nHbonds = 0, totalHbonds = 0, avgHbondDist = 0;
+    if (oIdx && hIdx) {
+      for (let i = 0; i + 4 < oIdx.length && i + 4 < hIdx.length; i++) {
+        let dx = (nucPos[oIdx[i]][0] - nucPos[hIdx[i+4]][0]) * hGrid;
+        let dy = (nucPos[oIdx[i]][1] - nucPos[hIdx[i+4]][1]) * hGrid;
+        let dz = (nucPos[oIdx[i]][2] - nucPos[hIdx[i+4]][2]) * hGrid;
+        let d = Math.sqrt(dx*dx + dy*dy + dz*dz);
+        avgHbondDist += d;
+        if (d < hbondCutoff) nHbonds++;
+        totalHbonds++;
+      }
+      avgHbondDist /= Math.max(1, totalHbonds);
+    }
+    let hbondScore = totalHbonds > 0 ? nHbonds / totalHbonds : 0;
+
+    // Composite score (weighted)
+    let helixPct = (radiusScore * 0.3 + riseScore * 0.3 + hbondScore * 0.4) * 100;
+
+    fill(0, 255, 200);
+    text("Helix: " + helixPct.toFixed(1) + "%  R=" + (avgRadius*bohrToAng).toFixed(2) +
+      "\u00C5/" + (idealRadius*bohrToAng).toFixed(1) + "  rise=" + (risePerRes*bohrToAng).toFixed(2) +
+      "\u00C5/" + (idealRise*bohrToAng).toFixed(1) + "  H-bonds=" + nHbonds + "/" + totalHbonds +
+      " (avg " + (avgHbondDist*bohrToAng).toFixed(2) + "\u00C5)", 5, 80);
+    window._helixPct = helixPct;
+    window._helixRadius = avgRadius;
+    window._helixRise = risePerRes;
+    window._helixHbonds = nHbonds;
   }
 
   // Dynamics status

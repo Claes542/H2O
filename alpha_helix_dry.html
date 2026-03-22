@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html><body style="margin:0;background:#000">
+<script>
+// Alpha helix: 12-residue polyglycine — LOOSE HELIX start, no solvation
+// Starts from a very wide, stretched helix (~2x ideal radius & rise)
+// Dynamics should tighten it toward ideal alpha-helix geometry
+// Rigid-group dynamics with SHAKE constraints
+(function() {
+  var gridN = 200, scr = 45;
+  var A = 1.8897; // angstrom to au
+  var h = scr / gridN;
+  var N2 = Math.round(gridN / 2);
+  var atoms = [];
+  var elList = [];
+  var zList = [];
+
+  function pushAtom(x, y, z, el, Z) {
+    atoms.push({
+      i: Math.round(N2 + x / h),
+      j: Math.round(N2 + y / h),
+      k: Math.round(N2 + z / h),
+      Z: Z, el: el
+    });
+    elList.push(el);
+    zList.push(Z);
+  }
+
+  var nRes = 8;
+
+  // Very weak helix — almost straight, minimal coil hint
+  // Ideal: rise=1.5 A, radius=2.3 A, 3.6 res/turn
+  // Start: rise=3.0 A, radius=0.5 A (very stretched, barely any wobble)
+  var rise = 3.0 * A;        // 2x ideal — very elongated
+  var radius = 0.5 * A;      // ~0.2x ideal — almost no coil
+  var turnAngle = 2 * Math.PI / 3.6;  // keep 3.6 res/turn topology
+
+  // Bond lengths
+  var bNH = 1.01 * A;
+  var bCH = 1.09 * A;
+  var bCO = 1.24 * A;
+  var bOH = 0.97 * A;
+
+  // Center helix along z-axis
+  var zOff = -(nRes - 1) * rise / 2;
+
+  // Track atom indices for dynamics
+  var atomIdx = { N:[], H:[], Ca:[], C:[], O:[] };
+
+  for (var r = 0; r < nRes; r++) {
+    var phi = r * turnAngle;
+    var zBase = zOff + r * rise;
+
+    // N position (on helix backbone)
+    var nx = radius * Math.cos(phi);
+    var ny = radius * Math.sin(phi);
+    var nz = zBase;
+
+    // Ca position (slightly advanced along helix)
+    var phiCa = phi + turnAngle * 0.35;
+    var zCa = zBase + rise * 0.35;
+    var cax = radius * Math.cos(phiCa);
+    var cay = radius * Math.sin(phiCa);
+    var caz = zCa;
+
+    // C position
+    var phiC = phi + turnAngle * 0.7;
+    var zC = zBase + rise * 0.7;
+    var cx = radius * Math.cos(phiC);
+    var cy = radius * Math.sin(phiC);
+    var cz = zC;
+
+    // Helper: radial outward direction
+    function radialAt(px, py) {
+      var l = Math.sqrt(px*px + py*py) + 1e-10;
+      return [px/l, py/l, 0];
+    }
+    // Tangent perpendicular to radial in xy-plane
+    function tangAt(px, py) {
+      var l = Math.sqrt(px*px + py*py) + 1e-10;
+      return [-py/l, px/l, 0];
+    }
+
+    var radN = radialAt(nx, ny);
+    var tangCa = tangAt(cax, cay);
+    var radC = radialAt(cx, cy);
+
+    // N atom
+    atomIdx.N.push(atoms.length);
+    pushAtom(nx, ny, nz, 'N', 3);
+
+    // H on N — points radially outward
+    atomIdx.H.push(atoms.length);
+    pushAtom(nx + radN[0]*bNH, ny + radN[1]*bNH, nz, 'H', 1);
+
+    // Extra H on N-terminus
+    if (r === 0) {
+      pushAtom(nx, ny, nz - bNH, 'H', 1);
+    }
+
+    // Ca atom
+    atomIdx.Ca.push(atoms.length);
+    pushAtom(cax, cay, caz, 'C', 4);
+
+    // 2 H on Ca (glycine) — tangential to helix
+    pushAtom(cax + tangCa[0]*bCH, cay + tangCa[1]*bCH, caz, 'H', 1);
+    pushAtom(cax - tangCa[0]*bCH, cay - tangCa[1]*bCH, caz, 'H', 1);
+
+    // Carbonyl C
+    atomIdx.C.push(atoms.length);
+    pushAtom(cx, cy, cz, 'C', 4);
+
+    // Carbonyl O — points radially outward
+    atomIdx.O.push(atoms.length);
+    pushAtom(cx + radC[0]*bCO, cy + radC[1]*bCO, cz, 'O', 2);
+  }
+
+  // C-terminal OH
+  var lastPhiC = (nRes - 1) * turnAngle + turnAngle * 0.7;
+  var lastZC = zOff + (nRes - 1) * rise + rise * 0.7;
+  var lastCx = radius * Math.cos(lastPhiC);
+  var lastCy = radius * Math.sin(lastPhiC);
+  pushAtom(lastCx, lastCy, lastZC + 1.34 * A, 'O', 2);
+  pushAtom(lastCx, lastCy, lastZC + 1.34 * A + bOH, 'H', 1);
+
+  console.log('Loose helix Gly12 (dry): ' + atoms.length + ' atoms');
+
+  // Bond pairs — backbone + i→i+4 H-bonds
+  var bondPairs = [
+    [atomIdx.N[0], atomIdx.Ca[0], "N-Ca:"],
+    [atomIdx.Ca[0], atomIdx.C[0], "Ca-C:"],
+    [atomIdx.C[0], atomIdx.O[0], "C=O:"],
+    [atomIdx.C[0], atomIdx.N[1], "C-N:"],
+    [atomIdx.N[1], atomIdx.H[1], "N-H:"],
+  ];
+  // i→i+4 H-bonds (hallmark of alpha helix)
+  for (var i = 0; i + 4 < nRes; i++) {
+    bondPairs.push([atomIdx.O[i], atomIdx.H[i+4], "O"+i+"···H"+(i+4)+":"]);
+  }
+  window.USER_BOND_PAIRS = bondPairs;
+
+  window.USER_REFERENCE = {
+    bonds: {
+      "N-Ca": "1.46", "Ca-C": "1.52", "C=O": "1.23",
+      "C-N": "1.33", "N-H": "1.01",
+    },
+    energy: "Loose helix → tight helix: 12-res polyglycine dry",
+    binding: "H-bond ~5 kcal/mol as helix tightens"
+  };
+
+  // Rigid-group classical MD
+  var mdGroups = [];
+  for (var r = 0; r < nRes; r++) {
+    var group = [];
+    var start = atomIdx.N[r];
+    var end = (r < nRes - 1) ? atomIdx.N[r+1] : atoms.length - 2;
+    for (var a = start; a < end; a++) group.push(a);
+    mdGroups.push(group);
+  }
+  // C-terminal OH
+  mdGroups.push([atoms.length - 2, atoms.length - 1]);
+
+  window.USER_CLASSICAL_MD = {
+    mode: 'translate',
+    caIndices: atomIdx.Ca,
+    groups: mdGroups,
+    offsets: null,
+    mdSteps: 50,
+    mdDt: 0.01,
+    helicalBias: {
+      idealRadius: 2.3 * A,  // target helix radius in au
+      strength: 0.03          // gentle radial nudge
+    }
+  };
+
+  // Helix progress tracking
+  window.USER_HELIX_PROGRESS = {
+    caIndices: atomIdx.Ca,
+    oIndices: atomIdx.O,
+    hIndices: atomIdx.H,
+    idealRadius: 2.3 * A,   // 2.3 A in au
+    idealRise: 1.5 * A,     // 1.5 A per residue in au
+    hbondCutoff: 2.5 * A    // O···H < 2.5 A counts as H-bond
+  };
+
+  window.USER_NN = gridN;
+  window.USER_ATOMS = atoms;
+  window.USER_SCREEN = scr;
+  window.USER_STEPS = 1000000;
+  window.USER_DYNAMICS = true;
+  window.USER_FORCE_SCALE = 100.0;
+  window.USER_ARROW_SCALE = 0.2;
+  window.USER_N_MOVE = 15;
+  window.USER_Z = zList;
+  window.USER_RC = elList.map(function(el) {
+    if (el === 'H') return 0;
+    if (el === 'C') return 0.3;
+    if (el === 'N') return 0.3;
+    if (el === 'O') return 0.4;
+    return 0;
+  });
+})();
+
+var s = document.createElement('script');
+s.src = 'molecule.js?t=' + Date.now();
+s.onload = function() {
+  var p5s = document.createElement('script');
+  p5s.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+  p5s.onload = function() {
+    // Video recording: press R to start/stop, auto-downloads webm
+    // 20x timelapse: capture 1 frame every 3s → 1hr = 1200 frames → 40s at 30fps
+    var recorder = null, chunks = [], recording = false;
+    var recInterval = null;
+    window._toggleRecording = function() {
+      var canvas = document.querySelector('canvas');
+      if (!canvas) return;
+      if (!recording) {
+        chunks = [];
+        var stream = canvas.captureStream(0); // manual frame capture
+        var track = stream.getVideoTracks()[0];
+        window._recStreamTrack = track;
+        var mimeType = MediaRecorder.isTypeSupported('video/webm; codecs=vp9')
+          ? 'video/webm; codecs=vp9'
+          : MediaRecorder.isTypeSupported('video/webm; codecs=vp8')
+          ? 'video/webm; codecs=vp8'
+          : MediaRecorder.isTypeSupported('video/webm')
+          ? 'video/webm'
+          : 'video/mp4';
+        console.log('Recording with: ' + mimeType + ' (20x timelapse)');
+        recorder = new MediaRecorder(stream, { mimeType: mimeType });
+        recorder.ondataavailable = function(ev) { if (ev.data.size > 0) chunks.push(ev.data); };
+        recorder.onstop = function() {
+          var blob = new Blob(chunks, { type: mimeType });
+          var ext = mimeType.indexOf('mp4') >= 0 ? 'mp4' : 'webm';
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a');
+          a.href = url; a.download = 'helix_fold_20x.' + ext; a.click();
+          URL.revokeObjectURL(url);
+          console.log('Recording saved: helix_fold_20x.' + ext);
+        };
+        recorder.start(1000);
+        // Capture 1 frame every 3 seconds → 20x speedup at 30fps playback
+        recInterval = setInterval(function() {
+          try { track.requestFrame(); } catch(e) {}
+        }, 3000);
+        recording = true;
+        var dot = document.createElement('div');
+        dot.id = 'rec-indicator';
+        dot.style.cssText = 'position:fixed;top:10px;right:10px;background:red;color:#fff;padding:4px 10px;border-radius:4px;font:bold 14px monospace;z-index:9999;';
+        dot.textContent = '\u25CF REC 20x';
+        document.body.appendChild(dot);
+        console.log('Recording started (R to stop) — 20x timelapse, 1hr → ~3min video');
+      } else {
+        if (recInterval) { clearInterval(recInterval); recInterval = null; }
+        recorder.stop();
+        recording = false;
+        window._recStreamTrack = null;
+        var ind = document.getElementById('rec-indicator');
+        if (ind) ind.remove();
+        console.log('Recording stopped, saving...');
+      }
+    };
+  };
+  document.body.appendChild(p5s);
+};
+document.body.appendChild(s);
+</script>
+</body></html>
