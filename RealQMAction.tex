@@ -7,8 +7,8 @@
 \usepackage{xurl}
 \usepackage{setspace}
 
-\title{Time-Dependent Complex RealQM\\
-and the Overdetermination of the Free Boundary}
+\title{RealQM Atomic Spectra\\
+\large Radiation as Real Charge Oscillation: Sloshing and Breathing}
 \author[1]{Claes Johnson}
 \affil[1]{KTH Royal Institute of Technology, SE-100 44 Stockholm, Sweden \\
 \texttt{claesjohnson@gmail.com}}
@@ -18,162 +18,309 @@ and the Overdetermination of the Free Boundary}
 \maketitle
 
 \begin{abstract}
-Real Quantum Mechanics (RealQM) represents $N$ electrons by $N$ unit charge densities carried on
-non-overlapping domains of ordinary three-dimensional space, the domains meeting at free boundaries whose
-location is not given in advance. In the established, real-valued theory --- the one that computes atoms,
-molecules and nuclei --- the ground state minimises the Coulomb energy, and on the free boundaries two
-conditions are to hold: continuity of the wave function (hence of the charge density) and a vanishing normal
-derivative (the homogeneous Neumann, or Bernoulli, condition). These two conditions fix the boundary and the
-static problem is well posed. We observe that the \emph{time-dependent}, complex-valued extension --- used to
-reach currents, magnetism and decay --- changes this. A complex wave function carries a current, and
-requiring each electron to keep its unit charge as the boundary moves imposes a further condition, that the
-boundary move with the flow. Continuity, Neumann, and per-electron charge conservation are then three
-conditions on one free boundary: the time-dependent free-boundary problem is \emph{overdetermined}. It
-cannot in general satisfy all three, and one must choose which to keep --- keep the wave function continuous
-(the Bernoulli condition, with charge free to migrate between domains), or keep each electron's charge (with
-a jump in the wave function). We state the conditions plainly and record this fork; its resolution is left
-open. The real-valued static theory is unaffected: there the currents vanish, the boundary is at rest, and
-the two Bernoulli conditions hold without conflict.
+Atomic spectra were the starting point of quantum mechanics: the discrete lines a classical atom cannot
+explain. Standard quantum mechanics accounts for them \emph{formally} --- the levels are eigenvalues, and a
+spectral line is the beat of a \emph{superposition} of two eigenstates, a formal device whose physical
+meaning is left open, the same unresolved question as measurement. Real Quantum Mechanics (RealQM) --- which
+represents $N$ electrons by $N$ unit charge densities on non-overlapping domains of ordinary
+three-dimensional space, meeting at free boundaries --- offers instead a physical account. Its stationary
+states are the \emph{stationary points} of a single global energy, at total energies $E_n$; making the wave
+functions complex turns radiation into a \emph{real charge-density oscillation} between them. Two mechanisms
+arise, and \emph{neither is a superposition}: \emph{sloshing}, a real transition in which the charge moves
+between two full states and radiates at $E_n-E_m$; and \emph{breathing}, in which two shells of one state
+coexist side by side and beat at $E_j-E_k$. The two forms of helium appear as the two modes --- ortho a
+sloshing at $19$~eV (observed $19.8$), para a breathing at $43$~eV. The most visible feature of an atom, carried in the
+standard theory by a formal superposition, becomes here a literal oscillation of charge in space; the
+quasi-static free boundary and its fast-scale limit are the supporting time-dependent machinery.
 \end{abstract}
 
 \setstretch{1.06}
 
-\section{The real-valued theory and its free boundary}
+\section{Real-valued RealQM}
 \label{sec:static}
 
-RealQM represents $N$ electrons by densities $\psi_i^2$, each carried on its own region
-$\Omega_i\subset\mathbb R^3$, the regions non-overlapping, $\Omega_i\cap\Omega_j=\varnothing$
-\cite{RealQM}. The wave functions $\psi_i$ are real, each of unit charge,
+RealQM represents $N$ electrons by densities $\psi_j^2$, each carried on its own region
+$\Omega_j\subset\mathbb R^3$, the regions non-overlapping, $\Omega_j\cap\Omega_k=\varnothing$
+\cite{RealQM}; the nuclei enter as a fixed kernel. The wave functions $\psi_j$ are real, each of unit charge,
 \begin{equation}
-\int_{\Omega_i}\psi_i^2=1 ,
+\int_{\Omega_j}\psi_j^2=1 ,
 \label{eq:unit}
 \end{equation}
-and the ground state minimises the Coulomb energy
+and of finite kinetic energy: each $\psi_j\in H^1(\Omega_j)$, and the total wave function
+$\Psi=\sum_j\psi_j\in H^1(\mathbb R^3)$, where $H^1(\Omega)$ denotes the functions on $\Omega$ that are
+square-integrable together with their first derivatives. Membership of $\Psi$ in $H^1(\mathbb R^3)$ forces the
+$\psi_j$ to \emph{agree on the interfaces between neighbouring domains}; this continuity is the free-boundary
+condition (i) below. The ground state minimises the Coulomb energy
 \begin{equation}
-E=\sum_i\tfrac12\!\int_{\Omega_i}|\nabla\psi_i|^2+\tfrac12\!\iint\frac{\rho(x)\rho(y)}{|x-y|}\,dx\,dy,
-\qquad \rho=\sum_i q_i\psi_i^2 ,
+E=\sum_j\tfrac12\!\int_{\Omega_j}|\nabla\psi_j|^2+\int V_{\mathrm K}\,\rho\,dx
++\sum_{j<k}\iint\frac{\psi_j^2(x)\,\psi_k^2(y)}{|x-y|}\,dx\,dy,
+\qquad \rho=\sum_j\psi_j^2 ,
 \label{eq:E}
 \end{equation}
-over the wave functions and, jointly, over the partition into domains. Minimising over the $\psi_i$ gives,
-on each domain, a one-electron eigenvalue equation in the self-consistent Coulomb field --- so each domain
-carries its own Poisson problem for its Hartree potential, coupled to the others only through the fields
-they produce.
+with $V_{\mathrm K}$ the Coulomb potential of the fixed nuclear kernel and $\rho$ the total electron density.
+The three terms are the electron kinetic energy, the electron--kernel attraction, and the electron--electron
+repulsion --- the last running over \emph{distinct} domains $j<k$ only. There is \emph{no self-repulsion}: an
+electron does not repel its own charge. That confining role is taken over by the kinetic energy
+$\tfrac12\int|\nabla\psi_j|^2$, whose pressure keeps each density from collapsing; kinetic pressure balanced
+against the kernel attraction and the repulsion of the other electrons fixes the size of each domain. The
+energy is minimised over the wave functions \emph{alone}; the partition $\{\Omega_j\}$ --- the free boundary
+--- is not a separate variable but an outcome of that minimisation. Minimising each $\psi_j$ on its region,
+with its boundary value free, gives on each domain the local (Euler--Lagrange) equation in the total
+self-consistent field of the kernel and the \emph{other} electrons, together with its \emph{natural} boundary
+condition, the Neumann condition (ii) below; continuity (i) then locates the interface. Each domain carries
+its own Poisson problem for its potential, coupled to the others only through the fields they produce.
 
-The interfaces $\Gamma$ between domains are not prescribed; they are located by the requirement that two
-conditions hold there.
+Two conditions hold at each interface $\Gamma$, with distinct roles.
 \begin{itemize}
-\item[(i)] \emph{Continuity.} The total $\Psi=\sum_i\psi_i$ is continuous, so at an interface between
-domains $1$ and $2$,
-\begin{equation}
-\psi_1=\psi_2\quad\text{on }\Gamma,\qquad\text{hence}\qquad \rho_1=\rho_2 .
-\label{eq:cont}
-\end{equation}
-Since $\rho_i=\psi_i^2$, continuity of the wave function \emph{is} continuity of the charge density.
+\item[(i)] \emph{Density continuity.} $\rho_1=\rho_2$ on $\Gamma$; since $\rho_j=\psi_j^2$ and the $\psi_j$
+are real, this is $\psi_1=\psi_2$.
 \item[(ii)] \emph{Vanishing normal derivative} (homogeneous Neumann, the Bernoulli condition):
-\begin{equation}
-\frac{\partial\psi_i}{\partial n}=0\quad\text{on }\Gamma .
-\label{eq:neumann}
-\end{equation}
+$\partial\psi_j/\partial n=0$ on $\Gamma$.
 \end{itemize}
-Condition (i) matches the two densities where the domains meet; condition (ii) fixes the location of the
-interface. With both imposed the static free-boundary problem is well posed, and it is this problem --- unit
-charges, continuity, and Neumann, coupled by Coulomb --- that reproduces the periodic table, chemical
-bonding, and, read for protons and electrons, nuclear binding \cite{RealQM,RealNucleus}. Everything here is
-static and real: the density is fixed in time, no charge flows across any interface, and the two conditions
-\eqref{eq:cont}--\eqref{eq:neumann} sit together without tension.
+Condition (ii) belongs to each domain's \emph{own} problem: the vanishing normal derivative is the
+homogeneous, zero-flux boundary condition that closes the Poisson problem on $\Omega_j$, so
+that each domain is a self-contained subsystem across which no charge flows and its unit charge is kept.
+Condition (i) is the extra free-boundary condition: with each domain solving its own Neumann problem on
+whatever region it is given, the interface is \emph{located} where the two densities meet, $\rho_1=\rho_2$.
+So (ii) is part of the equation on each domain and (i) fixes the position of the free boundary. With both
+imposed the static free-boundary problem is well posed, and it is this problem --- unit charges, density
+continuity, and Neumann, coupled by Coulomb --- that reproduces the periodic table,
+chemical bonding, and, read for protons and electrons, nuclear binding \cite{RealQM,RealNucleus}. Everything
+here is static and real: the density is fixed in time and no charge flows.
 
-\section{The time-dependent extension carries a current}
+\section{Complex-valued RealQM}
 \label{sec:complex}
 
-To reach phenomena that are absent from a static real density --- currents, magnetism, radiation, decay ---
-the wave functions are made \emph{complex} and evolved by the Schr\"odinger equation generated by
-\eqref{eq:E},
+The complex phase is \emph{periodic motion}: a clock $e^{-iEt}$ turning at rate $E$. Its point is radiation
+understood as \emph{resonance} --- the agreement of periodic motions. When a charge carries two frequencies
+$E_n,E_m$, their beat at $E_n-E_m$ is a real periodic oscillation, and radiation is this oscillation coming
+into resonance with the electromagnetic field. A static real density has its phases frozen, no periodic
+motion, and cannot resonate; making the wave functions \emph{complex} restores it --- this is what the
+complex form is \emph{for}. To reach it, and the other phenomena absent from a static real density (currents,
+magnetism), one evolves each domain by the Schr\"odinger equation generated by \eqref{eq:E},
 \begin{equation}
-i\,\partial_t\psi_i=-\tfrac12\nabla^2\psi_i+q_i\,\phi[\rho]\,\psi_i ,
+i\,\partial_t\psi_j=-\tfrac12\nabla^2\psi_j+\big(V_{\mathrm K}+\phi_j\big)\psi_j ,\qquad
+\phi_j(x)=\int\frac{(\rho-\rho_j)(y)}{|x-y|}\,dy ,
 \label{eq:tdse}
 \end{equation}
-with $\phi[\rho]$ the Coulomb potential of the total density. A complex $\psi_i$ carries a current
+with $V_{\mathrm K}+\phi_j$ the total Coulomb potential felt by electron $j$ --- the fixed kernel plus the
+Hartree field $\phi_j$ of the \emph{other} electrons (no self-repulsion). This is the \emph{entire}
+extension. It costs nothing in the static construction, and for a clean reason: everything the theory couples
+through is the density. The free boundary is located by (i)--(ii), which are conditions on
+$\rho_j=|\psi_j|^2$; the Coulomb field in \eqref{eq:tdse} is the field of the other electrons and the fixed
+kernel. Both are \emph{phase-blind}. Writing
+$\psi_j=|\psi_j|\,e^{-i\theta_j}$ changes neither the density, nor the boundary it fixes, nor the energy
+\eqref{eq:E}. Complexification does one thing only: it restores the phase $\theta_j$ that the real theory had
+frozen to zero. The static real-valued theory of \S\ref{sec:static} is the phase-free section of the same
+theory, not a different one.
+
+The phase, once free, is dynamical. A complex $\psi_j$ carries a current
 \begin{equation}
-\mathbf j_i=\operatorname{Im}(\psi_i^*\nabla\psi_i),\qquad \partial_t\rho_i+\nabla\!\cdot\mathbf j_i=0 ,
+\mathbf j_j=\operatorname{Im}(\psi_j^*\nabla\psi_j)=-|\psi_j|^2\,\nabla\theta_j,\qquad
+\partial_t\rho_j+\nabla\!\cdot\mathbf j_j=0 ,
 \label{eq:current}
 \end{equation}
-which is identically zero when $\psi_i$ is real. This current is what a static real density lacks and what
-the complex extension is for.
+identically zero when $\psi_j$ is real ($\theta_j\equiv0$). The current is what a static real density lacks,
+and it is set by the \emph{gradient} of the phase.
 
-\section{The free boundary is overdetermined in time}
-\label{sec:over}
+\section{Stationary states as stationary points of the energy}
+\label{sec:eigen}
 
-Now let the boundary move. Write $V_n$ for its \emph{normal velocity} --- the speed at which the interface
-$\Gamma(t)$ advances along its unit normal $\mathbf n$ (for a level set $\Gamma=\{F=0\}$,
-$V_n=-\partial_tF/|\nabla F|$; in one dimension, with the interface at $x=a(t)$, $V_n=\dot a$). It is a
-geometric quantity, the motion of the boundary itself, and is \emph{a priori} distinct from the charge-flow
-velocity $\mathbf j_i/\rho_i$. The charge of electron $i$ is $Q_i=\int_{\Omega_i(t)}\rho_i$, and with the
-interface in motion, using \eqref{eq:current},
+The ground state of \S\ref{sec:static} is the \emph{minimum} of the global energy \eqref{eq:E}. In the spirit
+of Schr\"odinger, the stationary states of the system are the \emph{stationary points} of that same global
+energy --- the ground state the least, the excited states the higher stationary points --- each with a total
+energy $E$, the value of \eqref{eq:E} there, that is the state's energy.
+
+Complexified, such a stationary state is carried by clocks
 \begin{equation}
-\frac{dQ_i}{dt}=\int_{\Gamma}\big(V_n\,\rho_i-\mathbf j_i\!\cdot\!\mathbf n\big)\,dS .
-\label{eq:dQ}
+\psi_j(x,t)=u_j(x)\,e^{-iE_jt},
+\label{eq:stat}
 \end{equation}
-For each electron to keep its unit charge \eqref{eq:unit} as the boundary moves, the integrand must vanish,
-which is a \emph{third} condition on the interface:
+a stationary solution of the evolution \eqref{eq:tdse}, each domain turning at its own rate $E_j$ with density
+$\rho_j=u_j^2$ time-independent and the Coulomb field stationary. There are \emph{no} separate eigenvalue
+problems on the individual domains: stationarity of \eqref{eq:E} under variation of $\psi_j$, with the
+unit-charge constraint \eqref{eq:unit} carried by a multiplier $E_j$, gives on each domain only the local
+condition
 \begin{equation}
-V_n=\frac{\mathbf j_i\!\cdot\!\mathbf n}{\rho_i}\quad\text{on }\Gamma,
-\label{eq:material}
+-\tfrac12\nabla^2 u_j+\big(V_{\mathrm K}+\phi_j\big)u_j=E_j\,u_j\quad\text{on }\Omega_j,\qquad
+\frac{\partial u_j}{\partial n}=0\ \text{ on }\partial\Omega_j,
+\label{eq:eigen}
 \end{equation}
-the statement that the boundary moves with the charge flow. Imposed for both domains, \eqref{eq:material}
-also demands $\mathbf j_1\!\cdot\!\mathbf n/\rho_1=\mathbf j_2\!\cdot\!\mathbf n/\rho_2$, a matching of the
-flow speeds across the interface.
+with $V_{\mathrm K}+\phi_j$ the total Coulomb field of the kernel and the other electrons (no self-repulsion),
+the Neumann condition (ii) the natural boundary condition of the minimisation, the interfaces located by continuity (i), and
+$\rho=\sum_j u_j^2$. The $\psi_j$ are coupled through the shared field and the free boundaries, and $E_j$ is
+merely the multiplier of domain $j$'s constraint --- the local face of one global stationarity, not a
+domain-by-domain spectral problem.
 
-We now have \emph{three} conditions to be satisfied on one free boundary: continuity \eqref{eq:cont},
-Neumann \eqref{eq:neumann}, and charge conservation \eqref{eq:material}. That is one condition too many.
-The free boundary carries a single location (one function on $\Gamma$) to be fixed, and the fields already
-obey their bulk equation \eqref{eq:tdse}; three interface conditions on that single freedom leave the
-time-dependent free-boundary problem \emph{overdetermined}. It cannot, in general, satisfy all three at
-once.
+The \emph{total} energy $E$ --- the value of \eqref{eq:E} --- is distinct from the clock rates: because the
+domains share their interactions, $E\neq\sum_jE_j$, and only if all the $E_j$ coincided would the domains
+merge into a single global clock $\Psi\,e^{-iEt}$, the textbook stationary state at total energy $E$. What the
+ground-state minimisation of \S\ref{sec:static} carries as the Lagrange multiplier of the unit-charge
+constraint reappears, in the complex form, as the physical clock rate $E_j$.
 
-Two remarks make the tension concrete. First, \eqref{eq:neumann} and \eqref{eq:material} clash directly:
-Neumann gives $\partial_n\psi_i=0$, hence $\mathbf j_i\!\cdot\!\mathbf n=\operatorname{Im}(\psi_i^*
-\partial_n\psi_i)=0$, and then \eqref{eq:material} forces $V_n=0$ --- the boundary cannot move at all.
-Second, continuity \eqref{eq:cont} is a condition on the \emph{value} of $\psi_i$ at the interface, whereas
-charge conservation \eqref{eq:material} is a condition on its \emph{gradient} (through $\mathbf j$); the two
-are independent, and holding both while the boundary moves is not automatic.
+Beyond the ground state lie the other stationary points of \eqref{eq:E}, at higher total energy: a discrete
+family of \emph{full states} of the system, with total energies $E_n$, $E_0<E_1<\cdots$ --- exactly the
+levels Schr\"odinger's stationary problem provides, a one-electron atom its single-electron levels, a
+many-electron atom its configurations. Radiation is a real charge oscillation \emph{between} two such full
+states, at a total-energy difference $E_n-E_m$ (\S\ref{sec:spectra}). Complexifying thus carries RealQM from
+the single energy minimum to the whole family of stationary states.
 
-\section{The fork}
-\label{sec:fork}
+\section{Two time scales: a quasi-static boundary and per-domain phase clocks}
+\label{sec:twoscale}
 
-Faced with an overdetermined interface one must drop a condition. There are two natural choices.
+The eigenstates of \S\ref{sec:eigen} hold the geometry fixed, each domain ticking at its own $E_j$. Letting
+the geometry drift --- the domains and their free boundary relaxing \emph{quasi-statically} while each domain
+keeps its clock --- gives the general two-scale solution:
+\begin{equation}
+\psi_j(x,t)=u_j\big(x;\Gamma(t)\big)\,e^{-i\theta_j(t)} ,
+\label{eq:ansatz}
+\end{equation}
+with the geometry $\Gamma(t)$ --- the domains and their free boundary --- moving \emph{quasi-statically},
+relaxed at each slow step by the static conditions (i)--(ii) on the instantaneous densities $u_j^2$, while
+each domain runs its own \emph{phase clock} $\theta_j(t)=\int E_j\,dt$. The clock is spatially uniform across
+a domain, so by \eqref{eq:current} it carries \emph{no current},
+\begin{equation}
+\nabla\theta_j=0\ \Longrightarrow\ \mathbf j_j=0 ,
+\end{equation}
+the density $u_j^2$ is stationary at the fast scale, each electron keeps its unit charge automatically, and
+the boundary --- which responds only to the density --- has nothing fast to track. The static pair
+(i)--(ii) is all it ever sees. There is no fast moving-boundary problem to solve and no equation of motion
+to impose on $\Gamma$; the geometry simply follows the slow drift of the densities as in the real theory.
+
+One point makes the phases free. To let different domains tick at different rates, the interface matches the
+\emph{density} \eqref{eq:cont}, not the complex value: $|\psi_1|=|\psi_2|$ with the phases unconstrained
+across $\Gamma$. Full complex continuity, $\psi_1=\psi_2$, would force $\theta_1=\theta_2$ and hence
+$E_1=E_2$, collapsing the clocks to one. Density continuity --- which is what RealQM asks anyway, continuity
+of $\psi^2$ being continuity of charge --- liberates them.
+\begin{equation}
+|\psi_1|=|\psi_2|\ \text{ on }\Gamma,\qquad \partial_n u_j=0\ \text{ on }\Gamma,\qquad
+\theta_j\ \text{free across }\Gamma .
+\label{eq:cont}
+\end{equation}
+
+\section{Coexistence of time scales}
+\label{sec:super}
+
+A single uniform clock, alone, has no observable content: it can be gauged away, carries no current, and
+leaves every density stationary. The phase becomes physical through the \emph{differences} of energies, and it
+does so in two ways --- neither of them a superposition.
+
+\emph{Between two full states} $\Psi_n,\Psi_m$ (\S\ref{sec:eigen}) at total energies $E_n,E_m$, the charge
+density physically moves from one to the other --- a real transition --- radiating at $E_n-E_m$ as it goes:
+the system \emph{sloshing} between states. Standard quantum mechanics instead writes the atom as a
+superposition of global eigenstates,
+\begin{equation}
+\Psi=a\,\Psi_n\,e^{-iE_nt}+b\,\Psi_m\,e^{-iE_mt},
+\label{eq:super}
+\end{equation}
+a formal object whose physics is unclear or even missing --- what it \emph{is} to be in a superposition of two
+energy states is the unresolved question of measurement. RealQM carries no such object: only a real charge
+density in motion, whose oscillation at $E_n-E_m$ is the radiation. \emph{Between two domains of a single
+state}, an inner and an outer shell coexist side by side, and the relative phase $\theta_j-\theta_k$ advances
+at $E_j-E_k$ --- a \emph{breathing}, again no superposition but two definite charges beating against each
+other, a beat any coupling that bridges the domains sees. The phase field is thus the register on which the
+atom's \emph{time scales} are carried at once: the slow geometric scale of the moving domains and the fast
+electronic scales --- the total energies $E_n$ and the domain rates $E_j$ --- and their differences. This is
+the content a static real density cannot hold --- spectra, coherence, radiation --- recovered by the single
+step of letting $\psi$ be complex.
+
+The reading is standard-QM-friendly. Equation \eqref{eq:ansatz} is the adiabatic (Born--Oppenheimer)
+separation of a slow configuration from a fast phase, with $e^{-iE_jt}$ the ordinary stationary-state clock
+--- here carried \emph{per electron domain} rather than globally. Within each domain \eqref{eq:tdse} is the
+familiar one-body complex Schr\"odinger equation in a self-consistent field, so its whole apparatus ---
+split-operator or Crank--Nicolson propagation, resonance and complex-energy methods, time-dependent
+mean-field --- transfers unchanged. What is new to RealQM is only the \emph{interface} between domains, and
+in the quasi-static reading it is handled by the same static Bernoulli conditions as before.
+
+\section{Two sources of spectra: sloshing and breathing}
+\label{sec:spectra}
+
+The spectrum is the most visible aspect of an atom --- how atoms are seen, identified, and were first
+discovered --- yet standard quantum mechanics hides the physics of how it arises: the levels drop out of an
+eigenvalue problem and the lines from transition probabilities, but what \emph{physically} radiates is never
+said. In RealQM radiation is a \emph{real charge-density oscillation}: two coexisting energies make the charge
+physically oscillate and radiate, as in Schr\"odinger's reading of the beat of eigenstates, with no collapse
+of an amplitude. The complex theory carries two such oscillations, told apart by whether the beat is between
+two different \emph{states} of the system or between two \emph{shells of one state}.
+
+\emph{Sloshing --- between two full states.} The system moves between two of its stationary states
+(\S\ref{sec:eigen}), at total energies $E_n$ and $E_m$: the charge really sloshes from one configuration to
+the other and radiates at $E_n-E_m$. This is the ordinary atomic transition, and it needs no more than a
+single electron --- a hydrogen atom sloshes between $1s$ and $2p$, a many-electron atom between its
+configurations. It is the clear, primary source of spectra.
+
+\emph{Breathing --- between two shells of one state.} A single multi-shell state can also carry an oscillation
+\emph{within} itself: two domains, an inner and an outer shell, coexist side by side at different clock rates
+$E_j,E_k$, and their coexistence sustains radiation at $E_j-E_k$, with no transition to another state. This is
+a second, more delicate source. Its physics is less clear --- it radiates only if the shells \emph{couple} (a
+shared boundary that passes charge, or the Coulomb field), and a spherical inner--outer beat carries no dipole
+--- but it is free of the superposition enigma: the two shells are two definite charges side by side, not one
+electron in two states at once. It may be the meaningful reading of the two forms of helium.
+
+\emph{Helium.} Take the two forms of helium as these two modes. A radial self-consistent RealQM solve
+computes, at one Hartree level, the two shell rates $E_1=-1.73,\ E_2=-0.15$~Ha (inner $\langle r\rangle=0.76$,
+outer $4.9\,a_0$) and the total energies $E(1s2s)=-2.15$ and $E(1s^2)=-2.85$~Ha (exact $-2.9037$; the
+residual is correlation, omitted at this level). Then
+\begin{align}
+\text{ortho, sloshing:}&\quad E(1s2s)-E(1s^2)=0.70\ \text{Ha}=19.0\ \text{eV}
+  &&(\text{between two full states; obs.\ }19.8),\\
+\text{para, breathing:}&\quad |E_1-E_2|=1.58\ \text{Ha}=43\ \text{eV}
+  &&(\text{between the two shells of one state}),
+\end{align}
+cleanly separated by a factor of two, the breathing lying at the inner-shell scale (near the He$^+$
+Lyman-$\alpha$, $40.8$~eV). One caveat of naming: standard spectroscopy ties ortho/para to spin, and there it
+is \emph{para} --- the singlet $1s^2$ --- that owns the ground state, whereas the structural reading here ties
+them to the oscillation mode. Which computed frequency falls on which observed series is what fixes the
+labels, and $19.8$ and $43$~eV are far enough apart that the data separates them without ambiguity.
+
+\section{Where the fast free boundary is needed}
+\label{sec:fast}
+
+Charge crossing between two bound domains --- breathing (\S\ref{sec:spectra}) carried to where the boundary
+must move with the flow --- is the regime the quasi-static boundary cannot cover: when the partition itself
+reshapes as fast as the phase turns, there is no separation of scales and no factorisation \eqref{eq:ansatz}.
+There one must let the free boundary be updated on the fast scale, moving with the flow,
+$V_n=\mathbf j_j\!\cdot\!\mathbf n/\rho_j$, so that each electron keeps its charge instant by instant. Three
+conditions --- density continuity, Neumann, and this flow condition --- then bear on one moving interface,
+and they conflict: Neumann gives $\mathbf j_j\!\cdot\!\mathbf n=0$, forcing $V_n=0$. The fast moving boundary
+is thus a genuine open problem, sidestepped by the quasi-static scheme only because that scheme declines to
+pose it.
+
+It is needed exactly when charge is redistributed \emph{bound-to-bound} --- between two confined domains ---
+in about one electronic period, so that $V_n$ is of order the phase rate. The applied cases are few and
+sharp:
 \begin{itemize}
-\item[(A)] \emph{Keep the wave function continuous.} Retain continuity \eqref{eq:cont} and Neumann
-\eqref{eq:neumann} --- the same two conditions as the static theory --- and let the boundary sit where they
-hold, moving as the fields evolve. The density stays continuous, $\Psi$ remains regular, and the energy is
-conserved (with Neumann the interface contributes no energy flux and, by \eqref{eq:cont}, no net energy from
-the moving boundary). What is given up is \eqref{eq:material}: as the boundary sweeps, charge migrates from
-one electron's domain into the other's, so the individual $Q_i$ are not conserved (their sum is). This is
-the direct continuation of the static Bernoulli conditions, and it is the choice the existing RealQM
-level-set relaxation already realises.
-\item[(B)] \emph{Keep each electron's charge.} Retain \eqref{eq:material}, so the boundary moves with the
-flow and every $Q_i$ stays equal to one. The interface is then a contact discontinuity: the flow speeds
-match across it while the density is allowed to jump, so $\psi$ (and $\rho$) is discontinuous and continuity
-\eqref{eq:cont} is given up. This conserves per-electron charge at the price of a wave function that is no
-longer continuous across a moving interface.
+\item \emph{Attosecond charge migration} --- the flagship. After a sudden ionisation a hole hops across a
+molecule in femto- to attoseconds, driven by electron correlation before the nuclei move; the boundary
+between the hole region and the rest must migrate on the electronic scale.
+\item \emph{Sudden bond cleavage} --- where a bond breaks faster than nuclear relaxation and \emph{which}
+fragment keeps the shared electrons is decided by how the shared boundary resolves; the fast boundary motion
+is the product-selecting branching itself.
+\item \emph{Fast ion--atom charge exchange} --- a keV projectile passing on the electronic timescale, an
+electron transferring mid-collision as the interface sweeps across.
+\item \emph{Nonadiabatic transitions and conical intersections} --- where the Born--Oppenheimer separation,
+which is the quasi-static assumption, breaks down by construction.
 \end{itemize}
-Both reduce to the static Bernoulli conditions at rest: when the currents vanish, \eqref{eq:material} reads
-$V_n=0$, the boundary stops, and continuity plus Neumann hold together. The two choices differ only when the
-boundary genuinely moves --- that is, only in real-time, multi-domain dynamics.
+Two look-alikes do \emph{not} need it. Ordinary thermal chemistry is slow: the nuclei set the pace and the
+domains follow adiabatically, so the quasi-static boundary is enough. And ionisation, detachment,
+high-harmonic rescattering, Auger and radioactive decay send charge to the \emph{continuum}, across an outer
+absorbing boundary --- a single domain leaking --- not across the shared inter-domain boundary; these are
+fast but they are the decay-type outer-boundary problem, not the fork. The overdetermination of the free
+boundary is therefore real physics exactly once one enters attosecond bound-to-bound dynamics, and nowhere
+before it.
 
 \section{Conclusion}
 \label{sec:concl}
 
-The real-valued RealQM has a well-posed free boundary: unit charges, continuity of the wave function (hence
-of the density), and a vanishing normal derivative, coupled by Coulomb. These conditions sit together
-without conflict because the density is static and no charge flows. The complex, time-dependent extension
-introduces a current, and with it a third interface condition --- that each electron keep its charge as the
-boundary moves. Three conditions on one free boundary overdetermine it; the time-dependent free boundary
-cannot satisfy continuity, Neumann, and charge conservation together, and one must choose (A) a continuous
-wave function with charge free to migrate, or (B) conserved per-electron charge with a discontinuous wave
-function. Which the physics of real-time dynamics selects we leave open. It is worth being clear that this
-concerns only the time-dependent extension: the real-valued theory, which carries the program's established
-results, is untouched --- there the currents vanish, the boundary is at rest, and the Bernoulli conditions
-hold.
+The passage from real-valued to time-dependent RealQM is as simple as it looks: let the wave functions be
+complex and evolve each domain by the ordinary complex Schr\"odinger equation. Because the free boundary and
+the Coulomb coupling see only the phase-blind density, the static construction is untouched; complexification
+merely returns the phase the real theory had suppressed. Taking the geometry quasi-static and the phase fast
+gives a two-scale theory --- a slow real-valued geometry of moving domains carrying fast per-domain phase
+clocks --- whose energy differences supply exactly the time-dependent content (currents,
+spectra, coherence) that a static real density lacks. No free-boundary equation of motion and no
+overdetermination arise, because the boundary is never asked to chase the fast scale. The real-valued theory
+remains the flagship; the complex theory is its direct time-dependent extension by a single step.
 
 \begin{thebibliography}{9}
 \bibitem{RealQM} C.~Johnson, \emph{Quantum Mechanics as Multiphase 3D Continuum Mechanics}, manuscript,

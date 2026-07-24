@@ -212,6 +212,8 @@ function poissonVcycle(P, rhs) {
 // Physics step — direct port of working p5.js code
 function physicsStep() {
   let E = 0, E_T = 0, E_eK = 0, E_ee = 0;
+  const ET_m = new Array(nShells).fill(0), Eee_m = new Array(nShells).fill(0),
+        EeK_m = new Array(nShells).fill(0), nrm_m = new Array(nShells).fill(0);
 
   for (let i = 1; i < NN; i++) {
     for (let j = 1; j < NN; j++) {
@@ -272,9 +274,12 @@ function physicsStep() {
             const gx = domIp ? U[m][ip] - U[m][id] : 0;
             const gy = domJp ? U[m][jp] - U[m][id] : 0;
             const gz = domKp ? U[m][kp] - U[m][id] : 0;
-            E_T += 0.5 * (gx * gx + gy * gy + gz * gz) * h;
-            E_ee += P[m][id] * U[m][id] * U[m][id] * h3;
-            E_eK -= K[id] * U[m][id] * U[m][id] * h3;
+            const t_m = 0.5 * (gx * gx + gy * gy + gz * gz) * h;
+            const ee_m = P[m][id] * U[m][id] * U[m][id] * h3;
+            const eK_m = -K[id] * U[m][id] * U[m][id] * h3;
+            E_T += t_m; E_ee += ee_m; E_eK += eK_m;
+            ET_m[m] += t_m; Eee_m[m] += ee_m; EeK_m[m] += eK_m;
+            nrm_m[m] += U[m][id] * U[m][id] * h3;
           }
 
           // Poisson update — simultaneous (inside main loop, matching p5.js)
@@ -332,7 +337,9 @@ function physicsStep() {
     bdyInfo = ' U0(' + Rb.toFixed(1) + ')=' + U[0][id].toFixed(4) + ' U1(' + Rb.toFixed(1) + ')=' + U[1][id].toFixed(4);
   }
 
-  return { E: E_T + E_eK + E_ee, E_T, E_eK, E_ee, bdyInfo };
+  // Per-shell orbital eigenvalue (Rayleigh quotient of H_m = -1/2 lap + 2 P_m - K)
+  const eig = ET_m.map((t, m) => (t + 2 * Eee_m[m] + EeK_m[m]) / (nrm_m[m] || 1));
+  return { E: E_T + E_eK + E_ee, E_T, E_eK, E_ee, eig, ET_m, Eee_m, EeK_m, nrm_m, bdyInfo };
 }
 
 // Expose for visualization

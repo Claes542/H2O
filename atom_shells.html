@@ -6,13 +6,13 @@
 // Orthohelium: +2 kernel, 1e inner (r<1), 1e outer (r>1)
 window.USER_Z_KERNEL = 2;
 window.USER_SHELLS = [
-  { ne: 1, Rmax: 1.75, Zeff: 2 },              // inner: 1s-like
-  { ne: 1, Rmax: 5.0, Zeff: 1, outerHalf: true } // outer: only in x > center half
+  { ne: 1, Rmax: 1.75, Zeff: 2 },   // inner: 1s-like, full sphere r<1.75
+  { ne: 1, Rmax: 9.0,  Zeff: 1 }    // outer: 2s-like, FULL spherical shell 1.75<r<9 (was hemispherical!)
 ];
-window.USER_NN = 100;
-window.USER_SCREEN = 10;
+window.USER_NN = 120;
+window.USER_SCREEN = 18;   // box +-9 au (was +-5, truncated the 2s); h=0.15
 window.USER_D = 0.1;
-window.USER_STEPS = 1000;
+window.USER_STEPS = 3000;  // bigger box needs more relaxation
 window.USER_POISSON = 'simultaneous';  // match p5.js
 </script>
 <script src="atom.js"></script>
@@ -96,18 +96,28 @@ function iterate() {
   const ms = performance.now() - t0;
   step++;
 
-  // Overwrite single line with current energy
+  // Overwrite single line with current energy + per-shell eigenvalues
+  const eV = 27.2114, E_ground = -2.9037;   // He 1s^2 (one-shell ground state)
+  const e0 = res.eig[0], e1 = res.eig[1];   // inner (1s), outer (2s) orbital energies
+  const gap = Math.abs(e0 - e1);            // breathing (para): inner<->outer shell gap
+  const slosh = res.E - E_ground;           // sloshing (ortho): ground <-> two-shell
   log.textContent = 'Step ' + step + '/' + window.USER_STEPS +
-    '  E=' + res.E.toFixed(6) +
-    '  T=' + res.E_T.toFixed(4) + '  V_eK=' + res.E_eK.toFixed(4) +
-    '  V_ee=' + res.E_ee.toFixed(4) + res.bdyInfo +
-    '  (' + ms.toFixed(0) + 'ms)  target: -2.175';
+    '  E=' + res.E.toFixed(6) + '  (target -2.175)' +
+    '\n  E_inner=' + e0.toFixed(4) + '  E_outer=' + e1.toFixed(4) + ' Ha' +
+    '\n  BREATHING (para) = |E_in - E_out| = ' + gap.toFixed(4) + ' Ha = ' + (gap * eV).toFixed(2) + ' eV' +
+    '\n  SLOSHING  (ortho) = E - E(1s^2)   = ' + slosh.toFixed(4) + ' Ha = ' + (slosh * eV).toFixed(2) + ' eV' +
+    '  (' + ms.toFixed(0) + 'ms)';
   draw();
 
   if (step < window.USER_STEPS) {
     requestAnimationFrame(iterate);
   } else {
-    log.textContent += '\n=== DONE: E=' + res.E.toFixed(6) + ' (target: -2.175) ===';
+    log.textContent += '\n=== DONE ===' +
+      '\n  E(two-shell) = ' + res.E.toFixed(6) + ' Ha (target -2.175, observed 2^3S)' +
+      '\n  inner 1s eigenvalue  E_in  = ' + e0.toFixed(4) + ' Ha' +
+      '\n  outer 2s eigenvalue  E_out = ' + e1.toFixed(4) + ' Ha (observed outer binding -0.175)' +
+      '\n  BREATHING / para  = ' + gap.toFixed(4) + ' Ha = ' + (gap * eV).toFixed(2) + ' eV   (ground state not involved)' +
+      '\n  SLOSHING  / ortho = ' + slosh.toFixed(4) + ' Ha = ' + (slosh * eV).toFixed(2) + ' eV   (ground 1s^2 -> two-shell; obs 19.82)';
   }
 }
 

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html><head>
+  <meta charset="utf-8">
+  <title>Helium 2-valence spectrum: ortho-He from inner 1s</title>
+  <style>
+    body { margin: 0; background: #0a0a0a; color: #ddd; font-family: monospace; padding: 8px; }
+    h3 { margin: 4px 0; color: #4fc3f7; }
+    .panel { display: inline-block; vertical-align: top; padding: 8px;
+             background: rgba(0,0,0,0.7); border: 1px solid #555; margin-right: 8px;
+             font-size: 11px; }
+    button, input[type=number], input[type=text] { font-family: monospace; padding: 2px 6px;
+             background: #111; color: #fff; border: 1px solid #555; }
+    table { border-collapse: collapse; font-size: 11px; }
+    th, td { padding: 3px 8px; border: 1px solid #444; text-align: right; }
+    th { color: #4fc3f7; background: #0a1820; }
+    .num { color: #ffe082; font-weight: bold; }
+    .ok { color: #66bb6a; }
+    .label { color: #aaa; }
+    canvas { background: #050510; border: 1px solid #555; }
+  </style>
+</head><body>
+
+<h3>Ortho-He spectrum — outer electron in V_eff(r) from inner 1s</h3>
+
+<div style="font-size: 11px; color: #aaa; max-width: 900px; line-height: 1.5">
+For He: inner electron in 1s, outer in 2s/3s/.... Effective potential for outer electron:<br>
+&nbsp;&nbsp;<code>V_eff(r) = −Z_nuc/r + V_H(r)</code> &nbsp;where V_H is the Hartree from a hydrogenic 1s with Z_eff = Z<sub>1s</sub>.<br>
+For hydrogenic 1s of charge Z<sub>1s</sub>: <code>V_H(r) = (1/r)·[1 − (1+Z<sub>1s</sub>r)·exp(−2Z<sub>1s</sub>r)]</code><br>
+→ <code>V_eff(r) = (1/r)·[−1 − (1+Z<sub>1s</sub>r)·exp(−2Z<sub>1s</sub>r)]</code><br>
+At small r: V_eff → −2/r (full −Z<sub>nuc</sub>/r). At large r: V_eff → −1/r (screened to net +1).<br>
+Z<sub>1s</sub> from Slater rule for He: 27/16 ≈ 1.6875 (or use ground-state RealQM result).
+</div>
+
+<div class="panel">
+  <h4 style="color:#80cbc4;margin:0 0 6px 0">Parameters</h4>
+  <span class="label">Z_nuc:</span> <input id="zNuc" type="number" min="1" max="20" step="1" value="2" style="width:60px"><br><br>
+  <span class="label">Z<sub>1s</sub> (effective):</span> <input id="zSlater" type="number" min="0.5" max="20" step="0.05" value="1.6875" style="width:80px"><br>
+  <span style="color:#888;font-size:10px">Slater for He: 27/16 ≈ 1.6875<br>For other Z<sub>nuc</sub>, use Z−5/16 (Slater)</span><br><br>
+  <span class="label">r_c (a.u.):</span> <input id="rc" type="number" min="0" max="5" step="0.1" value="0.0" style="width:80px"><br>
+  <span style="color:#888;font-size:10px">0 = no empty core (Hartree-Fock-like).<br>r_c &gt; 0 enforces non-overlap.</span><br><br>
+  <span class="label">R_max (a.u.):</span> <input id="Rmax" type="number" min="20" max="200" step="10" value="80" style="width:80px"><br><br>
+  <span class="label">Grid points:</span> <input id="N" type="number" min="500" max="5000" step="100" value="2000" style="width:80px"><br><br>
+  <button id="compute">Compute</button>
+</div>
+
+<div class="panel">
+  <h4 style="color:#80cbc4;margin:0 0 6px 0">Outer-electron eigenvalues</h4>
+  <table id="tbl">
+    <thead><tr><th>Term</th><th>n</th><th>ℓ</th><th>E (Ha)</th><th>E (eV)</th><th>Observed (eV)</th><th>Δ</th></tr></thead>
+    <tbody id="tbody"><tr><td colspan="7" style="color:#888">click Compute</td></tr></tbody>
+  </table>
+  <div style="margin-top:6px;font-size:10px;color:#888">
+    Observed ortho-He levels (from NIST, relative to He neutral ground state −2.9037 Ha = −79.005 eV):
+    2³S=−59.18 eV, 3³S=−72.96 eV, 4³S=−76.36 eV (outer-electron binding ≈ E − E(He<sup>+</sup>)).<br>
+    The model E predicts the outer-electron <i>orbital energy</i>; comparable to (E_total_observed − E(He<sup>+</sup>)).
+  </div>
+</div>
+
+<canvas id="cvs" width="900" height="280" style="margin-top:10px"></canvas>
+
+<script>
+// V_eff(r) for outer electron in hydrogenic-1s screened Z_nuc kernel:
+//   V_eff(r) = -Z_nuc/r + V_H(r)
+//   V_H(r)   = (1/r) * [1 - (1 + Z_1s*r) * exp(-2*Z_1s*r)]
+// Combine: V_eff(r) = (1/r) * [-Z_nuc + 1 - (1 + Z_1s*r)*exp(-2*Z_1s*r)]   (for Z_nuc=2)
+// More general: V_eff(r) = -Z_nuc/r + V_H_per_e(r) * N_inner   where N_inner = Z_nuc - 1
+// Here N_inner = 1, so:
+function V_eff(r, Z_nuc, Z_1s) {
+  if (r < 1e-12) r = 1e-12;
+  const VH = (1.0 / r) * (1 - (1 + Z_1s * r) * Math.exp(-2 * Z_1s * r));
+  return -Z_nuc / r + VH;
+}
+
+// Solve radial Schrödinger for outer electron:
+// -1/2 u'' + [l(l+1)/(2r²) + V_eff(r)] u = E u  on [r_c, R_max]
+// BC at r_c: Neumann ψ'(r_c)=0 → u'(r_c) = u(r_c)/r_c   (for r_c > 0)
+// BC at r=0: regular u(0)=0  (when r_c = 0)
+// BC at R_max: u(R_max) = 0
+function radialEig(Z_nuc, Z_1s, ell, r_c, R_max, N, n_levels) {
+  const r0 = Math.max(r_c, 1e-3);
+  const h = (R_max - r0) / (N - 1);
+  const h2 = h * h;
+
+  function shootInward(E) {
+    let uPlus = 0, u = 1;
+    for (let i = N - 2; i > 0; i--) {
+      const r = r0 + i * h;
+      const Veff = ell * (ell + 1) / (2 * r * r) + V_eff(r, Z_nuc, Z_1s);
+      const f = 2 * (Veff - E);
+      const uMinus = 2 * u - uPlus + h2 * f * u;
+      uPlus = u;
+      u = uMinus;
+      if (Math.abs(u) > 1e30) { u *= 1e-30; uPlus *= 1e-30; }
+    }
+    if (r_c > 0) {
+      const uPrime = (uPlus - u) / h;
+      return uPrime - u / r_c;   // Neumann condition
+    } else {
+      return u;                  // Regularity: u(r=0) = 0
+    }
+  }
+
+  const E_min = -Z_nuc * Z_nuc * 1.2;
+  const E_max = -1e-6;
+  const nScan = 5000;
+  const dE = (E_max - E_min) / nScan;
+  const eigs = [];
+  let prevD = shootInward(E_min);
+  let prevE = E_min;
+  for (let k = 1; k <= nScan && eigs.length < n_levels; k++) {
+    const E = E_min + k * dE;
+    const D = shootInward(E);
+    if (prevD * D < 0 && isFinite(prevD) && isFinite(D)) {
+      let lo = prevE, hi = E, dLo = prevD, dHi = D;
+      for (let iter = 0; iter < 60; iter++) {
+        const mid = (lo + hi) / 2;
+        const dM = shootInward(mid);
+        if (dLo * dM < 0) { hi = mid; dHi = dM; }
+        else              { lo = mid; dLo = dM; }
+      }
+      eigs.push((lo + hi) / 2);
+    }
+    prevD = D;
+    prevE = E;
+  }
+  return eigs;
+}
+
+const $ = id => document.getElementById(id);
+const Ha_eV = 27.2114;
+
+// Observed ortho-He levels (outer-electron energies, in Ha, relative to He+ ionization)
+// E_total(ortho-He n³S) − E_total(He+) gives outer-electron binding
+// He+ E = −2 Ha; ortho-He 2³S total = −2.1748 Ha → outer binding = -0.1748 Ha
+// Sources: NIST atomic spectra database
+const observed = {
+  // n, ℓ, term : binding energy in Ha
+  "2³S": { n: 2, ell: 0, E: -0.17523 },
+  "3³S": { n: 3, ell: 0, E: -0.06869 },
+  "4³S": { n: 4, ell: 0, E: -0.03654 },
+  "5³S": { n: 5, ell: 0, E: -0.02297 },
+  "2³P": { n: 2, ell: 1, E: -0.13316 },
+  "3³P": { n: 3, ell: 1, E: -0.05828 },
+  "4³P": { n: 4, ell: 1, E: -0.03250 },
+  "3³D": { n: 3, ell: 2, E: -0.05559 },
+  "4³D": { n: 4, ell: 2, E: -0.03124 },
+};
+
+function compute() {
+  const Z_nuc = +$("zNuc").value;
+  const Z_1s = +$("zSlater").value;
+  const r_c = +$("rc").value;
+  const R_max = +$("Rmax").value;
+  const N = +$("N").value;
+  const N_LEVELS = 6;
+
+  const tbody = $("tbody");
+  tbody.innerHTML = "";
+
+  const spectra = [0, 1, 2].map(ell => radialEig(Z_nuc, Z_1s, ell, r_c, R_max, N, N_LEVELS));
+
+  // Build table by term symbols
+  const termLabels = {
+    "0,0": "1³S", "0,1": "2³S", "0,2": "3³S", "0,3": "4³S", "0,4": "5³S",
+    "1,0": "2³P", "1,1": "3³P", "1,2": "4³P", "1,3": "5³P",
+    "2,0": "3³D", "2,1": "4³D", "2,2": "5³D",
+  };
+  const rows = [];
+  for (let ell = 0; ell <= 2; ell++) {
+    for (let i = 0; i < spectra[ell].length; i++) {
+      const n_actual = i + ell + 1;  // ground for ℓ has n = ℓ+1
+      const term = termLabels[ell + "," + i] || ("n" + n_actual + "ℓ" + ell);
+      rows.push({ term, n: n_actual, ell, E: spectra[ell][i] });
+    }
+  }
+  rows.sort((a, b) => a.E - b.E);
+  for (const r of rows) {
+    if (r.E >= 0) continue;
+    const obs = observed[r.term];
+    const tr = document.createElement("tr");
+    const obsStr = obs ? (obs.E * Ha_eV).toFixed(3) : "—";
+    const dStr = obs ? ((r.E - obs.E) * Ha_eV).toFixed(3) : "—";
+    tr.innerHTML = `<td>${r.term}</td><td>${r.n}</td><td>${r.ell}</td>` +
+                   `<td>${r.E.toFixed(5)}</td><td>${(r.E*Ha_eV).toFixed(3)}</td>` +
+                   `<td>${obsStr}</td><td>${dStr}</td>`;
+    tbody.appendChild(tr);
+  }
+  drawSpectrum(rows);
+}
+
+function drawSpectrum(rows) {
+  const cv = $("cvs");
+  const ctx = cv.getContext("2d");
+  const W = cv.width, H = cv.height;
+  ctx.fillStyle = "#050510";
+  ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = "#888";
+  ctx.beginPath(); ctx.moveTo(50, H - 30); ctx.lineTo(W - 30, H - 30); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(50, 20); ctx.lineTo(50, H - 30); ctx.stroke();
+  ctx.fillStyle = "#aaa"; ctx.font = "10px monospace";
+  ctx.fillText("E (Ha)", 5, 15);
+  ctx.fillText("ortho-He levels: model (red) vs observed (green)", 60, 15);
+
+  const Emin = -0.25, Emax = 0;
+  function py(E) { return 20 + (H - 50) * (Emax - E) / (Emax - Emin); }
+
+  // Grid
+  ctx.strokeStyle = "#222";
+  for (let e = -0.25; e <= 0; e += 0.025) {
+    if (e > Emin) {
+      ctx.beginPath(); ctx.moveTo(50, py(e)); ctx.lineTo(W - 30, py(e)); ctx.stroke();
+      ctx.fillStyle = "#666"; ctx.fillText(e.toFixed(3), 10, py(e) + 3);
+    }
+  }
+
+  // Model levels (red lines)
+  ctx.strokeStyle = "#ef5350"; ctx.lineWidth = 2;
+  let xModel = 100;
+  for (const r of rows) {
+    if (r.E < Emin || r.E > 0) continue;
+    const y = py(r.E);
+    ctx.beginPath(); ctx.moveTo(xModel, y); ctx.lineTo(xModel + 80, y); ctx.stroke();
+    ctx.fillStyle = "#ef5350"; ctx.fillText(r.term, xModel - 18, y + 3);
+  }
+
+  // Observed levels (green)
+  ctx.strokeStyle = "#66bb6a"; ctx.lineWidth = 2;
+  let xObs = 350;
+  for (const term in observed) {
+    const obs = observed[term];
+    if (obs.E < Emin || obs.E > 0) continue;
+    const y = py(obs.E);
+    ctx.beginPath(); ctx.moveTo(xObs, y); ctx.lineTo(xObs + 80, y); ctx.stroke();
+    ctx.fillStyle = "#66bb6a"; ctx.fillText(term, xObs + 90, y + 3);
+  }
+}
+
+$("compute").onclick = compute;
+compute();
+</script>
+</body></html>
