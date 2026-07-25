@@ -1,72 +1,51 @@
-# RealQM Atomic Spectra (working note)
+# RealQM: complex family + atomic spectra (working note)
 
-Article: **RealQMAction.tex** — "RealQM Atomic Spectra: Radiation as Real Charge Oscillation — Sloshing and
-Breathing" (7 pp). Arc: Real-valued RealQM → Complex-valued RealQM → stationary states → coexistence of time
-scales → two sources of spectra → fast free boundary → conclusion.
+Supersedes the earlier free-boundary/sloshing-breathing drafts. Final coordinated state.
 
-## Framing (the thesis)
-Atomic spectra were the STARTING POINT of QM and are the atom's most VISIBLE feature, yet standard QM hides
-the physics: levels = eigenvalues, a line = beat of a SUPERPOSITION of two eigenstates — a FORMAL device
-whose meaning is left open (= the measurement question). RealQM gives physics: radiation = REAL
-charge-density oscillation.
+## Corpus split: REAL = energies, COMPLEX = motion
+- **Real-valued RealQM** (flagship RealQMarXiv4 + atoms/nucleus/chemistry): ground states/energies from
+  non-overlapping charge densities, no self-interaction. Non-overlap = a real correlation hole => beats HF
+  (He ground -2.90 vs HF -2.86, exact -2.9037).
+- **Complex RealQM = MOTION (current).** The complex phase means ONE thing: flow. j = Im(psi* grad psi) =
+  rho grad S, zero for real psi. Two motions: oscillating current -> radiation; circulating current ->
+  magnetism. Plus spin (internal circulation).
 
-## §1 Real-valued RealQM
-N electron densities psi_j^2 on non-overlapping domains Omega_j; nuclei = fixed kernel V_K. Unit charge
-int_{Omega_j} psi_j^2 = 1; finite kinetic energy: psi_j in H^1(Omega_j), total Psi = sum psi_j in H^1(R^3)
-(=> psi_j AGREE on interdomain boundaries = condition (i)). Energy (2):
-  E = sum_j 1/2 int|grad psi_j|^2 + int V_K rho + sum_{j<k} int int psi_j^2 psi_k^2/|x-y|,  rho = sum psi_j^2.
-NO self-repulsion (e-e sum over distinct j<k only); kinetic energy takes over the anti-collapse role.
-Minimised over the WAVE FUNCTIONS ALONE — the partition {Omega_j} is an OUTCOME, not a separate variable:
-  (ii) Neumann d_n psi_j = 0 = the NATURAL boundary condition of the psi-minimisation (part of each domain's
-       own Poisson problem);
-  (i) density continuity = the H^1 matching that LOCATES the interface.
-Potential felt by electron j = V_K + phi_j, phi_j = field of the OTHER electrons (no self).
+## Complex family (Gallery: "Currents, radiation, magnetism, spin")
+1. **ComplexRealQM.tex** -- foundation (complex law, current, free-boundary charge conservation).
+2. **RealQMAction.tex = "RealQM Atomic Spectra: Radiation as Real Charge Oscillation"** -- radiation
+   (oscillating current). NEW; cites Complex, Magnetism, Spinor.
+3. **MagnetismRealQM.tex** -- magnetism (circulating current) + NuclearMoment.tex.
+4. **SpinorResidue.tex** -- spin (g=2, Stern-Gerlach, non-relativistic).
+All cross-referenced; all in the gallery Articles block.
 
-## §2 Complex-valued RealQM — WHY complex
-The complex phase e^{-iEt} is PERIODIC MOTION (a clock). Its point: radiation = RESONANCE = agreement of
-periodic motions. Two frequencies E_n, E_m => beat E_n-E_m = real periodic oscillation resonating with the EM
-field = radiation. A static real density has phases frozen, no periodic motion, cannot resonate; complexifying
-restores it. Extension is DIRECT (density phase-blind, so geometry+energy unchanged): i d_t psi_j = -1/2 lap
-psi_j + (V_K + phi_j) psi_j. Current j_j = Im(psi_j* grad psi_j) = -|psi_j|^2 grad theta_j.
+## Atomic spectra -- the CORRECTED story
+- A line = real charge density oscillating between two configs at DeltaE = E_n - E_m; a dipole resonating
+  with radiation. Schrodinger's antenna in real 3D, deterministic, no collapse, no abstract superposition.
+- **BUT radiation needs the complex form.** The moving density IS a current: charge conservation
+  d_t rho + div j = 0, and j = Im(psi* grad psi) = 0 for real psi => a real density is STATIC and DARK. So
+  the wavefunction is complex DURING the transition. REAL = the levels + observed dipole; COMPLEX = the
+  current carrying the motion. (Corrects the earlier "spectra are real, no complex needed" -- that was WRONG;
+  a real density cannot oscillate.) Only DIFFERENCES observable (absolute clocks cancel).
+- **Selection rule = geometry:** swing to one side (l-change, s->p) => dipole => radiates; spherical breath
+  (s->s) => no dipole => DARK => metastability (He 2s).
+- vs standard QM: line = formal superposition (= measurement question); RealQM = physical real charge motion.
+  Same structure/numbers (one-active-electron, screened core); RealQM adds the physical mechanism + its own
+  correlation-improved energies.
 
-## §3 Stationary states = stationary points of the global energy E
-Ground state = MINIMUM of E. Stationary states = STATIONARY POINTS of E (Schrödinger spirit), each a total
-energy E_n (the eigenvalue), E_0 < E_1 < ... = the FULL STATES. NO separate eigenvalue problems over Omega_j:
-the local E-L condition -1/2 lap u_j + (V_K+phi_j)u_j = E_j u_j is the local face of one global stationarity;
-E_j = Lagrange multiplier / clock rate of domain j. Total E != sum_j E_j (shared interactions). Notation:
-j,k = domains (rates E_j); n = global states (total energies E_n). Radiation between full states at E_n - E_m.
+## Helium
+- Optical spectrum = one active (outer) electron in the screened field of the 1s core; screening lifts the
+  l-degeneracy (2s < 2p).
+- Lines captured (allowed, l-changing): 2p->2s 1083 nm; 3s->2p 706.5 nm; 3d->2p 587.6 nm (D3, solar
+  discovery line); 1s^2->1s2p 58.4 nm resonance.
+- Dark: 1s^2->1s2s (s->s) = the 2s metastability (2^1S ~20 ms, 2^3S ~2 h).
+- Split-1s ground is spherical (mirror halves sum) => invisible to radiation. Excited state is
+  nested/spherical (NOT lopsided half-space), which is exactly what the metastability requires.
+- **ortho/para SPLITTING = spin/exchange (~0.8 eV), BEYOND real RealQM** (non-overlap = spatial antisymmetry,
+  not spin). Single-electron spin reachable (SpinorResidue g=2); collective/exchange not. Earlier
+  sloshing/breathing mapping RETIRED (breathing was dipole-dark; both 1s2s->ground are s->s).
 
-## §4-5 Two time scales / coexistence
-psi_j = u_j(x; Gamma(t)) e^{-i theta_j}: SLOW quasi-static geometry Gamma(t) (from densities) + FAST
-per-domain phase clocks theta_j = int E_j dt. Uniform clock carries no current -> boundary quasi-static, no
-fast boundary EOM. The phase becomes physical through DIFFERENCES, in two ways — NEITHER a superposition:
-- SLOSHING: charge physically MOVES between two full states Psi_n, Psi_m -> real transition, radiates at
-  E_n - E_m. (Standard QM writes Psi = a Psi_n e^{-iE_n t} + b Psi_m e^{-iE_m t}, a formal superposition with
-  unclear/missing physics; RealQM carries no such object, only real charge in motion.)
-- BREATHING: two domains of ONE state (inner+outer shell) COEXIST, relative phase theta_j-theta_k at E_j-E_k;
-  radiates only if the shells couple.
-
-## §6 Two sources of spectra (COMPUTED for helium)
-- SLOSHING = between two full states, E_n - E_m (total-energy difference). Clear, primary; includes single
-  electron (H sloshes 1s<->2p).
-- BREATHING = between two shells of one state, E_j - E_k (shell rates). Exotic, less clear (dipole-dark for
-  spherical s-s; needs coupling).
-Helium (he_two_shell_radial.py, radial SCF, ALL at one Hartree level, all computed):
-  E_1=-1.73, E_2=-0.15 Ha (inner <r>=0.76, outer 4.9 a0);  E(1s2s)=-2.15, E(1s^2)=-2.85 Ha (exact -2.9037).
-  ortho, SLOSHING = E(1s2s)-E(1s^2) = 0.70 Ha = 19.0 eV  (observed 19.8; Hartree error cancels in difference).
-  para,  BREATHING = |E_1-E_2|      = 1.58 Ha = 43 eV.  ratio 2.26.
-Caveat: standard ortho/para is a SPIN label, and there para (1s^2) owns the ground state (opposite
-attachment). Method: use the RADIAL SCF, NOT the 3D relaxation solver (drifts off the excited state).
-
-## Radiation observability (honest guardrail)
-Only the ATOM's net dipole radiates (Maxwell couples to total rho). A single DOMAIN's beat is not separately
-observable as radiation; a spherical breathing is dipole-dark (why 2s is metastable). Atom line = total-energy
-difference (relaxation included); one-electron atom (H): atom = the one domain. Domain radiation is NOT a
-distinguishing observable of RealQM vs standard QM (both radiate the total density).
-
-## §7 Fast free boundary (open)
-If the boundary must move on the FAST scale with the flow (V_n = j_j.n/rho_j), then density-continuity +
-Neumann + flow conflict (Neumann => j.n=0 => V_n=0). Quasi-static scheme sidesteps by NOT posing it. Needed
-only for bound-to-bound charge crossing in ~1 electronic period: attosecond charge migration (flagship),
-sudden bond cleavage, fast ion-atom charge exchange, conical intersections. NOT for thermal chemistry (slow)
-or ionization/decay (charge to continuum = OUTER absorbing boundary, single domain leaking).
+## Numbers computed
+he_two_shell_radial.py (radial SCF, Hartree): E_1(1s)=-1.73, E_2(2s)=-0.15 Ha; E(1s2s)=-2.15, E(1s^2)=-2.85
+(exact -2.9037). Full 3D domain solver atom_He.html: He ground -2.90 (beats HF -2.86 -> correlation via
+non-overlap). atom.js: per-shell eigenvalue readout res.eig[m]. atom_shells.html: 3D two-shell (drifts off
+the excited state -- use the radial SCF for excited eigenvalues).
