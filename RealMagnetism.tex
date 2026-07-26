@@ -1,0 +1,170 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\usepackage{authblk}
+\usepackage[margin=1in]{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xurl}
+\usepackage{setspace}
+
+\title{Magnetism without the Complex Plane}
+\author[1]{Claes Johnson}
+\affil[1]{KTH Royal Institute of Technology, SE-100 44 Stockholm, Sweden \\
+\texttt{claesjohnson@gmail.com}}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Orbital magnetism is routinely presented as intrinsically complex: a circulating current needs a phase, and a
+phase means a complex wave function $\psi=\sqrt\rho\,e^{iS}$. We separate, within RealQM, what is genuinely
+quantum here from what is mere bookkeeping. From the charge density \emph{alone} --- a single real field --- no
+magnetism can come, since the current $\mathbf j=\operatorname{Im}(\psi^*\nabla\psi)$ vanishes identically for
+real $\psi$: a lone amplitude carries no motion. But complex numbers are not the only way to carry motion.
+Continuum mechanics never uses them, yet always carries \emph{two} real fields, a density $\rho$ and a velocity
+$\mathbf v$; carried the same way here, the whole of orbital magnetism is real. The current is
+$\mathbf j=\rho\,\mathbf v$, a real circulating flow; it costs a real kinetic energy $\int\tfrac12\rho|\mathbf
+v|^2$; it carries a real angular momentum and the ordinary magnetostatic moment; and the magnetic state is
+obtained by minimising the static energy augmented by that flow energy at fixed angular momentum. No $i$ enters
+any of it: magnetism is a real charge vortex, the $(\rho,\mathbf v)$ of continuum mechanics an
+\aa ngstr\"om across. The complex $\psi=\sqrt\rho\,e^{iS}$ is exactly these two real fields repackaged into one
+symbol, the phase being the velocity potential. The single thing the real theory cannot supply on its own is
+the \emph{integer}: single-valuedness of $e^{iS}$ forces the quantised circulation $\oint\mathbf v\cdot
+d\boldsymbol\ell=2\pi m$, $m\in\mathbb Z$, which a purely real formulation must impose as a separate condition
+(the Onsager--Feynman vortex quantisation of real superfluids). What is unavoidable there is the \emph{circle},
+the periodicity of an angle, not the complex plane. Magnetism's dynamics, energy and moment are real; only the
+quantum integer needs the periodic phase.
+\end{abstract}
+
+\setstretch{1.06}
+
+\section{The question}
+
+Magnetism is charge in motion, and motion in quantum mechanics is carried by a phase: the standard route to an
+orbital magnetic moment runs through a complex, phase-winding wave function $\psi=R(\mathbf x)\,e^{im\varphi}$,
+whose current and moment follow from the imaginary part of $\psi^*\nabla\psi$. It is natural to conclude that
+the complex wave function is \emph{necessary} for magnetism --- that here, at least, RealQM must leave the real,
+static picture behind and become complex.
+
+The conclusion is half right and worth taking apart, because the halves belong to different things. Something
+beyond the bare density is indeed needed. But that something is a \emph{velocity}, not a complex number; and
+complex arithmetic, where it appears, is a convenient packaging of two real fields, not an irreducible
+ingredient. We make the separation explicit: what magnetism needs, what the complex form merely bundles, and
+the one genuinely quantum residue that the real theory cannot generate on its own.
+
+\section{From the density alone: nothing}
+
+Let the only field be the real amplitude, $\psi=R$, so that the charge density is $\rho=q R^2$. The
+quantum-mechanical current is
+\[
+\mathbf j=\frac{q}{m_e}\,\operatorname{Im}(\psi^*\nabla\psi),
+\]
+and for real $\psi$ this is \emph{identically zero}. A single real field has no current in it and therefore no
+magnetic moment. This is the true content of the slogan ``magnetism needs the complex form'': from the density
+by itself, nothing circulates, because a lone amplitude encodes no motion. Whatever carries magnetism must be a
+\emph{second} field, over and above $\rho$.
+
+\section{Two real fields: $(\rho,\mathbf v)$ continuum mechanics}
+
+Complex numbers are one way to carry a second field, but not the only way. Macroscopic continuum mechanics
+carries motion with no complex numbers at all: it works throughout with a density $\rho$ and a velocity
+$\mathbf v$. Carry the same pair in RealQM and the whole of orbital magnetism is real. The current is a real
+circulating flow,
+\begin{equation}
+\mathbf j=\rho\,\mathbf v,\qquad \nabla\!\cdot\!\mathbf j=0\ \text{(stationary)},
+\label{eq:j}
+\end{equation}
+a charge vortex. The flow costs a real kinetic energy,
+\begin{equation}
+T_{\text{flow}}=\int \tfrac12\,\rho\,|\mathbf v|^2\,d^3x=\int \frac{|\mathbf j|^2}{2\rho}\,d^3x ,
+\label{eq:T}
+\end{equation}
+it carries a real angular momentum and the ordinary magnetostatic moment of a current distribution,
+\begin{equation}
+L_z=\int \rho\,(\mathbf x\times\mathbf v)_z\,d^3x ,\qquad
+\boldsymbol\mu=\tfrac12\int \mathbf x\times\mathbf j\,d^3x ,
+\label{eq:muL}
+\end{equation}
+and the magnetic state is the stationary point of the \emph{static} RealQM energy augmented by the flow energy
+at fixed angular momentum,
+\begin{equation}
+\min\ \big\{\,E_{\text{static}}[\rho]+T_{\text{flow}}[\rho,\mathbf v]\ :\ L_z\ \text{fixed}\,\big\},
+\qquad\text{or, in a field,}\quad \min\ \big(E-\boldsymbol\mu\!\cdot\!\mathbf B\big).
+\label{eq:var}
+\end{equation}
+No $i$ enters \eqref{eq:j}--\eqref{eq:var}. This is a real charge vortex, precisely the $(\rho,\mathbf v)$ of
+continuum mechanics scaled down to atomic size --- the same object a fluid dynamicist would write for a
+swirling incompressible flow, now made of charge and confined to an atom.
+
+\section{What the complex form packages}
+
+Where, then, does the familiar complex wave function come in? Write it in polar (Madelung) form,
+\[
+\psi=\sqrt{\rho}\;e^{iS},\qquad \mathbf v=\frac{\nabla S}{m_e},
+\]
+and the identification is immediate: the modulus is the (root) density, and the phase $S$ is nothing but the
+\emph{velocity potential}, its gradient the velocity. The current $\mathbf j=\rho\,\mathbf v$ of \eqref{eq:j}
+is exactly $\operatorname{Im}(\psi^*\nabla\psi)$ times the charge-to-mass factor. So $\psi=\sqrt\rho\,e^{iS}$
+is not a new ingredient at all: it is the two real fields $(\rho,\mathbf v)$ of \S3 bundled into a single
+complex symbol. The ``$i$'' is bookkeeping --- a compact way to carry an amplitude and a flow together --- and
+the physics is the flow. (This is also why, numerically, the honest integrator uses the Cartesian real pair
+$(u,v)=(\operatorname{Re}\psi,\operatorname{Im}\psi)$, smooth through nodes, rather than the polar form, which
+is singular exactly on the vortex axis where the amplitude vanishes.)
+
+\section{The one quantum residue: the integer}
+
+There is a single thing the real $(\rho,\mathbf v)$ theory cannot supply on its own, and it is worth naming
+precisely. A winding state has phase $S=m\varphi$ about an axis, giving in cylindrical coordinates
+$(s,\varphi,z)$ the azimuthal velocity $\mathbf v=(m/m_e s)\,\hat{\boldsymbol\varphi}$ and hence
+$\mu_z=-m\mu_B$, quantised in $m$. Why must $m$ be an \emph{integer}? Because $S$ is an \emph{angle}: the phase
+is defined only modulo $2\pi$, equivalently $e^{iS}$ must be single-valued, and this forces the circulation to
+be quantised,
+\begin{equation}
+\oint \mathbf v\cdot d\boldsymbol\ell=\frac{2\pi m}{m_e},\qquad m\in\mathbb Z ,
+\label{eq:circ}
+\end{equation}
+and with it $L_z=m\hbar$ and the moment in whole units of $\mu_B$. A purely real formulation carrying only
+$(\rho,\mathbf v)$ would have every ingredient of the vortex except this: it would have to \emph{impose}
+\eqref{eq:circ} as a separate quantisation condition --- which is exactly what one does for the quantised
+vortices of a real superfluid (Onsager and Feynman). And what is genuinely required there is the
+\emph{circle}, the periodicity of an angle, not the complex plane as such. The density must also vanish on the
+axis (a nodal line, the hollow vortex core), since $\mathbf v\sim 1/s$ would otherwise diverge; that too is a
+consequence of the winding, not of complex arithmetic.
+
+\section{Consequences}
+
+The upshot sharpens RealQM's guiding slogan --- the same 3D form as macroscopic continuum mechanics, only
+smaller. Continuum mechanics is $(\rho,\mathbf v)$; a steady magnetic current is therefore \emph{native} to the
+real theory, not an import from a complex one. Orbital magnetism --- moments, angular momentum, the Zeeman
+response to an applied field, diamagnetic counter-currents --- is real continuum mechanics; the sole quantum
+input is the integer winding number, and that input is the periodicity of an angle.
+
+Two boundaries keep the account honest. First, this covers the \emph{steady} member of the ``complex'' family
+only. \emph{Radiation} is the \emph{oscillating} member: a transition makes the density itself oscillate in
+time at $E_n-E_m$, and a genuinely time-varying density does require the complex, time-dependent form, since a
+real currentless density is static and dark~\cite{Spectra}. The temporal phase there is real physics (imposed
+by the field), whereas the spatial phase of magnetism is, as shown, repackaged real flow. Second, single-%
+electron \emph{spin} ($g=2$, Stern--Gerlach) is a further residue, reached from a spinor structure and not
+from the scalar $(\rho,\mathbf v)$ picture of orbital magnetism~\cite{Magnetism}. Within those boundaries the
+statement stands: magnetism's dynamics, energy and moment are real; only the quantum integer needs the periodic
+phase.
+
+\begin{thebibliography}{9}
+\bibitem{RealQM} C.~Johnson, \emph{Quantum Mechanics as Multiphase 3D Continuum Mechanics}, manuscript,
+2026; \url{https://claes542.github.io/RealMolecule/gallery.html}.
+\bibitem{Magnetism} C.~Johnson, \emph{Magnetism in RealQM: Currents, the Nuclear Electron, and the Spin
+Residue}, manuscript, 2026.
+\bibitem{ComplexRealQM} C.~Johnson, \emph{Complex Time-Dependent RealQM: Currents, Radiation, and Magnetism
+from the Real-Space Continuum}, manuscript, 2026.
+\bibitem{Spectra} C.~Johnson, \emph{RealQM Atomic Spectra: Radiation as Real Charge Oscillation}, manuscript,
+2026.
+\bibitem{Time} C.~Johnson, \emph{Real Time Dependence in RealQM}, manuscript, 2026.
+\bibitem{Madelung} E.~Madelung, \emph{Quantentheorie in hydrodynamischer Form}, Z.\ Phys.\ \textbf{40}, 322
+(1927).
+\bibitem{Onsager} L.~Onsager, \emph{Statistical hydrodynamics}, Nuovo Cimento \textbf{6} (Suppl.), 279 (1949).
+\bibitem{Feynman} R.~P.~Feynman, \emph{Application of quantum mechanics to liquid helium}, in \emph{Progress
+in Low Temperature Physics}, Vol.~1, North-Holland, 1955.
+\end{thebibliography}
+
+\end{document}
