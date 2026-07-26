@@ -69,11 +69,17 @@ the charge current is
 \]
 so the phase gradient $\nabla S$ is the velocity of the charge (and $\mathbf j=0$ when $\psi$ is real,
 $S$ constant). A state with a \emph{spatial} phase winding about an axis --- $S=m\varphi$, that is
-$\psi=R(\mathbf x)\,e^{im\varphi}$ --- therefore carries a standing azimuthal current
+$\psi=R\,e^{im\varphi}$ --- therefore carries a standing azimuthal current: in cylindrical coordinates
+$(s,\varphi,z)$ with $s$ the distance from the axis, $\nabla\varphi=\hat{\boldsymbol\varphi}/s$, so
 \[
-\mathbf j=\rho\,\nabla(m\varphi)\neq 0 ,\qquad \rho\ \text{constant in time},
+\mathbf j=\rho\,\nabla(m\varphi)=\frac{m\rho}{s}\,\hat{\boldsymbol\varphi}\neq 0 ,\qquad
+\rho\ \text{constant in time},
 \]
-and hence a magnetic moment $\mu_z=-m\mu_B$. The density does not change; the flow is steady. This current is
+and hence a magnetic moment $\mu_z=-m\mu_B$. Single-valuedness of $\psi$ forces $m\in\mathbb Z$, so the
+circulation is quantised, $\oint\nabla S\cdot d\boldsymbol\ell=2\pi m$: the state is a quantised charge
+\emph{vortex} carrying orbital angular momentum $L_z=m\hbar$, its density vanishing on the axis (where
+$\mathbf v=m/s$ would otherwise diverge) --- a nodal line, hollow along the axis. The density does not change;
+the flow is steady. This current is
 an \emph{intrinsic} property of the winding state --- a free atom in an $m\neq0$ state carries it on its own.
 An external magnetic field \emph{orients} the moment (the Zeeman splitting) or \emph{induces} a counter-current
 (diamagnetism), but it imposes no clock. Magnetism is being-with-circulation: motion without time-dependence.
