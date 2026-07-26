@@ -1,0 +1,173 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\usepackage{authblk}
+\usepackage[margin=1in]{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xurl}
+\usepackage{setspace}
+
+\title{The Atom Does Not Run Its Own Dynamics\\
+\large What Remains to Speak of When the Schr\"odinger Clock Stops}
+\author[1]{Claes Johnson}
+\affil[1]{KTH Royal Institute of Technology, SE-100 44 Stockholm, Sweden \\
+\texttt{claesjohnson@gmail.com}}
+\date{\today \\[0.5em]
+\small\textit{Written in respectful cooperation between Claes Johnson and Claude (Anthropic), with Claude
+contributing a balanced, neutral view.}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The time-dependent Schr\"odinger equation $i\partial_t\psi=H\psi$ is the working creed of quantum physics: the
+state \emph{always} evolves, its phase turning at atomic frequency whether or not anything is watching. RealQM
+declines the creed for the isolated atom --- there the equation's only solution, $u\,e^{-iEt}$, is a static
+density wearing an unobservable global phase, so there is nothing to run forward. This looks like removing the
+dynamics from quantum dynamics, and the natural alarm is: what would physicists then have left to speak of? We
+argue the alarm is misplaced. The equation is \emph{demoted, not killed}: retained exactly where it does work
+(the externally driven case --- radiation, strong fields), retired only as a metaphysical gloss on the quiet
+atom. What remains to speak of is precisely what physics already computes: for isolated systems one does not
+integrate $i\partial_t\psi=H\psi$ forward but \emph{diagonalises} $H\psi=E\psi$, reading off energies,
+densities, geometry, and spectra as level differences. The mantra is professed more than it is practised.
+Turning Bell's phrase around, it is \emph{standard} quantum mechanics that has been speaking of the unspeakable
+--- the never-observed turning phase, the wave function on $3N$-dimensional configuration space, the collapse
+no dynamics contains --- while RealQM keeps only the speakable, charge in ordinary space. The result is a
+return to the Schr\"odinger of 1926, for whom the atom was a standing wave and the spectrum its eigenfrequencies:
+\emph{being} for the undriven atom, \emph{becoming} only where something drives it. Less to believe, exactly as
+much to compute, one fewer thing to interpret.
+\end{abstract}
+
+\setstretch{1.06}
+
+\section{The mantra}
+
+Every physicist who speaks of quantum mechanics speaks, sooner or later, the same sentence: the state evolves
+by
+\[
+i\,\partial_t\psi=H\psi .
+\]
+It is presented as \emph{the} dynamics --- the law of how a quantum system changes in time, as Newton's second
+law is the law of how a classical one does. On this reading an atom is never still: its wave function turns a
+phase $e^{-iEt}$ at a frequency $E/\hbar$ of order $10^{16}\,$Hz, endlessly, whether it is measured, bonded,
+isolated in interstellar vacuum, or sitting undisturbed for a billion years. The evolution is held to be
+\emph{intrinsic} --- a process the atom is always undergoing, in its own right, needing no cause.
+
+To question this is to touch the creed at its centre. If one says that an isolated atom does \emph{not} run
+$i\partial_t\psi=H\psi$ forward --- that there is, for the quiet atom, no evolution to compute --- one appears
+to have removed the dynamics from quantum dynamics, and the reasonable objection follows at once: then what is
+there left for a physicist to say? We take the objection seriously and answer it.
+
+\section{Demoted, not killed}
+
+The first thing to be clear about is what is and is not being denied. RealQM does not say the time-dependent
+Schr\"odinger equation is \emph{false}. It says that, for an isolated atom, it is \emph{idle}. Its only
+solution there is
+\[
+\psi(\mathbf x,t)=u(\mathbf x)\,e^{-iEt},\qquad \rho=|u\,e^{-iEt}|^2=u^2 ,
+\]
+a density constant in time carrying a \emph{global} phase that drops out of every observable of a single state.
+The equation ``runs forward'' into a configuration observationally identical to the one it started from. It is
+true, and it does no work.
+
+Where the same equation \emph{does} do work is the \emph{driven} case: an atom coupled to the electromagnetic
+field (absorption, stimulated and spontaneous emission) or shaken by a strong laser (attosecond charge
+migration, high-harmonic generation). There the charge genuinely moves in real time and must be integrated
+forward. So the equation is not discarded; it is \emph{relocated}, from an alleged intrinsic ticking of every
+atom to the description of atoms that something is actually moving~\cite{Time}.
+
+The move is familiar from the history of physics. Special relativity did not discard the equations of
+electromagnetism; it retired the \emph{interpretation} of a universal absolute simultaneity that had been read
+into them. General relativity kept gravity and retired the absolute background. In each case a piece of
+metaphysics --- a picture believed to accompany the mathematics --- was removed, and the mathematics stayed,
+sharper for it. Here the metaphysics removed is the belief that the phase $e^{-iEt}$ is a real physical process
+the atom perpetually performs. The equation survives; the ghost in it does not.
+
+\section{Physicists already speak of the static content}
+
+The decisive point is empirical, about what physicists actually do. For an isolated atom or molecule, nobody
+integrates $i\partial_t\psi=H\psi$ forward in time. They solve the \emph{time-independent} equation
+\[
+H\psi=E\psi ,
+\]
+diagonalising $H$, and read off the things that are measured: total energies, ionisation potentials, the shapes
+of the charge densities, equilibrium geometries and bond lengths, and the spectrum --- which is not a motion at
+all but a set of level \emph{differences} $E_n-E_m$. Quantum chemistry is a discipline of eigenvalue problems;
+spectroscopy is a catalogue of differences. The forward integration of an undriven atom appears nowhere in this
+practice, because it would return, after any number of femtoseconds, exactly the state it began with.
+
+So the mantra is \emph{professed more than it is practised}. It is recited in the foundations chapter and then,
+for isolated systems, set aside in favour of the static problem that carries the physics. (Where a modern code
+\emph{does} propagate an isolated system forward --- real-time TDDFT run to extract an absorption spectrum by
+Fourier-transforming a driven dipole --- the answer it labours to produce is again just the level differences
+$E_n-E_m$, obtainable with no propagation at all; the evolution there is a computational device, not a process
+the atom is undergoing~\cite{Time}.) The question ``what would physicists then speak of?'' therefore has a flat
+answer: \emph{the same things they already compute.} Nothing that is measured is lost. What is lost is the
+narration of an evolution that was never integrated and never observed.
+
+\section{The unspeakable, inverted}
+
+There is a sharper way to feel the reversal, in Bell's own vocabulary. The worry is that denying the atom its
+perpetual evolution pushes physics toward \emph{the unspeakable} --- that we will be left gesturing at
+something we cannot describe. But look at where the unspeakable actually lies. It is \emph{standard} quantum
+mechanics that speaks, ceaselessly, of things with no observable referent: the global phase turning in every
+atom, which no experiment can detect; the wave function $\Psi(\mathbf x_1,\dots,\mathbf x_N)$ living on a
+$3N$-dimensional configuration space that is not the space we or our instruments occupy; and the collapse that
+must, at the moment of measurement, convert an amplitude into a fact although no dynamics contains such a step.
+These are the genuinely unspeakable objects --- present in the formalism, absent from the world.
+
+RealQM does the opposite. It retires the unspeakable and keeps the \emph{speakable}: $N$ charge densities in
+ordinary three-dimensional space, each a thing one can point to, with an energy, a shape, a
+spectrum~\cite{RealQM,Ontology}. Removing $i\partial_t\psi=H\psi$ for the quiet atom does not add a mystery; it
+\emph{subtracts} one --- the talk of a motion no one can see. Far from leaving physics speaking of the
+unspeakable, it lets physics stop doing so. What remains is exactly what has a referent.
+
+\section{A return to Schr\"odinger}
+
+None of this is a break with the founder of the wave theory; it is a return to him. Schr\"odinger's first
+paper of 1926 was titled \emph{Quantisation as an Eigenvalue Problem}~\cite{Schrodinger26}: the atom entered
+physics as a \emph{standing wave}, a real vibrating structure whose allowed eigenfrequencies are its spectrum.
+There was no perpetual evolution in that picture --- an eigenstate is a mode, not a process, exactly as the
+tone of a struck string is a mode of the string, present all at once, not something the string is ``computing
+forward.'' The time-dependent equation, and with it Born's probabilistic reading of the
+amplitude~\cite{Born26}, came afterward and opened the century of interpretation~\cite{Philosophy}.
+
+RealQM restores the original order of things. For the isolated atom the fundamental problem is again static ---
+the standing charge and its energy levels --- and this is \emph{being}: what the atom is. Time enters only with
+\emph{becoming}, and becoming has a cause: an external field that drives the charge and lends it a clock. The
+distinction is not a philosopher's nicety but a division of labour. Being is computed once, by diagonalising;
+becoming is computed only when, and because, something drives it.
+
+\section{What remains to speak of}
+
+So the alarm inverts into a gain. Stopping the Schr\"odinger clock for the quiet atom costs the physicist one
+article of faith --- the belief that the state is always, intrinsically, in motion. It costs nothing that is
+computed and nothing that is measured: the energies, the densities, the geometries, the spectra as differences,
+the magnetic moments, the bonds all remain, drawn as before from the static problem. And it returns two things.
+It returns real-time dynamics as a phenomenon with a \emph{cause} --- the field that drives it --- rather than
+an unexplained universal ticking; and it returns to physics the plain vocabulary of things in space, in place
+of amplitudes in a space that is not physical.
+
+The account is not thereby complete: RealQM has boundaries still being mapped, and the claims it makes about
+the driven regime can be tested and found wanting. But its ledger is the honest ledger of a physical theory ---
+less to believe, exactly as much to compute, and one fewer thing to interpret. A physicist who gives up the
+perpetual clock has not been left speechless before the unspeakable. He has been handed back the speakable, and
+told to get on with computing it.
+
+\begin{thebibliography}{9}
+\bibitem{RealQM} C.~Johnson, \emph{Quantum Mechanics as Multiphase 3D Continuum Mechanics}, manuscript,
+2026; \url{https://claes542.github.io/RealMolecule/gallery.html}.
+\bibitem{Time} C.~Johnson, \emph{Real Time Dependence in RealQM}, manuscript, 2026.
+\bibitem{Philosophy} C.~Johnson, \emph{Real Physics without Philosophy: Ontology, Prediction, and the End of
+Interpretation}, manuscript, 2026.
+\bibitem{Ontology} C.~Johnson, \emph{Charge Densities in Real Space: RealQM and the Realist Quest Carried by
+Schr\"odinger}, manuscript, 2026.
+\bibitem{Schrodinger26} E.~Schr\"odinger, \emph{Quantisierung als Eigenwertproblem}, Ann.\ Phys.\ \textbf{79},
+361 (1926).
+\bibitem{Born26} M.~Born, \emph{Zur Quantenmechanik der Sto\ss vorg\"ange}, Z.\ Phys.\ \textbf{37}, 863
+(1926).
+\bibitem{Bell87} J.~S.~Bell, \emph{Speakable and Unspeakable in Quantum Mechanics}, Cambridge University
+Press, 1987.
+\end{thebibliography}
+
+\end{document}
