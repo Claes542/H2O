@@ -61,6 +61,13 @@
       <button data-m="2">+2</button>
     </div>
 
+    <label>Radial node number n<sub>r</sub> (extra rings)</label>
+    <div class="row" id="nrow">
+      <button data-nr="0">0</button>
+      <button data-nr="1">1</button>
+      <button data-nr="2">2</button>
+    </div>
+
     <label>Magnetic field B&nbsp;=&nbsp;&omega;<sub>c</sub> (along z) &nbsp;·&nbsp; <span id="bval">0.00</span></label>
     <input type="range" id="B" min="0" max="2" step="0.01" value="0">
 
@@ -68,20 +75,24 @@
       <div><span class="k">L<sub>z</sub> (angular momentum)</span> <b id="Lz">0</b></div>
       <div><span class="k">&mu;<sub>z</sub> / &mu;<sub>B</sub></span> <b id="mu">0</b></div>
       <div><span class="k">circulation &oint;<b>v</b>&middot;d<b>&ell;</b> / 2&pi;</span> <b id="circ">0</b></div>
+      <div><span class="k">&lang;r&sup2;&rang; (mean-square size)</span> <b id="r2">1.000</b></div>
+      <div><span class="k">&chi;<sub>dia</sub> = &minus;&frac14;&lang;r&sup2;&rang;</span> <b id="chi">&minus;0.250</b></div>
       <div><span class="k">energy E(m)</span> <b id="E">1.000</b></div>
       <div><span class="k">&nbsp;&nbsp;&mdash; Zeeman (&minus;m&mu;<sub>B</sub>B)</span> <b id="Ez">0.000</b></div>
       <div><span class="k">&nbsp;&nbsp;&mdash; diamagnetic (&prop;B&sup2;)</span> <b id="Ed">0.000</b></div>
       <div><span class="k">split |E(+|m|)&minus;E(&minus;|m|)|</span> <b id="Es">0.000</b></div>
     </div>
     <div class="note">Atomic units: &#8463;=m<sub>e</sub>=e=1, well &omega;=1, so &mu;<sub>B</sub>=&frac12; and
-      &omega;<sub>c</sub>=B. Levels: E=(|m|+1)&Omega;&minus;&frac12;mB with &Omega;=&radic;(1+(B/2)&sup2;)
-      (Fock&ndash;Darwin, n<sub>r</sub>=0).</div>
+      &omega;<sub>c</sub>=B. Levels E=(2n<sub>r</sub>+|m|+1)&Omega;&minus;&frac12;mB, &Omega;=&radic;(1+(B/2)&sup2;)
+      (Fock&ndash;Darwin), with &lang;r&sup2;&rang;=(2n<sub>r</sub>+|m|+1)/&Omega;. &chi;<sub>dia</sub>=&minus;&frac14;&lang;r&sup2;&rang;
+      is the 2D Langevin susceptibility &mdash; the same &lang;r&sup2;&rang;-law as the atomic
+      &chi;=&minus;(N<sub>A</sub>e&sup2;/6m<sub>e</sub>c&sup2;)&lang;r&sup2;&rang;.</div>
   </div>
 
   <div class="card">
     <canvas id="levels" width="300" height="380"></canvas>
-    <div class="note">Fock&ndash;Darwin fan: E(m) vs B for m=&minus;2&hellip;+2 (n<sub>r</sub>=0). The lines split
-      linearly (Zeeman) and bend upward together (diamagnetism). Marker = current B.</div>
+    <div class="note">Fock&ndash;Darwin fan: E(m) vs B for m=&minus;2&hellip;+2 at the selected n<sub>r</sub>. The lines
+      split linearly (Zeeman) and bend upward together (diamagnetism). Marker = current B.</div>
   </div>
 </div>
 
@@ -92,12 +103,25 @@
   const OMEGA = 1.0;               // harmonic well frequency
   const muB   = 0.5;               // Bohr magneton in these units
   function bigOmega(B){ return Math.sqrt(OMEGA*OMEGA + 0.25*B*B); } // wc = B
-  function energy(m,B){ return (Math.abs(m)+1)*bigOmega(B) - 0.5*m*B; } // Fock-Darwin, n_r=0
+  const shell = (nr,m) => (2*nr + Math.abs(m) + 1);
+  function energy(m,B,nr){ return shell(nr,m)*bigOmega(B) - 0.5*m*B; }   // Fock-Darwin
   function eZeeman(m,B){ return -m*muB*B; }
-  function eDia(m,B){ return (Math.abs(m)+1)*(bigOmega(B)-OMEGA); }
+  function eDia(m,B,nr){ return shell(nr,m)*(bigOmega(B)-OMEGA); }
+  // <r^2> of the field-dressed 2D HO state (hbar=me=1): shell/Omega
+  function r2mean(m,B,nr){ return shell(nr,m)/bigOmega(B); }
+  // associated Laguerre L_n^a(x) by recurrence
+  function laguerre(n,a,x){
+    let l0=1, l1=1+a-x;
+    if(n===0) return l0;
+    if(n===1) return l1;
+    for(let k=1;k<n;k++){ const l2=((2*k+1+a-x)*l1-(k+a)*l0)/(k+1); l0=l1; l1=l2; }
+    return l1;
+  }
+  // radial density (unnormalised): r^{2|m|} [L_nr^|m|(r^2)]^2 e^{-r^2}
+  function rhoR(r,m,nr){ const am=Math.abs(m), r2=r*r, Lg=laguerre(nr,am,r2); return Math.pow(r2,am)*Lg*Lg*Math.exp(-r2); }
 
   // ---- state ----
-  let m = 1, B = 0;
+  let m = 1, B = 0, nr = 0;
 
   // ---- density field canvas ----
   const fc = document.getElementById('field'), fx = fc.getContext('2d');
@@ -116,22 +140,22 @@
   function px2xy(px,py){ return [ (px/W)*2*L - L, (py/H)*2*L - L ]; }
 
   function drawDensity(){
-    const am = Math.abs(m);
-    // rho = N^2 (r^2)^|m| e^{-r^2}; find max for normalization
-    let rmax2 = (am===0)?0:am;                  // peak of r^{2|m|}e^{-r^2} at r^2=|m|
-    const peak = Math.pow(rmax2,am)*Math.exp(-rmax2) || 1;
     const d = img.data;
+    // pass 1: grid max (nodes make the analytic peak awkward)
+    let mx=0;
+    for(let py=0; py<H; py++){ for(let px=0; px<W; px++){ const [x,y]=px2xy(px,py); const v=rhoR(Math.hypot(x,y),m,nr); if(v>mx)mx=v; } }
+    if(mx<=0) mx=1;
+    // pass 2: paint
     for(let py=0; py<H; py++){
       for(let px=0; px<W; px++){
         const [x,y] = px2xy(px,py);
-        const r2 = x*x+y*y;
-        const rho = Math.pow(r2,am)*Math.exp(-r2)/peak;
-        const [R,G,Bc] = ramp(Math.pow(rho,0.75));
+        const rho = rhoR(Math.hypot(x,y),m,nr)/mx;
+        const [R,G,Bc] = ramp(Math.pow(rho,0.70));
         const i = 4*(py*W+px);
         d[i]=R; d[i+1]=G; d[i+2]=Bc; d[i+3]=255;
       }
     }
-    dx.putImageData(img,0,0);          // cache into offscreen; recomputed only on m change
+    dx.putImageData(img,0,0);          // cache; recomputed only on m / n_r change
   }
 
   // ---- flow particles advected by v = (m/r) phi-hat  =>  dphi/dt = m/r^2 ----
@@ -139,14 +163,16 @@
   const parts = [];
   function seedParts(){
     parts.length = 0;
-    const am = Math.abs(m);
-    for(let k=0;k<NP;k++){
-      // sample radius near the density ring r ~ sqrt(|m|) (r=0.7 for m=0 puff)
-      let r;
-      if(am===0){ r = 0.5+Math.random()*1.6; }
-      else { r = Math.sqrt(am) + (Math.random()-0.5)*1.8; if(r<0.15) r=0.15+Math.random()*0.3; }
-      const ph = Math.random()*2*Math.PI;
-      parts.push({r, ph});
+    // rejection-sample radius from the true radial density (so dots sit in the bright rings)
+    let rmax=0; const NR=400;
+    for(let i=0;i<=NR;i++){ const v=rhoR((i/NR)*L, m, nr); if(v>rmax)rmax=v; }
+    if(rmax<=0) rmax=1;
+    let guard=0;
+    while(parts.length<NP && guard<NP*80){
+      guard++;
+      const r = Math.random()*L;
+      if(r<0.12) continue;                        // skip the singular-v core
+      if(Math.random()*rmax <= rhoR(r,m,nr)) parts.push({r, ph:Math.random()*2*Math.PI});
     }
   }
 
@@ -182,7 +208,7 @@
     const Bmax=2;
     // energy range across all m and B
     let emin=Infinity, emax=-Infinity;
-    for(let mm=-2;mm<=2;mm++){ for(let b=0;b<=Bmax+1e-9;b+=0.05){ const e=energy(mm,b); if(e<emin)emin=e; if(e>emax)emax=e; } }
+    for(let mm=-2;mm<=2;mm++){ for(let b=0;b<=Bmax+1e-9;b+=0.05){ const e=energy(mm,b,nr); if(e<emin)emin=e; if(e>emax)emax=e; } }
     const padE=(emax-emin)*0.06; emin-=padE; emax+=padE;
     const X = b => x0 + (b/Bmax)*(x1-x0);
     const Y = e => y1 - ((e-emin)/(emax-emin))*(y1-y0);
@@ -197,11 +223,11 @@
       lx.globalAlpha=(mm===m)?1:0.55;
       lx.beginPath();
       let first=true;
-      for(let b=0;b<=Bmax+1e-9;b+=0.02){ const px=X(b),py=Y(energy(mm,b)); if(first){lx.moveTo(px,py);first=false;} else lx.lineTo(px,py); }
+      for(let b=0;b<=Bmax+1e-9;b+=0.02){ const px=X(b),py=Y(energy(mm,b,nr)); if(first){lx.moveTo(px,py);first=false;} else lx.lineTo(px,py); }
       lx.stroke();
       // label at right
       lx.globalAlpha=1; lx.fillStyle=cols[mm]; lx.font=(mm===m?'bold ':'')+'11px sans-serif';
-      lx.fillText((mm>0?'+':'')+mm, x1-14, Y(energy(mm,Bmax))+ (mm===m?0:0)+4);
+      lx.fillText((mm>0?'+':'')+mm, x1-14, Y(energy(mm,Bmax,nr))+ (mm===m?0:0)+4);
     }
     lx.globalAlpha=1;
     // current-B marker
@@ -209,7 +235,7 @@
     lx.strokeStyle='#ffffff'; lx.setLineDash([3,3]); lx.lineWidth=1;
     lx.beginPath(); lx.moveTo(mx,y0); lx.lineTo(mx,y1); lx.stroke(); lx.setLineDash([]);
     // dot on current state
-    lx.fillStyle='#fff'; lx.beginPath(); lx.arc(mx, Y(energy(m,B)), 3.4, 0, 6.2832); lx.fill();
+    lx.fillStyle='#fff'; lx.beginPath(); lx.arc(mx, Y(energy(m,B,nr)), 3.4, 0, 6.2832); lx.fill();
   }
 
   // ---- readouts ----
@@ -219,14 +245,20 @@
     document.getElementById('Lz').textContent = (m>0?'+':'')+m;
     document.getElementById('mu').textContent = ((-m)>0?'+':'')+(-m);
     document.getElementById('circ').textContent = (m>0?'+':'')+m;
-    document.getElementById('E').textContent  = energy(m,B).toFixed(3);
+    document.getElementById('E').textContent  = energy(m,B,nr).toFixed(3);
     document.getElementById('Ez').textContent = fmt(eZeeman(m,B));
-    document.getElementById('Ed').textContent = fmt(eDia(m,B));
-    const split = Math.abs(energy(Math.abs(m),B)-energy(-Math.abs(m),B));
+    document.getElementById('Ed').textContent = fmt(eDia(m,B,nr));
+    const split = Math.abs(energy(Math.abs(m),B,nr)-energy(-Math.abs(m),B,nr));
     document.getElementById('Es').textContent = split.toFixed(3);
-    // highlight m button
+    const r2 = r2mean(m,B,nr);
+    document.getElementById('r2').textContent  = r2.toFixed(3);
+    document.getElementById('chi').textContent = (-0.25*r2).toFixed(3);
+    // highlight m / n_r buttons
     document.querySelectorAll('#mrow button').forEach(b=>{
       b.classList.toggle('on', parseInt(b.dataset.m,10)===m);
+    });
+    document.querySelectorAll('#nrow button').forEach(b=>{
+      b.classList.toggle('on', parseInt(b.dataset.nr,10)===nr);
     });
   }
 
@@ -236,6 +268,10 @@
   document.getElementById('mrow').addEventListener('click', e=>{
     const b=e.target.closest('button'); if(!b) return;
     m = parseInt(b.dataset.m,10); refreshAll();
+  });
+  document.getElementById('nrow').addEventListener('click', e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    nr = parseInt(b.dataset.nr,10); refreshAll();
   });
   document.getElementById('B').addEventListener('input', e=>{
     B = parseFloat(e.target.value); updateReadouts(); drawLevels();
