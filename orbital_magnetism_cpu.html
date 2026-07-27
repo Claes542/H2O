@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orbital Magnetism in RealQM — the charge vortex (CPU)</title>
+<style>
+  :root { --bg:#0b0e12; --panel:#12161d; --ink:#dfe6ee; --dim:#8b97a6; --acc:#b39ddb; --acc2:#4fc3f7; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  header { padding:16px 20px 4px; }
+  h1 { font-size:19px; margin:0 0 2px; color:var(--acc); }
+  .sub { color:var(--dim); font-size:13px; max-width:820px; }
+  .wrap { display:flex; flex-wrap:wrap; gap:18px; padding:14px 20px 30px; align-items:flex-start; }
+  .card { background:var(--panel); border:1px solid #232b36; border-radius:10px; padding:14px; }
+  canvas { display:block; border-radius:6px; background:#05070a; }
+  .controls { min-width:300px; max-width:340px; }
+  label { display:block; margin:12px 0 3px; color:var(--dim); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+  input[type=range] { width:100%; accent-color:var(--acc); }
+  .row { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+  .row button { flex:1; min-width:44px; background:#1b2028; color:var(--ink); border:1px solid #2c333e;
+    border-radius:6px; padding:7px 4px; cursor:pointer; font-size:13px; }
+  .row button.on { background:var(--acc); color:#10131a; border-color:var(--acc); font-weight:600; }
+  .read { margin-top:12px; border-top:1px solid #232b36; padding-top:10px; }
+  .read div { display:flex; justify-content:space-between; padding:2px 0; }
+  .read b { color:var(--acc2); font-variant-numeric:tabular-nums; }
+  .k { color:var(--dim); }
+  .note { color:var(--dim); font-size:12px; margin-top:10px; }
+  code { color:#ffcc80; }
+  a { color:var(--acc2); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Orbital magnetism in RealQM — the charge vortex</h1>
+  <div class="sub">
+    A single electron as a real charge density in a 2D harmonic well. A winding state
+    <code>&psi;=R(r)e<sup>im&phi;</sup></code> is a <b>real charge vortex</b>: the density circulates as a
+    genuine current <b>j</b>=&rho;<b>v</b>, carrying angular momentum L<sub>z</sub>=m and magnetic moment
+    &mu;<sub>z</sub>=&minus;m&mu;<sub>B</sub>. No complex plane is needed for the flow — only the integer m,
+    fixed by single-valuedness (&oint;<b>v</b>&middot;d<b>&ell;</b>=2&pi;m). The field slider drives the exact
+    Fock&ndash;Darwin response: linear Zeeman splitting plus the quadratic diamagnetic shift.
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="card">
+    <canvas id="field" width="380" height="380"></canvas>
+    <div class="note">Colour = charge density &rho;=|&psi;|&sup2;. Dots = charge advected by the current
+      <b>v</b>=(m/r)&phi;&#770;. For m&ne;0 the density is hollow on the axis (the vortex core).</div>
+  </div>
+
+  <div class="card controls">
+    <label>Winding number m (magnetic quantum number)</label>
+    <div class="row" id="mrow">
+      <button data-m="-2">&minus;2</button>
+      <button data-m="-1">&minus;1</button>
+      <button data-m="0">0</button>
+      <button data-m="1">+1</button>
+      <button data-m="2">+2</button>
+    </div>
+
+    <label>Magnetic field B&nbsp;=&nbsp;&omega;<sub>c</sub> (along z) &nbsp;·&nbsp; <span id="bval">0.00</span></label>
+    <input type="range" id="B" min="0" max="2" step="0.01" value="0">
+
+    <div class="read">
+      <div><span class="k">L<sub>z</sub> (angular momentum)</span> <b id="Lz">0</b></div>
+      <div><span class="k">&mu;<sub>z</sub> / &mu;<sub>B</sub></span> <b id="mu">0</b></div>
+      <div><span class="k">circulation &oint;<b>v</b>&middot;d<b>&ell;</b> / 2&pi;</span> <b id="circ">0</b></div>
+      <div><span class="k">energy E(m)</span> <b id="E">1.000</b></div>
+      <div><span class="k">&nbsp;&nbsp;&mdash; Zeeman (&minus;m&mu;<sub>B</sub>B)</span> <b id="Ez">0.000</b></div>
+      <div><span class="k">&nbsp;&nbsp;&mdash; diamagnetic (&prop;B&sup2;)</span> <b id="Ed">0.000</b></div>
+      <div><span class="k">split |E(+|m|)&minus;E(&minus;|m|)|</span> <b id="Es">0.000</b></div>
+    </div>
+    <div class="note">Atomic units: &#8463;=m<sub>e</sub>=e=1, well &omega;=1, so &mu;<sub>B</sub>=&frac12; and
+      &omega;<sub>c</sub>=B. Levels: E=(|m|+1)&Omega;&minus;&frac12;mB with &Omega;=&radic;(1+(B/2)&sup2;)
+      (Fock&ndash;Darwin, n<sub>r</sub>=0).</div>
+  </div>
+
+  <div class="card">
+    <canvas id="levels" width="300" height="380"></canvas>
+    <div class="note">Fock&ndash;Darwin fan: E(m) vs B for m=&minus;2&hellip;+2 (n<sub>r</sub>=0). The lines split
+      linearly (Zeeman) and bend upward together (diamagnetism). Marker = current B.</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  // ---- physics (atomic units: hbar=me=e=1, well omega=1, muB=1/2) ----
+  const OMEGA = 1.0;               // harmonic well frequency
+  const muB   = 0.5;               // Bohr magneton in these units
+  function bigOmega(B){ return Math.sqrt(OMEGA*OMEGA + 0.25*B*B); } // wc = B
+  function energy(m,B){ return (Math.abs(m)+1)*bigOmega(B) - 0.5*m*B; } // Fock-Darwin, n_r=0
+  function eZeeman(m,B){ return -m*muB*B; }
+  function eDia(m,B){ return (Math.abs(m)+1)*(bigOmega(B)-OMEGA); }
+
+  // ---- state ----
+  let m = 1, B = 0;
+
+  // ---- density field canvas ----
+  const fc = document.getElementById('field'), fx = fc.getContext('2d');
+  const W = fc.width, H = fc.height, L = 4.5;         // domain [-L,L]
+  const dens = document.createElement('canvas'); dens.width=W; dens.height=H;
+  const dx = dens.getContext('2d');
+  const img = dx.createImageData(W,H);
+  // viridis-ish ramp
+  function ramp(t){
+    t = Math.max(0,Math.min(1,t));
+    const r = Math.round(255*Math.min(1, 0.10+1.7*t*t));
+    const g = Math.round(255*Math.min(1, 0.02+1.15*t));
+    const b = Math.round(255*Math.min(1, 0.30+0.9*Math.pow(t,0.4)*(1-0.5*t)));
+    return [r,g,b];
+  }
+  function px2xy(px,py){ return [ (px/W)*2*L - L, (py/H)*2*L - L ]; }
+
+  function drawDensity(){
+    const am = Math.abs(m);
+    // rho = N^2 (r^2)^|m| e^{-r^2}; find max for normalization
+    let rmax2 = (am===0)?0:am;                  // peak of r^{2|m|}e^{-r^2} at r^2=|m|
+    const peak = Math.pow(rmax2,am)*Math.exp(-rmax2) || 1;
+    const d = img.data;
+    for(let py=0; py<H; py++){
+      for(let px=0; px<W; px++){
+        const [x,y] = px2xy(px,py);
+        const r2 = x*x+y*y;
+        const rho = Math.pow(r2,am)*Math.exp(-r2)/peak;
+        const [R,G,Bc] = ramp(Math.pow(rho,0.75));
+        const i = 4*(py*W+px);
+        d[i]=R; d[i+1]=G; d[i+2]=Bc; d[i+3]=255;
+      }
+    }
+    dx.putImageData(img,0,0);          // cache into offscreen; recomputed only on m change
+  }
+
+  // ---- flow particles advected by v = (m/r) phi-hat  =>  dphi/dt = m/r^2 ----
+  const NP = 520;
+  const parts = [];
+  function seedParts(){
+    parts.length = 0;
+    const am = Math.abs(m);
+    for(let k=0;k<NP;k++){
+      // sample radius near the density ring r ~ sqrt(|m|) (r=0.7 for m=0 puff)
+      let r;
+      if(am===0){ r = 0.5+Math.random()*1.6; }
+      else { r = Math.sqrt(am) + (Math.random()-0.5)*1.8; if(r<0.15) r=0.15+Math.random()*0.3; }
+      const ph = Math.random()*2*Math.PI;
+      parts.push({r, ph});
+    }
+  }
+
+  function toPix(x,y){ return [ (x+L)/(2*L)*W, (y+L)/(2*L)*H ]; }
+
+  let raf=0;
+  function animate(){
+    fx.globalCompositeOperation='source-over';
+    fx.drawImage(dens,0,0);            // blit cached density (fast)
+    // advect + draw particles
+    fx.globalCompositeOperation='lighter';
+    for(const p of parts){
+      const dphi = (m===0)?0 : (m/(p.r*p.r))*0.010;   // dt scaled
+      p.ph += dphi;
+      const x = p.r*Math.cos(p.ph), y = p.r*Math.sin(p.ph);
+      const [px,py] = toPix(x,y);
+      const spd = (m===0)?0:Math.abs(m)/p.r;
+      const a = Math.min(0.9, 0.15+0.20*spd);
+      fx.fillStyle = (m===0)?'rgba(180,190,200,0.25)':`rgba(255,255,255,${a})`;
+      fx.beginPath(); fx.arc(px,py, (m===0?1.1:1.5), 0, 6.2832); fx.fill();
+    }
+    fx.globalCompositeOperation='source-over';
+    raf = requestAnimationFrame(animate);
+  }
+
+  // ---- levels canvas ----
+  const lc = document.getElementById('levels'), lx = lc.getContext('2d');
+  const LW = lc.width, LH = lc.height;
+  function drawLevels(){
+    lx.clearRect(0,0,LW,LH);
+    const padL=34, padR=12, padT=16, padB=26;
+    const x0=padL, x1=LW-padR, y0=padT, y1=LH-padB;
+    const Bmax=2;
+    // energy range across all m and B
+    let emin=Infinity, emax=-Infinity;
+    for(let mm=-2;mm<=2;mm++){ for(let b=0;b<=Bmax+1e-9;b+=0.05){ const e=energy(mm,b); if(e<emin)emin=e; if(e>emax)emax=e; } }
+    const padE=(emax-emin)*0.06; emin-=padE; emax+=padE;
+    const X = b => x0 + (b/Bmax)*(x1-x0);
+    const Y = e => y1 - ((e-emin)/(emax-emin))*(y1-y0);
+    // axes
+    lx.strokeStyle='#2c333e'; lx.lineWidth=1;
+    lx.beginPath(); lx.moveTo(x0,y0); lx.lineTo(x0,y1); lx.lineTo(x1,y1); lx.stroke();
+    lx.fillStyle='#8b97a6'; lx.font='11px sans-serif';
+    lx.fillText('E', 8, y0+8); lx.fillText('B', x1-8, y1+16);
+    const cols = {'-2':'#ef5350','-1':'#ffb74d','0':'#9e9e9e','1':'#4fc3f7','2':'#66bb6a'};
+    for(let mm=-2;mm<=2;mm++){
+      lx.strokeStyle=cols[mm]; lx.lineWidth=(mm===m)?2.6:1.2;
+      lx.globalAlpha=(mm===m)?1:0.55;
+      lx.beginPath();
+      let first=true;
+      for(let b=0;b<=Bmax+1e-9;b+=0.02){ const px=X(b),py=Y(energy(mm,b)); if(first){lx.moveTo(px,py);first=false;} else lx.lineTo(px,py); }
+      lx.stroke();
+      // label at right
+      lx.globalAlpha=1; lx.fillStyle=cols[mm]; lx.font=(mm===m?'bold ':'')+'11px sans-serif';
+      lx.fillText((mm>0?'+':'')+mm, x1-14, Y(energy(mm,Bmax))+ (mm===m?0:0)+4);
+    }
+    lx.globalAlpha=1;
+    // current-B marker
+    const mx=X(B);
+    lx.strokeStyle='#ffffff'; lx.setLineDash([3,3]); lx.lineWidth=1;
+    lx.beginPath(); lx.moveTo(mx,y0); lx.lineTo(mx,y1); lx.stroke(); lx.setLineDash([]);
+    // dot on current state
+    lx.fillStyle='#fff'; lx.beginPath(); lx.arc(mx, Y(energy(m,B)), 3.4, 0, 6.2832); lx.fill();
+  }
+
+  // ---- readouts ----
+  function fmt(v,d){ return (v>=0?'+':'')+v.toFixed(d===undefined?3:d); }
+  function updateReadouts(){
+    document.getElementById('bval').textContent = B.toFixed(2);
+    document.getElementById('Lz').textContent = (m>0?'+':'')+m;
+    document.getElementById('mu').textContent = ((-m)>0?'+':'')+(-m);
+    document.getElementById('circ').textContent = (m>0?'+':'')+m;
+    document.getElementById('E').textContent  = energy(m,B).toFixed(3);
+    document.getElementById('Ez').textContent = fmt(eZeeman(m,B));
+    document.getElementById('Ed').textContent = fmt(eDia(m,B));
+    const split = Math.abs(energy(Math.abs(m),B)-energy(-Math.abs(m),B));
+    document.getElementById('Es').textContent = split.toFixed(3);
+    // highlight m button
+    document.querySelectorAll('#mrow button').forEach(b=>{
+      b.classList.toggle('on', parseInt(b.dataset.m,10)===m);
+    });
+  }
+
+  function refreshAll(){ drawDensity(); seedParts(); updateReadouts(); drawLevels(); }
+
+  // ---- events ----
+  document.getElementById('mrow').addEventListener('click', e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    m = parseInt(b.dataset.m,10); refreshAll();
+  });
+  document.getElementById('B').addEventListener('input', e=>{
+    B = parseFloat(e.target.value); updateReadouts(); drawLevels();
+  });
+
+  refreshAll();
+  animate();
+})();
+</script>
+</body>
+</html>
