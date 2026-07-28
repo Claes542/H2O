@@ -1,0 +1,259 @@
+\chapter{Magnetism and Spin}\label{ch:magnetism-spin}
+\index{magnetism}\index{spin}\index{Stern--Gerlach}\index{diamagnetism}\index{gyromagnetic ratio}\index{Einstein--de Haas effect}\index{quantised circulation}\index{Land\'e g-factor@Land\'e $g$-factor}
+
+\begin{quote}
+\itshape A magnetic moment is charge in motion; the only question is whether the motion is real.\\
+\normalfont\hfill --- working note, 2026.
+\end{quote}
+\bigskip
+
+The Schr\"odinger--Maxwell coupling of Chapter~\ref{ch:sm-coupling} gave each electron a real current
+$\mathbf{j}_i = \rho_i \mathbf{v}_i$ on physical $\mathbb{R}^3$, with $\mathbf{v}_i = \nabla S_i / m_i$ the
+velocity read from the phase of the complex form $\psi_i = R_i e^{iS_i}$. Magnetism is what that current does in a
+magnetic field, and it is the arena where the reality of the RealQM wave function is most sharply at stake ---
+because a magnetic moment is, quite literally, charge in motion. This chapter asks how much of magnetism follows
+from taking the electron to be a real charge density in three-dimensional space, and the answer comes in three
+graded registers: orbital magnetism, which is native and needs no complex numbers; diamagnetism, which affords a
+quantitative test against experiment; and spin, which reduces to a single geometric residue.
+
+\section{Orbital magnetism is real, and needs no complex plane}\label{sec:orbital-magnetism}
+
+It is often said that magnetism forces the theory to be complex: a circulating current needs a phase, and a phase
+means a complex wave function. The truth is more precise, and more favourable to RealQM. From the density
+\emph{alone} --- a single real field $\psi = R$ --- no magnetism can come, because the current
+\[
+\mathbf{j} = \frac{q}{m}\,\operatorname{Im}(\psi^* \nabla\psi)
+\]
+vanishes identically for real $\psi$: a lone amplitude carries no motion. Something beyond the bare density is
+needed. But complex numbers are not the only way to carry it. Continuum mechanics never uses them, yet always
+carries \emph{two} real fields, a density $\rho$ and a velocity $\mathbf{v}$. Carried the same way here --- as
+they already are in Chapter~\ref{ch:sm-coupling} --- the whole of orbital magnetism is real. The current
+$\mathbf{j} = \rho\mathbf{v}$ is a real circulating flow; it costs a real kinetic energy
+\begin{equation}
+T_{\text{flow}} = \int \tfrac{1}{2}\rho\,|\mathbf{v}|^2 \, d^3x = \int \frac{|\mathbf{j}|^2}{2\rho}\, d^3x ;
+\label{eq:ms-Tflow}
+\end{equation}
+it carries a real angular momentum $L_z = \int \rho\,(\mathbf{x}\times\mathbf{v})_z\, d^3x$ and the ordinary
+magnetostatic moment $\boldsymbol{\mu} = \tfrac{1}{2}\int \mathbf{x}\times\mathbf{j}\, d^3x$; and the magnetic
+state is the stationary point of the static RealQM energy augmented by \eqref{eq:ms-Tflow} at fixed $L_z$ (or, in
+an applied field, of $E - \boldsymbol{\mu}\cdot\mathbf{B}$). No $i$ enters any of this. The complex
+$\psi = \sqrt{\rho}\,e^{iS}$ is exactly these two real fields repackaged into one symbol, the phase $S$ being the
+velocity potential; the ``$i$'' is bookkeeping, and the physics is the flow.
+
+\subsection*{Quantised circulation and the moment}
+
+A stationary state with a spatial phase winding $\psi = R(\mathbf{x})\,e^{im\phi}$ carries an azimuthal current
+and a magnetic moment
+\begin{equation}
+\mu_z = -m\,\mu_B, \qquad m \in \mathbb{Z},
+\label{eq:ms-mu}
+\end{equation}
+quantised in the winding number and independent of the density's detailed shape: the moment-arm ($\propto s$, the
+distance from the axis) and the winding velocity ($\propto 1/s$) cancel, which is the gyromagnetic relation
+$\boldsymbol{\mu} = (q/2m_e)\mathbf{L}$ with gyromagnetic factor $g = 1$.
+
+The integer $m$ is the one genuinely quantum input, and it is worth seeing that it is \emph{topological}, not a
+feature of the complex plane. Single-valuedness of $e^{iS}$ --- the phase is an angle, defined modulo $2\pi$ ---
+forces the circulation to close on itself,
+\begin{equation}
+\oint \mathbf{v}\cdot d\boldsymbol{\ell} = \frac{2\pi m}{m_e}, \qquad m\in\mathbb{Z} .
+\label{eq:ms-circ}
+\end{equation}
+A fractional winding would be a torn, discontinuous configuration --- a branch cut in the density --- which a real
+continuous charge fluid cannot be. This is precisely the Onsager--Feynman quantisation of vortices in a real
+superfluid: one cannot make a half-strength vortex, because the flow must match up after a loop. What is
+unavoidable here is the \emph{circle} --- the periodicity of an angle --- not the complex plane as such. The
+density must also vanish on the axis for $m\neq 0$ (a hollow vortex core), since $\mathbf{v}\sim 1/s$ would
+otherwise diverge.
+
+\subsection*{Numerical check: the Zeeman response}
+
+A Cartesian $(u,v) = (\operatorname{Re}\psi, \operatorname{Im}\psi)$ leapfrog for one electron in a
+two-dimensional harmonic well, initialised in the $m = 1$ state $\psi = (x+iy)e^{-r^2/2}$, conserves norm to
+$1.000000$ and holds $\mu_z/\mu_B = -1.00$ (grid value $-0.997$) over thousands of steps: the circulating density
+is genuine. Adding a uniform field by minimal coupling $\mathbf{p}\to\mathbf{p} - q\mathbf{A}$ gives the Zeeman
+response of Table~\ref{tab:ms-zeeman}: the $m = \pm 1$ states split by $2\mu_B B$ to four digits, while the
+non-circulating $m = 0$ state is inert to linear order. This is ordinary orbital magnetism, from a charge density
+in real space, with no spin invoked.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{cccc}
+\toprule
+$B$ & $E(m{=}0)$ & $E(+1)-E(-1)$ & $2\mu_B B$ \\
+\midrule
+$0.05$ & $0.999$ & $+0.0499$ & $0.0500$ \\
+$0.10$ & $1.000$ & $+0.0999$ & $0.1000$ \\
+$0.20$ & $1.004$ & $+0.1998$ & $0.2000$ \\
+\bottomrule
+\end{tabular}
+\caption{Zeeman response of the circulating density (minimal coupling, atomic units). The $m = \pm 1$ splitting
+matches $2\mu_B B$; the $m = 0$ state is inert to linear order.}
+\label{tab:ms-zeeman}
+\end{table}
+
+\section{Diamagnetism: a test against experiment}\label{sec:diamagnetism}
+
+A magnetic prediction can be read straight from the ground-state density, with no field applied at all. The
+Langevin--Larmor molar diamagnetic susceptibility is
+\begin{equation}
+\chi_M = -\frac{N_A e^2}{6 m_e c^2}\sum_i \langle r_i^2\rangle
+       = -0.792\times 10^{-6}\Big(\textstyle\sum_i \langle r_i^2\rangle / a_0^2\Big)\ \mathrm{cm^3/mol},
+\label{eq:ms-langevin}
+\end{equation}
+a sum over electrons of the mean-square radius --- precisely the real-space quantity RealQM supplies as
+$\langle r^2\rangle = \int r^2\rho\, d^3x$. We evaluate it for the closed-shell atoms He, Ne, Ar from a radial
+RealQM self-consistent field of the kind used in Part~\ref{part:foundations-revisited}: each electron moves in
+the kernel $-Z/r$ plus the Hartree field of \emph{all the other} electrons, with no self-repulsion (the RealQM
+rule) and no exchange. The mean-square sizes feed \eqref{eq:ms-langevin} directly, giving
+Table~\ref{tab:ms-dia}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcccc}
+\toprule
+atom & $\sum\langle r^2\rangle\ (a_0^2)$ & $\chi_{\text{calc}}$ & $\chi_{\text{exp}}$ & ratio \\
+\midrule
+He & $2.38$  & $-1.88$ & $-1.90$ & $0.99$ \\
+Ne & $11.14$ & $-8.82$ & $-7.20$ & $1.23$ \\
+Ar & $31.66$ & $-25.1$ & $-19.6$ & $1.28$ \\
+\bottomrule
+\end{tabular}
+\caption{Molar diamagnetic susceptibility ($10^{-6}\,\mathrm{cm^3/mol}$) from the RealQM radial SCF via
+\eqref{eq:ms-langevin}, against tabulated experiment.}
+\label{tab:ms-dia}
+\end{table}
+
+For helium the prediction is essentially exact ($0.99\times$): the two-electron no-self-interaction field gives
+$\langle r^2\rangle = 1.19\,a_0^2$ per $1s$ electron, in agreement with Hartree--Fock and with the measured
+susceptibility. This is a magnetic observable \emph{computed} from a RealQM density and matched to measurement,
+not asserted. For neon and argon the size and trend are right but the atoms come out some $20$--$30\%$ too
+diamagnetic; the per-shell breakdown pins the cause on the valence ($2p$ for Ne, $3p$ for Ar) being too diffuse.
+Two caveats frame this honestly. First, the computation is a \emph{radial mean field}: it enforces the
+no-self-interaction rule but spherically averages over the non-overlap geometry and omits exchange, both of which
+would \emph{contract} the valence --- so this is closer to a lower bound on the full three-dimensional solver than
+to its verdict. Second, the trend --- excellent for the two-electron atom, degrading for the many-electron ones
+absent the full geometry --- is the same regime boundary RealQM meets elsewhere in this book. It is a genuine
+partial success: one magnetic number secured against experiment, the right order and trend for the others, and
+the missing physics named rather than hidden.
+
+\section{Spin: the single geometric residue}\label{sec:spin-residue}
+
+Two logically distinct things travel under the name \emph{spin}. The first is fermionic \emph{exclusion}, which
+RealQM realises geometrically by non-overlapping domains with no spin variable, and which accounts --- as the
+validation chapters showed --- for shells, the periodic table, and bonding. The second is the two-valued
+\emph{magnetic moment}, with gyromagnetic factor $g = 2$, which the scalar theory does not carry. This leaves
+exactly one residue: the electron's spin moment is $g = 2$, twice the orbital value per unit angular momentum,
+and its experimental face is the Stern--Gerlach experiment.
+
+\subsection*{Stern--Gerlach: two with no middle, and the spread}
+
+A beam of silver atoms --- each with a single valence electron in an $L = 0$, orbitally spherical, state ---
+passes through an inhomogeneous field and splits into \emph{two} spots. This is the signature of a two-valued
+moment $\mu_z = \pm\mu_B$, that is spin $\tfrac{1}{2}$ with $g = 2$. An orbital moment would split into an
+\emph{odd} number $2l+1$ of spots, and for the $L = 0$ silver electron would not split at all: the scalar winding
+ladder $m = 0, \pm 1, \dots$ always \emph{includes zero}, an undeflected middle beam. Stern--Gerlach gives two
+spots \emph{with no middle}; the missing zero is the half-integer structure $m_s = \pm\tfrac{1}{2}$, which a
+scalar density cannot produce.
+
+The \emph{separation} of the spots, as opposed to their number, is ordinary magnetostatics and native to RealQM.
+An atom of mass $M$ and moment $\mu_z$ in a gradient $G = \partial_z B_z$ deflects by
+$z = \mu_z G L (D + \tfrac{1}{2}L)/M v^2$ across a magnet of length $L$ and drift $D$ at speed $v$, so the split
+is
+\begin{equation}
+\Delta z = \frac{2\mu_B\, G\, L\, (D + \tfrac{1}{2}L)}{M v^2},
+\label{eq:ms-spread}
+\end{equation}
+\emph{linear in the forcing} $G$ and $\propto 1/M v^2$. The forcing sets the pattern's \emph{scale},
+continuously; it never changes the count (two) or the value ($\pm\mu_B$), and never fills the middle. Stronger
+forcing only marches the same two dots farther apart, making the absent middle \emph{more} conspicuous. The
+experiment thus factors a continuous, classical magnifier (the deflection, native to a real moment in a real
+gradient) from a discrete, quantised input ($\pm\mu_B$).
+
+\subsection*{The mechanical content is already real}
+
+One might fear a deeper obstacle: that spin's mechanical angular momentum, the $\hbar/2$ made visible by the
+Einstein--de Haas effect --- a suspended bar physically rotating as it is magnetised and its moments align --- is
+a further ingredient the theory must supply beyond the moment itself. In RealQM it is not. A magnetic moment here
+\emph{is} a real circulating charge, and a real current carries real mechanical angular momentum by construction:
+the same $L_z$ that accompanies the orbital moment in \eqref{eq:ms-mu}. So the reciprocal transfer of angular
+momentum between the aligned moments and the body --- Einstein--de Haas, and its converse the Barnett effect ---
+is automatic, ordinary conservation for a charge in motion, requiring no spin primitive. Everything
+\emph{mechanical} about spin is already real in RealQM.
+
+\subsection*{The quantised magnitude is topological closure}
+
+Why is the moment quantised to $\pm\mu_B$ rather than taking an arbitrary magnitude? For the same reason the
+orbital moment is. A real, continuous, single-valued configuration can only wind an integer number of times, by
+the closure condition \eqref{eq:ms-circ}; a fractional moment would be a torn configuration, which does not
+exist. Any picture in which a field ``steers'' the moment into two orientations is therefore constrained: the two
+attractors are not free but \emph{are} the topologically allowed windings, and the continuum between them is not
+merely unstable but disallowed. For spin the same closure applies to a \emph{spinorial} orientation rather than a
+scalar phase: a spinor closes only after $4\pi$ (the SU(2) double cover of the rotation group), so its winding is
+quantised in \emph{half}-integers, giving the two-valued $\mu_z = \pm\mu_B$ with $g = 2$. Quantised magnitude is
+thus not an added postulate but the price of the reality and continuity of the charge.
+
+\subsection*{$g = 2$ is geometric, not relativistic}
+
+It is tempting to conclude that $g = 2$ forces relativity into the theory, since in the textbook account it falls
+out of the Dirac equation. By Lévy-Leblond's theorem (1967) it does not: $g = 2$ follows already from a
+first-order, \emph{non-relativistic}, Galilean spinor equation. Writing the kinetic term as
+$(\boldsymbol{\sigma}\cdot\mathbf{p})^2/2m$ --- legal for free motion since
+$(\boldsymbol{\sigma}\cdot\mathbf{p})^2 = p^2$ --- minimal coupling in a field gives
+\begin{equation}
+\frac{(\boldsymbol{\sigma}\cdot(\mathbf{p} - q\mathbf{A}))^2}{2m}
+= \frac{(\mathbf{p} - q\mathbf{A})^2}{2m} - \frac{q}{2m}\,\boldsymbol{\sigma}\cdot\mathbf{B},
+\label{eq:ms-pauli}
+\end{equation}
+the last term being exactly the $g = 2$ spin--Zeeman coupling, appearing automatically. The ``$2$'' is the SU(2)
+double cover: a spinor rotates at half angle, which reciprocally doubles the moment --- a geometric, scale-free
+fact, owing nothing to Lorentz invariance.
+
+\subsection*{What is delivered, and what remains open}
+
+The single-electron step has been carried out numerically. On a two-dimensional grid a two-component spinor
+evolved with the $\boldsymbol{\sigma}\cdot\mathbf{D}$ structure ($\mathbf{D} = \mathbf{p} - q\mathbf{A}$)
+reproduces the operator identity $(\boldsymbol{\sigma}\cdot\mathbf{D})^2 = \mathbf{D}^2\mathbb{1} -
+q\,\boldsymbol{\sigma}\cdot\mathbf{B}$ to grid accuracy, so the $g = 2$ term \emph{emerges} from squaring rather
+than being inserted by hand; and an $L = 0$ state --- the very one a scalar density leaves undeflected --- splits
+into two levels $\pm\mu_B B$ with no middle. That is Stern--Gerlach, non-relativistically.
+
+We state plainly what remains a target. First, the \emph{half-integer closure} --- that the electron's own domain
+carries a spinorial ($4\pi$) rather than scalar ($2\pi$) orientation --- is exhibited by the
+$\boldsymbol{\sigma}\cdot\mathbf{p}$ structure but not yet \emph{forced} by the domain geometry. Second,
+\emph{closed-shell pairing}: a filled shell must pair to zero net moment (diamagnetism), but the spin-blind
+non-overlap geometry does not supply antiparallel pairing --- a naive per-electron spinor leaves the two spins
+degenerate and aligns them with any field (paramagnetic), and forcing continuity of the spinor across a shared
+boundary costs a spin domain-wall energy that \emph{favours} the parallel configuration, the opposite of what is
+needed. Closed-shell and collective magnetism therefore require an added exchange term; this is a genuine
+limitation of the spin-blind geometry, of a piece with the boundary discussed in Chapter~\ref{ch:limits}.
+Beyond a single splitting, the measurement statistics across incompatible Stern--Gerlach axes --- the
+non-commutativity revealed by sequential analysers --- is the deeper frontier.
+
+\section{What is new, what is not, and the boundary}\label{sec:magnetism-ledger}
+
+Because much of the phenomenology is standard, it is worth stating plainly what RealQM does and does not add.
+
+\emph{New is the ontology.} Magnetism becomes a literal charge fluid $(\rho, \mathbf{v})$ circulating in ordinary
+space --- one genuine current per electron for any $N$ --- rather than an operator on a configuration-space
+amplitude; the complex form is bookkeeping; only the integer (orbital) or half-integer (spin) winding is quantum.
+It is located precisely against radiation, treated in the neighbouring chapters: both are current phenomena, but
+magnetism is a \emph{spatial} winding (steady, real flow in disguise) whereas radiation is a \emph{temporal}
+oscillation that genuinely requires the complex time-dependent form.
+
+\emph{Not new is the phenomenology.} RealQM \emph{reproduces}, it does not rewrite, the gyromagnetic relation, the
+quantised circulation, the Zeeman splitting, and Langevin diamagnetism. The hydrodynamic $(\rho, \mathbf{v})$
+form is Madelung's (1927); quantised vortices are Onsager's and Feynman's. The novelty is in \emph{what these
+quantities are}, not in their values.
+
+\emph{The boundary is collective magnetism.} Exchange-driven magnetism --- the singlet--triplet splitting,
+ferromagnetic ordering --- requires spin exchange that geometric non-overlap does not deliver, as the
+closed-shell test above makes concrete. Single-electron spin is reached as a residue; the collective sector is
+not.
+
+In sum, magnetism in RealQM comes in three registers: orbital magnetism is real continuum mechanics, with the
+complex plane a convenience and the integer winding the only quantum; diamagnetism is testable and, for helium,
+tested and matched; and spin is a single geometric residue --- not a mechanical mystery, not an arbitrary
+magnitude, not a relativistic quantity --- delivered for one electron and open for many. Nothing called spin need
+be \emph{posited}: its exclusion role is geometry, its angular momentum is real charge motion, and what remains is
+a single geometric factor to be \emph{derived}.

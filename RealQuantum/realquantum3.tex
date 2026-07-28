@@ -1,0 +1,119 @@
+\documentclass[12pt]{book}
+\usepackage{makeidx}
+\usepackage{epsfig}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsbsy}
+\usepackage{booktabs}
+\usepackage{psfrag}
+\usepackage{rotating}
+\usepackage[english]{babel}
+\usepackage{xr-hyper}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\setlist[itemize]{leftmargin=1.4em}
+\hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue, citecolor=blue}
+
+\newcommand{\figmat}[2]{\psfrag{#1}{$#2$}}
+\newcommand{\mypsfrag}[2]{\psfrag{#1}{\small #2}}
+\makeindex
+\setcounter{tocdepth}{1}
+
+\begin{document}
+
+\frontmatter
+
+\title{
+\centering
+\includegraphics[height=8.0cm]{pictures/schrodinger10.jpg}\\[0.8em]
+{\normalsize\rm Applied Mathematics Body and Soul, Vol.~VI}\\[0.4em]
+\sc
+Real Quantum Mechanics \\[0.4em]
+\large A Multiphase 3D Continuum Formulation \\
+\large Realised through Mind--AI Cooperation}
+
+\author{\sc Claes Johnson\\
+\bigskip
+\small KTH Royal Institute of Technology\\
+\small Stockholm, Sweden\\
+\bigskip
+\small \texttt{claesjohnson@gmail.com}\\
+\bigskip
+\bigskip
+\small Draft, \today}
+
+\date{}
+\maketitle
+
+\tableofcontents
+
+\mainmatter
+
+% --- Foreword (unnumbered, before Prologue) ---
+\include{chapters3/foreword}
+
+% --- Prologue (unnumbered, before Part I) ---
+\include{chapters3/prologue}
+
+% --- Part I: Foundations ---
+\part{Foundations}
+\include{chapters3/ch01_dirac_copenhagen}
+\include{chapters3/ch02_realqm_equation}
+\include{chapters3/ch03_hierarchy}
+
+% --- Part II: Numerical method ---
+\part{Numerical Method}
+\include{chapters3/ch04_relaxation}
+\include{chapters3/ch05_webgpu}
+
+% --- Part III: Validation ---
+\part{Validation}
+\include{chapters3/ch06_atom_energies}
+\include{chapters3/ch07_h2_helium}
+\include{chapters3/ch08_hydrides}
+\include{chapters3/ch09_dimers_reactions}
+\include{chapters3/ch10_folding}
+\include{chapters3/ch11_condensed_phases}
+\include{chapters3/ch12_materials}
+
+% --- Part IV: Foundations Revisited ---
+\part{Foundations Revisited}\label{part:foundations-revisited}
+\include{chapters3/ch13_stability_of_matter}
+\include{chapters3/ch14_nucleus}
+
+% --- Part V: Matter and Light ---
+\part{Matter and Light}
+\include{chapters3/ch15_sm_coupling}
+\include{chapters3/ch_magnetism_spin}
+\include{chapters3/ch16_excited_states}
+\include{chapters3/ch17_molecular_radiation}
+\include{chapters3/ch18_blackbody}
+\include{chapters3/ch19_mystery_uncovered}
+
+% --- Part VI: Connections ---
+\part{Connections}
+% ch_statistics chapter removed; the position on statistics is now stated in the
+% Prologue (Coda: Dublin 1952), in the spirit of Schrödinger's 1952 Dublin remarks.
+\include{chapters3/ch20_thermodynamics}
+\include{chapters3/ch21_chemistry_vs_physics}
+\include{chapters3/ch22_collaboration}
+\include{chapters3/ch23_limitations}
+
+\appendix
+\renewcommand{\thechapter}{}
+\renewcommand{\chaptername}{Appendix}
+\renewcommand{\thesection}{\arabic{section}}
+\include{chapters3/appA_code}
+% ch_atomic_radiation appendix removed; unique material distributed:
+%   - photoelectric effect, single-emitter, Compton    →  ch_blackbody §photoelectric-empirical
+%   - StdQM-superposition critique                     →  ch10_excited_states §Contrast paragraph
+%   - multi-electron radiation programme               →  superseded by ch_molecular_radiation
+
+\backmatter
+\bibliographystyle{siam}
+\bibliography{references3}
+\small
+\printindex
+\end{document}
