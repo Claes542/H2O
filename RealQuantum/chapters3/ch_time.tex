@@ -1,0 +1,126 @@
+\chapter{Time in RealQM: the Timeless Atom}\label{ch:time}
+\index{time-dependence}\index{timeless atom}\index{Schr\"odinger equation!time-dependent}\index{TDDFT}\index{radiation!imposed time}\index{global phase}
+
+\begin{quote}
+\itshape The being of an atom is timeless; time enters only with motion, and radiation's time is on loan from the
+field.\\
+\normalfont\hfill --- working note, 2026.
+\end{quote}
+\bigskip
+
+The time-dependent Schr\"odinger equation $i\partial_t\psi = H\psi$ is the working creed of quantum physics: the
+state \emph{always} evolves, its phase turning at atomic frequency whether or not anything is watching. Having
+built, in Chapter~\ref{ch:sm-coupling}, a genuine coupling of the RealQM charge densities to time-dependent
+electromagnetic fields, and having seen in Chapters~\ref{ch:magnetism-spin}--\ref{ch:blackbody} the two kinds of
+current a real charge can carry (Chapters~\ref{ch:magnetism-spin}, \ref{ch:excited}--\ref{ch:blackbody}), we are
+in a position to ask what time-dependence actually \emph{is} for an atom in RealQM. The answer is not the creed. A non-radiating atom is \emph{timeless}; time enters only with motion;
+and the one motion that brings genuine time-dependence --- radiation --- has that time imposed from outside.
+
+\section{The quiet atom is timeless}\label{sec:quiet-atom}
+
+A stationary state carries the phase $\psi = u\,e^{-iEt}$, with $E$ atomic-scale, so the phase turns on the
+atto/femtosecond scale. It is tempting to read this as the atom's intrinsic clock. But nothing observable turns
+with it. The density is
+\[
+\rho = |u\,e^{-iEt}|^2 = u^2 ,
+\]
+\emph{constant in time}; $e^{-iEt}$ is a global phase, absent from every observable of a single state; and
+absolute energy is not measurable at all, only differences (an ionisation, a transition). In an ontology in which
+the real thing is the charge density --- what is there --- a clock that turns in no observable is not a real
+clock. So a non-radiating atom is a \emph{static charge configuration}: it does not tick, oscillate, or evolve.
+Its energy is a property --- how tightly the charge is bound --- not the rate of anything one could watch. The
+Planck relation $E = \hbar\omega$ makes $E$ look like a frequency, but that frequency is physical only as a
+\emph{difference} between two states, and only when they meet.
+
+\section{Two motions: steady and imposed}\label{sec:two-motions}
+
+Time enters only when the charge moves, and the complex phase that carries the motion enters in two entirely
+different ways --- the two currents of the preceding chapters.
+
+\emph{Magnetism is a steady current} (Chapter~\ref{ch:magnetism-spin}). A spatial phase winding $\psi = R\,
+e^{im\phi}$ carries a standing azimuthal current $\mathbf j = \rho\nabla(m\phi)$ and a magnetic moment
+$\mu_z = -m\mu_B$, with a density \emph{constant in time}. It is intrinsic to the state --- a free atom in an
+$m\neq0$ state carries it on its own --- and time-\emph{independent}: motion without time-dependence.
+
+\emph{Radiation is an oscillating current} (Chapters~\ref{ch:excited}--\ref{ch:blackbody}). A transition
+between two states makes the density oscillate,
+\[
+\rho(\mathbf x, t) = \rho_0 + \delta\rho\,\cos\big((E_n - E_m)t\big),
+\]
+a real charge sloshing at the difference frequency --- an antenna that radiates. This is genuinely
+time-dependent, but it does not start by itself: an isolated eigenstate, uncoupled to the field, is stationary
+indefinitely. What sets the transition going is \emph{coupling to the electromagnetic field} --- an incident
+field (absorption, stimulated emission) or the vacuum field (spontaneous emission). The time-dependence of
+radiation is therefore \emph{imposed from outside}, and the frequency that appears is the difference
+$E_n - E_m$, never the absolute clock. The contrast is the point: magnetism uses a \emph{spatial} winding and is
+an intrinsic, steady flow; radiation uses the \emph{temporal} phase and is an imposed, oscillating one. Only
+radiation brings time, and it brings it from outside.
+
+\section{The femtosecond evolution is never tracked --- except when driven}\label{sec:never-tracked}
+
+A strong practical corollary follows. Because everything the isolated atom \emph{is} --- energies, ground and
+excited levels, chemistry, and its spectrum computed as level \emph{differences} --- is static, and its
+magnetism is steady, the atom's femtosecond evolution never needs to be integrated on its own account. One solves
+a static (or steady) problem; there is no $i\partial_t\psi = H\psi$ to run forward. This is why the real-valued,
+time-independent RealQM of Parts~I--IV carries essentially the whole of atomic, molecular, and nuclear physics.
+
+Real-time integration is required in exactly one place: when an outside agent \emph{drives} the electrons at
+their own timescale --- attosecond charge migration after a sudden ionisation, strong-field and high-harmonic
+dynamics within an optical cycle, pump--probe and coherent control of a prepared superposition. There the charge
+genuinely moves in real time and must be followed. But the driving is external: an undriven atom never enters
+these regimes. This is precisely the fast, moving-free-boundary regime, and it is the only setting in which the
+complex time-dependent RealQM is actually needed. The time it tracks is lent to the atom by the field, not owned
+by the atom.
+
+\section{The standard view, and TDDFT as rationalised uncomputability}\label{sec:tddft}
+
+The standard reading takes $i\partial_t\psi = H\psi$ as the \emph{intrinsic} law of the atom: the state evolves
+always, so that the sub-femtosecond evolution of the electrons is a real process a faithful computation must
+follow. Nowhere is this clearer than in real-time time-dependent density-functional theory (TDDFT), where even a
+linear absorption \emph{spectrum} is obtained by perturbing the system, \emph{integrating the wave function
+forward} through many femtoseconds at attosecond time-steps, and Fourier-transforming the resulting dipole. The
+time-evolution is put up as the necessary route to the answer, and its great cost is accepted as the price of
+doing quantum dynamics.
+
+Yet the spectrum so obtained is nothing but the set of level differences $E_n - E_m$: static data, fixed by the
+stationary states alone. (That the same spectrum is available from linear \emph{response}, with no propagation at
+all, only underscores the point.) The forward integration is a \emph{device} for extracting those differences,
+not a process the atom is undergoing --- an unperturbed atom does not slosh its charge at those frequencies, as
+argued above. To elevate the propagation to a necessity is to treat the non-intrinsic as intrinsic; and because
+the underlying object, the wave function on $3N$-dimensional configuration space, is itself intractable, it is to
+\emph{rationalise that uncomputability} --- to present a costly detour to static differences as though the
+femtosecond evolution were the physics rather than a way of reaching them. RealQM does not incur it: energies and
+their differences come from the static, real-valued theory, and real-time propagation enters only where it is
+physically genuine --- the externally driven regime above.
+
+\section{The mantra demoted, not killed}\label{sec:mantra}
+
+To say that an isolated atom does not run $i\partial_t\psi = H\psi$ forward appears to remove the dynamics from
+quantum dynamics, and the natural alarm is: what would physicists then have left to speak of? The alarm is
+misplaced. The equation is not declared \emph{false}; it is declared \emph{idle} for the isolated atom. Its only
+solution there is $\psi = u\,e^{-iEt}$, a static density wearing an unobservable global phase, so it ``runs
+forward'' into a configuration indistinguishable from where it began. Where the same equation \emph{does} do work
+is the driven case --- radiation, strong fields --- and there it is retained. The move is the familiar one by
+which relativity kept the equations of electromagnetism and retired the metaphysics of absolute simultaneity read
+into them; here the metaphysics retired is the belief that $e^{-iEt}$ is a real ongoing process.
+
+What remains to speak of is precisely what physics already computes. For an isolated atom nobody integrates
+$i\partial_t\psi = H\psi$ forward; they \emph{diagonalise} $H\psi = E\psi$ and read off energies, densities,
+geometry, and spectra as level differences. The mantra is professed more than it is practised. And turning
+Bell's phrase around, it is \emph{standard} quantum mechanics that has been speaking of the unspeakable --- the
+never-observed turning phase, the wave function on $3N$-dimensional configuration space, the collapse no dynamics
+contains --- while RealQM keeps only the speakable, charge in ordinary space. The result is a return to the
+Schr\"odinger of 1926, for whom the atom was a standing wave and the spectrum its eigenfrequencies: \emph{being}
+for the undriven atom, \emph{becoming} only where something drives it.
+
+\section{Time is relational, not intrinsic}\label{sec:time-relational}
+
+RealQM declines to reify what is not observed. A quiet atom simply \emph{is} a static charge configuration; a
+magnetic atom \emph{is} a steady circulation; only a radiating atom changes in time, and only because the field
+has set it going. Time, on this reading, is not a background the atom moves through but a feature of \emph{motion},
+and radiation's time is on loan from the electromagnetic field. The femtosecond ``clock'' of the Schr\"odinger
+phase is a bookkeeping device, not a physical tick: real only as a difference, and only during a field-driven
+transition. Between such events the atom rests outside time --- which is why, for almost everything one wants to
+know about it, there is nothing to integrate. The complex, time-dependent form is the physics of \emph{resonance
+and driving}, not the intrinsic life of the atom; and the intrinsic life of the atom, being static, is where
+nearly all of its physics is found.
