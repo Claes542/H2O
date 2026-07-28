@@ -1,0 +1,154 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\usepackage{authblk}
+\usepackage[margin=1in]{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xurl}
+\usepackage{setspace}
+
+\title{RealQM, Standard Quantum Mechanics, and the Role of Relativity}
+\author[1]{Claes Johnson}
+\affil[1]{KTH Royal Institute of Technology, SE-100 44 Stockholm, Sweden \\
+\texttt{claesjohnson@gmail.com}}
+\date{\today \\[0.5em]
+\small\textit{Written in respectful cooperation between Claes Johnson and Claude (Anthropic), with Claude
+contributing a balanced, neutral view.}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Standard quantum mechanics presents relativity as foundational to the physics of the atom: the electron requires
+the Dirac equation, its spin and gyromagnetic factor $g=2$ are relativistic, fine structure is a relativistic
+correction, light and matter join only through the relativistic field theory of QED, and inner electrons of heavy
+atoms are said to \emph{move} at a large fraction of the speed of light. RealQM --- quantum mechanics as $N$ real
+charge densities on non-overlapping domains in ordinary three-dimensional space, minimising a Coulomb energy with
+no self-interaction --- is frankly non-relativistic, yet reproduces atomic energies across the periodic table,
+covalent and hydrogen bonds, condensed phases, nuclear binding, and orbital magnetism. We ask what relativity was
+actually doing, and answer that its role has been systematically overstated. The single phenomenon most cited as
+forcing relativity onto the electron, $g=2$, is by L\'evy-Leblond's theorem a \emph{non-relativistic} geometric
+fact --- the SU(2) double cover of the rotation group --- not a consequence of Lorentz invariance. The point
+electron whose kinematics would demand relativity is replaced by a charge configuration obeying continuum
+mechanics. And the heavy-atom ``relativistic speed'' story rests on a deeper confusion that RealQM exposes: in a
+stationary state nothing moves ($\langle\mathbf p\rangle=0$, the density static), so standard QM's kinetic energy
+$p^2/2m$ names a motion its own states forbid. RealQM reads the identical integral $\tfrac12\int|\nabla\psi|^2$
+as what it physically is --- a localisation cost of static charge --- and the electron's ``velocity'' evaporates;
+there is nothing to be relativistic. We are careful about the boundary: the Lorentz invariance of light, the
+magnitude of fine structure, high-energy pair creation, and the QED anomaly are genuinely relativistic and are
+coupled in classically, reconstructed, or left out of scope; and whether RealQM's static-charge functional needs
+any high-$Z$ refinement is an open computational question, not a demonstrated need for relativity. Relativity, in
+short, is \emph{sufficient} for much of what it is credited with and \emph{necessary} for far less.
+\end{abstract}
+
+\setstretch{1.06}
+
+\section{Where standard quantum mechanics invokes relativity}
+
+It is worth being specific about where the standard account reaches for relativity: the electron equation
+(Dirac, 1928, taken as fundamental, with Schr\"odinger its low-velocity limit); spin and its factor $g=2$ (which
+fall out of the Dirac equation and are called relativistic in origin); fine structure (the spin--orbit coupling
+$\xi(r)\,\mathbf L\!\cdot\!\mathbf S$, a $v^2/c^2$ effect); antimatter and pair creation (with no non-relativistic
+counterpart); and light (Lorentz invariant, coupled to matter through the relativistic field theory QED). The
+first two of these, we will argue, are not what they seem; the last three mark the genuine boundary.
+
+\section{RealQM builds the structure of matter without it}
+
+The bulk of the physics of matter is the electrostatics of real charge and needs no relativity. Atomic total
+energies across the periodic table, the covalent bond and its helium limit, hydride atomization energies, dimer
+geometries, condensed phases, and even nuclear binding read as protons and electrons bound by Coulomb alone, all
+follow from a non-relativistic variational principle on ordinary three-dimensional space. This is not an
+approximation awaiting relativistic correction; for the structure, energetics, and chemistry of atoms it is the
+physics itself, and relativity does no work.
+
+\section{$g=2$ is geometric, not relativistic}
+
+The single most-cited reason to believe the electron \emph{requires} relativity is $g=2$: since it drops out of
+the Dirac equation, it is taken to be relativistic. It is not. L\'evy-Leblond (1967) derives $g=2$ from a
+first-order, \emph{non-relativistic}, Galilean spinor equation: relativity is \emph{sufficient} to produce $g=2$
+but not \emph{necessary}, because the factor of two does not come from Lorentz invariance in the first place. It
+comes from the SU(2) double cover of the rotation group --- a spinor returns to itself only after $720^\circ$ ---
+a geometric, scale-free fact about how the orientations of a real extended object compose, equally true in a
+Galilean world. Writing the kinetic term with $\boldsymbol\sigma\!\cdot\!\mathbf p$ rather than $p^2$ produces
+the $g=2$ Zeeman coupling automatically, with no relativity used. The phenomenon most responsible for the belief
+that the electron is inescapably relativistic is, on inspection, non-relativistic geometry.
+
+\section{Charges as configurations, not relativistic objects}
+
+Underlying the standard picture is the electron as a point object with intrinsic rest mass, a thing whose very
+kinematics is relativistic. RealQM reads elementary charges instead as \emph{configurations} of charge density in
+space, held by the same Coulomb energetics as everything else, their apparent mass and rigidity emergent
+properties of the configuration rather than primitive relativistic attributes. There is then no point electron
+whose motion demands Lorentz kinematics; there is an extended distribution obeying continuum mechanics, and the
+``particle'' is a stable pattern in it. The need for relativity as the kinematics of point particles dissolves
+with the point particle.
+
+\section{Heavy atoms, and a kinetic energy without motion}
+
+The most-cited evidence that atoms are relativistic comes from the heavy elements, and within standard quantum
+chemistry it is real: non-relativistic calculations predict silvery gold and solid mercury, relativistic ones
+predict the observed yellow gold and liquid mercury, the gap growing as $(Z\alpha)^2$. That is a fact about those
+calculations. How it should be read is another matter, and less settled than the standard story assumes.
+
+The standard telling ascribes the effect to inner electrons \emph{moving} at a large fraction of $c$. This is
+incoherent for a stationary bound state, where nothing moves: $\langle\mathbf p\rangle=0$ and the density is
+static. Standard QM's kinetic energy
+\[
+\Big\langle \tfrac{p^2}{2m}\Big\rangle = \tfrac12\int|\nabla\psi|^2\,d^3x
+\]
+is called a \emph{kinetic} energy while nothing is kinetic --- a formalism without a physical referent for the
+motion it names. The heavy-atom ``relativistic velocity'' reifies the formal quantity $\langle p^2\rangle$, which
+is a \emph{spread}, into a \emph{speed} the theory's own dynamics forbid.
+
+RealQM gives the identical integral its honest meaning. In RealQM $\tfrac12\int|\nabla\psi|^2$ is not the energy
+of a moving particle but a \emph{localisation cost} of a static charge density --- a strain-like elastic energy
+penalising rapid spatial variation, the same energy that stabilises matter against collapse. With that reading
+the electron never moves, at any $Z$, and the ``relativistic speed'' of heavy-atom electrons simply evaporates:
+there is no velocity to be relativistic.
+
+Two consequences follow, and both matter. First, whether RealQM's localisation functional needs a higher-order
+term at extreme compression (the heavy-atom regime) is an \emph{open and untested} question --- not a settled
+deficiency, and certainly not a call for relativistic motion. The heavy-atom differential properties (the gold
+$5d$--$6s$ gap, the mercury cohesion) have not been computed in full spatial detail in RealQM. Second, the
+few-percent deviations in RealQM's heavy-atom \emph{total} energies are the accumulation of a simplified,
+spherically-symmetric computation of a large multi-shell number, not a relativistic shortfall. It is a bad habit
+of modern physics to charge every residual imprecision to ``relativistic effects''; RealQM declines it. If a
+full RealQM computation should turn out to need a high-$Z$ correction, it will be a statement about the
+\emph{energy} of a still charge, never about a motion the theory's own stationary states forbid.
+
+\section{The honest boundary}
+
+What genuinely requires relativity, and is therefore coupled in classically, reconstructed, or left out of
+scope? Light is Lorentz invariant, but a real charge density couples directly to a classical Maxwell field as a
+source, with no configuration-space amplitude to promote to a quantum field --- the elaborate machinery of QED,
+needed in the standard theory precisely because its matter lives on $3N$-space, is not required to join real
+charge to real light. High-energy pair creation and the parton regime are genuinely relativistic and outside a
+Coulomb continuum theory of bound charge. The measured $g=2.00232\ldots$ is a QED radiative effect; RealQM
+reaches the geometric $g=2$, not its correction. Spacetime itself RealQM does not presuppose: the quiet atom is
+timeless, and relativity is reconstructed constructively from observation rather than assumed a fixed backdrop.
+
+\section{Conclusion}
+
+The role of relativity in the physics of matter has been systematically overstated. For the structure,
+energetics, chemistry, and orbital magnetism of atoms, molecules, and nuclei, relativity does no work, and RealQM
+computes these without it. $g=2$ is geometry, not relativity; the point electron is replaced by a charge
+configuration; and the heavy-atom ``relativistic speed'' is exposed as an artefact of reading $p^2/2m$ as a
+motion that stationary states do not contain. What is genuinely relativistic --- the invariance of light, the
+magnitude of fine structure, high-energy processes, the QED anomaly --- is coupled in classically, left honestly
+out of scope, or reconstructed. Relativity is \emph{sufficient} for much of what it is credited with and
+\emph{necessary} for far less; and the atom's electrons, in RealQM, are always still.
+
+\begin{thebibliography}{9}
+\bibitem{RealQM} C.~Johnson, \emph{Quantum Mechanics as Multiphase 3D Continuum Mechanics}, manuscript, 2026;
+\url{https://claes542.github.io/RealMolecule/gallery.html}.
+\bibitem{Spinor} C.~Johnson, \emph{The Spinor Residue: $g=2$ and Stern--Gerlach without Relativity}, manuscript,
+2026.
+\bibitem{Charges} C.~Johnson, \emph{Elementary Charges as Configurations, not Objects --- Why RealQM Needs No
+Relativity}, manuscript, 2026.
+\bibitem{Time} C.~Johnson, \emph{Real Time Dependence in RealQM}, manuscript, 2026.
+\bibitem{ManyMinds} C.~Johnson, \emph{Many-Minds Relativity}, Body and Soul, Vol.~VII, 2026.
+\bibitem{LevyLeblond} J.-M.~L\'evy-Leblond, \emph{Nonrelativistic particles and wave equations}, Commun.\ Math.\
+Phys.\ \textbf{6}, 286 (1967).
+\end{thebibliography}
+
+\end{document}
