@@ -146,7 +146,8 @@ footer a { color: #4fc3f7; text-decoration: none; }
     <a href="#news-phase-decay" style="color:#ce93d8">Phase-triggered decay (works, then breaks)</a> ·
     <a href="#news-atoms" style="color:#80cbc4">Atoms → Int. J. Quantum Chemistry</a> ·
     <a href="#news-foundchem" style="color:#80cbc4">Real QM → de Broglie</a> ·
-    <a href="#news-orbmag" style="color:#b39ddb">Orbital magnetism — charge vortex (live sim)</a><br>
+    <a href="#news-orbmag" style="color:#b39ddb">Orbital magnetism — charge vortex (live sim)</a> ·
+    <a href="#news-sg" style="color:#b39ddb">Stern–Gerlach — two with no middle (live sim)</a><br>
 
     <b style="color:#bcaaa4">Books &amp; links</b> ·
     <a href="#doc-book-v" style="color:#ffd54f"><b>Real ThermoDynamics &mdash; Body and Soul Vol&nbsp;V</b></a> ·
@@ -728,6 +729,34 @@ footer a { color: #4fc3f7; text-decoration: none; }
         </div>
       </div>
     </div>
+    <div id="news-sg" class="card" style="border-color:#b39ddb;background:#0e0f16;grid-column:1/-1;padding:18px">
+      <h3 style="color:#b39ddb">Stern&ndash;Gerlach &mdash; two with no middle (interactive)</h3>
+      <div class="desc" style="margin-top:6px">
+        A beam of atoms through a field gradient, built up dot by dot on the screen. It separates cleanly what is
+        classical from what is quantum in the experiment.
+        <div style="margin-top:8px">
+          &bull; <b style="color:#9fa8da">The spread is classical.</b> The deflection is a real moment in a real
+          gradient, F=&mu;<sub>z</sub>G, so the spot separation scales with the forcing, &Delta;z&prop;G &mdash;
+          native to RealQM. Turn G up and the dots march apart.
+        </div>
+        <div style="margin-top:4px">
+          &bull; <b style="color:#9fa8da">The discreteness is quantum.</b> A <i>classical</i> moment gives a
+          continuous band (any &mu;<sub>z</sub>); the real experiment gives <b>two spots with no middle</b>
+          (&plusmn;&mu;<sub>B</sub>). Toggle between them &mdash; stronger forcing only makes the absent middle
+          more conspicuous, never fills it.
+        </div>
+        <div style="margin-top:4px">
+          &bull; <b style="color:#9fa8da">Sequential analyser (the frontier).</b> Block the &darr; beam and
+          re-measure the &uarr; beam on a rotated axis: it splits <i>again</i> &mdash; the non-commutativity a
+          fixed classical orientation cannot give. This is the standard quantum result; RealQM's deterministic
+          account of the measurement statistics is the open problem, shown here honestly, not claimed as solved.
+        </div>
+        <div style="margin-top:6px">
+          &bull; <a href="stern_gerlach_cpu.html" style="color:#b39ddb"><b>Open the simulation</b></a> &middot;
+          <a href="SpinorResidue.pdf" style="color:#b39ddb"><b>The Spinor Residue: g=2 &amp; Stern&ndash;Gerlach (PDF)</b></a>
+        </div>
+      </div>
+    </div>
     <div id="news-nucleus" class="card" style="border-color:#bcaaa4;background:#160f0e;grid-column:1/-1;padding:18px">
       <h3 style="color:#bcaaa4">Nucleus with Coulomb alone &middot; RealNucleus <span style="font-weight:normal;font-size:0.85em;color:#a99">(submitted to Physics Essays)</span></h3>
       <div class="desc" style="margin-top:6px">
@@ -1188,7 +1217,7 @@ footer a { color: #4fc3f7; text-decoration: none; }
         &bull; <a href="NuclearMoment.pdf" style="color:#90caf9">Magnetism as Circulating Charge: the Nuclear Electron's Vanishing Moment</a> <span style="color:#888">[<a href="#news-moment" style="color:#90caf9">card</a>]</span><br>
         &bull; <a href="RealMagnetism.pdf" style="color:#90caf9">Magnetism without the Complex Plane</a> <span style="color:#888">[<a href="#news-realmag" style="color:#90caf9">card</a>] [<a href="orbital_magnetism_cpu.html" style="color:#90caf9">sim</a>]</span><br>
         &bull; <a href="ChargesAsConfigurations.pdf" style="color:#90caf9">Elementary Charges as Configurations, not Objects &mdash; Why RealQM Needs No Relativity</a> <span style="color:#888">[<a href="#news-foundations" style="color:#90caf9">card</a>]</span><br>
-        &bull; <a href="SpinorResidue.pdf" style="color:#90caf9">The Spinor Residue: g=2 and Stern&ndash;Gerlach without Relativity</a> <span style="color:#888">[<a href="#news-foundations" style="color:#90caf9">card</a>]</span>
+        &bull; <a href="SpinorResidue.pdf" style="color:#90caf9">The Spinor Residue: g=2 and Stern&ndash;Gerlach without Relativity</a> <span style="color:#888">[<a href="#news-foundations" style="color:#90caf9">card</a>] [<a href="stern_gerlach_cpu.html" style="color:#90caf9">SG sim</a>]</span>
         <p style="margin:10px 0 2px"><b style="color:#a5d6a7">Varia &mdash; essays, cosmology, foundations notes, applications</b></p>
         &bull; <a href="realtoe_article.pdf" style="color:#90caf9">A Real Theory of Everything</a> <span style="color:#888">(general-audience essay) [<a href="#news-toe" style="color:#90caf9">card</a>]</span><br>
         &bull; <a href="real_cosmology_article.pdf" style="color:#90caf9">Proton&ndash;Electron Cosmology</a> <span style="color:#888">[<a href="#news-web" style="color:#90caf9">card</a>]</span><br>
