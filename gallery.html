@@ -147,7 +147,8 @@ footer a { color: #4fc3f7; text-decoration: none; }
     <a href="#news-atoms" style="color:#80cbc4">Atoms → Int. J. Quantum Chemistry</a> ·
     <a href="#news-foundchem" style="color:#80cbc4">Real QM → de Broglie</a> ·
     <a href="#news-orbmag" style="color:#b39ddb">Orbital magnetism — charge vortex (live sim)</a> ·
-    <a href="#news-sg" style="color:#b39ddb">Stern–Gerlach — two with no middle (live sim)</a><br>
+    <a href="#news-sg" style="color:#b39ddb">Stern–Gerlach — two with no middle (live sim)</a> ·
+    <a href="#news-dia" style="color:#4fc3f7">Diamagnetism — induced counter-current (live sim)</a><br>
 
     <b style="color:#bcaaa4">Books &amp; links</b> ·
     <a href="#doc-book-v" style="color:#ffd54f"><b>Real ThermoDynamics &mdash; Body and Soul Vol&nbsp;V</b></a> ·
@@ -757,6 +758,30 @@ footer a { color: #4fc3f7; text-decoration: none; }
         </div>
       </div>
     </div>
+    <div id="news-dia" class="card" style="border-color:#4fc3f7;background:#0e0f16;grid-column:1/-1;padding:18px">
+      <h3 style="color:#4fc3f7">Diamagnetism &mdash; the induced counter-current (interactive)</h3>
+      <div class="desc" style="margin-top:6px">
+        Every atom is faintly repelled by a magnet, and RealQM shows why as a real current. A closed shell has no
+        current at rest; switch on <b>B</b> and the whole cloud takes up a <b>Larmor circulation</b> that
+        <b>opposes B</b> (Lenz), a small moment against the field.
+        <div style="margin-top:8px">
+          &bull; <b style="color:#9fa8da">A real induced current.</b> The electrons circulate rigidly at
+          &omega;<sub>L</sub>=eB/2m<sub>e</sub>; the induced moment is &mu;<sub>dia</sub>&prop;&minus;&lang;r&sup2;&rang;B
+          &mdash; the Langevin law, growing steeply with atom size (He &lt; Ne &lt; Ar).
+        </div>
+        <div style="margin-top:4px">
+          &bull; <b style="color:#9fa8da">Computed, not asserted.</b> RealQM supplies &lang;r&sup2;&rang; from its
+          density, so &chi;=&minus;0.79&times;10&#8315;&#8310;&lang;r&sup2;&rang; is a number checked against
+          experiment: <b>He 0.99&times;</b> (essentially exact), Ne/Ar right in size and trend, the shortfall
+          diagnosed (valence too diffuse without exchange). Electrons are placed at the actual RealQM per-shell
+          &lang;r&rang;.
+        </div>
+        <div style="margin-top:6px">
+          &bull; <a href="diamagnetism_cpu.html" style="color:#4fc3f7"><b>Open the simulation</b></a> &middot;
+          <a href="RealMagnetism.pdf" style="color:#4fc3f7"><b>Magnetism without the complex plane (PDF)</b></a>
+        </div>
+      </div>
+    </div>
     <div id="news-nucleus" class="card" style="border-color:#bcaaa4;background:#160f0e;grid-column:1/-1;padding:18px">
       <h3 style="color:#bcaaa4">Nucleus with Coulomb alone &middot; RealNucleus <span style="font-weight:normal;font-size:0.85em;color:#a99">(submitted to Physics Essays)</span></h3>
       <div class="desc" style="margin-top:6px">
@@ -1215,7 +1240,7 @@ footer a { color: #4fc3f7; text-decoration: none; }
         &bull; <a href="RealQMAction.pdf" style="color:#90caf9">RealQM Atomic Spectra: Radiation as Real Charge Oscillation</a> <span style="color:#888">(radiation)</span><br>
         &bull; <a href="MagnetismRealQM.pdf" style="color:#90caf9">Magnetism in RealQM: Currents, the Nuclear Electron, and the Spin Residue</a> <span style="color:#888">(consolidated)</span><br>
         &bull; <a href="NuclearMoment.pdf" style="color:#90caf9">Magnetism as Circulating Charge: the Nuclear Electron's Vanishing Moment</a> <span style="color:#888">[<a href="#news-moment" style="color:#90caf9">card</a>]</span><br>
-        &bull; <a href="RealMagnetism.pdf" style="color:#90caf9">Magnetism without the Complex Plane</a> <span style="color:#888">[<a href="#news-realmag" style="color:#90caf9">card</a>] [<a href="orbital_magnetism_cpu.html" style="color:#90caf9">sim</a>]</span><br>
+        &bull; <a href="RealMagnetism.pdf" style="color:#90caf9">Magnetism without the Complex Plane</a> <span style="color:#888">[<a href="#news-realmag" style="color:#90caf9">card</a>] [<a href="orbital_magnetism_cpu.html" style="color:#90caf9">orbital sim</a>] [<a href="diamagnetism_cpu.html" style="color:#90caf9">&chi; sim</a>]</span><br>
         &bull; <a href="ChargesAsConfigurations.pdf" style="color:#90caf9">Elementary Charges as Configurations, not Objects &mdash; Why RealQM Needs No Relativity</a> <span style="color:#888">[<a href="#news-foundations" style="color:#90caf9">card</a>]</span><br>
         &bull; <a href="SpinorResidue.pdf" style="color:#90caf9">The Spinor Residue: g=2 and Stern&ndash;Gerlach without Relativity</a> <span style="color:#888">[<a href="#news-foundations" style="color:#90caf9">card</a>] [<a href="stern_gerlach_cpu.html" style="color:#90caf9">SG sim</a>]</span>
         <p style="margin:10px 0 2px"><b style="color:#a5d6a7">Varia &mdash; essays, cosmology, foundations notes, applications</b></p>

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diamagnetism in RealQM — the induced counter-current (CPU)</title>
+<style>
+  :root { --bg:#0b0e12; --panel:#12161d; --ink:#dfe6ee; --dim:#8b97a6; --acc:#4fc3f7; --acc2:#b39ddb; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  header { padding:16px 20px 4px; }
+  h1 { font-size:19px; margin:0 0 2px; color:var(--acc); }
+  .sub { color:var(--dim); font-size:13px; max-width:900px; }
+  .wrap { display:flex; flex-wrap:wrap; gap:18px; padding:14px 20px 30px; align-items:flex-start; }
+  .card { background:var(--panel); border:1px solid #232b36; border-radius:10px; padding:14px; }
+  canvas { display:block; border-radius:6px; background:#05070a; }
+  .controls { min-width:300px; max-width:340px; }
+  label { display:block; margin:12px 0 3px; color:var(--dim); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+  input[type=range] { width:100%; accent-color:var(--acc); }
+  .row { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+  .row button { flex:1; min-width:52px; background:#1b2028; color:var(--ink); border:1px solid #2c333e;
+    border-radius:6px; padding:7px 4px; cursor:pointer; font-size:13px; }
+  .row button.on { background:var(--acc); color:#08121a; border-color:var(--acc); font-weight:600; }
+  .read { margin-top:12px; border-top:1px solid #232b36; padding-top:10px; }
+  .read div { display:flex; justify-content:space-between; padding:2px 0; }
+  .read b { color:var(--acc2); font-variant-numeric:tabular-nums; }
+  .k { color:var(--dim); }
+  .note { color:var(--dim); font-size:12px; margin-top:10px; }
+  code { color:#ffcc80; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Diamagnetism in RealQM — the induced counter-current</h1>
+  <div class="sub">
+    A closed-shell atom carries no current at rest. Switch on a field <b>B</b> (out of the screen) and the whole
+    charge cloud takes up a real <b>Larmor circulation</b> &mdash; an induced current that <b>opposes B</b>
+    (Lenz), giving a small moment against the field. Its strength grows with the atom's size:
+    <b>&mu;<sub>dia</sub> &prop; &minus;&lang;r&sup2;&rang;&thinsp;B</b>, the Langevin law. Because RealQM supplies
+    <code>&lang;r&sup2;&rang;=&int;r&sup2;&rho;</code> directly, this is a magnetic number it can compute and
+    check against experiment.
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="card">
+    <canvas id="atom" width="360" height="360"></canvas>
+    <div class="note">Top-down view along <b>B</b>. Dots = electrons, placed at the RealQM per-shell
+      &lang;r&rang;; when B&ne;0 they circulate rigidly (Larmor, &omega;&prop;B) in the sense that opposes B.</div>
+  </div>
+
+  <div class="card controls">
+    <label>Atom (closed shell)</label>
+    <div class="row" id="atomrow">
+      <button data-a="He">He</button>
+      <button data-a="Ne">Ne</button>
+      <button data-a="Ar">Ar</button>
+    </div>
+
+    <label>Field B (out of screen) &nbsp;·&nbsp; <span id="bval">0.50</span></label>
+    <input type="range" id="B" min="0" max="1" step="0.01" value="0.5">
+
+    <div class="read">
+      <div><span class="k">&sum;&lang;r&sup2;&rang; (RealQM, a&#8320;&sup2;)</span> <b id="r2">2.38</b></div>
+      <div><span class="k">Larmor &omega;<sub>L</sub> = eB/2m<sub>e</sub></span> <b id="wl">0.25</b></div>
+      <div><span class="k">induced &mu;<sub>dia</sub> &prop; &minus;&lang;r&sup2;&rang;B</span> <b id="mu">0</b></div>
+      <div><span class="k">&chi;<sub>calc</sub> = &minus;0.79&times;10&#8315;&#8310;&lang;r&sup2;&rang;</span> <b id="chic">-1.88</b></div>
+      <div><span class="k">&chi;<sub>exp</sub> (measured)</span> <b id="chie">-1.90</b></div>
+      <div><span class="k">ratio calc/exp</span> <b id="ratio">0.99</b></div>
+    </div>
+    <div class="note">&chi; in 10&#8315;&#8310; cm&sup3;/mol. Every atom is diamagnetic (&chi;&lt;0): the induced
+      current always opposes B. He is essentially exact; Ne, Ar come out too diamagnetic because the radial
+      mean field lets the valence spread (no exchange/non-overlap contraction).</div>
+  </div>
+
+  <div class="card">
+    <canvas id="bars" width="300" height="360"></canvas>
+    <div class="note">&chi;<sub>calc</sub> (filled) vs &chi;<sub>exp</sub> (outline) for the three atoms.
+      Diamagnetism grows steeply with size, &prop;&lang;r&sup2;&rang;.</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  // --- atom data: per-shell <r> (a0) from the RealQM radial SCF; sum<r2>, chi ---
+  const ATOMS = {
+    He: { sumr2:2.38,  chic:-1.88, chie:-1.90, shells:[[0.929,2]] },
+    Ne: { sumr2:11.14, chic:-8.82, chie:-7.20, shells:[[0.157,2],[0.940,2],[1.045,6]] },
+    Ar: { sumr2:31.66, chic:-25.1, chie:-19.6, shells:[[0.086,2],[0.429,2],[0.386,6],[1.467,2],[1.847,6]] },
+  };
+  const ORDER = ['He','Ne','Ar'];
+
+  let atom = 'He', B = 0.5;
+
+  // build electrons for current atom: {r, phi0}
+  let electrons = [];
+  function buildElectrons(){
+    electrons = [];
+    const s = ATOMS[atom].shells;
+    for(const [r,n] of s){
+      for(let k=0;k<n;k++){
+        electrons.push({ r, phi: (k/n)*2*Math.PI + 0.3*Math.random() });
+      }
+    }
+  }
+
+  // ---- atom canvas ----
+  const ac = document.getElementById('atom'), ax = ac.getContext('2d');
+  const AW = ac.width, AH = ac.height, cxp = AW/2, cyp = AH/2;
+  const A0 = 62;   // pixels per a0 (Ar 3p at 1.85 -> ~115 px, fits)
+
+  let phase = 0;   // accumulated Larmor angle
+  function drawAtom(){
+    ax.clearRect(0,0,AW,AH);
+    // faint density glow (radial)
+    const rmax = Math.max(...ATOMS[atom].shells.map(s=>s[0]));
+    const g = ax.createRadialGradient(cxp,cyp,2, cxp,cyp, (rmax+0.4)*A0);
+    g.addColorStop(0,'rgba(79,195,247,0.18)'); g.addColorStop(1,'rgba(79,195,247,0)');
+    ax.fillStyle=g; ax.beginPath(); ax.arc(cxp,cyp,(rmax+0.4)*A0,0,6.2832); ax.fill();
+    // shell rings (faint)
+    ax.strokeStyle='rgba(139,151,166,0.18)'; ax.lineWidth=1;
+    for(const [r] of ATOMS[atom].shells){ ax.beginPath(); ax.arc(cxp,cyp,r*A0,0,6.2832); ax.stroke(); }
+    // B symbol (out of screen)
+    ax.strokeStyle='rgba(179,157,219,0.8)'; ax.fillStyle='rgba(179,157,219,0.8)';
+    ax.beginPath(); ax.arc(cxp-AW/2+22, 22, 9, 0, 6.2832); ax.stroke();
+    ax.beginPath(); ax.arc(cxp-AW/2+22, 22, 2.2, 0, 6.2832); ax.fill();
+    ax.fillStyle='#9fa8da'; ax.font='11px sans-serif'; ax.fillText('B (out)', 34, 26);
+
+    // electrons (rigid Larmor rotation: phi -> phi - phase, clockwise opposes B-out)
+    for(const e of electrons){
+      const ph = e.phi - phase;
+      const x = cxp + e.r*A0*Math.cos(ph);
+      const y = cyp + e.r*A0*Math.sin(ph);
+      ax.fillStyle = 'rgba(223,230,238,0.95)';
+      ax.beginPath(); ax.arc(x,y,3,0,6.2832); ax.fill();
+      // velocity tick (shows circulation), length ∝ r*omega ∝ r*B
+      if(B>0.001){
+        const vmag = e.r*B*10;   // tangential (clockwise): direction (sin, -cos)
+        const tx = Math.sin(ph), ty = -Math.cos(ph);
+        ax.strokeStyle='rgba(79,195,247,0.8)'; ax.lineWidth=1.5;
+        ax.beginPath(); ax.moveTo(x,y); ax.lineTo(x+vmag*tx, y+vmag*ty); ax.stroke();
+      }
+    }
+    // induced-current arc arrow (Lenz) when B on
+    if(B>0.02){
+      const R=(rmax+0.25)*A0;
+      ax.strokeStyle='rgba(79,195,247,0.55)'; ax.lineWidth=2;
+      ax.beginPath(); ax.arc(cxp,cyp,R, -0.9, 0.9); ax.stroke();       // arc on the right
+      // arrowhead (clockwise -> pointing downward at bottom of arc)
+      const aa=0.9, hx=cxp+R*Math.cos(aa), hy=cyp+R*Math.sin(aa);
+      ax.beginPath(); ax.moveTo(hx,hy); ax.lineTo(hx-6,hy-2); ax.lineTo(hx-1,hy-8); ax.closePath();
+      ax.fillStyle='rgba(79,195,247,0.7)'; ax.fill();
+      ax.fillStyle='#4fc3f7'; ax.font='11px sans-serif';
+      ax.fillText('induced current', cxp-40, AH-14);
+      ax.fillText('opposes B (Lenz)', cxp-42, AH-2);
+    } else {
+      ax.fillStyle='#8b97a6'; ax.font='11px sans-serif';
+      ax.fillText('B = 0: no current', cxp-42, AH-8);
+    }
+  }
+
+  // ---- bar chart ----
+  const bc = document.getElementById('bars'), bx = bc.getContext('2d');
+  const BW = bc.width, BH = bc.height;
+  function drawBars(){
+    bx.clearRect(0,0,BW,BH);
+    const pad=30, top=24, base=BH-40;
+    const maxchi = 26; // |chi| max scale
+    const colw = (BW-2*pad)/3;
+    bx.fillStyle='#8b97a6'; bx.font='11px sans-serif';
+    bx.fillText('|χ| (10⁻⁶ cm³/mol)', 8, 14);
+    // zero line
+    bx.strokeStyle='#2c333e'; bx.beginPath(); bx.moveTo(pad,base); bx.lineTo(BW-pad,base); bx.stroke();
+    ORDER.forEach((nm,i)=>{
+      const a=ATOMS[nm];
+      const cx0 = pad + i*colw + colw*0.5;
+      const hC = (Math.abs(a.chic)/maxchi)*(base-top);
+      const hE = (Math.abs(a.chie)/maxchi)*(base-top);
+      const w=18;
+      // exp (outline)
+      bx.strokeStyle='#8b97a6'; bx.lineWidth=1.4;
+      bx.strokeRect(cx0+3, base-hE, w, hE);
+      // calc (filled), highlight selected
+      bx.fillStyle = nm===atom ? 'rgba(79,195,247,0.95)' : 'rgba(79,195,247,0.45)';
+      bx.fillRect(cx0-w-3, base-hC, w, hC);
+      // label
+      bx.fillStyle = nm===atom ? '#4fc3f7' : '#8b97a6';
+      bx.font=(nm===atom?'bold ':'')+'12px sans-serif';
+      bx.fillText(nm, cx0-6, base+16);
+    });
+    // legend
+    bx.fillStyle='rgba(79,195,247,0.9)'; bx.fillRect(pad, BH-14, 12,10);
+    bx.fillStyle='#8b97a6'; bx.font='10px sans-serif'; bx.fillText('calc', pad+16, BH-5);
+    bx.strokeStyle='#8b97a6'; bx.strokeRect(pad+56, BH-14, 12,10);
+    bx.fillText('exp', pad+72, BH-5);
+  }
+
+  function updateReadouts(){
+    const a=ATOMS[atom];
+    document.getElementById('bval').textContent=B.toFixed(2);
+    document.getElementById('r2').textContent=a.sumr2.toFixed(2);
+    document.getElementById('wl').textContent=(0.5*B).toFixed(2);
+    document.getElementById('mu').textContent=(-0.25*a.sumr2*B).toFixed(2);
+    document.getElementById('chic').textContent=a.chic.toFixed(2);
+    document.getElementById('chie').textContent=a.chie.toFixed(2);
+    document.getElementById('ratio').textContent=(a.chic/a.chie).toFixed(2);
+    document.querySelectorAll('#atomrow button').forEach(b=>b.classList.toggle('on', b.dataset.a===atom));
+  }
+
+  function frame(){
+    phase += 0.02*B;   // Larmor angular speed ∝ B
+    drawAtom();
+    requestAnimationFrame(frame);
+  }
+
+  document.getElementById('atomrow').addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    atom=b.dataset.a; buildElectrons(); updateReadouts(); drawBars();
+  });
+  document.getElementById('B').addEventListener('input',e=>{ B=parseFloat(e.target.value); updateReadouts(); });
+
+  buildElectrons(); updateReadouts(); drawBars(); frame();
+})();
+</script>
+</body>
+</html>
