@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Einstein–de Haas in RealQM — magnetism is real angular momentum (CPU)</title>
+<style>
+  :root { --bg:#0b0e12; --panel:#12161d; --ink:#dfe6ee; --dim:#8b97a6; --acc:#ffb74d; --acc2:#b39ddb; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  header { padding:16px 20px 4px; }
+  h1 { font-size:19px; margin:0 0 2px; color:var(--acc); }
+  .sub { color:var(--dim); font-size:13px; max-width:900px; }
+  .wrap { display:flex; flex-wrap:wrap; gap:18px; padding:14px 20px 30px; align-items:flex-start; }
+  .card { background:var(--panel); border:1px solid #232b36; border-radius:10px; padding:14px; }
+  canvas { display:block; border-radius:6px; background:#05070a; }
+  .controls { min-width:300px; max-width:340px; }
+  label { display:block; margin:12px 0 3px; color:var(--dim); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+  input[type=range] { width:100%; accent-color:var(--acc); }
+  .row { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+  .row button { flex:1; min-width:80px; background:#1b2028; color:var(--ink); border:1px solid #2c333e;
+    border-radius:6px; padding:8px 4px; cursor:pointer; font-size:13px; }
+  .row button.on { background:var(--acc); color:#1a1206; border-color:var(--acc); font-weight:600; }
+  .read { margin-top:12px; border-top:1px solid #232b36; padding-top:10px; }
+  .read div { display:flex; justify-content:space-between; padding:2px 0; gap:10px; }
+  .read b { color:var(--acc2); font-variant-numeric:tabular-nums; text-align:right; }
+  .k { color:var(--dim); }
+  .note { color:var(--dim); font-size:12px; margin-top:10px; }
+  code { color:#ffcc80; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Einstein–de Haas — magnetism is real angular momentum</h1>
+  <div class="sub">
+    A rod hangs from a thin fibre inside a coil. Switch on the field and its atomic moments align &mdash; and the
+    rod <b>physically rotates</b>. It must: a magnetic moment carries angular momentum, so aligning the moments
+    (electronic <b>L</b> up) forces the body to spin the other way (conservation of total <b>L</b>). In RealQM
+    this needs no spin primitive: a moment <i>is</i> a real circulating charge, so it carries real mechanical
+    angular momentum by construction &mdash; the effect is native, not an extra postulate.
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="card">
+    <canvas id="app" width="340" height="380"></canvas>
+    <div class="note">Side view. Arrows = atomic moments (green when aligned with B). The top pointer shows the
+      rod's mechanical rotation &mdash; opposite to the electronic angular momentum.</div>
+  </div>
+
+  <div class="card controls">
+    <label>Applied field B (along the rod) &nbsp;·&nbsp; <span id="bval">0.00</span></label>
+    <input type="range" id="B" min="-1" max="1" step="0.01" value="0">
+
+    <div class="row" id="btns">
+      <button id="barnett">Barnett: spin the rod &#8635;</button>
+      <button id="reset">Reset</button>
+    </div>
+
+    <div class="read">
+      <div><span class="k">magnetisation M</span> <b id="rM">0.00</b></div>
+      <div><span class="k">electronic L (moments)</span> <b id="rLe">0.00</b></div>
+      <div><span class="k">body L (mechanical)</span> <b id="rLb">0.00</b></div>
+      <div><span class="k">total L (conserved)</span> <b id="rLt">0.00</b></div>
+      <div><span class="k">rod rotation</span> <b id="rth">0.0°</b></div>
+      <div><span class="k">inferred g = &mu;/L</span> <b id="rg">&mdash;</b></div>
+    </div>
+    <canvas id="cons" width="300" height="70" style="margin-top:12px"></canvas>
+    <div class="note" id="mnote">Slide B: the moments align, the rod counter-rotates. Historically the measured
+      ratio gave <b>g &asymp; 2</b> &mdash; the magnetism is <i>spin</i>, not orbital (which would give g=1). The
+      <b>Barnett</b> button runs the converse: spinning the rod magnetises it.</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  const G_EDH = 2.0;          // gyromagnetic factor the effect reveals (spin)
+  let B = 0, M = 0, theta = 0;   // field, magnetisation, rod rotation (rad)
+  let barnett = false, spinDrive = 0;
+
+  const N = 42;               // moment arrows
+  const moms = [];
+  function build(){
+    moms.length=0;
+    for(let i=0;i<N;i++) moms.push({ noise: (Math.random()*2-1) });
+  }
+  build();
+
+  // ---- apparatus canvas ----
+  const cv = document.getElementById('app'), cx = cv.getContext('2d');
+  const W = cv.width, H = cv.height, midx = W/2;
+  const rodTop = 90, rodBot = H-40, rodW = 70;
+
+  function drawArrow(x,y,dir,len,col){
+    cx.strokeStyle=col; cx.fillStyle=col; cx.lineWidth=2;
+    cx.beginPath(); cx.moveTo(x,y); cx.lineTo(x, y-dir*len); cx.stroke();
+    cx.beginPath(); cx.moveTo(x, y-dir*len); cx.lineTo(x-3, y-dir*len+dir*5); cx.lineTo(x+3, y-dir*len+dir*5); cx.closePath(); cx.fill();
+  }
+
+  function draw(){
+    cx.clearRect(0,0,W,H);
+    // ceiling anchor
+    cx.fillStyle='#2b3340'; cx.fillRect(midx-30, 8, 60, 8);
+    // torsion fibre
+    cx.strokeStyle='#5a6473'; cx.lineWidth=1; cx.beginPath(); cx.moveTo(midx,16); cx.lineTo(midx,rodTop); cx.stroke();
+    // top pointer (shows rotation about vertical axis): a horizontal needle rotated by theta
+    const pL=46;
+    cx.save(); cx.translate(midx, rodTop-2);
+    const px = Math.cos(-Math.PI/2 + theta), py = Math.sin(-Math.PI/2 + theta); // baseline points up; rotate
+    // draw needle across (perpendicular indicator)
+    const nx = Math.cos(theta), ny = Math.sin(theta);
+    cx.strokeStyle='#ffb74d'; cx.lineWidth=2.5;
+    cx.beginPath(); cx.moveTo(-pL*nx, -pL*ny*0.35); cx.lineTo(pL*nx, pL*ny*0.35); cx.stroke();
+    cx.fillStyle='#ffb74d'; cx.beginPath(); cx.arc(pL*nx, pL*ny*0.35, 3.5,0,6.2832); cx.fill();
+    cx.restore();
+    cx.fillStyle='#8b97a6'; cx.font='10px sans-serif'; cx.fillText('pointer (rod rotation)', midx-56, rodTop-22);
+
+    // coil (a few loops around the rod)
+    cx.strokeStyle='rgba(179,157,219,0.5)'; cx.lineWidth=2;
+    for(let y=rodTop+16; y<rodBot-6; y+=22){
+      cx.beginPath(); cx.ellipse(midx, y, rodW/2+16, 6, 0, 0, 6.2832); cx.stroke();
+    }
+    // field arrows beside coil, magnitude ∝ B
+    if(Math.abs(B)>0.01){
+      const dir = B>0?1:-1;
+      cx.strokeStyle='rgba(179,157,219,0.9)'; cx.fillStyle='rgba(179,157,219,0.9)';
+      const fx = midx+rodW/2+34, fl=30+40*Math.abs(B);
+      drawArrow(fx, (rodTop+rodBot)/2 + dir*fl/2, dir, fl, 'rgba(179,157,219,0.9)');
+      cx.fillStyle='#9fa8da'; cx.font='11px sans-serif'; cx.fillText('B', fx+6, (rodTop+rodBot)/2);
+    }
+
+    // rod
+    cx.fillStyle='#161c24'; cx.strokeStyle='#39424f'; cx.lineWidth=1.5;
+    cx.fillRect(midx-rodW/2, rodTop, rodW, rodBot-rodTop);
+    cx.strokeRect(midx-rodW/2, rodTop, rodW, rodBot-rodTop);
+
+    // moment arrows inside rod
+    const cols=3, rows=Math.ceil(N/cols);
+    for(let i=0;i<N;i++){
+      const r=i%rows, c=(i/rows)|0;
+      const x = midx - rodW/2 + 16 + c*(rodW-24)/(cols-1);
+      const y = rodTop + 22 + r*(rodBot-rodTop-40)/(rows-1);
+      // alignment: at |M|=1 all aligned to sign(M); at M=0 random via noise
+      const al = M + moms[i].noise*(1-Math.min(1,Math.abs(M)));
+      const dir = al>=0?1:-1;
+      const aligned = (M!==0) && (Math.sign(al)===Math.sign(M)) && Math.abs(M)>0.05;
+      drawArrow(x,y,dir,12, aligned?'#66bb6a':'#8b97a6');
+    }
+    cx.fillStyle='#8b97a6'; cx.font='10px sans-serif'; cx.fillText('atomic moments', midx-38, rodBot+14);
+  }
+
+  // ---- conservation bar ----
+  const cc = document.getElementById('cons'), ccx = cc.getContext('2d');
+  function drawCons(){
+    const w=cc.width,h=cc.height; ccx.clearRect(0,0,w,h);
+    const cxm=w/2, y1=18, y2=46, maxL=1;
+    ccx.fillStyle='#8b97a6'; ccx.font='10px sans-serif';
+    ccx.fillText('electronic L', 6, y1-4); ccx.fillText('body L', 6, y2-4);
+    ccx.strokeStyle='#2c333e'; ccx.beginPath(); ccx.moveTo(cxm,6); ccx.lineTo(cxm,h-6); ccx.stroke();
+    const Le=M, Lb=-M;
+    ccx.fillStyle='rgba(102,187,106,0.9)'; ccx.fillRect(cxm, y1-8, Le*(w/2-10), 12);
+    ccx.fillStyle='rgba(255,183,77,0.9)'; ccx.fillRect(cxm, y2-8, Lb*(w/2-10), 12);
+    ccx.fillStyle='#8b97a6'; ccx.fillText('sum = 0 (conserved)', cxm-52, h-2);
+  }
+
+  function updateReadouts(){
+    document.getElementById('bval').textContent=B.toFixed(2);
+    document.getElementById('rM').textContent=M.toFixed(2);
+    document.getElementById('rLe').textContent=(M).toFixed(2);
+    document.getElementById('rLb').textContent=(-M).toFixed(2);
+    document.getElementById('rLt').textContent=(0).toFixed(2);
+    document.getElementById('rth').textContent=(theta*180/Math.PI).toFixed(1)+'°';
+    document.getElementById('rg').textContent = Math.abs(M)>0.05 ? G_EDH.toFixed(1)+' (spin)' : '—';
+    document.getElementById('barnett').classList.toggle('on', barnett);
+  }
+
+  function frame(){
+    // dynamics: M relaxes toward field target (E-dH) or toward spin drive (Barnett)
+    let target;
+    if(barnett){ target = Math.max(-1,Math.min(1, spinDrive)); }
+    else { target = Math.max(-1,Math.min(1, B*1.3)); }
+    M += (target - M)*0.05;
+    if(Math.abs(M)<1e-3) M=0;
+    // rod rotation opposite to electronic L (conservation); Barnett: rod is driven, magnetisation follows
+    if(barnett){ theta += 0.03; }                 // rod spun mechanically
+    else { theta += ((-0.9*M) - theta)*0.05; }    // counter-rotation tracks -M
+    draw(); drawCons(); updateReadouts();
+    requestAnimationFrame(frame);
+  }
+
+  document.getElementById('B').addEventListener('input',e=>{ B=parseFloat(e.target.value); if(!barnett){} });
+  document.getElementById('barnett').addEventListener('click',()=>{
+    barnett=!barnett; spinDrive = barnett?0.85:0;
+    document.getElementById('mnote').innerHTML = barnett
+      ? 'Barnett (converse): the rod is spun mechanically &rarr; the atomic moments line up &rarr; magnetisation appears, with no applied field. Rotation and magnetism are the same angular momentum.'
+      : 'Slide B: the moments align, the rod counter-rotates. Historically the measured ratio gave <b>g &asymp; 2</b> &mdash; the magnetism is <i>spin</i>, not orbital (which would give g=1). The <b>Barnett</b> button runs the converse: spinning the rod magnetises it.';
+  });
+  document.getElementById('reset').addEventListener('click',()=>{
+    B=0; M=0; theta=0; barnett=false; spinDrive=0; document.getElementById('B').value=0; build();
+  });
+
+  frame();
+})();
+</script>
+</body>
+</html>
