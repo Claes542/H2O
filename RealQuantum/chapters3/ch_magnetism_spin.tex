@@ -16,6 +16,53 @@ from taking the electron to be a real charge density in three-dimensional space,
 graded registers: orbital magnetism, which is native and needs no complex numbers; diamagnetism, which affords a
 quantitative test against experiment; and spin, which reduces to a single geometric residue.
 
+\section{Atomic magnetism in standard quantum mechanics}\label{sec:standard-magnetism}
+\index{Land\'e g-factor@Land\'e $g$-factor}\index{Hund's rules}\index{spin--orbit coupling}\index{exchange interaction}\index{Zeeman effect}
+
+To see what RealQM adds, and what it merely reproduces, it helps to have the standard account in view first. Standard
+quantum mechanics builds the magnetism of an atom as an \emph{algebra of operators} acting on the many-electron
+wave function $\Psi$ on $3N$-dimensional configuration space. It has three ingredients.
+
+\emph{Orbital moment.} The angular-momentum operator $\hat{\mathbf L}$ gives a moment
+$\boldsymbol{\hat\mu}_L = -\mu_B\hat{\mathbf L}/\hbar$ with gyromagnetic factor $g_L = 1$; its eigenvalues
+$L_z = m\hbar$ are quantised, $m\in\mathbb Z$, by the requirement that $\Psi$ be single-valued under rotation. The
+associated ``current'' is a probability current, physical for one particle and otherwise a construct on the
+$3N$-dimensional space.
+
+\emph{Spin moment.} A second angular momentum $\hat{\mathbf S}$ is \emph{postulated} as an intrinsic, two-valued
+property of the electron, with $\boldsymbol{\hat\mu}_S = -g_S\mu_B\hat{\mathbf S}/\hbar$ and $g_S \approx 2$. It is
+not derived from any motion in space; it was forced empirically (the Stern--Gerlach two spots, the alkali spectral
+doublets, the anomalous Zeeman effect) and \emph{justified after the fact} by the Dirac equation, from which
+$g_S = 2$ falls out.
+
+\emph{The Zeeman Hamiltonian.} Coupling to an external field $\mathbf B$ gives
+\begin{equation}
+\hat H_Z = \frac{\mu_B}{\hbar}\big(\hat{\mathbf L} + g_S\hat{\mathbf S}\big)\cdot\mathbf B
+         + \frac{e^2}{8 m_e}\sum_i(\mathbf B\times\mathbf r_i)^2,
+\label{eq:zeeman-ham}
+\end{equation}
+the last (quadratic) term being the diamagnetic contribution.
+
+From these, the magnetism of a real atom is assembled by well-tested rules. The orbital and spin angular momenta
+combine into a total $\hat{\mathbf J} = \hat{\mathbf L} + \hat{\mathbf S}$ (Russell--Saunders coupling for light
+atoms); \emph{Hund's rules} select the ground term (maximise $S$, then $L$, then fix $J$); and the observable
+moment is $g_J\mu_B\sqrt{J(J{+}1)}$ with the \emph{Land\'e} $g_J$-factor interpolating between the $g_L = 1$ and
+$g_S = 2$ pieces. Open shells are then \emph{paramagnetic}, following the Curie law $\chi \propto J(J{+}1)/T$;
+closed shells are \emph{diamagnetic}, governed by the $\langle r^2\rangle$ term of \eqref{eq:zeeman-ham}. Atomic
+\emph{fine structure} comes from a spin--orbit coupling $\xi(r)\,\hat{\mathbf L}\!\cdot\!\hat{\mathbf S}$, a
+relativistic correction; and \emph{collective} magnetism --- ferromagnetic ordering --- from the
+\emph{exchange} interaction $-J_{ij}\,\mathbf S_i\!\cdot\!\mathbf S_j$ (the Heisenberg model), itself a
+consequence of the antisymmetry of $\Psi$ together with the Coulomb repulsion.
+
+This apparatus is quantitatively successful, and none of it is in dispute here: Land\'e factors, Hund's rules,
+Curie and Langevin susceptibilities, fine structure and the exchange model are exactly the phenomenology RealQM
+must reproduce, and largely does. Two features of the account are worth marking, because they are where RealQM
+departs. First, \emph{spin is posited}, not explained: it is an intrinsic property with no picture of what is
+moving, and its $g = 2$ is imported from relativity. Second, the whole construction lives in \emph{operators on
+a configuration-space amplitude}, not in things in ordinary space. The remainder of this chapter re-derives the
+same phenomenology as the mechanics of \emph{real circulating charge} in three-dimensional space, and asks how
+far spin, too, can be reduced from a primitive to a geometric residue.
+
 \section{Orbital magnetism is real, and needs no complex plane}\label{sec:orbital-magnetism}
 
 It is often said that magnetism forces the theory to be complex: a circulating current needs a phase, and a phase
