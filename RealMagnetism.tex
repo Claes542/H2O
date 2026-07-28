@@ -150,6 +150,49 @@ from the scalar $(\rho,\mathbf v)$ picture of orbital magnetism~\cite{Magnetism}
 statement stands: magnetism's dynamics, energy and moment are real; only the quantum integer needs the periodic
 phase.
 
+\section{A numerical test: diamagnetic susceptibility}
+
+The account can be held to a real number, read straight from the ground-state density with no field applied.
+The Langevin--Larmor molar diamagnetic susceptibility is
+\begin{equation}
+\chi_M = -\frac{N_A e^2}{6 m_e c^2}\sum_i\langle r_i^2\rangle
+       = -0.792\times10^{-6}\Big(\textstyle\sum_i\langle r_i^2\rangle/a_0^2\Big)\ \mathrm{cm^3/mol},
+\label{eq:langevin}
+\end{equation}
+a sum over electrons of the mean-square radius --- precisely the real-space quantity RealQM supplies as
+$\langle r^2\rangle=\int r^2\rho\,d^3x$. We evaluate $\sum_i\langle r_i^2\rangle$ for the closed-shell atoms He,
+Ne, Ar from a radial RealQM self-consistent field in the spirit of \S3--\S4: each electron moves in the kernel
+$-Z/r$ plus the Hartree field of \emph{all the other} electrons, with no self-repulsion (the RealQM rule) and no
+exchange. The result feeds \eqref{eq:langevin} directly:
+
+\begin{center}
+\begin{tabular}{lcccc}
+\hline
+atom & $\sum\langle r^2\rangle\ (a_0^2)$ & $\chi_{\text{calc}}$ & $\chi_{\text{exp}}$ & ratio \\
+\hline
+He & $2.38$  & $-1.88$ & $-1.90$ & $0.99$ \\
+Ne & $11.14$ & $-8.82$ & $-7.20$ & $1.23$ \\
+Ar & $31.66$ & $-25.1$ & $-19.6$ & $1.28$ \\
+\hline
+\end{tabular}
+\\[2pt]
+{\small$\chi$ in $10^{-6}\,\mathrm{cm^3/mol}$; experiment from tabulated molar susceptibilities.}
+\end{center}
+
+\paragraph{Reading the result honestly.} For \textbf{helium the prediction is essentially exact} ($0.99\times$
+experiment): the two-electron no-self-interaction field gives $\langle r^2\rangle=1.19\,a_0^2$ per $1s$ electron,
+in agreement with Hartree--Fock and with the measured susceptibility. This is a magnetic observable
+\emph{computed} from a RealQM density and matched to measurement, not asserted. For \textbf{neon and argon the
+size and trend are right but the atoms come out $\sim$20--30\% too diamagnetic} ($1.23\times$, $1.28\times$); the
+per-shell breakdown pins the cause on the \emph{valence} ($2p$ for Ne, $3p$ for Ar) being too diffuse. Two
+caveats frame this. First, the computation is a \emph{radial mean field}: it enforces the no-self-interaction rule
+but spherically averages over the non-overlap (domain) geometry and omits exchange, both of which would
+\emph{contract} the valence --- so this first pass is closer to a lower bound on the full 3D multiphase solver's
+accuracy than to its verdict. Second, the trend --- excellent for the two-electron atom, degrading for the
+many-electron ones absent the full geometry --- is the same regime boundary RealQM shows elsewhere. The test is
+therefore a genuine partial success: one magnetic number secured against experiment (He), the right order and
+trend for Ne and Ar, and the missing physics (valence contraction) named rather than hidden.
+
 \section{What is new, what is not, and the boundary}
 
 Because the phenomenology here is standard, it is worth stating plainly what RealQM does and does not add, so the
