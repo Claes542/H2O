@@ -1,0 +1,127 @@
+\chapter{Dimers, Hydrogen Bonds, and Reactive Chemistry}\label{ch:dimers}
+\index{S66 benchmark}\index{dimer geometries}\index{hydrogen bond}\index{proton transfer}\index{reactive chemistry}\index{H3 saddle}\index{water dimer}\index{methanol dimer}\index{formamide dimer}\index{HCl + NH3 reaction}\index{HF + H2O reaction}
+
+Chapter~\ref{ch:hydrides} established that Level 3 reproduces covalent bonding energies across periodic-table groups to 3--9\%. This chapter pushes the same architecture into two more demanding regimes: \textbf{non-covalent interactions} (hydrogen bonds, $\sim$5 kcal/mol --- below the model's absolute-energy noise floor) and \textbf{reactive chemistry} (proton transfer, bond exchange --- where standard quantum chemistry needs transition-state machinery that RealQM does not have). In both cases the question is whether the same Coulomb-gradient force law of Chapter~\ref{ch:equation} can do the work.
+
+For non-covalent dimers, the answer is geometric: absolute interaction energies are below the noise floor, but equilibrium distances and angles match the CCSD(T)/CBS S66 benchmark to within 1--5\%. For reactive chemistry, the answer is dynamic: the local Coulomb forces that hold a bond together also break it and re-form it, with no separate machinery required.
+
+\section{The S66 benchmark and what RealQM can validate against it}\label{sec:s66-setup}
+
+Hobza's S66 benchmark~\cite{S66ref} is a set of 66 non-covalent dimer geometries with high-precision CCSD(T)/CBS interaction energies, designed to span hydrogen-bonded, dispersion-bound, and mixed-character interactions. It is the standard test for benchmarking the accuracy of any method on non-covalent interactions.
+
+\paragraph{What RealQM can and cannot validate.}
+S66 interaction energies are in the $-1$ to $-7$~kcal/mol range, well below the model's absolute-energy noise floor of $\sim$0.1~Ha (62~kcal/mol). \textbf{RealQM cannot directly validate S66 binding energies}: the variation in total energy as a dimer approaches the equilibrium distance is comparable to or smaller than the discretisation-level noise in the absolute energy, and the resulting binding-energy estimates would not be reliable.
+
+What \emph{can} be validated, however, is geometric: equilibrium distances and angles. These are determined by the location of the force-balance point along the approach coordinate, which is set by the gradient of the Coulomb potential rather than by the absolute energy. Even if the binding energy itself is below the absolute-energy noise floor, the gradient of the potential can be well-defined and the equilibrium geometry well-determined.
+
+\section{Five hydrogen-bonded dimers}\label{sec:five-dimers}
+
+We tested five H-bonded dimers from S66 against the Level-3 architecture:
+\begin{itemize}
+\item Water dimer.
+\item Methanol dimer.
+\item Methylamine dimer.
+\item Methylamine--water.
+\item Formamide dimer.
+\end{itemize}
+Each is a small system with a clear donor and acceptor, with the equilibrium geometry dominated by a single hydrogen bond between the donor O--H or N--H and the acceptor lone pair.
+
+For each dimer:
+\begin{itemize}
+\item Equilibrium intermolecular distances agree with the CCSD(T)/CBS reference to within 1--5\%.
+\item The direction of the residual force on each fragment at the reference geometry points correctly toward the equilibrium, confirming that the basin of attraction is correctly identified.
+\item The lone-pair direction (the location of the negative charge density on the acceptor) is consistent with the H-bond geometry the reference predicts.
+\end{itemize}
+
+The 1--5\% geometric agreement is a non-trivial test of the Level-3 architecture. H-bond geometries are sensitive to the location of the electronic lone pair, which in the multiphase formulation is one of the explicit valence electron territories. The fact that the lone-pair territory ends up in the right place --- close enough to determine the bond geometry to within a few percent --- is evidence that the Level-3 reduction is doing the chemistry correctly even when the absolute interaction energy is below the noise floor.
+
+\paragraph{Force-direction diagnostic.}
+A second diagnostic is more local: at the reference (CCSD(T)/CBS) equilibrium geometry, what direction does the residual Coulomb force on each fragment point? If the force points toward the reference equilibrium, the gradient of the Level-3 potential agrees with the reference at first order. We verified this for each of the five dimers and confirmed that the force directions agree to within numerical noise.
+
+The combination of geometric agreement (1--5\% on distances) and force-direction agreement (correct basin) is what justifies treating the Level-3 model as predictive for H-bond geometries even when binding energies are below the noise floor.
+
+\section{Reactive chemistry from local forces}\label{sec:reactive}
+
+The local-potential force formulation of Section~\ref{sec:forces} makes RealQM a natural framework for chemical reactions. A reaction proceeds because the local Coulomb forces on each nucleus push it along a path that passes through bond-breaking and bond-making configurations. Nothing is computed by reference to an energy surface, a transition-state search, or a barrier height. The forces are the same Coulomb gradients used for equilibrium geometry; only the initial configuration differs.
+
+We illustrate this with three reactions: two acid--base proton transfers and one bond-exchange reaction.
+
+\subsection{HF + H$_2$O $\to$ F$^-$ + H$_3$O$^+$}
+
+The donor H of HF is placed at hydrogen-bonding contact from the O of H$_2$O. The Level-3 architecture is:
+\begin{itemize}
+\item Fluorine: $+3$ kernel with four valence electrons split into half-spaces, $r_c = 1.0$.
+\item Bare proton (the transferring H): no electrons.
+\item Oxygen lone pair: $+2$ kernel with $r_c = 0.8$.
+\end{itemize}
+As the simulation runs, the F$^-$ electron density repels the proton outward while the O lone pair attracts it inward. The proton transfers spontaneously, with no intervention.
+
+At convergence:
+\begin{itemize}
+\item H$_t$--O distance: $0.99$~\AA{} (covalent O--H in the newly formed H$_3$O$^+$).
+\item F--H$_t$ distance: $1.91$~\AA{} (released, characteristic ion-pair distance).
+\item F$^-$ to H$_3$O$^+$ contact: $2.4$~\AA.
+\end{itemize}
+No barrier search, no transition-state geometry, no pK$_a$ input. The forces find the product configuration directly.
+
+\subsection{HCl + NH$_3$ $\to$ Cl$^-$ + NH$_4^+$}
+
+The same setup with chlorine ($+1$ kernel, $r_c = 1.0$) and nitrogen ($+3$ kernel, $r_c = 0.5$). The ammonia lone pair pulls the proton; the chloride density pushes it away. At convergence:
+\begin{itemize}
+\item H$_t$--N distance: $0.97$~\AA{} (covalent N--H in NH$_4^+$).
+\item Cl--H$_t$ distance: $1.53$~\AA{} (released).
+\item Cl$^-$ to NH$_4^+$ contact: $2.1$~\AA.
+\end{itemize}
+The reaction completes in a single force-driven trajectory.
+
+\subsection{H + H$_2$ $\to$ H$_2$ + H (bond exchange)}
+
+A hydrogen atom approaches an H$_2$ molecule along the bond axis. RealQM follows the symmetric H$_3$ transition geometry directly via the local forces: the two H--H distances pass through equality at the saddle point and then bifurcate in the product channel, with the original bond broken and a new bond formed between the incoming H and the proximal hydrogen.
+
+The same Coulomb gradients that hold H$_2$ together also break it and re-form it. The reaction does not require a separate ``transition state'' object; the symmetric H$_3$ saddle is just a momentary configuration the trajectory passes through.
+
+\section{Forces, not energies: what this validates}\label{sec:forces-not-energies}
+
+The three reaction examples test the \textbf{forces-not-energies principle} of Section~\ref{sec:forces} on systems where standard quantum chemistry would require either a transition-state search (for the saddle) or QM/MM molecular dynamics (for the trajectory). In RealQM the Coulomb forces that determine equilibrium geometry also determine reactive trajectories; there is no separate machinery for reactions.
+
+The chemical specificity --- which proton transfers, in which direction, to what acceptor --- emerges from the kernel parameters ($Z$, $r_c$, split topology) of the participating atoms and is controlled by the local electron-density configuration around each nucleus. There is no reaction-specific input: no pK$_a$ table, no free-energy difference, no transition-state geometry. \textbf{Nature does not consult pK$_a$ tables or compute free-energy differences; it acts through local forces, and so does RealQM.}
+
+The scope of the claim is structural: reaction \emph{dynamics} --- the trajectory from reactants through transition state to products --- is generated from the local Coulomb forces alone, without external reaction machinery. Reaction \emph{rates} and \emph{equilibrium constants} to thermochemical accuracy are not on the table at the present level of reduction; that would require absolute-energy accuracy the Level-3 model does not yet have, for reasons identified in Chapter~\ref{ch:limits}. What the three example cases establish is the structural point: from atomic kernel parameters and the Coulomb force, the reactive trajectory is generated, with no reaction-specific machinery added. This is what eliminates the autonomous status that chemistry has come to occupy relative to physics in the StdQM regime.
+
+\section{What is and is not validated}\label{sec:dimer-summary}
+
+\paragraph{Established.}
+\begin{itemize}
+\item Equilibrium geometries of five H-bonded dimers match CCSD(T)/CBS reference to 1--5\%.
+\item Lone-pair locations and H-bond directions agree with the reference at the level needed to set the dimer geometry.
+\item Three reactive trajectories (HF+H$_2$O, HCl+NH$_3$, H+H$_2$) complete spontaneously under local Coulomb forces, with product geometries qualitatively correct.
+\item The forces-not-energies principle is shown to work as a substitute for transition-state machinery on these systems.
+\end{itemize}
+
+\paragraph{Not established.}
+\begin{itemize}
+\item Absolute interaction energies for non-covalent dimers (below the noise floor).
+\item Quantitative reaction rates or activation energies (require absolute-energy accuracy not yet in the model).
+\item Dispersion-bound dimers (no dispersion mechanism at Level 3; see Chapter~\ref{ch:limits}).
+\item Reactions involving inner-shell rearrangement (Level 3 freezes inner shells into the kernel).
+\end{itemize}
+
+\section{Enzyme catalysis: the PLP electron sink in GAD65}\label{sec:gad65}
+\index{GAD65}\index{PLP}\index{electron sink}\index{enzyme catalysis}
+
+A reactive-chemistry application worth singling out is enzymatic decarboxylation, where RealQM's real-space
+charge densities make an otherwise abstract mechanism directly visible. The enzyme GAD65 --- glutamate
+decarboxylase, and a principal autoantigen of type~1 diabetes --- removes CO$_2$ from glutamate to make the
+inhibitory neurotransmitter GABA, using the cofactor pyridoxal-5$'$-phosphate (PLP). The textbook mechanism turns
+on the PLP \emph{pyridinium ring} acting as an \emph{electron sink}: as the C--C bond to the departing carboxyl
+breaks, the electron pair left behind is stabilised by delocalisation onto the protonated ring nitrogen. In a
+RealQM scan along the reaction coordinate this sink is not an inference but a computed quantity: the charge drawn
+onto the ring is positive and \emph{grows} as the leaving group departs, confirming the electron-sink picture
+directly from the densities. The scan carries the usual caveats --- it runs in the browser on WebGPU (Chrome or
+equivalent), with a collision/relaxation fix for the departing CO$_2$ --- and it is a mechanistic demonstration,
+not a rate calculation. Its interest is twofold: it shows RealQM resolving a named catalytic mechanism in real
+space, and it does so for an enzyme of direct biomedical relevance.
+
+The picture that emerges is consistent with the regime mapping of Chapter~\ref{ch:limits}: RealQM reproduces \emph{geometric} structure of non-covalent interactions and the \emph{dynamic} structure of reactive chemistry, while quantitative interaction-energy accuracy remains beyond the present scope. The next chapter takes the framework into excited states, where the multiphase formulation again offers a natural treatment by re-occupying shells rather than by additional response machinery.
+
+% --- End of Chapter 9 ---

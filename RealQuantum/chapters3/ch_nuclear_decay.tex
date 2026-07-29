@@ -1,0 +1,71 @@
+\chapter{Fusion and Radioactive Decay}\label{ch:nuclear-decay}
+\index{fusion!solar}\index{fusion!muon-catalyzed}\index{alpha decay}\index{beta decay}\index{Geiger--Nuttall law}\index{neutrino}
+
+\begin{quote}
+\itshape A model earns trust by predicting where it works and saying plainly where it breaks.\\
+\normalfont\hfill --- working note, 2026.
+\end{quote}
+\bigskip
+
+If the nucleus is bound by Coulomb confinement (Chapter~\ref{ch:nuclear-binding}), then the processes that make
+and unmake nuclei --- fusion and radioactive decay --- should follow from the same energetics, with no separate
+strong or weak force. This chapter reports four such computations. Two succeed cleanly (solar fusion energetics,
+alpha-decay rates); one is a scaling result with clear caveats (muon-catalyzed fusion); and one \emph{partly
+fails}, in an instructive way that we state without softening (beta decay).
+
+\section{Solar fusion by Coulomb alone}\label{sec:solar-fusion}
+
+The energy of the Sun is, on the standard account, the fusion of hydrogen to helium through the $pp$ chain,
+$4p\to{}^4\mathrm{He}+2e^+ +2\nu_e$, converting two protons to neutrons and emitting positrons and neutrinos. In
+the RealQM reading the ingredients are a hot, ionised soup of protons \emph{and electrons}, and the same net
+result is reached by \emph{Coulomb rearrangement} without converting any proton into a neutron:
+\[
+p+e+p\;\to\;d, \qquad d+d\;\to\;{}^4\mathrm{He},
+\]
+and overall $4p+4e\to{}^4\mathrm{He}+2e$ --- four protons and four electrons in, a helium nucleus (two protons,
+two confined electrons) plus two electrons out as the atomic shell. The released energy is the same
+$\sim 26.7$~MeV, a state-function difference independent of path. The crux is the \emph{lepton bookkeeping}: no
+lepton is created or destroyed in this path, so the process \emph{as written} does not require the emission of
+positrons or neutrinos. We are careful here: this says the neutrino is not \emph{demanded} by the Coulomb path,
+not that neutrinos do not exist; it is a possible Coulomb process, offered beside the standard one, not a
+refutation of neutrino physics.
+
+\section{Muon-catalyzed fusion as a change of glue}\label{sec:muon-fusion}
+
+Muon-catalyzed fusion is, in this picture, a change of the binding \emph{glue}. Replace the electron in the
+molecular ion $\mathrm{D}_2^+$ by a muon, $207$ times heavier, and the whole bound structure scales down by that
+factor: the equilibrium separation $R_e\approx 2.0\,a_0$ of the electronic ion becomes $R_e/207\approx 512$~fm
+for the muonic one, compressing the two deuterons by a factor of order $144$ relative to their free separation
+and bringing them to distances where fusion proceeds. The RealQM computation reproduces this by rescaling the
+$\mathrm{D}_2^+$ binding curve with the muon mass, and the result is a clean statement about \emph{scaling}: the
+same Coulomb bound state, with a heavier glue, is a smaller bound state. The caveats are honest --- the curve is
+computed in the Born--Oppenheimer approximation on a finite grid, and the per-domain mass that distinguishes
+electron from muon is a route the solver supports but which is not a full dynamical treatment of the three-body
+$dd\mu$ system. It is a scaling insight, not a rate calculation.
+
+\section{Alpha decay: Coulomb tunnelling that works}\label{sec:alpha-decay}
+
+Alpha decay is the escape of a He-4 unit through the Coulomb barrier of the residual nucleus --- Gamow's 1928
+picture, and one that fits the Coulomb-confinement model without addition. The tunnelling probability through the
+barrier, combined with the assault frequency, gives a decay rate that spans an enormous range as the decay energy
+varies. Computed across the measured alpha emitters, the model reproduces the \emph{Geiger--Nuttall law} --- the
+linear relation between the logarithm of the half-life and the inverse square root of the decay energy --- across
+about \emph{twenty-four orders of magnitude} in half-life. This is the cleanest quantitative success of the
+nuclear program: a parameter-light Coulomb-barrier calculation tracking rates from microseconds to billions of
+years. The same tunnelling reach extends, more roughly, to cluster decay and to fission as the escaping unit
+grows.
+
+\section{Beta decay: a partial success, honestly}\label{sec:beta-decay}
+
+Beta decay is where the program is tested hardest, and where it \emph{partly fails} --- reported here plainly,
+because a model is only as trustworthy as its account of its own limits. Two things were attempted. First, a
+deterministic \emph{phase-coincidence} model of the decay \emph{statistics}: treating the trigger as the
+coincidence of internal phases, one recovers exponential decay and a sensible half-life distribution. That part
+\emph{survives}. Second, and more ambitious, an attempt to dispense with the neutrino by having the available
+energy carried entirely by the electron and a Coulomb field rearrangement. That part \emph{does not survive}: the
+computed field is roughly two orders of magnitude too weak to carry the energy and momentum the neutrino accounts
+for. The honest conclusion is therefore mixed and must be stated as such: \textbf{the deterministic
+phase-coincidence account of decay timing stands; the elimination of the neutrino does not.} The neutrino is
+neither removed nor explained away by this model; the three-body kinematics that motivated Pauli's neutrino in
+1930 reasserts itself. We record the failure with the success, because the discipline of the whole program is to
+let the computation, not the ambition, have the last word.
