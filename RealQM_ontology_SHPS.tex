@@ -1,0 +1,222 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\usepackage{authblk}
+\usepackage[margin=1in]{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xurl}
+\usepackage{setspace}
+
+\title{Quantum Mechanics without Ontology?\\
+\large Configuration Space, the Arena Problem, and the Road Not Taken in 1926}
+\author[1]{Claes Johnson}
+\affil[1]{KTH Royal Institute of Technology, SE-100 44 Stockholm, Sweden \\
+\texttt{claesjohnson@gmail.com}}
+\date{\today \\[0.4em]
+\small\textit{Prepared in cooperation with Claude (Anthropic); the argument and claims are the author's, with the
+AI assisting in drafting and in surveying the literature.}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+It is often said that quantum mechanics dispenses with ontology and that its predictive success licenses the
+omission. This paper argues that the situation is both more precise and more serious. First, quantum mechanics
+does not lack an ontology outright: under the preparation-independence assumption, the Pusey--Barrett--Rudolph
+(PBR) theorem tells against a purely epistemic reading of the quantum state, so the state is naturally taken to
+be ontic. The genuine difficulty is not the \emph{existence} of an ontology but its \emph{arena}: the state that
+PBR renders real is a function on $3N$-dimensional configuration space, not on the three-dimensional space that
+observers and instruments occupy. The interpretive troubles of quantum mechanics --- the measurement problem,
+the status of collapse, the profusion of interpretations --- are, I argue, symptoms of this arena problem rather
+than of a bare absence of the real. Second, I revisit the historical moment (spring 1926) at which the wave
+function was lifted from three-dimensional space to configuration space, and the objections of Schr\"odinger and
+Einstein were set aside; I ask why a commitment so basic was relinquished so rapidly. Third, I situate the
+options in the contemporary debate between \emph{wave-function realism}, which reifies the configuration-space
+object, and \emph{primitive ontology} approaches, which locate the fundamental beables in three-dimensional
+space, and I present a recent three-dimensional charge-density formulation (RealQM) as one under-explored member
+of the latter family --- a concrete realization of the road not taken. Finally, I use the case of quantum
+computing to illustrate a practical corollary: technological programs can inherit the arena problem, staking
+resources on the physical reality of the exponentially large amplitude, and the ontological status of that
+amplitude is therefore not an idle question.
+\end{abstract}
+
+\setstretch{1.05}
+
+\section{Introduction}\label{sec:intro}
+
+A familiar defense of standard quantum mechanics holds that although the theory declines to say what is
+physically real between measurements, its unrivaled record in predicting measurement statistics renders the
+omission harmless. Two things are run together in this defense that ought to be kept apart: whether quantum
+mechanics has an ontology at all, and, if it has one, whether that ontology is located where physics has always
+located its subject matter --- in three-dimensional space. I shall argue that recent results and debates let us
+be precise here. The quantum state is not plausibly a mere summary of an agent's knowledge (\S\ref{sec:pbr});
+but the state it is natural to reify lives on configuration space, and it is this displacement of the fundamental
+object from three-space to a high-dimensional arena --- not a bare absence of ontology --- that generates the
+theory's foundational difficulties (\S\ref{sec:arena}). Read this way, the century-old interpretive impasse is an
+\emph{arena problem}, and the space of responses is exactly the contemporary contest between wave-function
+realism and primitive ontology (\S\ref{sec:realism}). I recall the historical juncture at which the arena was
+chosen (\S\ref{sec:1926}), present a three-dimensional charge-density formulation as an under-explored primitive
+ontology (\S\ref{sec:realqm}), and close with a practical corollary drawn from quantum computing
+(\S\ref{sec:qc}).
+
+\section{Ontology versus epistemology, and what PBR settles}\label{sec:pbr}
+
+Two questions must be separated: \emph{ontology}, what exists; and \emph{epistemology}, what and how we may know
+of it. On the epistemic reading associated with parts of the Copenhagen tradition, the quantum state represents
+knowledge or information about outcomes rather than a physical property of an individual system. Harrigan and
+Spekkens \cite{HarriganSpekkens} made this reading precise within an ontological-models framework, distinguishing
+$\psi$-epistemic from $\psi$-ontic models. The Pusey--Barrett--Rudolph theorem \cite{PBR} then showed that, under
+a preparation-independence assumption, $\psi$-epistemic models of the relevant kind cannot reproduce the quantum
+predictions: distinct pure states cannot both correspond to the same underlying physical state. The natural
+moral, widely (if not universally) drawn, is that the quantum state is \emph{ontic} --- a physical feature of the
+system, not merely a catalogue of expectations.
+
+This matters for the present argument in a specific way. It means that the slogan ``quantum mechanics has no
+ontology'' is, taken literally, too strong: there is a real state, and it is the wave function. But PBR fixes
+only \emph{that} the state is real, not \emph{where} it is real. The state it certifies as physical is
+$\Psi(\mathbf x_1,\dots,\mathbf x_N)$, a field on $3N$-dimensional configuration space. The question that remains
+--- and that PBR does not touch --- is whether an ontology carried by an object on configuration space can serve
+the explanatory role physics has always demanded of its ontologies, which have without exception been ontologies
+in three-dimensional space or four-dimensional spacetime. I turn to that question now.
+
+\section{The arena problem}\label{sec:arena}
+
+Every physical theory before quantum mechanics answered, first, the question of what exists, and located the
+answer in ordinary space: masses at positions, fields on $\mathbb R^3$, molecules, a spacetime metric. The
+predictive content followed as the computed behaviour of those spatially located things. The distinctive feature
+of quantum mechanics is that its fundamental object is a function not on physical space but on a space whose
+dimension grows with particle number. Kohn \cite{Kohn} put the working consequence bluntly in his Nobel lecture:
+the many-electron wave function is not, for large $N$, a legitimate computational object, being unrecordable even
+in principle beyond a modest number of particles. Whatever its ontic status, an object we cannot in principle
+record and which does not inhabit the space of laboratories and observers sits awkwardly as the bearer of
+physical reality.
+
+The interpretive pathologies of quantum mechanics can be read as consequences of this displacement. The
+\emph{measurement problem} arises because the link between the configuration-space state and definite
+three-dimensional facts (pointer positions, tracks, clicks) is not supplied by the unitary dynamics and must be
+added by hand, as collapse; the \emph{Heisenberg cut} is the unlocatable seam between the configuration-space
+description and the three-dimensional description we actually read; the nonlocality that so troubled Einstein
+\cite{EPR} is the difficulty of a correlated whole that has, in three-space, no separated parts to be local to.
+On this diagnosis the trouble is not that there is nothing real, but that the something real is in the wrong
+arena, and the recovery of ordinary three-dimensional facts from it is left unaccounted for.
+
+\section{Wave-function realism and primitive ontology}\label{sec:realism}
+
+The contemporary metaphysics of quantum mechanics is, in effect, an argument over the arena. \emph{Wave-function
+realism} accepts the configuration-space object as fundamental and takes the high-dimensional space to be the real
+arena of the world, our three-dimensional experience being derivative \cite{Albert,NeyAlbert,Ney,Wallace}. The
+program is serious and has able defenders, but it purchases realism at the price of demoting three-dimensional
+space to appearance and owes an account --- the ``arena'' or ``$3$D-emergence'' problem --- of how the manifest
+spatial world is recovered. \emph{Primitive-ontology} approaches take the opposite route: they posit fundamental
+beables in three-dimensional space or spacetime --- particles, a matter-density field, or flash events --- and
+assign the wave function a nomological or guiding role rather than the role of the primary substance
+\cite{Allori,DGZ,Maudlin,Bell}. On these views the wave function may still be ontic in PBR's sense while not
+being the \emph{primitive} ontology; what is fundamentally real is in three dimensions.
+
+The choice between these families is not decided by PBR, which speaks only to the reality of the state, not to its
+arena. It is decided, if at all, by which program better discharges the explanatory duties of a physical theory:
+recovering the three-dimensional phenomena, dissolving the measurement problem, and doing so without ad hoc
+additions. It is against this backdrop that the historical contingency of the standard choice, and the
+availability of three-dimensional alternatives, become salient.
+
+\section{The choice of 1926}\label{sec:1926}
+
+The arena was chosen quickly. In the first months of 1926 Schr\"odinger's wave mechanics represented the
+one-electron atom by a field $\psi(\mathbf x)$ on ordinary space, and Schr\"odinger initially hoped to read
+$|\psi|^2$ as a charge density there. The extension to $N$ interacting electrons required a single function
+$\Psi(\mathbf x_1,\dots,\mathbf x_N)$ on configuration space; Born's statistical interpretation \cite{Born} then
+read $|\Psi|^2$ as a probability over configurations. Schr\"odinger, in his correspondence with Lorentz
+\cite{Przibram}, and Einstein, through the Solvay debates and later the EPR argument \cite{EPR}, both objected
+that a theory whose fundamental object was a many-dimensional amplitude had relinquished a physical picture in
+three-space; both were overruled as the G\"ottingen--Copenhagen synthesis consolidated
+\cite{MehraRechenberg}. That the arena was fixed so rapidly, and the dissent of the theory's own principal
+architects set aside, is historically striking and, I suggest, philosophically relevant: it shows the
+configuration-space choice to have been a contingent turn rather than a forced one, taken under the pressure of
+immediate predictive success and a positivist climate that treated the demand for an ontology as metaphysics in
+the pejorative sense.
+
+\section{A three-dimensional charge-density formulation}\label{sec:realqm}
+
+That a three-dimensional alternative was available, and not merely desired, can be shown constructively. One may
+represent the $N$ electrons of an atom or molecule not by a single amplitude on $3N$-space but by $N$
+non-negative charge densities on ordinary space, supported on disjoint regions, and take the ground state to
+minimize the ordinary Coulomb energy over these densities and their spatial partition; excited and
+time-dependent behaviour follow by admitting complex phases. This ``RealQM'' construction \cite{RealQM} is a
+member of the primitive-ontology family in the specific sense that its beables --- charge densities --- are
+fields in three-dimensional space, and it is offered here not as an established replacement for standard quantum
+mechanics but as an existence proof: a concrete, computable, three-dimensional ontology in the spirit
+Schr\"odinger first sought. Two clarifications place it correctly in the debate. It is not a hidden-variable
+theory: it adds no parameters beneath the amplitude (as de~Broglie--Bohm does) but replaces the amplitude, as
+primary object, with charge in three-space. And it is compatible with PBR's ontic conclusion while declining
+wave-function realism's arena: the real thing is a state, but a state of charge in three dimensions rather than a
+field on configuration space. Its empirical reach and its open problems --- notably a full account of spin
+exchange and of the statistics of measurements on entangled systems --- are documented elsewhere \cite{RealQM};
+the philosophical point here is only that the primitive-ontology-in-3D option is live and was the road not taken.
+
+\section{A practical corollary: quantum computing}\label{sec:qc}
+
+The arena problem is not purely interpretive; a technological program can inherit it. The claimed advantage of
+quantum computation rests on treating the joint state of $n$ qubits --- an amplitude in a $2^n$-dimensional
+Hilbert space --- as a physical resource on which operations act ``in parallel.'' This is the
+configuration-space object again, and whether the exponential advantage is physically real depends on whether
+that object is a physical resource or a formal device for the statistics of a system that is, in three-space, of
+modest size. The two horns of \S\ref{sec:realism} bear directly on the technology: on wave-function realism the
+exponential resource is real and (decoherence permitting) exploitable; on a three-dimensional primitive ontology
+there is no exponential thing in the device, and the scalable advantage lacks a substrate. I do not claim the
+matter is settled --- small-scale devices demonstrably perform entangling operations and sampling tasks, and the
+scalable, fault-tolerant regime is where the question lies. It is worth noting that skepticism about that regime
+is not confined to ontological considerations: Kalai \cite{Kalai}, among others, argues on the basis of noise
+that fault-tolerant quantum computation may face an in-principle barrier. The philosophical observation is
+narrower and, I think, secure: the feasibility of scalable quantum computing is entangled with the ontological
+status of the configuration-space state, so the question of arena that PBR leaves open is not academic but bears
+on where a great deal of scientific effort is being directed.
+
+\section{Conclusion}\label{sec:conclusion}
+
+The claim that quantum mechanics abandons ontology should be replaced by a sharper one. The quantum state is
+plausibly real (PBR); the difficulty is that it is real on configuration space, and the recovery of the
+three-dimensional world from it is exactly what the theory does not supply --- the arena problem, of which the
+measurement problem and its relatives are symptoms. The contemporary options are wave-function realism, which
+keeps the arena and demotes three-space, and primitive ontology, which keeps three-space and demotes the wave
+function to a non-primary role. The historical record shows the configuration-space arena to have been a rapid
+and contested choice, not a necessity, and a constructive three-dimensional charge-density formulation shows a
+primitive-ontology alternative to be available in fact and not only in aspiration. Whether one adopts it or not,
+the lesson is that ``where is the quantum state real?'' is a substantive question with consequences reaching from
+the measurement problem to the prospects of quantum technology, and that it was closed too early, too
+confidently, in 1926.
+
+\begin{thebibliography}{99}
+\bibitem{HarriganSpekkens} N.~Harrigan and R.~W.~Spekkens, \emph{Einstein, incompleteness, and the epistemic view
+of quantum states}, Found.\ Phys.\ \textbf{40}, 125 (2010).
+\bibitem{PBR} M.~F.~Pusey, J.~Barrett, and T.~Rudolph, \emph{On the reality of the quantum state}, Nature
+Physics \textbf{8}, 475 (2012).
+\bibitem{Kohn} W.~Kohn, \emph{Nobel Lecture: Electronic structure of matter --- wave functions and density
+functionals}, Rev.\ Mod.\ Phys.\ \textbf{71}, 1253 (1999).
+\bibitem{EPR} A.~Einstein, B.~Podolsky, and N.~Rosen, \emph{Can quantum-mechanical description of physical
+reality be considered complete?}, Phys.\ Rev.\ \textbf{47}, 777 (1935).
+\bibitem{Born} M.~Born, \emph{Zur Quantenmechanik der Sto\ss vorg\"ange}, Z.\ Phys.\ \textbf{37}, 863 (1926).
+\bibitem{Przibram} K.~Przibram (ed.), \emph{Letters on Wave Mechanics: Schr\"odinger, Planck, Einstein,
+Lorentz}, Philosophical Library, 1967.
+\bibitem{MehraRechenberg} J.~Mehra and H.~Rechenberg, \emph{The Historical Development of Quantum Theory},
+Vol.~5 (Erwin Schr\"odinger and the Rise of Wave Mechanics), Springer, 1987.
+\bibitem{Albert} D.~Z.~Albert, \emph{Elementary quantum metaphysics}, in J.~T.~Cushing, A.~Fine, and S.~Goldstein
+(eds.), \emph{Bohmian Mechanics and Quantum Theory: An Appraisal}, Kluwer, 1996.
+\bibitem{NeyAlbert} A.~Ney and D.~Z.~Albert (eds.), \emph{The Wave Function: Essays on the Metaphysics of Quantum
+Mechanics}, Oxford University Press, 2013.
+\bibitem{Ney} A.~Ney, \emph{The World in the Wave Function}, Oxford University Press, 2021.
+\bibitem{Wallace} D.~Wallace, \emph{The Emergent Multiverse: Quantum Theory according to the Everett
+Interpretation}, Oxford University Press, 2012.
+\bibitem{Allori} V.~Allori, \emph{Primitive ontology and the structure of fundamental physical theories}, in
+\cite{NeyAlbert}, pp.~58--75.
+\bibitem{DGZ} D.~D\"urr, S.~Goldstein, and N.~Zangh\`i, \emph{Quantum equilibrium and the origin of absolute
+uncertainty}, J.\ Stat.\ Phys.\ \textbf{67}, 843 (1992).
+\bibitem{Maudlin} T.~Maudlin, \emph{Philosophy of Physics: Quantum Theory}, Princeton University Press, 2019.
+\bibitem{Bell} J.~S.~Bell, \emph{Speakable and Unspeakable in Quantum Mechanics}, Cambridge University Press,
+1987.
+\bibitem{Kalai} G.~Kalai, \emph{The quantum computer puzzle}, Notices Amer.\ Math.\ Soc.\ \textbf{63}, 508
+(2016).
+\bibitem{RealQM} C.~Johnson, \emph{Quantum Mechanics as Multiphase 3D Continuum Mechanics}, and the RealQM
+Gallery of simulations and companion articles, 2026; \url{https://claes542.github.io/RealMolecule/gallery.html}.
+\end{thebibliography}
+
+\end{document}
