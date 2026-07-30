@@ -1,0 +1,161 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\usepackage{authblk}
+\usepackage[margin=1in]{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xurl}
+\usepackage{setspace}
+
+\title{Ontology versus Epistemology in Quantum Mechanics:\\
+\large The Surrender of 1926}
+\author[1]{Claes Johnson}
+\affil[1]{KTH Royal Institute of Technology, SE-100 44 Stockholm, Sweden \\
+\texttt{claesjohnson@gmail.com}}
+\date{\today \\[0.5em]
+\small\textit{Written in respectful cooperation between Claes Johnson and Claude (Anthropic), with Claude
+contributing a balanced, neutral view.}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Physics is, before it is anything else, an account of what exists; prediction is the behaviour of what exists,
+computed forward. A physical theory without an ontology is therefore not a lean theory but a contradiction in
+terms --- a rule for anticipating instrument readings that cannot say what the readings are about --- and the
+consequences of the contradiction are not academic. Quantum mechanics acquired exactly this defect at a
+datable moment. In the spring of 1926 Schr\"odinger wrote a wave equation for the hydrogen atom whose wave
+function lived, like every previous field of physics, in ordinary three-dimensional space. Within weeks the
+theory was extended to $N$ electrons by placing the wave function on a $3N$-dimensional \emph{configuration
+space}, and, with Born's probability rule, reinterpreted as an amplitude for measurement outcomes rather than a
+thing in space. Schr\"odinger and Einstein protested, asking that the theory keep an ontology in three
+dimensions; they were overruled by Bohr, Born, Heisenberg, and Dirac, who accepted the configuration-space
+object and the epistemic reading. This essay asks the question the episode deserves: how was the most basic
+commitment of physics --- to say what the world is made of --- surrendered so easily, so quickly, and by so
+many? We examine the reasons offered then and now, argue that the standard justification (unparalleled predictive
+success) mistakes a part of physics for the whole, and trace the serious consequences that followed from keeping
+the mathematics while discarding the ontology.
+\end{abstract}
+
+\setstretch{1.06}
+
+\section{Ontology is the prime business of physics}
+
+Every physical theory before 1926 answered, first, the question \emph{what is there}. Newton posited masses at
+positions with momenta; Maxwell, fields in space; Boltzmann, molecules; Einstein, a metric of spacetime. From
+the ontology --- the inventory of what exists and how it is disposed --- the predictions followed as the computed
+behaviour of those real things. This order is not a philosophical preference; it is what makes a theory a theory
+of \emph{physics} rather than a technique of calculation. Remove the ontology and nothing is left whose behaviour
+is being predicted: one has, at most, a rule for anticipating the readings of instruments, which is a different
+and lesser thing. And it is not even self-consistent, for a prediction is always a statement \emph{about
+something} --- that some real thing will be found in some real state --- so a theory that predicts while refusing
+to say what exists must smuggle its ontology in at the macroscopic end (the apparatus, taken as real) while
+denying it at the microscopic end (the system, held to be only an amplitude). Physics without ontology is thus
+not economical but contradictory, and the contradiction has a location, discussed below, called the measurement
+problem.
+
+\section{Ontology and epistemology are not the same question}
+
+Two questions must be kept apart. \emph{Ontology} asks what exists; \emph{epistemology} asks what, and how, we
+can know of it. A healthy physics answers the first and derives the second: because the world is thus, our
+measurements read so. The pathology of quantum mechanics is that it answers only the second and forbids the
+first --- it is an exquisitely accurate epistemology, a calculus of measurement outcomes, mounted on a refusal to
+say what is measured. This is often presented as maturity, a hard-won renunciation of naive pictures. It is
+better seen as an inversion: the derivative (what we observe) has been promoted to the fundamental, and the
+fundamental (what is there) demoted to the unaskable. Once the inversion is made, every subsequent difficulty
+becomes a difficulty ``about measurement,'' because measurement is the only thing the theory was allowed to be
+about.
+
+\section{The turning point: from three dimensions to \texorpdfstring{$3N$}{3N}}
+
+The surrender is datable. In the first months of 1926 Schr\"odinger published his wave mechanics, and for the
+one-electron hydrogen atom the wave function $\psi(\mathbf x)$ was a field on ordinary space $\mathbb R^3$, as
+physical in kind as Maxwell's. Schr\"odinger's own hope was frankly ontological: that $|\psi|^2$ was a real
+charge density in three dimensions, the electron a smeared distribution of charge rather than a point. Then came
+the step that decided the century. For an atom of $N$ electrons the equation was written for a single wave
+function
+\[
+\Psi(\mathbf x_1,\mathbf x_2,\dots,\mathbf x_N),
+\]
+a function not on three-dimensional space but on a \emph{$3N$-dimensional configuration space}. Mathematically
+this was forced --- the electrons interact, and a separable product of three-dimensional fields will not solve
+the coupled problem. Interpretively it was a rupture: the fundamental object no longer lived in the space we and
+our instruments occupy, and could no longer be a charge density there. Born's probability rule of mid-1926
+completed the move by reading $|\Psi|^2$ as a probability distribution over configurations --- an amplitude for
+outcomes, not a substance in space. In a single season the wave function passed from a candidate ontology in
+three dimensions to an epistemic object in $3N$.
+
+\section{The protest, and its defeat}
+
+That this was a loss was seen at once by the two who cared most about it. Schr\"odinger, in his 1926
+correspondence with Lorentz, worried openly that a wave in many-dimensional configuration space could not be a
+real physical process and that the theory had thereby forfeited its picture in ordinary space. Einstein never
+accepted the configuration-space amplitude as a complete description of a real state of affairs, and spent the
+rest of his life pressing the point --- through the Solvay debates and, in 1935, through the EPR argument --- that
+a theory answering only for measurement outcomes had left something out: the elements of reality themselves.
+Both men were asking for the same thing, an ontology in three dimensions. Both were overruled. Bohr, Born,
+Heisenberg, and Dirac --- with the transformation theory and the complementarity doctrine --- consolidated the
+configuration-space formalism and the epistemic interpretation into the working orthodoxy, and by the 1927
+Solvay Congress the matter was, sociologically, settled. The dissenters were cast not as defenders of physics's
+oldest principle but as men who could not let go of classical intuition.
+
+\section{Why so easily, so quickly, by so many?}
+
+The speed and near-unanimity of the surrender are the genuinely puzzling thing, and several forces conspired.
+The formalism \emph{worked}, immediately and spectacularly, on the spectra that had defeated the old quantum
+theory --- and a young generation, forged in the collapse of classical physics and impatient with philosophy,
+took working as sufficient. The intellectual climate was positivist: to speak only of the observable was
+regarded as rigour, and to ask what lay behind the observable as metaphysics, a term of abuse. The
+configuration-space problem in three dimensions looked, and for a long time was, computationally hopeless, so the
+epistemic reading had the practical virtue of relieving anyone of the duty to solve it. And there was authority
+and momentum: G\"ottingen and Copenhagen carried the field, the probability rule gave definite numbers, and
+Dirac's formalism was of a beauty that made interpretive scruple seem like ingratitude. The one thing not
+weighed in the balance was the thing being given up --- that a theory should say what exists --- because to that
+generation, in that moment, prediction had already become the whole of what a theory was for.
+
+\section{The modern justification, and why it misreads physics}
+
+The rationale offered today is retrospective and confident: standard quantum mechanics, for all its silence
+about what is real, predicts the outcomes of carefully prepared experiments with an accuracy unmatched in the
+history of science, and a success so overwhelming purchases the right to dispense with ontology. The argument has
+a flaw at its root. Predicting the outcomes of carefully prepared experiments is \emph{not} the essence of
+physics; it is a specialised and comparatively recent corner of it. The essence of physics is to explain and
+predict \emph{real phenomena} --- why the Sun shines, why iron is magnetic, why water is dense at four degrees,
+why gold is yellow --- phenomena that occur whether or not anyone has prepared an experiment or is watching a
+meter. A theory that excels at anticipating pointer positions in the laboratory but cannot say what is happening
+in an unwatched star has not earned exemption from ontology; it has changed the subject. And even the celebrated
+success is narrower than advertised: it is success at computing \emph{numbers} for prepared setups, obtained
+moreover from an object, the wave function on $3N$-dimensional space, that Kohn observed is not a legitimate
+scientific concept beyond a handful of electrons, being unrecordable even in principle. Success at prediction, in
+any case, cannot certify the \emph{absence} of an ontology; a theory can predict well and still be about
+something, and the question of what it is about does not go away because the predictions are good.
+
+\section{The serious consequences}
+
+The consequences of keeping the mathematics and discarding the ontology are not confined to seminar rooms. From
+the single absence descend, as symptoms of one cause, the entire apparatus of quantum foundations: the
+measurement problem (ask \emph{what is measured} and the theory has no answer, because its fundamental object is
+not a thing that could be measured); collapse (the unlicensed step by which an amplitude is converted into a fact
+when a measurement is declared); the Heisenberg cut (the unlocatable line between quantum system and classical
+apparatus); Schr\"odinger's cat (the reductio of treating the amplitude as the reality); and the century of
+mutually incompatible interpretations --- Copenhagen, many-worlds, de Broglie--Bohm, objective collapse --- none
+forced by the equations, each an attempt to supply the ontology the formalism withheld or to legislate that none
+is needed. That so many interpretations coexist is not the sign of a rich theory but of an underdetermined one:
+the formalism does not say what exists, so the saying is handed to philosophy. A discipline that must maintain a
+permanent philosophy-of-itself to cope with its own foundations is a discipline that has mislaid something, and
+what it has mislaid is its ontology.
+
+\section{Coda: the road not taken}
+
+The remarkable fact is that the alternative was available in 1926 and was simply not pursued. Schr\"odinger's
+first instinct --- that the wave function should describe real charge in three-dimensional space --- can be
+carried through for $N$ electrons if one is willing to represent them not by a single amplitude on $3N$-space but
+by $N$ charge densities on ordinary space, and to let the physics be the deterministic minimisation of their
+Coulomb energy. That is the programme of RealQM, taken up elsewhere; the point here is only that it exists, that
+it recovers an ontology in three dimensions, and that its availability shows the surrender of 1926 to have been a
+choice, not a necessity. The configuration-space step was mathematically convenient and interpretively fatal;
+the century of foundational trouble is the interest paid on a debt incurred in a single spring, when the oldest
+principle of physics --- that a theory must say what the world is made of --- was given up more easily, more
+quickly, and by more people than any principle so basic should ever be.
+
+\end{document}
