@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RealQM in five minutes — an atom as a real charge cloud (CPU)</title>
+<style>
+  :root { --bg:#0b0e12; --panel:#12161d; --ink:#dfe6ee; --dim:#8b97a6; --acc:#80cbc4; --acc2:#ffcc80; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+    font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  header { padding:16px 20px 4px; }
+  h1 { font-size:20px; margin:0 0 2px; color:var(--acc); }
+  .sub { color:var(--dim); font-size:13px; max-width:900px; }
+  .wrap { display:flex; flex-wrap:wrap; gap:18px; padding:14px 20px 10px; align-items:flex-start; }
+  .card { background:var(--panel); border:1px solid #232b36; border-radius:10px; padding:14px; }
+  canvas { display:block; border-radius:6px; background:#05070a; }
+  .controls { min-width:280px; max-width:330px; }
+  .row { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+  .row button { flex:1; min-width:70px; background:#1b2028; color:var(--ink); border:1px solid #2c333e;
+    border-radius:6px; padding:8px 4px; cursor:pointer; font-size:13px; }
+  .row button:hover { border-color:var(--acc); }
+  label { display:block; margin:12px 0 3px; color:var(--dim); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+  input[type=range] { width:100%; accent-color:var(--acc); }
+  .read { margin-top:12px; border-top:1px solid #232b36; padding-top:10px; }
+  .read div { display:flex; justify-content:space-between; padding:2px 0; }
+  .read b { color:var(--acc2); font-variant-numeric:tabular-nums; }
+  .k { color:var(--dim); }
+  .prose { padding:6px 20px 30px; max-width:900px; color:#cdd6df; }
+  .prose h2 { font-size:15px; color:var(--acc); margin:18px 0 4px; }
+  .prose code { color:#ffcc80; }
+  .note { color:var(--dim); font-size:12px; }
+  a { color:#80cbc4; }
+  .eq { background:#0e1319; border:1px solid #232b36; border-radius:6px; padding:8px 10px; margin:8px 0;
+    font-family:ui-monospace,Menlo,Consolas,monospace; font-size:13px; color:#dfe6ee; overflow-x:auto; }
+</style>
+</head>
+<body>
+<header>
+  <h1>RealQM in five minutes — an atom as a real charge cloud</h1>
+  <div class="sub">
+    No probabilities, no wave function on an abstract high-dimensional space. In RealQM an electron is a
+    <b>real charge density</b> in ordinary 3D space, and the atom is found by <b>minimising a real energy</b>:
+    the localisation cost of the cloud plus its Coulomb attraction to the nucleus. Press <b>Relax</b> and watch
+    the guess flow downhill to the true hydrogen ground state — and check the number it lands on.
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="card">
+    <canvas id="cloud" width="300" height="300"></canvas>
+    <div class="note">The electron charge cloud &rho;=|&psi;|&sup2; (a slice through the atom), relaxing in
+      imaginary time.</div>
+  </div>
+
+  <div class="card">
+    <canvas id="plot" width="330" height="300"></canvas>
+    <div class="note">Blue: current &psi;(r). Dashed: the exact ground state &prop; e<sup>&minus;r</sup>. Inset:
+      energy vs iteration, converging to the exact value.</div>
+  </div>
+
+  <div class="card controls">
+    <div class="row">
+      <button id="run">Relax ▶</button>
+      <button id="reset">Reset</button>
+    </div>
+    <label>Initial guess width &nbsp;·&nbsp; <span id="aval">2.5</span> a&#8320;</label>
+    <input type="range" id="a" min="0.6" max="4" step="0.05" value="2.5">
+    <div class="read">
+      <div><span class="k">energy E</span> <b id="E">—</b></div>
+      <div><span class="k">exact (&minus;&frac12; Ha)</span> <b>&minus;0.50000</b></div>
+      <div><span class="k">&lang;r&rang; (a&#8320;)</span> <b id="r">—</b></div>
+      <div><span class="k">exact &lang;r&rang;</span> <b>1.500</b></div>
+      <div><span class="k">iterations</span> <b id="it">0</b></div>
+    </div>
+    <div class="note" style="margin-top:10px">Atomic units (&#8463;=m<sub>e</sub>=e=1). The method here is exactly
+      RealQM's: relax the real-space density downhill in the energy. It converges to E&nbsp;&asymp;&nbsp;&minus;0.5&nbsp;Ha
+      and the cloud &psi;&prop;e<sup>&minus;r</sup> &mdash; the exact hydrogen atom. (The last ~0.2&ndash;0.4% is
+      finite-grid error, shrinking as the radial mesh is refined; nothing is fitted.)</div>
+  </div>
+</div>
+
+<div class="prose">
+  <h2>What you are looking at</h2>
+  <p>The energy being minimised is
+  <div class="eq">E(&psi;) = &frac12; &int; |&nabla;&psi;|&sup2; dV  &minus;  &int; (&psi;&sup2; / r) dV ,
+     &nbsp;&nbsp; with &nbsp; &int; &psi;&sup2; dV = 1 .</div>
+  The first term is a <b>localisation cost</b>: squeezing the charge into a smaller region sharpens its gradient
+  and costs energy (this is what standard quantum mechanics calls kinetic energy &mdash; but here <i>nothing is
+  moving</i>; it is the strain energy of a static cloud). The second term is the ordinary Coulomb attraction of
+  that charge to the proton. Their balance fixes the size of the atom. Minimising by relaxing the density in
+  &ldquo;imaginary time&rdquo; gives, with no fitting and no free parameters, <code>E = &minus;0.5</code> Hartree
+  and a cloud <code>&psi; &prop; e<sup>&minus;r</sup></code> &mdash; the exact hydrogen ground state.</p>
+
+  <h2>Why this is the point</h2>
+  <p>Everything here lives in <b>ordinary three-dimensional space</b>. There is no probability amplitude to
+  interpret, no collapse, no wave function on a <code>3N</code>-dimensional configuration space. The electron
+  <i>is</i> the charge cloud you see; the atom is the shape that minimises a real energy. That is the whole idea
+  of RealQM, and hydrogen is where you can watch it work and verify the answer yourself.</p>
+
+  <h2>Honest note: hydrogen is the easy case</h2>
+  <p>Standard quantum mechanics also gets hydrogen exactly &mdash; so H alone does not distinguish the two. Where
+  RealQM earns its keep is where the standard picture struggles or turns abstract:</p>
+  <ul>
+    <li><b>Helium.</b> With <i>no electron self-repulsion</i> and two clouds that do not overlap, RealQM gives a
+    ground-state energy near <code>&minus;2.90</code> Ha &mdash; below Hartree&ndash;Fock (<code>&minus;2.86</code>)
+    and close to the exact <code>&minus;2.9037</code>. It captures electron <i>correlation</i> from geometry
+    alone, with no configuration-space machinery.</li>
+    <li><b>The H&#8322; bond, diamagnetism, spin, the periodic table</b> &mdash; all built from the same real
+    charge in 3D. Runnable demonstrations and the full account are in the
+    <a href="gallery.html">RealQM Gallery</a>.</li>
+  </ul>
+  <p class="note">This page is self-contained and runs on the CPU &mdash; no login, no install, no special
+  hardware. View source: it is a few hundred lines of plain JavaScript.</p>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  // ---- radial grid; reduced function u(r)=r*psi(r); H_u u = -1/2 u'' - u/r ----
+  const N = 300, Rmax = 24;
+  const h = Rmax / N;
+  const r = new Float64Array(N+1);
+  for (let i=0;i<=N;i++) r[i] = i*h;
+  let u = new Float64Array(N+1);
+  const dt = 0.002, STEPS = 40;
+  let iter = 0, running = false, E = NaN, rmean = NaN;
+  const Ehist = [];
+
+  function seed(a){ // u = r*exp(-r/a) (a = guess width); a=1 is exact
+    for (let i=0;i<=N;i++) u[i] = r[i]*Math.exp(-r[i]/a);
+    u[0]=0; u[N]=0; normalize(); iter=0; Ehist.length=0; computeE();
+  }
+  function normalize(){
+    let s=0; for (let i=0;i<=N;i++) s += u[i]*u[i]; s*=h;
+    const c=1/Math.sqrt(s); for (let i=0;i<=N;i++) u[i]*=c;
+  }
+  function Hu(i){ // -1/2 u'' - u/r  (interior only)
+    const lap = (u[i+1]-2*u[i]+u[i-1])/(h*h);
+    return -0.5*lap - u[i]/r[i];
+  }
+  function step(){
+    const nu = new Float64Array(N+1);
+    for (let i=1;i<N;i++) nu[i] = u[i] - dt*Hu(i);
+    nu[0]=0; nu[N]=0;
+    u = nu; normalize(); iter++;
+  }
+  function computeE(){
+    let e=0, rm=0;
+    for (let i=1;i<N;i++){ e += u[i]*Hu(i); rm += u[i]*u[i]*r[i]; }
+    E = e*h; rmean = rm*h;
+    Ehist.push(E); if (Ehist.length>600) Ehist.shift();
+  }
+
+  // ---- cloud canvas (density slice) ----
+  const cc=document.getElementById('cloud'), cx=cc.getContext('2d');
+  const CW=cc.width, CH=cc.height, cx0=CW/2, cy0=CH/2, SCL=CW/(2*8); // show radius ~8 a0
+  const img=cx.createImageData(CW,CH);
+  function psiAt(rr){ // psi = u/r, interpolated
+    if (rr>=Rmax) return 0;
+    const x=rr/h, i=Math.floor(x), f=x-i;
+    if (i<1) return (u[1]/r[1]); // near origin
+    if (i>=N) return 0;
+    const p0=u[i]/r[i], p1=u[i+1]/r[i+1];
+    return p0+(p1-p0)*f;
+  }
+  function drawCloud(){
+    // normalize peak for display
+    let pk=Math.abs(psiAt(h)); for(let k=0;k<200;k++){const v=Math.abs(psiAt(k*0.05)); if(v>pk)pk=v;}
+    if(pk<=0)pk=1;
+    const d=img.data;
+    for(let py=0;py<CH;py++){
+      for(let px=0;px<CW;px++){
+        const x=(px-cx0)/SCL, y=(py-cy0)/SCL, rr=Math.hypot(x,y);
+        const p=Math.abs(psiAt(rr))/pk; const rho=p*p;
+        const t=Math.pow(Math.min(1,rho),0.5);
+        const R=Math.round(255*Math.min(1,0.15+1.6*t*t));
+        const G=Math.round(255*Math.min(1,0.35+0.9*t));
+        const B=Math.round(255*Math.min(1,0.30+0.7*Math.pow(t,0.4)));
+        const idx=4*(py*CW+px);
+        d[idx]=R; d[idx+1]=G; d[idx+2]=B; d[idx+3]=255;
+      }
+    }
+    cx.putImageData(img,0,0);
+    // nucleus dot
+    cx.fillStyle='#ffcc80'; cx.beginPath(); cx.arc(cx0,cy0,2.4,0,6.2832); cx.fill();
+  }
+
+  // ---- plot canvas: psi(r) + exact overlay + E sparkline inset ----
+  const pc=document.getElementById('plot'), px_=pc.getContext('2d');
+  const PW=pc.width, PH=pc.height;
+  function drawPlot(){
+    px_.clearRect(0,0,PW,PH);
+    const padL=34,padB=24,padT=10,padR=10;
+    const x0=padL,x1=PW-padR,y0=PH-padB,y1=padT, Rshow=10;
+    const X=rr=>x0+(rr/Rshow)*(x1-x0);
+    // peak of psi for y-scale
+    let pk=0; for(let k=0;k<=200;k++){const v=Math.abs(psiAt(k*Rshow/200)); if(v>pk)pk=v;}
+    if(pk<=0)pk=1;
+    const Y=v=>y0-(v/pk)*(y0-y1);
+    // axes
+    px_.strokeStyle='#2c333e'; px_.lineWidth=1;
+    px_.beginPath(); px_.moveTo(x0,y0); px_.lineTo(x1,y0); px_.stroke();
+    px_.beginPath(); px_.moveTo(x0,y0); px_.lineTo(x0,y1); px_.stroke();
+    px_.fillStyle='#8b97a6'; px_.font='10px sans-serif';
+    px_.fillText('ψ(r)',x0+2,y1+8); px_.fillText('r (a₀)',x1-32,y0+15);
+    // exact e^{-r} normalized to same peak (exact psi peak at r=0)
+    px_.strokeStyle='rgba(139,151,166,0.7)'; px_.setLineDash([4,3]); px_.lineWidth=1.4;
+    px_.beginPath();
+    let e0=1; // exact psi(0)=1 (unnormalized); scale to current pk via its own peak
+    for(let k=0;k<=200;k++){const rr=k*Rshow/200; const v=Math.exp(-rr); const yy=y0-(v/e0)*(y0-y1);
+      if(k===0)px_.moveTo(X(rr),yy); else px_.lineTo(X(rr),yy);}
+    px_.stroke(); px_.setLineDash([]);
+    // current psi (scaled to its own peak so shape is comparable)
+    px_.strokeStyle='#4fc3f7'; px_.lineWidth=2;
+    px_.beginPath();
+    for(let k=0;k<=200;k++){const rr=k*Rshow/200; const yy=Y(Math.abs(psiAt(rr)));
+      if(k===0)px_.moveTo(X(rr),yy); else px_.lineTo(X(rr),yy);}
+    px_.stroke();
+    // E sparkline inset (top-right)
+    const iw=120, ih=54, ix=PW-iw-14, iy=14;
+    px_.strokeStyle='#2c333e'; px_.strokeRect(ix,iy,iw,ih);
+    px_.fillStyle='#8b97a6'; px_.font='9px sans-serif'; px_.fillText('E vs iter',ix+3,iy+10);
+    // scale E in [-0.6, 0]
+    const Emin=-0.6, Emax=0.0;
+    const EY=e=>iy+ih-((e-Emin)/(Emax-Emin))*ih;
+    // exact line
+    px_.strokeStyle='rgba(139,151,166,0.6)'; px_.setLineDash([3,3]);
+    px_.beginPath(); px_.moveTo(ix,EY(-0.5)); px_.lineTo(ix+iw,EY(-0.5)); px_.stroke(); px_.setLineDash([]);
+    px_.fillText('−0.5', ix+iw-24, EY(-0.5)-2);
+    // history
+    if(Ehist.length>1){
+      px_.strokeStyle='#80cbc4'; px_.lineWidth=1.5; px_.beginPath();
+      for(let k=0;k<Ehist.length;k++){const xx=ix+(k/(Ehist.length-1))*iw; const yy=EY(Math.max(Emin,Math.min(Emax,Ehist[k])));
+        if(k===0)px_.moveTo(xx,yy); else px_.lineTo(xx,yy);}
+      px_.stroke();
+    }
+  }
+
+  function readouts(){
+    document.getElementById('E').textContent = isNaN(E)?'—':E.toFixed(5);
+    document.getElementById('r').textContent = isNaN(rmean)?'—':rmean.toFixed(3);
+    document.getElementById('it').textContent = iter;
+  }
+  function draw(){ drawCloud(); drawPlot(); readouts(); }
+
+  function frame(){
+    if(running){ for(let s=0;s<STEPS;s++) step(); computeE(); draw(); }
+    requestAnimationFrame(frame);
+  }
+
+  document.getElementById('run').addEventListener('click',e=>{
+    running=!running; e.target.textContent = running?'Pause ⏸':'Relax ▶';
+  });
+  document.getElementById('reset').addEventListener('click',()=>{
+    running=false; document.getElementById('run').textContent='Relax ▶';
+    seed(parseFloat(document.getElementById('a').value)); draw();
+  });
+  document.getElementById('a').addEventListener('input',e=>{
+    document.getElementById('aval').textContent=parseFloat(e.target.value).toFixed(2);
+    running=false; document.getElementById('run').textContent='Relax ▶';
+    seed(parseFloat(e.target.value)); draw();
+  });
+
+  seed(2.5); draw(); frame();
+})();
+</script>
+</body>
+</html>
