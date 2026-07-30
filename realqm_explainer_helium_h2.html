@@ -45,23 +45,27 @@
 <div class="prose">
   <table class="n">
     <tr><th>system</th><th>RealQM (3-D, parameter-free)</th><th>Hartree&ndash;Fock</th><th>exact / experiment</th></tr>
-    <tr><td>Helium ground state</td><td class="win">&minus;2.90 Ha</td><td>&minus;2.86 Ha</td><td>&minus;2.9037 Ha</td></tr>
+    <tr><td>Helium ground state</td><td>read it off the solver &darr;</td><td>&minus;2.86 Ha</td><td>&minus;2.9037 Ha</td></tr>
     <tr><td>H&#8322; bond length</td><td>&asymp;1.4 a&#8320;</td><td>1.40 a&#8320;</td><td>1.40 a&#8320;</td></tr>
     <tr><td>H&#8322; dissociation energy</td><td>within ~3%</td><td>&mdash;</td><td>4.75 eV</td></tr>
   </table>
-  <p class="note">The helium line is the one to pause on: with no fitted parameters, RealQM lands <b>below</b>
-  Hartree&ndash;Fock and close to exact &mdash; it captures electron <i>correlation</i> the mean field misses,
-  purely because the two clouds keep out of each other's way.</p>
+  <p class="note">Rather than quote a helium number here, the solver below computes it live &mdash; read off the
+  converged energy and compare it to Hartree&ndash;Fock (&minus;2.86) and the exact value (&minus;2.9037)
+  yourself. A parameter-free 3-D real-charge method reaching the Hartree&ndash;Fock level is already notable;
+  whether the non-overlap of the two clouds pushes it <i>below</i> HF (capturing correlation) is a question the
+  computation, not the caption, should settle &mdash; and it depends on grid resolution and convergence, so it
+  must be run at adequate size.</p>
 </div>
 
 <div class="embedwrap">
   <h2 style="color:#80cbc4;font-size:16px;margin:14px 0 2px">1 &nbsp; Helium &mdash; two clouds, one nucleus
     <span class="runbadge">running below</span></h2>
-  <div class="embed"><iframe src="atom_He.html" height="470" loading="lazy" title="RealQM helium solver"></iframe></div>
-  <div class="cap">The RealQM helium solver (charge-2 kernel, two electrons in non-overlapping half-spaces,
-    no self-repulsion). It relaxes the two real charge densities and reports the ground-state energy &mdash;
-    it settles near <b>&minus;2.90 Ha</b>, below Hartree&ndash;Fock's &minus;2.86 and close to the exact
-    &minus;2.9037. The correlation is bought by geometry: the two clouds avoid each other.</div>
+  <div class="embed"><iframe src="test_he.html" height="470" loading="lazy" title="RealQM helium solver (200³)"></iframe></div>
+  <div class="cap">The RealQM helium computation at proper resolution (two protons at the same site, full 3-D
+    grid, real electron&ndash;electron interaction, non-overlapping domains, no self-repulsion). Let it run and
+    <b>read off the converged energy</b>, then compare with Hartree&ndash;Fock (&minus;2.86) and the exact
+    &minus;2.9037. This is a heavy computation &mdash; give it time. (A faster, coarse solver under-resolves He
+    and reports too high an energy, so it is not shown here; resolution matters.)</div>
 </div>
 
 <div class="embedwrap">
@@ -87,9 +91,10 @@
 
   <h2>Why this is the case worth seeing</h2>
   <p>Hydrogen alone (see the <a href="realqm_explainer_hydrogen.html">one-electron explainer</a>) does not
-  distinguish RealQM from standard quantum mechanics &mdash; both get it exactly. Helium and H&#8322; do: RealQM
-  reaches below Hartree&ndash;Fock on helium and dissociates H&#8322; correctly, from a single principle applied
-  to real charge in 3-D. And you can run it here and check the number yourself.</p>
+  distinguish RealQM from standard quantum mechanics &mdash; both get it exactly. Helium and H&#8322; are where a
+  reformulation has to prove itself &mdash; a parameter-free 3-D real-charge method has to reach at least the
+  Hartree&ndash;Fock level on helium and dissociate H&#8322; correctly, and you can run both here and check the
+  numbers yourself rather than take them on faith.</p>
 
   <p class="note">These are the full three-dimensional, parameter-free solvers embedded from the RealQM Gallery
   (helium runs on the CPU; the heavier atomic and molecular solvers there use WebGPU, best in Chrome). The whole
