@@ -34,7 +34,10 @@ object and the epistemic reading. This essay asks the question the episode deser
 commitment of physics --- to say what the world is made of --- surrendered so easily, so quickly, and by so
 many? We examine the reasons offered then and now, argue that the standard justification (unparalleled predictive
 success) mistakes a part of physics for the whole, and trace the serious consequences that followed from keeping
-the mathematics while discarding the ontology.
+the mathematics while discarding the ontology. As a concrete warning we take quantum computing, whose promised
+advantage rests on treating the exponentially large amplitude --- the very object with no ontology --- as a real
+physical resource; this, we argue, is the tangible and possibly very costly risk of predicting from a theory that
+will not say what is real.
 \end{abstract}
 
 \setstretch{1.06}
@@ -144,6 +147,53 @@ is needed. That so many interpretations coexist is not the sign of a rich theory
 the formalism does not say what exists, so the saying is handed to philosophy. A discipline that must maintain a
 permanent philosophy-of-itself to cope with its own foundations is a discipline that has mislaid something, and
 what it has mislaid is its ontology.
+
+\section{A warning example: the quantum-computing bet}
+
+To rely on a theory that cannot say what exists is not merely awkward; it is \emph{risky}, because such a theory
+can predict, with full formal authority, the behaviour of things that may not be there. The clearest present case
+is quantum computing, and it is worth setting out as a concrete warning.
+
+Its entire promised advantage rests on one object: the joint state of $n$ qubits, an amplitude
+$|\Psi\rangle=\sum_{x} c_x\,|x\rangle$ in a Hilbert space of dimension $2^n$, treated as a real physical resource
+that holds $2^n$ complex amplitudes \emph{at once}, so that a single operation acts on all of them in parallel.
+But this is exactly Schr\"odinger's configuration-space amplitude $\Psi(\mathbf x_1,\dots,\mathbf x_N)$ in the
+register's guise --- the very object whose ontology was surrendered in 1926, and to which Kohn's verdict (not a
+legitimate scientific concept beyond a handful of particles, unrecordable even in principle) applies with full
+force. Quantum computing thus quietly readopts, as a manipulable physical resource, the object its own
+foundations declare not to be a thing in the world. One cannot have it both ways: either the exponentially large
+amplitude is real --- reinstating the abandoned ontology, and the measurement problem with it --- or it is
+bookkeeping for the statistics of real systems, in which case there is no exponential thing to compute with.
+
+RealQM takes the second horn concretely. The real things are charge densities in ordinary three-dimensional
+space, evolving deterministically; the $2^n$-dimensional register state is a compact description of what is
+really a modest number of charge configurations in three dimensions, not an exponential resource. On this reading
+there is nothing exponential in the device to be acted on all at once, and the expected speedup has no physical
+substrate. \emph{Decoherence} then is not the incidental nuisance the engineering programme takes it to be but the
+outward sign that the large coherent superposition was never a robust physical thing: the system relaxes to what
+it always was, real charge in real space, and the error-correction overhead that grows without bound as the
+register grows is the price of maintaining a fiction.
+
+Here the missing ontology stops being a seminar topic and becomes a matter of public consequence. Because the
+theory cannot say whether the exponential amplitude is real, it predicts, with full formal authority, that a
+large enough well-isolated register will compute in exponential parallel --- and very large public and private
+funds are committed on the strength of that prediction. If the amplitude is real, the investment is sound; if it
+is a formal artefact, the honest expected return at the scale that would matter is zero, and a generation's
+funding and talent are directed toward the behaviour of something that was never there. That is the concrete, and
+possibly very large, price of accepting a theory that will not say what is real.
+
+The point must be stated as the falsifiable wager it is. Small-scale quantum devices are real and have done real
+things --- entangling gates, small algorithms, sampling tasks argued to be classically hard. The claim is not
+that nothing works; it concerns the \emph{scalable, fault-tolerant} regime in which a genuine exponential
+advantage on useful problems would appear, and there the question is open --- as a serious minority in the field
+also argues, on the ground that noise may be a fundamental barrier rather than an incidental one. The ontological
+reading sharpens this into a prediction: with no real exponential object, scalable fault-tolerant advantage on
+useful problems will not arrive, and the effort will asymptote to a plateau rather than the promised horizon. If a
+fault-tolerant machine solves a classically intractable, useful problem at scale, the critique is \emph{wrong},
+and the exponential amplitude must be granted physical reality, with all that follows for the foundations. If,
+decade on decade, the overhead outruns the progress and the horizon recedes, the episode will stand as the
+costliest demonstration in the history of physics that prediction without ontology is a gamble the discipline
+should not have made so lightly.
 
 \section{Coda: the road not taken}
 
