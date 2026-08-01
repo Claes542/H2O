@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>H + H vs H₂ — the bond, side by side (RealQM)</title>
+<style>
+  body{margin:0;background:#0b0e12;color:#e8eef5;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;}
+  .wrap{max-width:1060px;margin:0 auto;padding:16px 18px 40px;}
+  h1{font-size:19px;color:#80cbc4;margin:0 0 3px;}
+  .sub{color:#8b97a6;font-size:12.5px;margin-bottom:12px;}
+  .bind{background:#0e1319;border:1px solid #263042;border-left:3px solid #80cbc4;border-radius:8px;
+    padding:12px 16px;margin:0 0 14px;font-family:ui-monospace,Menlo,monospace;font-size:14px;}
+  .bind b{color:#80cbc4;} .bind .ok{color:#7ee0a0;}
+  .row{display:flex;gap:16px;flex-wrap:wrap;}
+  .col{flex:0 0 auto;}
+  .col h2{font-size:14px;margin:0 0 6px;}
+  .col.a h2{color:#ffcc80;} .col.b h2{color:#80cbc4;}
+  .frame{background:#000;border:1px solid #232b36;border-radius:8px;overflow:hidden;}
+  iframe{width:500px;height:752px;border:0;display:block;background:#000;}
+  @media(max-width:1040px){ iframe{width:460px;height:700px;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>The hydrogen bond, side by side</h1>
+  <div class="sub">The same RealQM solver, same mesh (8 au box), two separations: two isolated H atoms
+    (R = 4 au, dissociated) vs the H₂ molecule (R = 1.5 au). The bond energy is their difference — and
+    because both share the mesh, the systematic over-binding cancels.</div>
+
+  <div class="bind" id="bind">binding energy: waiting for both panels to converge…</div>
+
+  <div class="row">
+    <div class="col a">
+      <h2>H — one atom (box=8, soft=2), centred</h2>
+      <div class="frame"><iframe id="fA" src="essence_solver.html?stage=H"></iframe></div>
+    </div>
+    <div class="col b">
+      <h2>H₂ — bonded (R = 1.5 au)</h2>
+      <div class="frame"><iframe id="fB" src="essence_solver.html?stage=H2&R=1.5"></iframe></div>
+    </div>
+  </div>
+</div>
+
+<script>
+function E(id){ try{ var w=document.getElementById(id).contentWindow; return (typeof w._E==='number'&&isFinite(w._E))?w._E:null; }catch(e){ return null; } }
+function fmt(x){ return (x>=0?'+':'−')+Math.abs(x).toFixed(4); }
+setInterval(function(){
+  var eA=E('fA'), eB=E('fB'), el=document.getElementById('bind');
+  if (eA===null||eB===null){ return; }
+  var bind = 2*eA - eB;   // 2*E(H) - E(H2) = binding energy (positive if bound)
+  el.innerHTML = 'E(H) = <b>'+fmt(eA)+'</b> Ha &nbsp;·&nbsp; E(H₂, R=1.5) = <b>'+fmt(eB)+'</b> Ha'
+    + '&nbsp; &rarr; &nbsp; E_bind = 2·E(H) − E(H₂) = <span class="'+(Math.abs(bind-0.174)<0.05?'ok':'')+'">'
+    + fmt(bind)+'</span> Ha &nbsp;(experiment 0.174; same box=8 mesh &amp; soft=2)';
+}, 500);
+</script>
+</body>
+</html>

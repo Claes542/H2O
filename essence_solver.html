@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>RealQM essence solver stage</title>
+<style>html,body{margin:0;background:#0b0e12}</style>
+</head>
+<body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+<script>
+window.onerror=function(m,u,l){var d=document.createElement('div');d.style.cssText='position:fixed;left:4px;top:4px;z-index:9;background:#a00;color:#fff;font:12px monospace;padding:8px;white-space:pre-wrap;max-width:96vw';d.textContent='ERR: '+m+' @line '+l;document.body.appendChild(d);};
+// Parameterized CPU RealQM solver, faithful to h2_p5_original.html (gives H2 ~ -1.17).
+// Stage via ?stage=H|H2|He. He = H2 with the two kernels merged and V_KK switched off.
+var params = new URLSearchParams(location.search);
+var stage = params.get('stage'); if (['H','H2','He'].indexOf(stage)<0) stage='H2';
+var CFG = {
+  H:  { nElec:1, R:0,    box:8, soft:1.0, vkk:false, ref:'exact -0.5000',              note:'one H atom, centred (same box=8 mesh, soft=1 as H2)' },
+  H2: { nElec:2, R:1.44, box:8, soft:1.0, vkk:true,  ref:'KW exact -1.1745 (E(R=1.4))', note:'two +1 kernels, R=1.44 au' },
+  He: { nElec:2, R:0,    box:8, soft:0.2, vkk:false, ref:'exact -2.9037 (HF -2.8617)',  note:'+2 kernel (R=0), V_KK off; slide R+ for H+H' }
+}[stage];
+var Rover=parseFloat(params.get('R')); if (isFinite(Rover)) CFG.R=Rover;   // ?R= overrides the H-H separation
+
+var BOX=CFG.box||6, N=100, N2=50, h=BOX/N, d=0.25, dt=d*h*h, M=CFG.nElec+1;   // d<1/3 for stability
+var RCUT=BOX/2 - 2*h;   // domain radius cutoff, just inside the box edge
+var STEPS_PER_FRAME=8, MAXSTEP=20000;
+var u=[],w=[],P=[],K=[],c=[],norm=[];
+var E=0,Ek=0,Ep=0,V_KK=0,t=0;
+var nucA, nucB, SOFT=1, ALPHA=0, SEP=0, view3d=false;   // ALPHA=overlap strength (0 with hard-Neumann); SEP=H-H sep; view3d=3D toggle
+
+function computeK(){   // (re)build the nuclear kernel with current softening SOFT
+  for (var i=0;i<N+1;i++) for (var j=0;j<N+1;j++) for (var k=0;k<N+1;k++){
+    var r1=Math.sqrt(Math.pow((i-nucA)*h,2)+Math.pow((j-N2)*h,2)+Math.pow((k-N2)*h,2)+SOFT*h*h);
+    var r2=Math.sqrt(Math.pow((i-nucB)*h,2)+Math.pow((j-N2)*h,2)+Math.pow((k-N2)*h,2)+SOFT*h*h);
+    K[i][j][k]=(CFG.nElec===1)?(1/r1):(1/r1+1/r2);
+  }
+}
+function tailEstimate(){
+  // Norm & energy OUTSIDE the box, as a FLUX through the 6 cube faces (not a sphere!):
+  // beyond a face the density decays ~e^{-2*kappa*x}, so integral = (face density)/(2*kappa).
+  var L=BOX/2;
+  function rho(i,j,k){ var a=u[1][i][j][k], b=(M>2?u[2][i][j][k]:0); return a*a+b*b; }
+  // decay rate kappa from the axis just inside the +x wall
+  var iA=Math.round(N2+(L-0.6)/h), iB=Math.round(N2+(L-0.2)/h);
+  var rA=rho(iA,N2,N2), rB=rho(iB,N2,N2); if (rA<=0||rB<=0) return null;
+  var kappa=0.5*Math.log(rA/rB)/((iB-iA)*h); if (!(kappa>0)) return null;
+  var half=0.5*kappa*kappa, decay=1/(2*kappa), sN=0, sE=0, lo=1, hi=N-1;
+  function acc(i,j,k){
+    var rr=rho(i,j,k); if (rr<=0) return;
+    var ra=Math.sqrt(Math.pow((i-nucA)*h,2)+Math.pow((j-N2)*h,2)+Math.pow((k-N2)*h,2));
+    var rb=Math.sqrt(Math.pow((i-nucB)*h,2)+Math.pow((j-N2)*h,2)+Math.pow((k-N2)*h,2));
+    var rmin=Math.min(ra,rb)+1e-9;
+    sN+=rr; sE+=(half - kappa/rmin)*rr;   // energy density ~ 1/2|grad|^2 - Zeff/r, Zeff~kappa
+  }
+  for (var j=lo;j<=hi;j++) for (var k=lo;k<=hi;k++){ acc(lo,j,k); acc(hi,j,k); }
+  for (var i=lo;i<=hi;i++) for (var k=lo;k<=hi;k++){ acc(i,lo,k); acc(i,hi,k); }
+  for (var i=lo;i<=hi;i++) for (var j=lo;j<=hi;j++){ acc(i,j,lo); acc(i,j,hi); }
+  return {kappa:kappa, dN:sN*h*h*decay, dE:sE*h*h*decay};
+}
+function keyPressed(){   // tune softening live: +/-
+  if (M<3) return;
+  if (key==='+'||key==='=') SOFT=Math.min(3.0, Math.round((SOFT+0.1)*10)/10);
+  else if (key==='-'||key==='_') SOFT=Math.max(0.1, Math.round((SOFT-0.1)*10)/10);
+  else return;
+  computeK();
+}
+
+function reseed(){   // (re)initialize densities, kernel, domains for the current SEP (H-H separation)
+  var hd = Math.round((CFG.nElec===1?0:SEP)/(2*h));
+  nucA = (CFG.nElec===1) ? N2 : N2-hd;
+  nucB = (CFG.nElec===1) ? N2 : N2+hd;
+  for (var m=1;m<M;m++) for (var i=0;i<N+1;i++) for (var j=0;j<N+1;j++) for (var k=0;k<N+1;k++){ w[m][i][j][k]=0; P[m][i][j][k]=0; }
+  for (var i=0;i<N+1;i++) for (var j=0;j<N+1;j++) for (var k=0;k<N+1;k++){
+    var r1 = Math.sqrt(Math.pow((i-nucA)*h,2)+Math.pow((j-N2)*h,2)+Math.pow((k-N2)*h,2)+SOFT*h*h);
+    var r2 = Math.sqrt(Math.pow((i-nucB)*h,2)+Math.pow((j-N2)*h,2)+Math.pow((k-N2)*h,2)+SOFT*h*h);
+    u[1][i][j][k] = Math.exp(-r1);
+    if (M>2){ u[2][i][j][k]=Math.exp(-r2); P[1][i][j][k]=0.5/r2; P[2][i][j][k]=0.5/r1; }
+  }
+  computeK();
+  for (var i=0;i<N+1;i++) for (var j=0;j<N+1;j++) for (var k=0;k<N+1;k++){
+    var rc=Math.sqrt(Math.pow((i-N2)*h,2)+Math.pow((j-N2)*h,2)+Math.pow((k-N2)*h,2));
+    if (CFG.nElec===1){
+      w[1][i][j][k] = 1;   // H: whole box is the domain
+    } else {
+      // 2 electrons: STRICT split at midplane (no overlap). Neumann (free) at the plane lets each
+      // cloud reach the BINDING REGION (feel both kernels) -> the bond, without the clouds co-locating.
+      if (i<N2){ w[1][i][j][k]=1; } else if (i>N2){ w[2][i][j][k]=1; } else { w[1][i][j][k]=0.5; w[2][i][j][k]=0.5; }
+      if (i>N2) u[1][i][j][k]=0;
+      if (i<N2) u[2][i][j][k]=0;
+      if (rc>RCUT){ w[1][i][j][k]=0; w[2][i][j][k]=0; }
+    }
+  }
+  V_KK = CFG.vkk ? 1/(2*hd*h) : 0; window._V_KK=V_KK;
+  t=0;
+}
+function setR(dr){ SEP=Math.max(0.0, Math.min(6.0, Math.round((SEP+dr)*10)/10)); reseed(); }
+
+function setup(){
+  createCanvas(500,752);
+  for (var m=1;m<M;m++){ u[m]=[]; w[m]=[]; P[m]=[]; c[m]=0; norm[m]=0; }
+  for (var m=1;m<M;m++) for (var i=0;i<N+1;i++){ u[m][i]=[]; w[m][i]=[]; P[m][i]=[]; if(m===1)K[i]=[];
+    for (var j=0;j<N+1;j++){ u[m][i][j]=[]; w[m][i][j]=[]; P[m][i][j]=[]; if(m===1)K[i][j]=[];
+      for (var k=0;k<N+1;k++){ u[m][i][j][k]=0; w[m][i][j][k]=0; P[m][i][j][k]=0; if(m===1)K[i][j][k]=0; } } }
+
+  SOFT = CFG.soft || 1;
+  SEP  = CFG.R || 0;
+  reseed();
+
+  if (M>2){   // clickable softening + overlap controls for both 2-electron stages
+    var bp=createButton('soft +'); bp.position(340,7); bp.style('font-size','12px'); bp.style('cursor','pointer');
+    bp.mousePressed(function(){ SOFT=Math.min(3.0, Math.round((SOFT+0.1)*10)/10); computeK(); });
+    var bm=createButton('soft −'); bm.position(405,7); bm.style('font-size','12px'); bm.style('cursor','pointer');
+    bm.mousePressed(function(){ SOFT=Math.max(0.1, Math.round((SOFT-0.1)*10)/10); computeK(); });
+    // vary the kernel separation R (H2: through the bond & dissociation; He: H+H -> merged +2)
+    var rp=createButton('R +'); rp.position(340,32); rp.style('font-size','12px'); rp.style('cursor','pointer');
+    rp.mousePressed(function(){ setR(0.5); });
+    var rm=createButton('R −'); rm.position(405,32); rm.style('font-size','12px'); rm.style('cursor','pointer');
+    rm.mousePressed(function(){ setR(-0.5); });
+  }
+}
+
+function relaxOnce(){
+  E=0; Ek=0; Ep=0;
+  for (var i=1;i<N;i++) for (var j=1;j<N;j++) for (var k=1;k<N;k++){
+    var Kloc=K[i][j][k];   // overlap reduction: where the two clouds share the bond, trim the kernel
+    if (M>2){ var ra=u[1][i][j][k]*u[1][i][j][k], rb=u[2][i][j][k]*u[2][i][j][k], sr=ra+rb;
+      if (sr>1e-12) Kloc *= 1 - ALPHA*(1 - Math.max(ra,rb)/sr); }
+    for (var m=1;m<M;m++){
+      if (M>2){ if (m===1 && i>N2) continue; if (m===2 && i<N2) continue; }   // strict half-domain (no overlap)
+      var c0=u[m][i][j][k];
+      // HARD-CODED NEUMANN at the separation plane: the out-of-half x-neighbor mirrors the in-half one
+      // (du/dn=0), so the Laplacian/gradient take input only from this electron's own half-space.
+      var xp = (M>2 && m===1 && i===N2) ? u[1][i-1][j][k] : u[m][i+1][j][k];
+      var xm = (M>2 && m===2 && i===N2) ? u[2][i+1][j][k] : u[m][i-1][j][k];
+      var lap = (xp+xm-2*c0) + (u[m][i][j+1][k]+u[m][i][j-1][k]-2*c0) + (u[m][i][j][k+1]+u[m][i][j][k-1]-2*c0);
+      u[m][i][j][k] = c0 + 0.5*d*lap + dt*(Kloc-2*P[m][i][j][k])*c0;
+
+      if (M>2){
+        P[1][i][j][k]=P[1][i][j][k]+dt*(P[1][i+1][j][k]-6*P[1][i][j][k]+P[1][i-1][j][k]+P[1][i][j+1][k]+P[1][i][j-1][k]+P[1][i][j][k+1]+P[1][i][j][k-1])/(h*h)+2*Math.PI*dt*Math.pow(u[2][i][j][k],2);
+        P[2][i][j][k]=P[2][i][j][k]+dt*(P[2][i+1][j][k]-6*P[2][i][j][k]+P[2][i-1][j][k]+P[2][i][j+1][k]+P[2][i][j-1][k]+P[2][i][j][k+1]+P[2][i][j][k-1])/(h*h)+2*Math.PI*dt*Math.pow(u[1][i][j][k],2);
+      }
+      var ww=(M>2)?w[m][i][j][k]:1;   // energy over each half (plane counted 0.5 each -> once total)
+      if (ww>0){
+        var gx = (M>2 && m===1 && i===N2) ? 0 : (u[m][i+1][j][k]-c0);   // grad u: input only from the half-space
+        Ek=Ek+ww*0.5*(gx*gx + Math.pow(u[m][i][j+1][k]-c0,2) + Math.pow(u[m][i][j][k+1]-c0,2))*h;
+        Ep=Ep+ww*(P[m][i][j][k]-Kloc)*c0*c0*Math.pow(h,3);
+      }
+    }
+  }
+  E=Ep+Ek+V_KK; window._E=E;
+  for (var m=1;m<M;m++){ norm[m]=0;
+    for (var i=1;i<N;i++) for (var j=1;j<N;j++) for (var k=1;k<N;k++) norm[m]+=(M>2?w[m][i][j][k]:1)*Math.pow(u[m][i][j][k],2)*Math.pow(h,3);
+    if (norm[m]>0) for (var i=1;i<N;i++) for (var j=1;j<N;j++) for (var k=1;k<N;k++) u[m][i][j][k]/=Math.sqrt(norm[m]);
+  }
+}
+
+function drawSurface(){
+  // surface-elevation (relief) map of the density over the i-j section through the kernel (k=N2):
+  // height = density, isometric-ish (j = depth into the screen), red=electron1, blue=electron2.
+  var cx=250, cyb=470, PX=4.6, DEP=1.7, H=200;
+  var pts=[];
+  for (var i=1;i<N;i++) for (var j=1;j<N;j++){
+    var d1=u[1][i][j][N2], d2=(M>2?u[2][i][j][N2]:0), dm=(d1>d2?d1:d2);
+    if (dm<0.02) continue;
+    var ci=i-N2, cj=j-N2;
+    pts.push([cx+ci*PX, cyb+cj*DEP - H*dm, cj, d1, d2, dm]);
+  }
+  pts.sort(function(a,b){ return b[2]-a[2]; });   // far (large j) first -> back-to-front
+  noStroke();
+  for (var p=0;p<pts.length;p++){
+    var P=pts[p], a=Math.min(235,70+255*P[5]);
+    if (P[3]>=P[4]) fill(255,80,80,a); else fill(80,140,255,a);
+    circle(P[0], P[1], 3.6);
+  }
+  // kernel markers on the base line
+  fill(255,220,0);
+  circle(cx+(nucA-N2)*PX, cyb, 6); if (nucB!==nucA) circle(cx+(nucB-N2)*PX, cyb, 6);
+  fill(150); textSize(10); text("density as surface elevation over the section through the kernel (k=mid)",8,90);
+}
+
+function drawCode(){
+  // the 4-line essence, on the canvas
+  noStroke(); fill(6,9,13,215); rect(0,0,500,78);
+  textFont('monospace'); textSize(10); fill(130,200,190);
+  text("// RealQM: each electron is a charge cloud u(x) in its own domain (Neumann interface)",6,14);
+  fill(222,232,228);
+  text("u ← u + dt·[ ½∇²u + (K − 2P)·u ]        relax: kinetic + kernels K − repulsion 2P",6,32);
+  text("P ← P + dt·[ ∇²P + 2π·u_other² ]         other cloud's Coulomb potential (Poisson)",6,48);
+  text("u ← u / √∫u²                     one electron/cloud; bond = charge feeling BOTH kernels",6,64);
+  textFont('sans-serif');
+}
+
+function draw(){
+  background(11,14,18);
+  if (t<MAXSTEP){ for (var s=0;s<STEPS_PER_FRAME;s++){ relaxOnce(); t++; } }
+  drawSurface();
+  drawCode();
+
+  // Cross-section through the nucleus over the WHOLE domain (row j=k=N2):
+  // K = kernel level (cyan), u = density (red/blue). Yellow ticks = nucleus (kernel) positions.
+  var base=596;
+  noStroke(); fill(6,9,13,215); rect(0,base-95,500,99);
+  fill(150); textSize(10);
+  text("cross-section thru nucleus, whole domain (0–"+BOX+" au):  K = kernel (cyan)   u = density (red/blue)"
+       +(M>2?("   soft="+SOFT.toFixed(1)):""),6,base-80);
+  noFill(); strokeWeight(1.5);
+  stroke(0,220,220);
+  beginShape(); for (var i=1;i<N;i++) vertex(5*i, base - K[i][N2][N2]); endShape();
+  var iu1=(M>2)?N2:(N-1);   // draw each electron only within its own half (no drop-to-zero at the plane)
+  stroke(255,90,90);
+  beginShape(); for (var i=1;i<=iu1;i++) vertex(5*i, base - 55*u[1][i][N2][N2]); endShape();
+  if (M>2){ stroke(90,140,255);
+    beginShape(); for (var i=N2;i<N;i++) vertex(5*i, base - 55*u[2][i][N2][N2]); endShape(); }
+  noStroke();
+  stroke(255,210,0); strokeWeight(1.2);
+  line(5*nucA,base-90,5*nucA,base); if (nucB!==nucA) line(5*nucB,base-90,5*nucB,base);
+  noStroke();
+
+  // BLOW-UP near the nucleus at grid resolution (softening vs grid spacing)
+  var b2=698, span=12, i0=nucA-span, i1=nucA+span, nc=(i1-i0), px2=500/nc;
+  noStroke(); fill(6,9,13,215); rect(0,b2-95,500,99);
+  stroke(38,50,64); strokeWeight(1);
+  for (var g=0; g<=nc; g++){ line(g*px2,b2-86,g*px2,b2); }   // one tick per GRID CELL
+  noStroke(); fill(150); textSize(10);
+  text("BLOW-UP at nucleus, "+px2.toFixed(0)+" px/grid-cell:  K cusp softened over √soft ≈ "
+       +Math.sqrt(SOFT).toFixed(1)+" cells",6,b2-80);
+  noFill(); strokeWeight(1.8);
+  stroke(0,220,220); beginShape(); for (var i=i0;i<=i1;i++) vertex((i-i0)*px2, b2 - K[i][N2][N2]); endShape();
+  var e1hi=(M>2)?Math.min(i1,N2):i1, e2lo=Math.max(i0,N2);   // each electron only within its half
+  stroke(255,90,90); beginShape(); for (var i=i0;i<=e1hi;i++) vertex((i-i0)*px2, b2 - 55*u[1][i][N2][N2]); endShape();
+  if (M>2){ stroke(90,140,255); beginShape(); for (var i=e2lo;i<=i1;i++) vertex((i-i0)*px2, b2 - 55*u[2][i][N2][N2]); endShape(); }
+  noStroke(); fill(0,220,220); for (var i=i0;i<=i1;i++) circle((i-i0)*px2, b2 - K[i][N2][N2], 3);
+  stroke(255,210,0); strokeWeight(1.4); line((nucA-i0)*px2,b2-90,(nucA-i0)*px2,b2); noStroke();
+
+  // text
+  fill(230); textSize(13);
+  text(stage+"  ("+CFG.note+")",10,20);
+  textSize(16); fill(128,203,196);
+  text("E = "+(isFinite(E)?E.toFixed(4):"NaN")+" Ha",10,715);
+  textSize(11); fill(150);
+  text("step "+t+"   T="+Ek.toFixed(3)+"   V="+Ep.toFixed(3)+(CFG.vkk?("   V_KK="+V_KK.toFixed(3)):"")+(M>2?("   soft="+SOFT.toFixed(1)+"  R="+SEP.toFixed(1)+"au"):"")+"   ref: "+CFG.ref,10,727);
+}
+</script>
+</body>
+</html>

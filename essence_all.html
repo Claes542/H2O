@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RealQM essence — H, H₂, He in parallel</title>
+<style>
+  body{margin:0;background:#0b0e12;color:#e8eef5;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;}
+  .wrap{max-width:1560px;margin:0 auto;padding:14px 16px 40px;}
+  h1{font-size:19px;color:#80cbc4;margin:0 0 3px;}
+  .sub{color:#8b97a6;font-size:12.5px;margin-bottom:10px;}
+  .bind{background:#0e1319;border:1px solid #263042;border-left:3px solid #80cbc4;border-radius:8px;
+    padding:10px 14px;margin:0 0 12px;font-family:ui-monospace,Menlo,monospace;font-size:13.5px;}
+  .bind b{color:#80cbc4;} .bind .ok{color:#7ee0a0;}
+  .row{display:flex;gap:12px;align-items:flex-start;}
+  .col{flex:1 1 0;min-width:0;}
+  .col h2{font-size:13px;margin:0 0 5px;}
+  .col.h h2{color:#cdd6df;} .col.b h2{color:#80cbc4;} .col.he h2{color:#ffcc80;}
+  .frame{background:#000;border:1px solid #232b36;border-radius:8px;overflow:hidden;
+    /* scale the 500-wide solver down so three fit across */
+    width:100%;aspect-ratio:500/752;}
+  .scaler{width:500px;height:752px;transform-origin:top left;}
+  iframe{width:500px;height:752px;border:0;display:block;background:#000;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>RealQM, the essence — H, H₂, He running in parallel</h1>
+  <div class="sub">Same CPU solver, same box=8 / soft=1 mesh. One atom, the molecule, and the two-electron
+    atom — the same four-line method, only the kernels and V<sub>KK</sub> differ.</div>
+
+  <div class="bind" id="bind">converging…</div>
+
+  <div class="row">
+    <div class="col h"><h2>H — one atom → −0.5</h2><div class="frame"><div class="scaler"><iframe id="fH" src="essence_solver.html?stage=H"></iframe></div></div></div>
+    <div class="col b"><h2>H₂ — the bond (R=1.44) → ≈ −1.2</h2><div class="frame"><div class="scaler"><iframe id="fH2" src="essence_solver.html?stage=H2"></iframe></div></div></div>
+    <div class="col he"><h2>He — two electrons, one +2 kernel → ≈ −2.9</h2><div class="frame"><div class="scaler"><iframe id="fHe" src="essence_solver.html?stage=He"></iframe></div></div></div>
+  </div>
+</div>
+
+<script>
+// scale each 500px solver to its column width
+function fit(){
+  document.querySelectorAll('.frame').forEach(function(fr){
+    var s = fr.clientWidth/500, sc = fr.querySelector('.scaler');
+    sc.style.transform = 'scale('+s+')';
+  });
+}
+window.addEventListener('resize', fit); setTimeout(fit,200); fit();
+
+function E(id){ try{ var w=document.getElementById(id).contentWindow; return (typeof w._E==='number'&&isFinite(w._E))?w._E:null; }catch(e){ return null; } }
+function fmt(x){ return (x>=0?'+':'−')+Math.abs(x).toFixed(4); }
+setInterval(function(){
+  var eH=E('fH'), eH2=E('fH2'), eHe=E('fHe'), el=document.getElementById('bind');
+  var parts=[];
+  parts.push('E(H) = '+(eH!==null?'<b>'+fmt(eH)+'</b>':'…'));
+  parts.push('E(H₂) = '+(eH2!==null?'<b>'+fmt(eH2)+'</b>':'…'));
+  parts.push('E(He) = '+(eHe!==null?'<b>'+fmt(eHe)+'</b>':'…'));
+  var line = parts.join(' Ha &nbsp;·&nbsp; ') + ' Ha';
+  if (eH!==null && eH2!==null){ var b=2*eH-eH2;
+    line += '&nbsp; &rarr; &nbsp; H₂ bond E_bind = 2·E(H) − E(H₂) = <span class="'+(Math.abs(b-0.174)<0.06?'ok':'')+'">'+fmt(b)+'</span> Ha (exp 0.174)';
+  }
+  el.innerHTML = line;
+}, 500);
+</script>
+</body>
+</html>
