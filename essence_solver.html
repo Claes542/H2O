@@ -95,7 +95,7 @@ function reseed(){   // (re)initialize densities, kernel, domains for the curren
 function setR(dr){ SEP=Math.max(0.0, Math.min(6.0, Math.round((SEP+dr)*10)/10)); reseed(); }
 
 function setup(){
-  createCanvas(500,752);
+  createCanvas(500,824);
   for (var m=1;m<M;m++){ u[m]=[]; w[m]=[]; P[m]=[]; c[m]=0; norm[m]=0; }
   for (var m=1;m<M;m++) for (var i=0;i<N+1;i++){ u[m][i]=[]; w[m][i]=[]; P[m][i]=[]; if(m===1)K[i]=[];
     for (var j=0;j<N+1;j++){ u[m][i][j]=[]; w[m][i][j]=[]; P[m][i][j]=[]; if(m===1)K[i][j]=[];
@@ -174,18 +174,19 @@ function drawSurface(){
   // kernel markers on the base line
   fill(255,220,0);
   circle(cx+(nucA-N2)*PX, cyb, 6); if (nucB!==nucA) circle(cx+(nucB-N2)*PX, cyb, 6);
-  fill(150); textSize(10); text("density as surface elevation over the section through the kernel (k=mid)",8,90);
+  fill(150); textSize(10); text("density as surface elevation over the section through the kernel (k=mid)",8,16);
 }
 
 function drawCode(){
-  // the 4-line essence, on the canvas
-  noStroke(); fill(6,9,13,215); rect(0,0,500,78);
+  // the 4-line essence, at the BOTTOM of the canvas (clear of the surface)
+  var y0=740;
+  noStroke(); fill(6,9,13,220); rect(0,y0,500,84);
   textFont('monospace'); textSize(10); fill(130,200,190);
-  text("// RealQM: each electron is a charge cloud u(x) in its own domain (Neumann interface)",6,14);
+  text("// RealQM: each electron is a charge cloud u(x) in its own domain (Neumann interface)",6,y0+14);
   fill(222,232,228);
-  text("u ← u + dt·[ ½∇²u + (K − 2P)·u ]        relax: kinetic + kernels K − repulsion 2P",6,32);
-  text("P ← P + dt·[ ∇²P + 2π·u_other² ]         other cloud's Coulomb potential (Poisson)",6,48);
-  text("u ← u / √∫u²                     one electron/cloud; bond = charge feeling BOTH kernels",6,64);
+  text("u ← u + dt·[ ½∇²u + (K − 2P)·u ]        relax: kinetic + kernels K − repulsion 2P",6,y0+32);
+  text("P ← P + dt·[ ∇²P + 2π·u_other² ]         other cloud's Coulomb potential (Poisson)",6,y0+48);
+  text("u ← u / √∫u²                     one electron/cloud; bond = charge feeling BOTH kernels",6,y0+64);
   textFont('sans-serif');
 }
 
