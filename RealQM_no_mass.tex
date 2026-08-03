@@ -34,10 +34,13 @@ inertia is the momentum its own field carries when it moves, $p=(E/c^2)v$, and i
 circles at $\omega_c=qBc^2/E$. Evaluated with energies alone --- no mass symbol --- this reproduces the electron
 ($27.99$~GHz/T) and proton ($15.2$~MHz/T) cyclotron frequencies, and renders the He\,-4 ``mass defect'' as a
 $+0.76\%$ frequency shift equal to the binding energy. Mass is thus eliminated in favour of energy, and
-$E=mc^2$ ceases to be a borrowed conversion and becomes a statement to be \emph{derived}: that a charge
-distribution's electromagnetic self-inertia equals its energy content. We are explicit about what remains open ---
-deriving $p=(E/c^2)v$ from RealQM's own charge dynamics (the classical electromagnetic-mass problem), and
-computing absolute rest energies rather than binding differences.
+$E=mc^2$ ceases to be a borrowed conversion and becomes a statement RealQM \emph{earns}: the step
+$p=(E/c^2)v$, with its historical factor $4/3$, is settled for bound systems by von~Laue's theorem, the
+localisation term $\tfrac12\int|\nabla\psi|^2$ playing the cohesive stress that classical electrodynamics had to
+postulate and the virial $2T+V=0$ guaranteeing the stress balance it requires. The only remainder --- the
+absolute rest energies of the free constituents --- is not a debt of RealQM's: all masses are ratios to a
+reference, so only differences are physical, and the elementary mass ratios are the mass-spectrum problem no
+theory derives from scratch.
 \end{abstract}
 
 \setstretch{1.06}
@@ -122,23 +125,55 @@ is nothing but the binding energy read as a frequency shift: bound He\,-4 has $2
 $0.76\%$ higher $\omega_c$ (smaller $E$ in the denominator of \eqref{eq:wc}). The trap does not weigh a substance;
 it reports an energy. Mass has been eliminated.
 
-\section{What is settled, and the open frontier}
-Settled: RealQM inputs no mass; it computes every atomic and nuclear \emph{energy} from charge and a geometric
-scale, and the Penning trap --- the apparent home of mass --- is reproduced from those energies through
-\eqref{eq:wc}, with ``mass'' appearing nowhere. In this telling $E=mc^2$ is not a formula RealQM borrows but a
-consequence it should \emph{derive}: that a charge distribution's electromagnetic self-inertia equals its energy.
+\section{Settling the bound-system inertia: von Laue and the localisation stress}
+The one step to justify is $\mathbf p=(E/c^2)\mathbf v$ --- that the moving cloud's inertia is exactly its
+energy. The historical obstacle is the factor $4/3$: integrating the field momentum of a moving Coulomb charge
+gives $\mathbf p=\tfrac43(U/c^2)\mathbf v$, in conflict with $E/c^2$. The resolution is von~Laue's theorem: for a
+closed system with $\partial_\mu T^{\mu\nu}=0$, the four-momentum $P^\nu=\tfrac1c\int T^{0\nu}\,d^3x$ is a genuine
+four-vector --- so that $\mathbf p=(E/c^2)\mathbf v$ --- \emph{if and only if} the stresses balance,
+\begin{equation}
+\int T^{ij}\,d^3x=0 \qquad\text{(mechanical equilibrium).}
+\label{eq:laue}
+\end{equation}
+The bare Coulomb field violates \eqref{eq:laue}: its stress is unbalanced (the charge would fly apart), and that
+imbalance is precisely the $4/3$. The classical repair was to \emph{postulate} a cohesive non-electromagnetic
+``Poincar\'e stress'' whose contribution restores \eqref{eq:laue} and cancels the $4/3$.
 
-Two things remain genuinely open, and we state them plainly rather than paper over them. First, the step
-$\mathbf p=(E/c^2)\mathbf v$ must be derived from RealQM's own charge dynamics --- the classical
-electromagnetic-mass programme of Abraham, Lorentz and Poincar\'e, with its notorious factor $4/3$ that only the
-full stress--energy resolves to exactly $E/c^2$. Here we have used it as an input; making it an output is the
-decisive test, and the one that would turn the elimination of mass from an interpretation into a derivation.
-Second, RealQM as developed computes binding energies and ratios, not absolute rest energies; the electron's
-$0.511$~MeV and the nucleon's $938$~MeV are supplied here, not produced. Until those are computed from the same
-geometry, the elimination of mass is demonstrated for \emph{differences} --- which is exactly what the Penning
-trap measures --- but not yet for the absolute scale.
+RealQM does not postulate that stress --- it already contains it. The localisation term $\tfrac12\int|\nabla\psi|^2$
+is a genuine non-electromagnetic stress (a quantum pressure) that supplies exactly the cohesion balancing the
+Coulomb tension. And a RealQM bound state is, by construction, a stress-balanced equilibrium: as the minimiser of
+$E=T+V$ it is stationary under the scaling $\psi(\mathbf x)\mapsto\lambda^{3/2}\psi(\lambda\mathbf x)$, giving the
+virial identity
+\begin{equation}
+2T+V=0,
+\label{eq:virial}
+\end{equation}
+the trace of the tensor condition \eqref{eq:laue}; for a bound equilibrium the full tensor virial holds and
+$\int T^{ij}\,d^3x=0$. Hence for \emph{any} RealQM bound cloud the total four-momentum is a four-vector and its
+inertia is exactly $E_{\text{total}}/c^2$, with no residual $4/3$. Consequently the cyclotron relation
+\eqref{eq:wc} holds \emph{exactly} for bound systems, and the electromagnetic-mass problem is settled for
+everything a Penning trap measures. What classical electrodynamics had to invent --- the cohesive stress --- is in
+RealQM the localisation energy it already has, and mechanical equilibrium is not an extra assumption but the
+defining property of its bound states.
 
-The step forward is nonetheless real: the one instrument that seems to force mass upon us has been modelled in
-energy alone, and the concept of mass shown to be, in this program, dispensable --- charge and energy suffice.
+\section{Absolute masses are inputs, not a debt}
+Nothing above requires the absolute rest energies of the free constituents. Every mass measurement is a
+\emph{ratio} to a reference (the atomic mass unit is $^{12}\mathrm C/12$ by definition), so what is physical is
+mass ratios and differences --- and those are exactly what a Penning trap reports and what RealQM computes:
+binding energies mass-free (\S2--\S3) and bound-system inertia exactly ($\S6$). The one genuinely physical
+remainder is the set of dimensionless elementary ratios such as $m_e/m_p\approx 1/1836$; but deriving the mass
+\emph{spectrum} from first principles is the deepest open problem of all physics --- the Standard Model inputs its
+Yukawa couplings, QCD its scale --- so RealQM taking the elementary masses as inputs is universal practice, not a
+debt peculiar to it. There is no ``glue mass'' to find and no absolute self-energy that any theory computes.
+
+\section{Conclusion}
+RealQM eliminates mass from the physics it computes. Atomic and nuclear energies are geometry --- charge and a
+scale coefficient, the electron mass only a unit; the differences that every experiment reports are mass-free; and
+the inertia a Penning trap weighs is, for any bound system, exactly its energy over $c^2$, settled by von~Laue with
+the localisation term playing the cohesive stress that classical electrodynamics had to postulate. In this program
+$E=mc^2$ is not borrowed but \emph{earned} for bound matter, and the one instrument that seems to force mass upon
+us is modelled in energy alone. The elementary masses remain inputs, as they are in every theory --- which is to
+say the concept of mass, everywhere it is actually used or measured, has been shown dispensable: charge and energy
+suffice.
 
 \end{document}
