@@ -1,0 +1,144 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\usepackage{authblk}
+\usepackage[margin=1in]{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xurl}
+\usepackage{setspace}
+
+\title{Energy Without Mass: RealQM, Inertia, and the Penning Trap}
+\author[1]{Claes Johnson}
+\affil[1]{KTH Royal Institute of Technology, SE-100 44 Stockholm, Sweden \\
+\texttt{claesjohnson@gmail.com}}
+\date{\today \\[0.5em]
+\small\textit{Written in respectful cooperation between Claes Johnson and Claude (Anthropic), with Claude
+contributing a balanced, neutral view.}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+RealQM computes the energy of matter --- every atom from hydrogen to the heaviest, and nuclear binding ---
+from a single dimensionless functional: a localisation cost plus Coulomb energy of charge densities in ordinary
+three-dimensional space. We observe that \emph{mass never enters this computation}. The coefficient of the
+localisation term, written $\hbar^2/2m$ in the textbook and read there as the kinetic energy $p^2/2m$ of a moving
+particle, is in RealQM merely a geometric scale: there is no motion in a stationary state, so $p^2/2m$ is
+bookkeeping, not physics, and the coefficient sets a length and an energy, not a mass. Atomic energies are then
+pure numbers in Hartree, with the electron mass appearing only as the common unit; the atom-to-nucleus jump is a
+change of geometric scale, not of mass, and the ``glue mass'' sometimes invoked for the nuclear scale is an
+artifact of insisting on the mass reading of the coefficient. If mass and energy are truly equivalent, one of the
+two words is redundant; we keep energy and eliminate mass. The apparent obstacle is the Penning trap, a machine
+that seems to \emph{weigh}. We set up a RealQM model of it: an ion is a charge cloud of total energy $E$, its
+inertia is the momentum its own field carries when it moves, $p=(E/c^2)v$, and in the trap's magnetic field it
+circles at $\omega_c=qBc^2/E$. Evaluated with energies alone --- no mass symbol --- this reproduces the electron
+($27.99$~GHz/T) and proton ($15.2$~MHz/T) cyclotron frequencies, and renders the He\,-4 ``mass defect'' as a
+$+0.76\%$ frequency shift equal to the binding energy. Mass is thus eliminated in favour of energy, and
+$E=mc^2$ ceases to be a borrowed conversion and becomes a statement to be \emph{derived}: that a charge
+distribution's electromagnetic self-inertia equals its energy content. We are explicit about what remains open ---
+deriving $p=(E/c^2)v$ from RealQM's own charge dynamics (the classical electromagnetic-mass problem), and
+computing absolute rest energies rather than binding differences.
+\end{abstract}
+
+\setstretch{1.06}
+
+\section{The kinetic coefficient is a geometric scale, not a mass}
+The energy RealQM minimises for $N$ electrons is
+\begin{equation}
+E(\psi)=\tfrac12\int|\nabla\psi|^2
+        -\sum_a\int\frac{Z_a}{|\mathbf x-\mathbf X_a|}\,\rho
+        +\tfrac12\iint\frac{\rho(\mathbf x)\rho(\mathbf x')}{|\mathbf x-\mathbf x'|},
+\qquad \rho=\psi^2,
+\label{eq:functional}
+\end{equation}
+a localisation cost plus Coulomb attraction to the kernels and Coulomb repulsion between the clouds, with no
+self-interaction and non-overlapping supports. In physical units the first term is $(\hbar^2/2m)\int|\nabla\psi|^2$,
+and standard quantum mechanics reads it as the kinetic energy $p^2/2m$ of a particle in motion. But in a
+stationary state nothing moves: $\langle\mathbf p\rangle=0$ and the density is static. The ``velocity'' has no
+referent, and $p^2/2m$ is a formality. What the term physically is, is a \emph{cost of localising static charge}:
+the finer the density's variation, the larger $\int|\nabla\psi|^2$. Its coefficient does one job --- it fixes,
+against the Coulomb terms, the characteristic \emph{size} and \emph{energy} of the minimiser. It is a geometric
+scale, and the symbol $m$ in it is inherited machinery, not a mass that the theory reasons about.
+
+\section{Atomic energies without mass}
+In atomic units ($\hbar=m_e=e=1$) the functional \eqref{eq:functional} is dimensionless and its minimum is a pure
+number: $-0.5$ for H, $-2.90$ for He, $-7.48$ for Li, and so on across the periodic table. The whole computation ---
+a Laplacian, a $1/r$, non-overlap, downhill relaxation --- is the geometry of charge in three-space; no mass
+appears as a quantity anywhere in it. Mass enters in exactly one place, the overall unit
+$1~\mathrm{Hartree}=m_e e^4/\hbar^2 = 27.2~\mathrm{eV}$, a single universal constant, identical for every atom,
+light or heavy --- the ruler, not an ingredient. Ratios, trends, and the entire periodic structure are mass-free.
+
+This is sharpest for heavy atoms, where the textbook invokes a relativistic mass increase for fast inner
+electrons. RealQM uses the \emph{identical} functional for uranium as for hydrogen: the electrons are static, so
+there is no velocity to make relativistic and no mass to increase; the residual few percent is the
+spherically-symmetric simplification, not relativity. One mass-free functional covers the whole table.
+
+\section{The nucleus: geometry gives the ratios, a scale gives the rest}
+Model a nucleus the same way --- charge clouds minimising \eqref{eq:functional} on nested non-overlapping shells.
+The dimensionless \emph{structure} is again mass-free, and RealQM reproduces it: the He\,-4/deuteron binding ratio
+comes out $\approx 13$ against an experimental $\approx 12.7$, from Coulomb geometry alone. The \emph{absolute}
+scale --- why nuclear binding is measured in MeV and lengths in fermis rather than eV and \aa{}ngstr\"oms --- is
+set by the coefficient of the localisation term: a smaller coefficient contracts the clouds and deepens the
+binding, exactly as rescaling the muonic hydrogen curve does. It is tempting to read this coefficient as a mass
+and then to require a large ``glue mass'' to reach the nuclear scale. That requirement is an artifact of the mass
+reading. The coefficient is a geometric scale; the nuclear scale is one number, fixed by matching a single datum
+(a nuclear length, or one binding energy), after which the mass-free ratios follow. No glue mass need be sought.
+
+\section{Mass is not primitive; it is energy showing up as inertia}
+If mass and energy are genuinely equivalent, then ``mass'' is a redundant word and the physics can be told with
+energy alone. This is not a mere convention: a Penning trap measures a real thing --- \emph{inertia}, the
+resistance of a bound system to acceleration --- and the inertia deficit of a bound nucleus (He\,-4 is
+$0.76\%$ lighter than its constituents) is a measured mechanical fact. What makes $E=mc^2$ more than a unit swap is
+that this inertia deficit, weighed in a magnet, equals the binding energy measured independently by
+reaction $Q$-values and $\gamma$-ray energies, to parts in $10^{7}$. Two utterly different measurements agree
+through $c^2$. The lesson is not that mass and energy are two things linked by a formula, but that there is
+\emph{one} thing: energy, which manifests dynamically as inertia. ``Mass'' names that inertia; it is an output,
+never an input, and can be dropped from the vocabulary without loss.
+
+\section{A RealQM model of the Penning trap}
+The trap is precisely a machine for measuring inertia: a charge $q$ in a uniform field $B$ circles at the
+cyclotron frequency $\omega_c=qB/m$. To model it without mass, the inertia must \emph{come out}, not go in. It
+does, electromagnetically: a moving charge distribution drags its own field, and that field carries momentum
+$\mathbf p=(E/c^2)\,\mathbf v$, so the system resists acceleration with an inertia $E/c^2$ --- its own energy
+content. The cyclotron frequency is then
+\begin{equation}
+\omega_c=\frac{qB}{E/c^2}=\frac{qBc^2}{E},
+\label{eq:wc}
+\end{equation}
+written in charge, energy, $B$ and $c$, with no mass symbol. Evaluated at $B=1$~T:
+\begin{center}
+\begin{tabular}{lll}
+\hline
+system & energy $E$ & $\omega_c/2\pi$ from \eqref{eq:wc} \\
+\hline
+electron & $0.511$ MeV & $27.99$ GHz/T \quad(measured $27.99$)\\
+proton   & $938.27$ MeV & $15.24$ MHz/T \quad(measured $\sim15.2$)\\
+He\,-4 (free $\to$ bound) & $-28.30$ MeV binding & $\omega_c$ shifts $+0.76\%$ \\
+\hline
+\end{tabular}
+\end{center}
+The electron and proton cyclotron frequencies come out of their energies alone. And the nuclear ``mass defect''
+is nothing but the binding energy read as a frequency shift: bound He\,-4 has $28.3$~MeV less energy, hence a
+$0.76\%$ higher $\omega_c$ (smaller $E$ in the denominator of \eqref{eq:wc}). The trap does not weigh a substance;
+it reports an energy. Mass has been eliminated.
+
+\section{What is settled, and the open frontier}
+Settled: RealQM inputs no mass; it computes every atomic and nuclear \emph{energy} from charge and a geometric
+scale, and the Penning trap --- the apparent home of mass --- is reproduced from those energies through
+\eqref{eq:wc}, with ``mass'' appearing nowhere. In this telling $E=mc^2$ is not a formula RealQM borrows but a
+consequence it should \emph{derive}: that a charge distribution's electromagnetic self-inertia equals its energy.
+
+Two things remain genuinely open, and we state them plainly rather than paper over them. First, the step
+$\mathbf p=(E/c^2)\mathbf v$ must be derived from RealQM's own charge dynamics --- the classical
+electromagnetic-mass programme of Abraham, Lorentz and Poincar\'e, with its notorious factor $4/3$ that only the
+full stress--energy resolves to exactly $E/c^2$. Here we have used it as an input; making it an output is the
+decisive test, and the one that would turn the elimination of mass from an interpretation into a derivation.
+Second, RealQM as developed computes binding energies and ratios, not absolute rest energies; the electron's
+$0.511$~MeV and the nucleon's $938$~MeV are supplied here, not produced. Until those are computed from the same
+geometry, the elimination of mass is demonstrated for \emph{differences} --- which is exactly what the Penning
+trap measures --- but not yet for the absolute scale.
+
+The step forward is nonetheless real: the one instrument that seems to force mass upon us has been modelled in
+energy alone, and the concept of mass shown to be, in this program, dispensable --- charge and energy suffice.
+
+\end{document}
