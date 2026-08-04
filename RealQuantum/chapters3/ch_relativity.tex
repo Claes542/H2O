@@ -166,8 +166,13 @@ von~Laue's theorem: a closed system's four-momentum $P^\nu=\tfrac1c\int T^{0\nu}
 --- hence $\mathbf p=(E/c^2)\mathbf v$ --- if and only if its stresses balance, $\int T^{ij}\,d^3x=0$. The bare
 Coulomb field violates this (it would fly apart), which is exactly the $4/3$; classical electrodynamics repaired
 it by \emph{postulating} a cohesive ``Poincar\'e stress.'' RealQM need not postulate one: the localisation term
-$\tfrac12\int|\nabla\psi|^2$ \emph{is} that cohesive stress, and a RealQM bound state is by construction a
-stress-balanced equilibrium --- as the minimiser of $E=T+V$ it obeys the virial $2T+V=0$ (scaling stationarity),
+$\tfrac12\int|\nabla\psi|^2$ \emph{is} that cohesive stress. Explicitly, the stationarity condition
+$-\tfrac12\nabla^2\psi+U\psi=\varepsilon\psi$ forces the localisation stress
+$T^{M}_{ij}=\partial_i\psi\,\partial_j\psi-\delta_{ij}[\tfrac12|\nabla\psi|^2+(U-\varepsilon)\rho]$ to obey
+$\partial_i T^{M}_{ij}=-\rho\,\partial_j U$ (verified symbolically and numerically) --- local force balance, the
+quantum pressure exactly cancelling the Coulomb force; with the Maxwell stress the total is divergence-free. A
+RealQM bound state is thus by construction a stress-balanced equilibrium --- as the minimiser of $E=T+V$ it obeys
+the virial $2T+V=0$ (scaling stationarity),
 the trace of $\int T^{ij}=0$. Hence any bound RealQM cloud has inertia exactly $E_{\text{total}}/c^2$, no $4/3$,
 and $\omega_c=qBc^2/E$ holds \emph{exactly} for bound systems: the electromagnetic-mass problem is settled for
 everything a Penning trap measures, with the localisation energy playing the stress classical theory had to
