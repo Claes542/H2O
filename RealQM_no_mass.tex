@@ -46,7 +46,7 @@ theory derives from scratch.
 \setstretch{1.06}
 
 \section{The kinetic coefficient is a geometric scale, not a mass}
-The energy RealQM minimises for $N$ electrons is
+The energy RealQM~\cite{RealQM} minimises for $N$ electrons is
 \begin{equation}
 E(\psi)=\tfrac12\int|\nabla\psi|^2
         -\sum_a\int\frac{Z_a}{|\mathbf x-\mathbf X_a|}\,\rho
@@ -128,7 +128,8 @@ it reports an energy. Mass has been eliminated.
 \section{Settling the bound-system inertia: von Laue and the localisation stress}
 The one step to justify is $\mathbf p=(E/c^2)\mathbf v$ --- that the moving cloud's inertia is exactly its
 energy. The historical obstacle is the factor $4/3$: integrating the field momentum of a moving Coulomb charge
-gives $\mathbf p=\tfrac43(U/c^2)\mathbf v$, in conflict with $E/c^2$. The resolution is von~Laue's theorem: for a
+gives $\mathbf p=\tfrac43(U/c^2)\mathbf v$, in conflict with $E/c^2$. The resolution is von~Laue's
+theorem~\cite{vonLaue,Rohrlich}: for a
 closed system with $\partial_\mu T^{\mu\nu}=0$, the four-momentum $P^\nu=\tfrac1c\int T^{0\nu}\,d^3x$ is a genuine
 four-vector --- so that $\mathbf p=(E/c^2)\mathbf v$ --- \emph{if and only if} the stresses balance,
 \begin{equation}
@@ -160,7 +161,7 @@ That inertia \emph{is} energy is, moreover, no definition smuggled in but a test
 measurements. A Penning trap returns a cyclotron frequency --- an $F/a$, pure inertia --- from which one reads the
 mass difference between a nucleus and its separated constituents; the \emph{same} binding energy is measured, with
 no trap and no mass, by calorimetry of the reaction --- the $\gamma$-ray energy $Q$ released when the constituents
-combine. The two agree, $\Delta m\,c^2=Q$, to about one part in $10^{7}$. A frequency on one side, a photon energy
+combine. The two agree, $\Delta m\,c^2=Q$, to about one part in $10^{7}$~\cite{Rainville}. A frequency on one side, a photon energy
 on the other, joined only by $c^2$: it is this agreement, not a choice of words, that makes ``inertia is energy''
 a physical statement. RealQM's part is to compute the difference; von~Laue's is to guarantee that the inertia it
 predicts is exactly that energy.
@@ -223,7 +224,7 @@ $T^{\mu\nu}$ transform as a tensor. \emph{None} of this uses the relativity of s
 dilation, or the block universe --- the interpretive layer that made special relativity contentious. What is
 required is precisely what a neo-Lorentzian reading supplies: real fields propagating at a finite speed $c$ in a
 common frame, with the Lorentz transformations relating observers' own light-built coordinates rather than
-dissolving a shared present.\footnote{This is the standpoint of \emph{Many-Minds Relativity} (C.~Johnson), which
+dissolving a shared present.\footnote{This is the standpoint of \emph{Many-Minds Relativity}~\cite{MMR}, which
 retains the Lorentz mathematics and Maxwell's electrodynamics while discarding Einstein's simultaneity
 metaphysics.} That is the natural companion to RealQM's own realism: as RealQM keeps Coulomb's law and discards
 Born's probabilities, so here it keeps Maxwell and von~Laue and discards Einstein's simultaneity. If the common
@@ -245,7 +246,7 @@ debt peculiar to it. There is no ``glue mass'' to find and no absolute self-ener
 A natural objection sharpens this line. A RealQM charge is a cloud that needs a confining agent to be localised at
 all --- a free electron, held only by its localisation term, simply spreads --- so how can a \emph{single}
 electron or proton be trapped? Because in the trap it is not free: the magnetic and electrostatic fields confine
-it, and Dehmelt, who first did it, named the result \emph{geonium}, an artificial atom bound to the apparatus. The
+it, and Dehmelt, who first did it, named the result \emph{geonium}~\cite{Dehmelt}, an artificial atom bound to the apparatus. The
 trap is the ``surrounding.'' But what it reads for a lone elementary charge is that charge's rest energy, and that
 RealQM does not derive: a cloud spread over a macroscopic orbit has negligible self-field energy, so the electron's
 $0.511$~MeV is the elementary baseline no theory produces, not a RealQM self-energy. The division is clean ---
@@ -276,7 +277,7 @@ mass --- a spectrometer sorts \emph{any} charge alike by $q$ and $E/c^2$, the re
 curvature-inertia with speed being just the kinetic energy joining the rest energy in $E$. The Penning
 trap, being a dynamics experiment (a charge in orbit), therefore reads energy \emph{as} inertia; it forces no mass
 upon us, and RealQM, whose stationary states run no dynamics of their own (the timeless atom of the companion notes
-on real time dependence), need never leave energy at all. Mass is primitive at neither stage: energy suffices for
+on real time dependence~\cite{Time,Dynamics}), need never leave energy at all. Mass is primitive at neither stage: energy suffices for
 what \emph{is}, and dresses as inertia only for what \emph{moves}.
 
 This is not idle: it is why accelerators are built as they are. A cyclotron of fixed field and fixed
@@ -287,5 +288,22 @@ machine stalls. The remedy (synchrocyclotron, then synchrotron) is to \emph{trac
 field to follow $\omega_c=qBc^2/E$ as $E$ climbs. An accelerator must chase energy, not mass; that it works is a
 standing confirmation that the inertia it fights is $E/c^2$, growing without bound as $v\to c$ --- which is why $c$
 is never reached, the energy going ever more into inertia and ever less into speed.
+
+\begin{thebibliography}{9}
+\bibitem{RealQM} C.~Johnson, \emph{Real Quantum Mechanics}, RealMolecule gallery, and references therein.
+\bibitem{vonLaue} M.~von~Laue, ``Zur Dynamik der Relativit\"atstheorie,''
+  \emph{Ann.\ Phys.\ (Leipzig)} \textbf{35}, 524--542 (1911).
+\bibitem{Rohrlich} F.~Rohrlich, \emph{Classical Charged Particles}, 3rd ed.
+  (World Scientific, Singapore, 2007).
+\bibitem{Rainville} S.~Rainville \emph{et al.}, ``A direct test of $E=mc^2$,''
+  \emph{Nature} \textbf{438}, 1096--1097 (2005).
+\bibitem{Dehmelt} H.~Dehmelt, ``Experiments with an isolated subatomic particle at rest,''
+  \emph{Rev.\ Mod.\ Phys.} \textbf{62}, 525--530 (1990).
+\bibitem{MMR} C.~Johnson, \emph{Many-Minds Relativity} (2011).
+\bibitem{Time} C.~Johnson, \emph{Real Time Dependence in RealQM: the Timeless Atom},
+  RealMolecule gallery.
+\bibitem{Dynamics} C.~Johnson, \emph{The Atom Does Not Run Its Own Dynamics},
+  RealMolecule gallery.
+\end{thebibliography}
 
 \end{document}
