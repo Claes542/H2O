@@ -1,0 +1,97 @@
+\chapter{The H$_2$ Covalent Bond and the Helium Limit}\label{ch:h2}
+\index{H2@H$_2$ molecule}\index{helium atom}\index{covalent bond}\index{Kolos--Wolniewicz reference}\index{R\"udenberg--Kutzelnigg}\index{bond, helium limit}
+
+% Material to be added later from prel book (realquantum2.tex):
+%   - chapters/H2molecule.tex (H2: bonded and non-bonded — 2017 treatment)
+
+\begin{quote}
+\itshape It is nonsense to talk about the trajectory of an electron inside an atom.\\
+\normalfont\hfill --- E.~Schr\"odinger to M.~Born, 5th Solvay Conference, Brussels, 1927.
+\end{quote}
+\bigskip
+
+The hydrogen molecule H$_2$ is the simplest covalent bond: two protons sharing two electrons. It is the natural first test of how covalent bonding emerges from the multiphase formulation, for three reasons. First, it can be done parameter-free at Level 1 --- there is no kernel softening to calibrate, no architecture choice beyond the symmetric two-electron partition, no fitted constant. Second, the answer is known to high precision from the Kolos--Wolniewicz reference calculation~\cite{Kolos1968}, against which any new method is measured. Third, the H$_2$ bond connects continuously, through a one-parameter family in the proton separation $R$, to the Helium atom at $R = 0$: \emph{the covalent bond and the atomic shell are the same minimum-energy electron-packing principle at different nuclear separations}.
+
+This chapter works through the H$_2$ result, identifies the mechanism by which the Bernoulli condition makes covalent bonding possible, and follows the $R \to 0$ continuation into the Helium limit.
+
+\section{Parameter-free H$_2$ at Level 1}\label{sec:h2-level1}
+
+H$_2$ at Level 1 is two unit electron densities that do not overlap (Bernoulli partition), distributed around two H$^+$ point kernels at separation $R$. The two electrons occupy opposite halves of the inter-nuclear region --- the natural minimum-energy partition for two electrons in a symmetric two-kernel field. Each electron is attracted to both nuclei and repelled by the other electron through Coulomb interactions only. There is no exchange term, no antisymmetric wave function on $\mathbb{R}^6$, no orbital basis. The setup is the H$_2$ analogue of Chapter~\ref{ch:atoms}'s atomic model: nuclei, electrons, Coulomb energy, non-overlap constraint, variational minimum.
+
+At a proton separation in the equilibrium range, the parameter-free Level-1 calculation gives a total energy
+\[
+E_{\rm RealQM}(R \in [1.4, 1.6]\ \text{a.u.}) \;\approx\; -1.18 \text{ Ha},
+\]
+to be compared with the Kolos--Wolniewicz exact value
+\[
+E_{\rm KW}(R = 1.40\ \text{a.u.}) \;=\; -1.1745 \text{ Ha}.
+\]
+The two agree to within $\sim 0.5\%$ on total energy. The corresponding binding energy is
+\[
+\Delta E_{\rm bind} \;=\; E_{\rm H_2}(R_{\rm eq}) - 2 E_{\rm H} \;\approx\; -112 \text{ kcal/mol},
+\]
+versus the experimental dissociation energy of $-109$~kcal/mol --- \textbf{within 3\%, with no fitted parameters}.
+
+\paragraph{The minimum is very shallow.}
+The H$_2$ total-energy curve near equilibrium is exceptionally flat: the energy varies by less than $1$~kcal/mol across the range $R \in [1.4, 1.6]$~a.u., which is a substantial $0.2$~a.u.\ window of bond length. Within that window the curve is so close to horizontal that the location of its precise minimum is sensitive to discretisation, grid resolution, and the choice of partition convergence criterion at the few-per-mille level. The RealQM solver locates a stationary point in this range, and the corresponding total energy is reported above; we do not claim the equilibrium bond length to better precision than the shallow-minimum window allows. The experimental $R_{\rm eq} = 1.40$~a.u.\ lies inside the RealQM-located range, and the energetic comparison with Kolos--Wolniewicz is what is taken as the validation. A higher-resolution determination of $R_{\rm eq}$ from RealQM, distinguishing $1.4$ from $1.5$ from $1.6$, would require a finer grid and tighter convergence than the Level-1 model uses; the present chapter reports the energy and the binding energy at the few-percent level, and leaves the sub-percent geometry to follow-up.
+
+\paragraph{A note on the variational comparison.}
+RealQM and the Kolos--Wolniewicz treatment solve different mathematical problems: Kolos--Wolniewicz minimises an antisymmetric two-electron wave function on $\mathbb{R}^6$ over the standard Coulomb Hamiltonian, while RealQM minimises a sum of two unit-density wave functions on non-overlapping spatial supports in $\mathbb{R}^3$ over the multiphase variational principle (Chapter~\ref{ch:equation}). The two are different mathematical objects and the standard ``variational lower bound'' relation between them does not strictly apply --- one is not a restricted variational space of the other. The numerical agreement at $\sim 0.5\%$ on total energy and $3\%$ on binding energy is therefore a comparison between two independently-computed predictions for the same physical system, not a statement that one bounds the other.
+
+The bond emerges from the same variational principle that organises the atomic shells of Chapter~\ref{ch:atoms}: the electrons reorganise their territories to minimise the total Coulomb energy, and at the equilibrium $R$ the two-kernel two-electron configuration is energetically preferred over two isolated H atoms. There is no separate ``bond'' machinery; the bond is what the variational principle does when more than one nucleus is present.
+
+\section{Bonding mechanism: density accumulation at the free boundary}\label{sec:bonding-mechanism}
+
+The bond is established by \textbf{accumulation of electron density between the two kernels}, which lowers the total kernel-attraction potential energy by bringing density closer to both nuclei. In the unit-density formulation, the two non-overlapping electron territories meet at the free boundary between the kernels, where \emph{both densities are non-zero}: neither is required to vanish at the interface.
+
+This non-vanishing meeting is precisely what makes the inter-nuclear accumulation energetically favourable. Spelling out the alternative is the cleanest way to see this. \emph{If} the densities had to decay to zero between the nuclei --- as they do at infinity for an isolated atom --- accumulating density in the inter-nuclear region would require steep gradients and a balancing kinetic-energy cost that would offset the potential-energy gain. There would be no bond.
+
+The Bernoulli condition of Chapter~\ref{ch:equation} forbids this decay-to-zero scenario at the inter-electronic interface. The condition states that at the free boundary $\Gamma_{ij}$ between two adjacent electron territories:
+\begin{enumerate}
+\item $\psi_i$ is continuous from within $\Omega_i$ toward the interface.
+\item $\partial \psi_i / \partial n = 0$ on $\Gamma_{ij}$ (homogeneous Neumann).
+\item $\psi_i \ne 0$ on the $\Omega_i$ side of the interface.
+\end{enumerate}
+The first and third together mean that each density is non-zero up to the interface. The second means that the wave function approaches the interface flat --- not steeply --- so that the kinetic-energy cost of the meeting is small. The result is that the inter-nuclear region can accumulate electron density at low kinetic-energy cost while the kernel-attraction potential energy is enhanced by the proximity of that density to both nuclei.
+
+\textbf{Covalent bonding in RealQM is therefore a direct consequence of the free-boundary structure}: meeting non-zero densities allow the kernel potential energy to decrease through inter-nuclear accumulation without a balancing increase in kinetic energy. This is the bonding mechanism, stated in real-space terms.
+
+\paragraph{Connection to R\"udenberg--Kutzelnigg.}
+The conclusion is consistent with the R\"udenberg--Kutzelnigg analysis of the chemical bond~\cite{Ruedenberg62, Kutzelnigg90}, in which a careful decomposition of the Slater-determinant wave function shows that covalent bonding is primarily a \emph{kinetic-energy lowering} driven by orbital interference. The unit-density formulation reaches the same qualitative conclusion through a different route: the free-boundary partition rather than orbital overlap. In both pictures, the bond is what allows the kinetic-energy density to redistribute --- in RealQM by flattening at the inter-electronic boundary, in the StdQM picture by interference of overlapping orbitals --- with a net reduction in kinetic energy paid for by the increased kernel attraction.
+
+The two pictures agree on the physics and disagree on the mathematical object. R\"udenberg--Kutzelnigg works inside the StdQM framework and recovers the bond mechanism by analysing antisymmetric one-electron orbitals on $\mathbb{R}^3$ with overlap. RealQM works in a different framework --- non-overlapping orbitals with a free boundary --- and recovers the same mechanism by analysing what happens at the boundary. The convergence of the two routes on the same physical conclusion is a non-trivial cross-check on the multiphase formulation.
+
+\section{The Helium limit: $R \to 0$ with kernels merged}\label{sec:he-limit}
+
+A revealing limit is $R \to 0$. As the two H nuclei approach, their nuclear--nuclear repulsion $1/R$ diverges, so H$_2$ has a finite equilibrium separation. But if the two H$^+$ point kernels are \emph{merged} into a single $+2$ point kernel --- equivalently $R = 0$ with the charges combined --- the system becomes Helium ($Z = 2$, two electrons), and there is no inter-nuclear repulsion to oppose the merger.
+
+The Bernoulli partition is now two unit densities that do not overlap, both bound to the inner shell of the $+2$ kernel, with their interface bisecting the kernel through a plane. This is \textbf{exactly the Level-1 description of the He ground state} from Chapter~\ref{ch:atoms}. The configuration is the He inner shell.
+
+\paragraph{Continuous family from He to two H atoms.}
+The H$_2$ bond and the He atom are therefore not separate phenomena. They are the same minimum-energy electron-packing principle applied at different nuclear separations. The continuous family parameterised by $R$ interpolates between:
+\begin{itemize}
+\item $R = 0$: He atom. Kernels merged into a single $+2$ point kernel. Bernoulli partition bisects the kernel.
+\item $R = R_{\rm eq} \approx 1.4$~a.u.: H$_2$ at the variational minimum. Bernoulli partition bisects the inter-nuclear axis. Each electron is bound to both nuclei.
+\item $R \to \infty$: two isolated H atoms. Bernoulli partition far from both kernels; each electron is bound to its own H$^+$.
+\end{itemize}
+Each configuration is a stationary point of the same energy functional. The total energy as a function of $R$ has a minimum at $R_{\rm eq}$ for H$_2$ (the bond energy) and continues, with the nuclear repulsion subtracted, to the He energy at $R = 0$.
+
+The unification clarifies why a single architecture handles both atoms and molecules: \emph{bonding is what the variational principle does when more than one nucleus is present}, with the inter-nuclear repulsion setting the equilibrium separation. There is no separate ``molecule'' machinery; molecules are atoms whose nuclei sit close enough to share electron territories.
+
+\section{What the H$_2$ result establishes}\label{sec:h2-meaning}
+
+The parameter-free Level-1 H$_2$ result fixes several things that the rest of Part~III depends on.
+
+\paragraph{Variational adequacy at Level 1.} The covalent bond is recovered at parameter-free Level 1 to $\sim 0.5\%$ on total energy against Kolos--Wolniewicz and to 3\% on dissociation energy against experiment. This rules out the concern that Level 1 might be adequate for atoms but require extension for bonding. It is not: the same Level-1 architecture handles both.
+
+\paragraph{The Bernoulli condition does the bonding work.} The mechanism is the non-zero meeting of densities at the free boundary, made energetically favourable by the homogeneous Neumann condition. The bond is not a separately added ingredient; it follows from the free-boundary structure of the multiphase formulation. The same Bernoulli condition that closes the equation in Chapter~\ref{ch:equation} is what makes covalent bonding possible.
+
+\paragraph{Atoms and molecules are the same problem.} The continuous interpolation from He ($R = 0$) to H$_2$ ($R = R_{\rm eq}$) to two H atoms ($R \to \infty$) shows that the multiphase variational problem is one problem parametrised by nuclear positions, not two separate problems (atoms and molecules) handled by different machinery. The hierarchy of reductions (Chapter~\ref{ch:hierarchy}) is therefore an organisational convenience for managing computational cost; it is not a reflection of a physical separation between atomic and molecular regimes.
+
+\paragraph{What is not yet established.} The H$_2$ result is a single bond between identical light atoms with no inner shells. It does not address: bonds between unequal partners (heteronuclear bonds), bonds with inner-shell screening (heavier atoms), multiple bonds (the carbon double bond), aromatic systems, or non-covalent interactions (H-bonds, dispersion). The following chapters take these up in turn, working through Level 3 architectures with kernel parameters $(Z_{\rm kernel}, r_c)$ calibrated against Level 1 for the relevant valence sector.
+
+\section{The H$_2$ result as a foundation}\label{sec:h2-foundation}
+
+A theory of bonding is worth taking seriously to the extent that its simplest case is solid. The H$_2$ result is the simplest case: two atoms, one bond, no inner shells, no fitted parameters, $\sim 0.5\%$ on total energy. Everything in Chapters~\ref{ch:hydrides} through~\ref{ch:condensed} is built on this foundation. If the H$_2$ result did not survive a parameter-free Level-1 test, the higher-level architectures would have no claim to be calibrated reductions of the same equation. They are calibrated reductions; the H$_2$ result is the evidence that the underlying equation is right.
+
+% --- End of Chapter 7 ---

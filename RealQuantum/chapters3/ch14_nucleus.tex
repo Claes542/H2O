@@ -1,0 +1,184 @@
+\chapter{Level 0: Structural Analogy at the Nuclear Scale}\label{ch:nucleus}
+\index{nuclear scale, Level 0}\index{proton-electron model}\index{helium-4 nucleus}\index{N-14 spin parity}\index{deuterium-deuterium fusion}\index{role shift, chemistry vs nucleus}\index{mutual confinement}
+
+\begin{quote}
+\itshape [\ldots]\,this process is ``absolutely random''. I no longer believe that this conception accomplishes much.\\
+\normalfont\hfill --- E.~Schr\"odinger to W.~Wien, 1926.
+\end{quote}
+\bigskip
+
+\textbf{This chapter is a structural analogy, not a validation.} The mathematical framework developed in Chapters~\ref{ch:equation}--\ref{ch:relaxation} --- non-overlapping unit charge densities in 3D real space, Coulomb interactions, Bernoulli free boundaries, variational minimisation --- contains nothing specific to chemistry. The constituents are abstract unit-charge densities, the energy is the Coulomb sum, and the boundary condition is the variational closure. Plug protons and electrons in as the constituents instead of electrons-around-a-positive-kernel, and the same mathematical machinery describes a different scale of physics. This chapter explores that structural correspondence between the chemistry-scale and nucleus-scale variational problems. It does not establish quantitative agreement with nuclear data, and it is not part of the Validation programme of Part~III; it is placed here, in Part~\ref{part:foundations-revisited} (Foundations Revisited), as an exploration of how far the framework reaches structurally.
+
+We work through two cases: the helium-4 ground state and the D + D $\to$ He-4 fusion reaction, both of which the same multiphase equation handles \emph{mathematically} when proton and electron unit densities replace the chemistry-scale electron-around-a-kernel arrangement. The case we present is not that Level 0 reproduces nuclear binding energies to MeV accuracy --- it does not --- but that the framework's variational principle has a non-trivial extension at the nuclear scale with the same structural features as the chemistry case: mutual confinement, $N \approx Z$ as a binding requirement of the role-shifted picture, sharp species separation at the Bernoulli interface, the femtometer length scale emerging from mass weighting, and the fusion energy of D + D $\to$ He-4 emerging from the variational difference between two-deuterium and one-helium configurations.
+
+\paragraph{Honest acknowledgement: the proton--electron nucleus is not the standard nuclear model.}
+The picture this chapter develops --- nuclei as bound states of unit-density protons and electrons --- predates Chadwick's 1932 discovery of the neutron and was abandoned in mainstream nuclear physics by the early 1930s for empirical reasons that the present chapter does not refute. The strongest of these is the \textbf{N-14 spin-parity argument}: the nitrogen-14 nucleus has nuclear spin $I = 1$ (integer-valued, measured directly from molecular hyperfine structure). In the proton--electron picture, N-14 ($Z = 7, N_{\rm neutron} = 7$) would contain $7 + 7 = 14$ protons and $7$ electrons --- $21$ fermions total. An odd number of fermions implies half-integer total spin; the integer $I = 1$ observation rules this out. The mainstream resolution since 1932 is the neutron-proton picture, in which N-14 contains $7$ protons and $7$ neutrons --- $14$ fermions total, integer total spin consistent with the data. The proton--electron picture has been periodically revisited (most notably in connection with confined-electron neutron models) but is not the standard nuclear physics of the past century.
+
+This chapter is therefore \emph{not a claim that the proton--electron nucleus is the right physics}. It is a claim that the mathematical framework of RealQM has a non-trivial extension at the nuclear scale, in the same continuum-mechanics form as the chemistry-scale framework, and that exploring this extension makes explicit which features of the framework are general and which are chemistry-specific. The N-14 spin-parity observation indicates a regime where the proton--electron picture breaks; the chapter's reach is to small nuclei (He-4 and D+D fusion) where the structural analogy is least encumbered by such constraints. A complete nuclear-physics extension of the framework would need to incorporate neutron-as-elementary, the strong force, and relativistic corrections; the chapter is honest that this lies beyond what is presented here.
+
+\section{The shift of roles}\label{sec:role-shift}
+
+In the chemistry application that Parts~I--III work through, the geometric arrangement is unambiguous:
+
+\begin{itemize}
+\item One (or a few) heavy positive kernels of charge $+Z$ sit at fixed nuclear positions $\mathbf{R}_a$.
+\item Many light unit-density electrons (each $-1$) occupy non-overlapping territories $\Omega_i$ around those kernels.
+\item The electrons are confined by the kernel attraction; the kernels are fixed externally (or vary slowly under inter-atomic forces).
+\end{itemize}
+
+The nuclear-scale application reverses this picture by exchanging which species is central and which is peripheral, and by exchanging which species is light and which is heavy:
+
+\begin{itemize}
+\item A small number of light unit-density \emph{electrons} (each $-1$) sit at the centre, in an inner core territory.
+\item A larger number of heavy unit-density \emph{protons} (each $+1$) occupy non-overlapping territories around the electron core.
+\item The protons are confined by the electron attraction; the electrons are confined by the proton attraction. Confinement is mutual.
+\end{itemize}
+
+The structural correspondence is direct: chemistry is \emph{electrons around a kernel}, the nuclear extension is \emph{protons around an electron core}, and the framework's machinery --- non-overlapping unit densities, Bernoulli free boundary, variational minimisation, three-line code --- is identical. What differs is the geometric arrangement of who-is-around-whom, the mass weighting in the kinetic-energy operator, and the natural length scale (femtometers rather than \AA{}ngstroms).
+
+In both regimes, the framework describes a partitioned 3D Coulomb continuum mechanics. The chemistry is one realisation; the nucleus is another. There is no separate machinery for either.
+
+\section{The He-4 nucleus as the simplest non-trivial case}\label{sec:he4-natural}
+
+The simplest case where the role-shifted picture is non-trivial is helium-4, in the pre-1932 proton--electron picture of the nucleus. In that picture (which predates Chadwick's neutron and has been periodically revisited since), a stable nucleus with $Z$ protons and $N$ neutrons contains $(Z+N)$ protons and $N$ electrons, with $N \approx Z$ for stable nuclei giving roughly twice as many protons as electrons. He-4 ($Z=2, N=2$) has 4 protons and 2 electrons --- the smallest non-trivial proton--electron system.
+
+The RealQM model of He-4 is the role-shifted analogue of the He atom of Chapter~\ref{ch:atoms}:
+
+\begin{itemize}
+\item 4 unit-charge densities representing protons (each $+1$).
+\item 2 unit-charge densities representing electrons (each $-1$).
+\item Each density supported on its own non-overlapping spatial region in $\mathbb{R}^3$, with continuity and homogeneous Neumann at the inter-species Bernoulli interface.
+\item Coulomb interactions, signed appropriately: opposite-sign attractive, same-sign repulsive.
+\item Per-domain mass: the kinetic-energy operator coefficient is $\propto 1/m_i$, distinguishing the heavy proton from the light electron.
+\item No external confining potential.
+\end{itemize}
+
+The energy functional is the standard Coulomb sum
+\begin{equation}\label{eq:nuc-energy}
+E \;=\; T_p \;+\; T_e \;+\; V_{ee} \;+\; V_{pp} \;+\; V_{ep},
+\end{equation}
+with $T_p = (1/2 m_p) \sum_a \int |\nabla \sqrt{\rho_a^{(p)}}|^2$ for the protons and $T_e$ analogous for the electrons. The minimum is taken over all densities and over the boundary between the inner electron core and the outer proton shell.
+
+\textbf{Read alongside Chapter~\ref{ch:atoms}, this is the same equation with the role of protons and electrons interchanged.} In the He atom (Chapter~\ref{ch:atoms}, $Z=2$), a single $+2$ kernel attracts two unit-density electrons that form a non-overlapping inner shell. In the He-4 nucleus, two unit-density electrons attract four unit-density protons that form a non-overlapping outer shell. The geometry inverts; the framework does not.
+
+\section{Mutual confinement and the 2:1 ratio}\label{sec:mutual}
+
+A distinctive feature of the role-shifted picture is that the confinement is \textbf{mutual} rather than externally provided.
+
+In the chemistry application, the nuclei provide an external confining potential for the electrons. The electrons relax in that potential; the nuclei move on a slow timescale set by inter-atomic forces. The roles are not symmetric: the kernels confine; the electrons are confined.
+
+In the nuclear application, there is no external positive kernel. The 4 protons confine the 2 electrons through their collective $+4$ Coulomb attraction; in turn, the 2 electrons confine the protons through their collective $-2$ Coulomb attraction. The electrons need the protons to be confined, and the protons need the electrons to be confined. Confinement is mutual and symmetric.
+
+\paragraph{Why 2 electrons and not 1.}
+Numerical experiment with the model confirms that with only one electron ($-1$ against $+4$) the attraction is too weak --- the proton shell disintegrates outward, and the system is not bound. With two electrons the system stabilises into a bound configuration with a finite equilibrium radius.
+
+This is a non-trivial prediction. The textbook 2:1 proton-to-electron ratio of stable nuclei ($N \approx Z$) emerges as a \textbf{binding requirement of mutual confinement} in the role-shifted RealQM picture, not as an externally imposed rule. The model predicts that nuclei with too few electrons (relative to protons) cannot bind; those with too many electrons would have unbound excess electrons that drift away. The stability window is roughly the $N \approx Z$ window of the observed stable nuclei.
+
+We do not claim this as a quantitative explanation of the neutron drip line or the valley of stability. The model is too coarse at the present stage. What we claim is the structural point: the same multiphase formulation that produces shell structure in atoms produces a binding requirement on the proton-to-electron ratio in nuclei, and the binding window is the right one.
+
+\section{Result for He-4}\label{sec:he4-natural-result}
+
+Energy minimisation at fixed boundary radius $R$ between the inner electron core and the outer proton shell, swept across $R$, reveals a clear binding minimum. At the minimum:
+
+\begin{itemize}
+\item The protons localise in an outer shell with their density peaked at the boundary.
+\item The electrons localise in an inner core.
+\item The two species are sharply separated by the Bernoulli interface.
+\item The boundary position is selected by the variational principle (continuity plus homogeneous Neumann across the boundary, as in the chemistry sections).
+\end{itemize}
+
+The binding character --- mutual confinement, sharp species separation, stable equilibrium $R$ --- is qualitatively consistent with helium-4 being the most tightly bound of the small nuclei. Quantitative agreement with experimental nuclear binding energies (28.3~MeV for He-4) is not the goal at this stage; the framework reproduces the proton--electron model's qualitative predictions through the same machinery developed for chemistry.
+
+\paragraph{Scale.} The natural scale in the chemistry application is the Bohr radius and the Hartree energy. The natural scale in the nuclear application is set by the proton mass and the proton--electron Coulomb attraction; the equilibrium radius of the He-4 configuration is of order $1/m_p \sim 10^{-3}$~a.u., which is the right order of magnitude for a femtometer-scale nucleus. \textbf{The framework reaches the correct length scale automatically from the mass-weighted kinetic-energy operator, with no external rescaling.} This is one of the cleanest indications that the role-shift extension is internally consistent: the same machinery automatically lands on the right scale when given different constituents.
+
+\section{What carries over from the chemistry framework}\label{sec:nuc-carryover-natural}
+
+The exercise of writing RealQM for atomic nuclei makes explicit what is general about the framework and what is specific to chemistry.
+
+\paragraph{What carries over directly.}
+\begin{itemize}
+\item Multiphase non-overlapping unit densities. The mathematical object is the same: a collection of $H^1$ unit-density wave functions on disjoint spatial supports, with the supports forming a partition of physical space.
+\item The Bernoulli free-boundary condition. Continuity plus homogeneous Neumann at the inter-species interface --- the same condition that closes the chemistry equation. It does not depend on what species the constituents are; it is a property of the variational problem itself.
+\item The Coulomb energy functional. The total energy is the standard Coulomb sum with the constituent charges plugged in. No new interactions are added; nuclear binding emerges from the same Coulomb mathematics that produces chemical binding.
+\item The three-line code. The relaxation algorithm of Chapter~\ref{ch:relaxation} --- imaginary time, Poisson, level set --- is identical. Only the per-domain mass coefficient in the kinetic-energy operator changes between protons and electrons.
+\item The hierarchy idea. The chemistry hierarchy of Chapter~\ref{ch:hierarchy} (Levels 1--4) has a natural nuclear analogue, in which inner-core nucleon structure can be homogenised into an effective interior potential for the outer-shell nucleons. The exploration of this nuclear hierarchy is ongoing at the time of writing.
+\end{itemize}
+
+\paragraph{What changes.}
+\begin{itemize}
+\item Multiple species of constituent. Atoms and molecules have one species of explicit electron; the nuclear extension has two species (proton, electron). The Bernoulli boundary is now between species rather than between electron territories of the same species.
+\item No external positive kernel. The protons themselves are the positive charges; there is no separate nucleus-as-point-source. Confinement is mutual.
+\item Mass weighting. The kinetic-energy operator coefficient is mass-dependent ($\propto 1/m$), with $m_p / m_e \approx 1836$. This dramatically separates the natural scales of the two species and is what shifts the framework's natural length to femtometers.
+\end{itemize}
+
+The chemistry application is therefore one instance of a broader continuum-mechanics formulation; the nuclear application is another instance with shifted roles and different mass weighting. \textbf{The framework is not extended to handle nuclei; it already handles them when the constituents are plugged in.}
+
+\section{Status: speculative but structural}\label{sec:nuc-status}
+
+We are careful about what the role-shifted picture claims at the present stage.
+
+\paragraph{What it claims.}
+\begin{itemize}
+\item The multiphase formulation is mathematically well-defined for proton--electron systems.
+\item The He-4 configuration binds, with a finite equilibrium radius and sharp species separation.
+\item The 2:1 proton-to-electron ratio of stable nuclei emerges as a binding requirement of mutual confinement.
+\item The framework reaches the right length scale (femtometer) automatically from the mass-weighted kinetic operator.
+\item The role-shifted picture is the same framework as the chemistry application, with electrons and protons exchanged in their geometric roles.
+\end{itemize}
+
+\paragraph{What it does not claim.}
+\begin{itemize}
+\item Quantitative agreement with experimental nuclear binding energies.
+\item A complete theory of the nuclear chart (drip lines, magic numbers across the chart, beta-decay rates).
+\item That the proton--electron picture is correct as fundamental physics. Mainstream nuclear physics treats the neutron as elementary and uses the strong-force framework; we do not take a position on whether the proton--electron picture has fundamental validity.
+\item That nuclei heavier than He-4 are validated within the framework. Extending to heavier nuclei within the role-shifted picture is exploratory work in progress.
+\end{itemize}
+
+The chapter is therefore frankly exploratory in its quantitative content. The structural claim --- that the same framework, with electrons and protons exchanged in their geometric roles, describes both atomic chemistry and atomic nuclei --- is what justifies the chapter's inclusion. It is not a claim about nuclear physics in particular; it is a claim about the generality of the multiphase 3D continuum-mechanics formulation that this book is built around.
+
+\section{D + D \texorpdfstring{$\to$}{->} He-4: a basic fusion reaction}\label{sec:dd-fusion}
+
+The deuterium--deuterium fusion reaction
+\[
+\text{D} + \text{D} \;\to\; \text{He-4} + 23.85 \text{ MeV}
+\]
+is the simplest non-trivial fusion reaction in the proton--electron picture, and is therefore the natural first validation of dynamics at Level 0. Two deuterium nuclei, each consisting of (2 protons + 1 electron) in the proton--electron picture, approach each other; at sufficiently close range they merge into a single He-4 configuration of (4 protons + 2 electrons), with the released energy carried away. Within RealQM, the same variational principle that handles the static He-4 ground state of Section~\ref{sec:he4-natural-result} handles the dynamics of two-deuterium approach and fusion, by treating it as a single Level-0 system whose configuration evolves toward the He-4 minimum.
+
+\paragraph{The setup.}
+The starting configuration is two separated D nuclei. Each D is a bound configuration of 2 unit-density protons and 1 unit-density electron, with the protons forming a small outer shell around the electron core --- the diatomic-nucleus analogue of the H$_2$ bond at the chemistry scale (Chapter~\ref{ch:h2}). The two D nuclei are placed at a separation large compared to the deuterium radius and small compared to the simulation box, with no relative initial velocity (or with a small initial velocity to overcome the Coulomb barrier in dynamic runs).
+
+The constituents are 4 protons total + 2 electrons total --- the same constituent count as the He-4 ground state of Section~\ref{sec:he4-natural-result}. The variational principle is applied to the combined system without distinguishing which protons or electrons belong to which initial D nucleus; the labels are not physically meaningful because the unit densities are interchangeable in the multiphase formulation.
+
+\paragraph{Variational structure of the reaction.}
+The total energy of the combined system, as a function of the separation $R$ between the two D nuclei, has three notable features:
+\begin{itemize}
+\item At large $R$, the energy approaches twice the bound-state energy of a single D nucleus, $E(R \to \infty) \to 2 E_{\rm D}$.
+\item At intermediate $R$, the Coulomb repulsion between the two positively-charged D nuclei produces a barrier --- the analogue of the Coulomb barrier in standard nuclear physics --- where the energy rises above the asymptotic limit.
+\item At small $R$, the configuration is energetically equivalent to a single He-4 nucleus with all 4 protons and 2 electrons in mutual confinement, $E(R \to 0) = E_{\rm He-4}$, which is lower than $2 E_{\rm D}$ by the fusion energy.
+\end{itemize}
+The fusion reaction is the trajectory by which the system reaches the lower-energy He-4 configuration, traversing the intermediate barrier.
+
+\paragraph{What Level-0 RealQM captures.}
+The variational principle applied to the combined system reproduces these features structurally:
+\begin{enumerate}
+\item The asymptotic two-deuterium configuration is a stable variational minimum for the partition with two separated bound D nuclei.
+\item The He-4 configuration is a deeper variational minimum for the partition where all constituents share a single inter-species boundary.
+\item The energy difference between the two configurations is the fusion energy of the reaction.
+\item The intermediate barrier is a feature of the energy landscape that emerges from the same Coulomb functional.
+\end{enumerate}
+At the qualitative level, Level-0 RealQM therefore handles D + D $\to$ He-4 the way Level 3 of Chapter~\ref{ch:dimers} handles HF + H$_2$O proton transfer: the same Coulomb gradients that hold each reactant together also drive them to combine when their configurations approach.
+
+\paragraph{Quantitative status.}
+The quantitative validation of D + D $\to$ He-4 within RealQM at the present stage of Level 0 is preliminary. The asymptotic D and He-4 configurations bind correctly and give qualitatively consistent ratios; the barrier structure has the right qualitative shape; the released energy is of the right order of magnitude. Agreement with the experimental 23.85 MeV fusion energy at MeV-level precision is not yet achieved, and quantitative calibration of Level 0 against nuclear data is work in progress.
+
+What the calculation does establish is the structural point: \textbf{the same multiphase 3D continuum equation that handles the H$_2$ covalent bond at Level 1 handles the D + D $\to$ He-4 fusion reaction at Level 0.} The chemistry covalent bond at parameter-free Level 1 and the nuclear fusion reaction at Level 0 are the same variational problem, with different constituents and different mass scales but the same underlying formulation.
+
+\section{Significance: one framework, two scales of physics}\label{sec:nuc-natural-significance}
+
+The Level-0 application demonstrates that the mathematical framework of this book --- multiphase non-overlapping unit densities in real 3D space, with Bernoulli free boundaries and pure Coulomb interactions --- is applicable to atomic-scale physics quite generally. The chemistry validation of Chapters~\ref{ch:atoms}--\ref{ch:condensed} is one application; the Level-0 nuclear validation is another application of the same formulation with electrons and protons exchanged in role.
+
+\textbf{The same variational principle, applied to two different geometric arrangements of the same constituents, describes both atomic chemistry and atomic nuclei.} This is a non-trivial structural property of the formulation. The chemistry chapters stand on their own as quantitative validation at Levels 1--4; the Level-0 chapter stands as a structural pointer to the generality of the framework that produced them, with the He-4 ground state and the D + D $\to$ He-4 fusion reaction as the simplest concrete cases.
+
+Whether quantitative agreement with nuclear-binding observables can be obtained, and whether the role-shifted picture extends beyond He-4 and D + D fusion to heavier stable nuclei and to richer fusion / fission processes, are open questions for follow-up work. The picture this chapter records is that the framework's reach extends from Level 6 (cell biology, vision) down through Levels 5--1 (proteins, molecules, atoms) to Level 0 (nuclear scale), with one variational principle running through the whole hierarchy.
+
+% --- End of Chapter 14 (reframed) ---

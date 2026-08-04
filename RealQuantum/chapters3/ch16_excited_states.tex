@@ -1,0 +1,137 @@
+\chapter{Atomic Radiation -- Excited States}\label{ch:excited}
+\index{atomic radiation}\index{excited states}\index{orthohelium}\index{Bohr frequency}\index{Rydberg series}\index{quantum jump}\index{antenna emission}\index{dipole-overlap integral}\index{selection rules}
+
+% Material drawn from prel book chapters/excitation.tex and chapters/basicresonance.tex,
+% with the helium--orthohelium worked example, the Bohr frequency relation E = h\nu
+% in the RealQM reading, and a survey of valence-shell excited states.
+
+\begin{quote}
+\itshape Are there quantum jumps?\\
+\normalfont\hfill --- E.~Schr\"odinger, paper title, \emph{British Journal for the Philosophy of Science} 3, 109--123 (1952). \\
+\normalfont\hfill The paper's answer: \emph{no}.
+\end{quote}
+\bigskip
+
+A theory of matter has to handle excited states as well as ground states. In standard quantum chemistry this requires additional machinery: time-dependent DFT, configuration-interaction singles, equation-of-motion coupled cluster. Each method adds layers on top of the ground-state formulation, with separate accuracy budgets and separate failure modes.
+
+In the multiphase real-space formulation, excited states are accessible directly. Any configuration of non-overlapping unit electron densities corresponding to a chosen shell occupancy is an admissible solution of the variational problem; if the chosen occupancy is not the ground state, the resulting configuration is an excited state. The Schr\"odinger equation~\eqref{eq:Hi} and the Bernoulli free-boundary condition apply identically. The only difference is which territories the electrons occupy at the start of the relaxation.
+
+This chapter sets out the picture in three steps: (i) the basic case --- helium ground state $1s^2$ versus orthohelium $1s\,2s$ --- with the Bohr frequency $E = h\nu$ as the natural oscillation frequency of a real charge density relaxing between the two configurations; (ii) the structural reason this generalises --- different shell occupancies are different topologies of the territorial partition, each a stationary point of the same variational principle; and (iii) the survey of valence-shell excited states across the periodic table that the architecture brings within reach.
+
+\paragraph{The central relation of the chapter.}
+The \textbf{Bohr frequency}
+\begin{equation}\label{eq:bohr-central}
+\boxed{\;\nu \;=\; E/h\;}
+\end{equation}
+identifies the frequency $\nu$ of a spectral line with the energy difference $E$ between two RealQM stationary configurations of the same matter system, with $h$ the Planck conversion constant. $E$ on the matter side is the excitation energy --- a direct RealQM-relaxation output --- between two configurations of non-overlapping unit electron densities with different shell occupancies; $\nu$ on the radiation side is the natural oscillation frequency of the real charge density during the continuous relaxation between those two configurations. \emph{Two configurations with energy difference $E$ produce one spectral line at frequency $\nu = E/h$.} Everything else in the chapter is the working-out of this single relation, starting from the helium--orthohelium showcase.
+
+\section{The basic case: helium ground state vs orthohelium}\label{sec:helium-orthohelium-basic}
+
+The helium atom provides the simplest non-trivial example of an atomic excited state, and the simplest concrete instance of the RealQM picture of the atomic spectrum. Its two electrons admit at least two distinct stationary configurations:
+\begin{itemize}
+\item \textbf{Ground state $1s^2$.} Two electron territories $\Omega_1, \Omega_2$ partition space around the nucleus into hemispheric unit-density supports (Chapter~\ref{ch:h2}), each carrying one electron at the lowest available energy. The resulting density $\psi_1^2 + \psi_2^2$ is approximately spherically symmetric and has energy $E_{1s^2}$.
+\item \textbf{Orthohelium $1s\,2s$ ($^3S$).} A different topology of the territories: one electron in an inner shell (radius $\sim$0.5~a.u.) and one in an outer shell (radius $\sim$2~a.u.) with a node-like radial structure. The density is again real-valued and stationary; its energy $E_{1s\,2s}$ lies about $19.8\,\mathrm{eV}$ above the ground state.
+\end{itemize}
+Both configurations are stationary points of the same variational principle, computed directly by relaxation in the same WebGPU pipeline. The energy gap
+\[
+E \;=\; E_{1s\,2s} - E_{1s^2} \;\approx\; 19.8\,\mathrm{eV}
+\]
+is a RealQM output, not an input.
+
+\paragraph{The connection $E = h\nu$: excitation energy and spectral-line frequency.}
+A real-density configuration intermediate between the two stationary points --- for instance a perturbed orthohelium configuration whose territories deviate slightly from the $1s\,2s$ stationary shapes --- is \emph{not} a stationary point. Under the real-space relaxation dynamics of Chapter~\ref{ch:relaxation}, the wave functions $\psi_i(\mathbf{x}, t)$ evolve continuously toward the nearest stationary point. During this evolution the density $\Psi^2(\mathbf{x}, t) = \sum_i \psi_i^2(\mathbf{x}, t)$ genuinely changes shape, and its dipole moment $\int \mathbf{x}\, \Psi^2\, d^3\mathbf{x}$ genuinely oscillates at angular frequency
+\begin{equation}\label{eq:bohr-frequency}
+\omega \;=\; \frac{E_{1s\,2s} - E_{1s^2}}{\hbar} \;=\; \frac{E}{\hbar},
+\qquad\text{or equivalently}\qquad
+\boxed{\;E \;=\; h\,\nu\;}
+\end{equation}
+with $\nu = \omega/(2\pi)$ and $E$ the excitation energy.
+
+\textbf{The relation $E = h\nu$ is the connection between two RealQM-computable quantities and one experimentally observable quantity:}
+\begin{itemize}
+\item \emph{The left-hand side $E = E_{1s\,2s} - E_{1s^2}$ is the excitation energy.} Both energies are direct outputs of the RealQM relaxation pipeline for the corresponding stationary configurations; their difference is a quantitative prediction of the framework. For helium--orthohelium, $E \approx 19.8\,\mathrm{eV}$.
+\item \emph{The right-hand side $h\nu$ identifies the corresponding spectral line.} The frequency $\nu = E / h$ is the rate at which the real density oscillates while relaxing between the two configurations, hence the frequency of the electromagnetic wave the density radiates (Maxwell's equations with the oscillating density as source). For helium, $\nu \approx 4.8 \times 10^{15}\,\mathrm{Hz}$, i.e.\ a vacuum-UV line near $625\,\text{\AA}$, observed in the orthohelium emission spectrum.
+\end{itemize}
+\textbf{Thus every observed spectral line of an atom corresponds, in RealQM, to a pair of stationary configurations whose energy difference $E$ matches $h\nu$ for that line.} The atomic spectrum is the set of all such pairs, and the universal connection between excitation energy on the matter side and spectral-line frequency on the radiation side is the Bohr-Einstein-Planck relation $E = h\nu$, recovered as the natural oscillation frequency of a real density relaxing between two stationary configurations of the same variational principle.
+
+The oscillation is a single-frequency motion of a single real density --- not a beat between two complex amplitudes, and not a superposition. There is one density and one frequency, identified by $E = h\nu$ with the experimentally observed line.
+
+\paragraph{Radiation as antenna emission from the oscillating density.}
+A spatially extended real charge density whose support oscillates in time is a classical antenna. By Maxwell's equations with the real density as source, the antenna radiates electromagnetic waves at its oscillation frequency, with radiated power $\propto \omega^4\, |\mathbf{d}|^2$ where
+\[
+\mathbf{d}_{nm} \;\equiv\; \int \mathbf{x}\, \psi^{(n)}(\mathbf{x})\, \psi^{(m)}(\mathbf{x})\, d^3\mathbf{x}
+\]
+is the dipole-overlap integral of the two configurations $\psi^{(n)}, \psi^{(m)}$. The energy radiated comes out of the excess energy $E$ of the configuration, and the system continuously relaxes from $1s\,2s$ toward $1s^2$ while emitting at frequency $\nu = E/h$. The radiation is continuous; there is no "quantum jump"; the famous Bohr frequency condition $E = h\nu$ is the natural oscillation frequency of a real density relaxing between two stationary configurations.
+
+\paragraph{Contrast with the StdQM superposition reading.}
+The standard textbook derivation of atomic emission begins with a hydrogen atom whose wave function at $t = 0$ is a complex superposition of two stationary states:
+\[
+\psi(\mathbf{x}, 0) \;=\; \alpha\, \psi_n(\mathbf{x}) \;+\; \beta\, \psi_m(\mathbf{x}),
+\quad |\alpha|^2 + |\beta|^2 = 1,
+\]
+with complex amplitudes $\alpha, \beta$ and complex-valued stationary eigenfunctions. The time-dependent Schr\"odinger equation produces an interference term in $|\psi|^2$ that beats at the Bohr frequency $\omega_{nm} = (E_n - E_m)/\hbar$, and this beat is used as the source of the dipole oscillation that drives the Larmor radiation. The calculation gives the right line frequencies, selection rules, and intensities, and is the workhorse of every spectroscopy text.
+
+The interpretational difficulty in StdQM is that the beat in $|\psi|^2$ is a formal artefact of squaring a complex sum of two oscillations at different frequencies, and the Born reading denies that any individual complex amplitude in the superposition has physical content --- only $|\psi|^2$ does. A purist Born reading therefore says: the atom is in a definite stationary state with probability $|\alpha|^2$ or $|\beta|^2$, and the "oscillating charge density" of the beat is a mathematical interpolation between probability snapshots, not a physical charge oscillation. The standard derivation uses the beat to extract Bohr frequencies and dipole matrix elements as if it were a real oscillation; the underlying interpretation says it is not. The tension is rarely flagged in pedagogical texts; the calculation is presented and the interpretive question is set aside.
+
+The RealQM picture removes this tension. The wave functions $\psi_i$ are real-valued (Chapter~\ref{ch:equation}); $\Psi^2$ is the actual electron charge density (Chapter~\ref{ch:equation}), not a probability; the relaxation dynamics is real-space evolution toward a stationary point. The oscillation that the radiation formula requires is therefore a \emph{real} feature of the real-valued density evolving deterministically. The Bohr-frequency identification $\omega = E/\hbar$ and the dipole matrix element $\mathbf{d}_{nm}$ are the same numerical objects in both formulations, and the spectroscopic numbers come out the same in both, because both rest on the same underlying physics --- the Coulomb force law and Schr\"odinger's original real-space equation. What StdQM layers on top --- the probabilistic interpretation, the beat in $|\psi|^2$ that has to be treated as a real oscillation in the radiation calculation while the interpretation denies that the individual amplitudes have physical content --- adds incoherence without adding predictions. The numerics that StdQM recovers, it recovers because the underlying physics survives the wrong interpretation; the interpretation itself does no work that the deterministic real-space picture does not do more directly.
+
+\paragraph{Why this is the basic case.}
+\begin{itemize}
+\item \emph{Smallest multi-electron system.} Hydrogen has only one electron, so the territorial partition and electron--electron repulsion that define the energy gap are vacuous. Helium is the smallest atom where the defining structure of RealQM (non-overlapping territories with mutual repulsion) is fully exercised.
+\item \emph{Two stationary configurations are explicit.} Both the $1s^2$ ground state and the $1s\,2s$ orthohelium state are computed and validated; both energies are RealQM outputs.
+\item \emph{The Bohr frequency~\eqref{eq:bohr-frequency} is a quantitative prediction}, fixed by the energy gap that the framework computes from first principles.
+\item \emph{It generalises.} The same picture --- two stationary RealQM configurations, one energy gap, one real-density oscillation at $E / \hbar$ --- applies to every atomic transition. Helium is small enough to work out by hand and concrete enough to ground the general statement.
+\end{itemize}
+
+\section{Excited states as different shell occupancies}\label{sec:excited-as-shells}
+
+The helium--orthohelium case generalises. In RealQM, an excited state is a stable configuration of non-overlapping unit densities with a shell occupancy different from the ground state. Specifically:
+\begin{itemize}
+\item Promoting one electron from an inner shell to a higher shell gives a configuration with one electron at higher radius. The energy difference from the ground state is the excitation energy of that line.
+\item Ionisation gives an excited state by removing one electron entirely --- one fewer territory in the partition.
+\item Rydberg-like states correspond to a configuration where one electron occupies a very diffuse outer territory far from the kernel.
+\item Negative-ion states (electron affinity) would correspond to adding one extra territory, and have been found to be problematic in RealQM for reasons discussed in Chapter~\ref{ch:limits}.
+\end{itemize}
+Each of these is a different topology of the partition. The variational minimisation within each topology finds the lowest-energy configuration of that topology; the energies of the different topologies, ordered and differenced, are the excitation spectrum.
+
+\paragraph{Why this works.}
+The variational principle of Chapter~\ref{ch:equation} does not pick out the ground state by some special mechanism; it picks out the configuration of lowest energy compatible with the constraints. The constraints are: number of electrons, non-overlap of supports, unit norm of each $\psi_i$, $\Psi \in H^1$, Bernoulli condition at the free boundary. If the initial partition has one electron close to the kernel and one far from it, the variational minimisation finds the lowest-energy configuration \emph{within that topology}. That configuration is an excited-state energy because the ground-state topology is topologically distinct and cannot be reached by continuous deformation of the excited-state partition without crossing through a configuration where one electron's support shrinks to zero.
+
+\textbf{In RealQM, excited states are just different choices of which shells the electrons occupy.} The same energy functional, the same variational principle, the same Bernoulli condition. The atomic spectrum is the set of energy gaps between different topological choices --- and via~\eqref{eq:bohr-frequency} the set of natural oscillation frequencies of the corresponding real-density relaxations.
+
+\section{Valence-shell excited states across the periodic table}\label{sec:valence-excitations}
+
+The He$\to$orthohelium showcase is the simplest instance of a much wider pattern: in any atom or simple molecule, promoting one valence electron from its ground-state shell to an adjacent shell gives a stable RealQM configuration whose energy is the excitation energy of the corresponding spectroscopic line. The framework brings the following families within direct computational reach:
+
+\paragraph{Hydrogen-like, single-electron Rydberg series.}
+The hydrogen Lyman, Balmer, Paschen, \ldots\ series are the limiting case: a single electron whose territory expands from the $1s$ shape to progressively larger shells (the radial-profile control of Chapter~\ref{ch:h2}). Each series corresponds to a fixed lower shell ($n=1, 2, 3, \ldots$) and a tower of upper shells. The Bohr frequency $\nu = (E_n - E_m)/h$ recovers the Rydberg formula exactly.
+
+\paragraph{Alkali $ns \to np$ excitations.}
+Lithium $2s \to 2p$, sodium $3s \to 3p$ (the familiar yellow D-lines), potassium $4s \to 4p$. Each is a one-electron valence promotion sitting above a closed core; the territorial structure is one core ($1s^2$ in Li, $1s^2 2s^2 2p^6$ in Na, \ldots) plus one outer electron whose territory expands from $ns$ to $np$. In RealQM the angular structure of the $np$ shell is encoded in the territorial geometry (Chapter~\ref{ch:h2}), and the energy of the promoted configuration is a direct relaxation output.
+
+\paragraph{Alkaline-earth $ns^2 \to ns\,np$ excitations.}
+Beryllium $2s^2 \to 2s\,2p$, magnesium $3s^2 \to 3s\,3p$, calcium, \ldots --- the next family up from helium--orthohelium. Two valence electrons, one of which is promoted from $ns$ to $np$. The configuration parallels the helium--orthohelium picture with a heavier kernel; the energy gap is set by the Coulomb structure of the new configuration.
+
+\paragraph{Open-shell first-row excitations.}
+Atomic Carbon $2p^2 \to 2p\,3s$ or $2p^2 \to 2p\,3p$; Nitrogen $2p^3 \to 2p^2\, 3s$; Oxygen $2p^4 \to 2p^3 3s$. The starting configurations have partial valence shells with non-trivial angular structure; promotions move one electron into a higher (often $s$-like) outer territory. The Gallery contains a small number of carbon and oxygen open-shell examples; the broader survey across first-row atoms is straightforward in principle and remains exploratory in practice.
+
+\paragraph{Molecular valence excitations.}
+The same pattern extends to small molecules. H$_2$ $\sigma_g \to \sigma_u^*$ excitation; the lowest singlet excitation of formaldehyde ($n \to \pi^*$); the Soret band of porphyrins. Each is a promotion of one valence electron between two molecular shells, with the resulting configuration accessible as a different shell-occupancy partition of the same multiphase model. The numerical work is heavier (more electrons, more nuclei, more territories) but the conceptual move is the same as in the helium showcase.
+
+\paragraph{What is and is not in this chapter.}
+This chapter establishes the structural claim: \emph{the atomic spectrum is the set of energy gaps between RealQM stationary configurations with different shell occupancies, each of which is a direct variational computation}; the Bohr frequency $E = h\nu$ is the natural oscillation frequency of the real density relaxing between two such configurations. The helium--orthohelium case is the validated worked example: two configurations computed, energy gap $\sim 19.8\,\mathrm{eV}$ matching experiment, Bohr frequency $\nu = E / h$ fixing the oscillation rate of the relaxing density. The wider valence-shell programme above is what the architecture brings within reach; quantitative spectroscopic validation across that programme is the natural next iteration of the validation chapters.
+
+\section{Limits of the present treatment}\label{sec:excited-limits}
+
+The orthohelium result is one validated case. The general claim that excited states reduce to shell-occupancy choices in RealQM is supported by this case and by the structural argument of Section~\ref{sec:excited-as-shells}, but at the present stage of the framework's development the validation is restricted to the simplest cases. Specifically:
+
+\begin{itemize}
+\item \emph{Multiplet structure.} The framework as currently implemented does not carry spin variables, so the singlet/triplet distinction is encoded implicitly through the partition topology rather than through explicit spin labels. Fine structure (spin--orbit coupling) is not part of the model.
+\item \emph{Radiative transition rates.} Excited-state energies are accessible directly; \emph{rates} (dipole matrix elements, oscillator strengths) require dipole-overlap integrals between different stationary configurations that the present pipeline does not compute as a built-in diagnostic. The integrals are local and straightforward to add.
+\item \emph{Open-shell first-row atoms.} The Gallery contains carbon and oxygen examples but the systematic survey across first-row open-shell excitations remains exploratory.
+\item \emph{Time-dependent dynamics.} The radiation calculation that turns the oscillating density into actual electromagnetic emission requires the Schr\"odinger--Maxwell coupling of Chapter~\ref{ch:sm-coupling}, which has not yet been ported to the WebGPU pipeline.
+\end{itemize}
+
+What this chapter does establish is the structural point: \emph{the architecture handles the atomic spectrum by territorial topology, not by added machinery}, and quantitative spectroscopic work fits within the existing variational framework without conceptual extension. The helium--orthohelium showcase makes the picture explicit; the valence-shell survey of Section~\ref{sec:valence-excitations} sets the agenda for what comes next.
+
+% --- End of Chapter 10 ---

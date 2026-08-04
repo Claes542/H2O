@@ -1,0 +1,141 @@
+\chapter{WebGPU Implementation}\label{ch:webgpu}
+\index{WebGPU}\index{compute shader}\index{GPU}\index{WGSL}\index{8000 lines of code}\index{real-space grid}
+
+Chapter~\ref{ch:relaxation} described the algorithm: three coupled time-evolution equations, each a local stencil update on a real-space grid, iterated to convergence. This chapter describes how that algorithm is realised as a working program that runs interactively in a browser on a consumer laptop GPU. The implementation is approximately 8000 lines of JavaScript and WGSL combined --- two to three orders of magnitude smaller than mainstream quantum-chemistry packages --- and runs $10^2$--$10^4$ times faster than CPU-based codes on equivalent hardware. We argue that the size compression and the speedup are not separable: the same structural choice that makes RealQM small (working directly in real space, no basis sets, no integrals, no global solves) is what makes it fast on a GPU.
+
+\section{The compute pipeline}\label{sec:pipeline}
+
+The solver is implemented as JavaScript modules that compile WGSL compute shaders to a WebGPU device. Two implementation variants of the same physics are present in the codebase:
+
+\begin{itemize}
+\item \texttt{mol\_fast.js} ($\sim$1600 lines) uses unit-density orbitals with explicit angular splitting and a smoothed partition (the variant of Section~\ref{sec:bernoulli-update}). It is the smaller and faster of the two and is used for the Level-3 validation in Part~III.
+\item \texttt{molecule.js} ($\sim$5300 lines) uses a Voronoi-partition labelling field. It carries more diagnostics --- per-electron energies, dipole moments, Lindemann parameters, Brownian-dynamics extensions --- and is used for the condensed-phase and interactive folding work.
+\end{itemize}
+Both run entirely in the browser. There is no server-side computation, no precomputed table, no remote dispatch. The user opens a webpage; the GPU is initialised in the page; the calculation runs in the page; the user sees the result rendered in the page.
+
+\paragraph{Dispatch structure.} Each iteration of the relaxation triggers approximately 10 GPU compute dispatches, one per stage of the update:
+\begin{enumerate}
+\item Orbital imaginary-time update~\eqref{eq:3line-psi}: one dispatch per electron per step.
+\item Norm reduction over each electron's grid points.
+\item Renormalisation: pointwise rescaling.
+\item Parabolic Poisson update~\eqref{eq:3line-V}: one dispatch per electron per step.
+\item Total Hartree assembly: sum $V_{\rm tot} = \sum_i V_i$.
+\item Level-set update~\eqref{eq:3line-chi}: partition advection.
+\item Force computation~\eqref{eq:force-coulomb}: gradient of $V_{\rm tot} + W$ at each nuclear position.
+\item Energy reduction: $K$, $PK$, $PE$ as global sums.
+\item Diagnostics: dipole moment, optional Lindemann parameter.
+\item Optional nuclear update: $\mathbf{R}_a \leftarrow \mathbf{R}_a + \delta t \cdot \mathbf{F}_a / M_a$ or a Brownian step.
+\end{enumerate}
+Each dispatch is a single WGSL kernel operating on the full grid in parallel. With grid size $N_{\rm g} = 100$--$200$ and $N_{\rm e} \sim 10$--$100$ electrons, the per-step cost on a $\sim$10 TFLOPS laptop GPU is in the millisecond range, giving 30 or more iterations per second. Interactive frame rates ($\sim$60 fps) are achieved for systems up to a few hundred explicit electrons.
+
+\section{WGSL kernels: what a compute shader looks like}\label{sec:wgsl}
+
+For readers unfamiliar with WebGPU compute shaders, the key idea is that each kernel is a small function written in WGSL (WebGPU Shading Language) that runs once per grid point in parallel on the GPU. The kernel reads from input buffers (the current $\psi_i$, $V_i$, etc.), performs a local stencil update, and writes to output buffers. There is no implicit synchronisation between grid points within a single dispatch; data flow between stages is managed by the host (the JavaScript driver) which dispatches kernels in sequence.
+
+A representative kernel is the parabolic Poisson update for electron $i$:
+\begin{verbatim}
+@compute @workgroup_size(8, 8, 4)
+fn poisson_step(@builtin(global_invocation_id) gid: vec3<u32>) {
+    let p = index(gid);
+    let lap = laplacian7(V_i, gid);     // 7-point stencil
+    let src = 2.0 * PI * psi_i[p] * psi_i[p];
+    V_i_next[p] = V_i[p] + DT * (lap + src);
+}
+\end{verbatim}
+Six lines of WGSL: read the wave-function value at this point, compute the 7-point Laplacian of the current Hartree potential, evaluate the source term, take one explicit parabolic step, write the result. The dispatch covers all grid points in the box, $N_{\rm g}^3$ in total, in parallel.
+
+The other kernels --- imaginary-time, level-set, force --- have the same shape: read from neighbours, write one new value. The entire RealQM algorithm is approximately a dozen such kernels.
+
+\section{Kernel softening and angular splitting}\label{sec:kernel-splitting}
+
+The Level-3 pseudo-kernel of Chapter~\ref{ch:hierarchy} is parameterised by an effective charge $Z_{\rm kernel}$, a softening radius $r_c$, and (for atoms with non-spherical valence) an angular splitting. In the implementation, a kernel is a tuple
+\[
+(Z_{\rm kernel},\ r_c,\ \text{split\_type},\ \text{split\_idx},\ \text{split\_axis}).
+\]
+
+\paragraph{Softening function.} The kernel potential at distance $r$ from the nucleus is
+\[
+V_{\rm kernel}(r) \;=\;
+\begin{cases}
+-Z_{\rm kernel}/r & r > r_c, \\[2pt]
+f_{\rm soft}(r;\, Z_{\rm kernel}, r_c) & r \le r_c,
+\end{cases}
+\]
+with the smooth softening $f_{\rm soft}$ matching the $-Z_{\rm kernel}/r$ tail at $r = r_c$ and going to zero at the origin. The functional form used in the implementation is a polynomial interpolant of degree determined by the matching conditions, evaluated directly on the grid. It is fully determined by $Z_{\rm kernel}$ and $r_c$; no further parameters are involved.
+
+\paragraph{Angular splitting.} For a heavy atom with multiple valence electrons, the valence sector is split into angular sub-orbitals at the same nuclear position. The split topologies are
+\begin{itemize}
+\item \texttt{sphere}: no split, single orbital fills the full $4\pi$ solid angle.
+\item \texttt{hemi}: two hemispheres, separated by a plane through the nucleus along a chosen split\_axis.
+\item \texttt{third}: three sectors of $120^\circ$ each, arranged around the split\_axis.
+\item \texttt{tetra}: four sectors of $109.5^\circ$ tetrahedral half-angle.
+\item \texttt{hemi\_third}: combination of two hemispheres each split into three azimuthal sectors.
+\end{itemize}
+Each sub-orbital evolves independently subject to its angular sector mask: the imaginary-time update~\eqref{eq:3line-psi} is applied within the sector, the partition update operates between sectors, and the Hartree sum couples each sub-orbital to the others through $V_{\rm tot} - V_i$.
+
+The split\_idx selects which sector this particular orbital occupies; the split\_axis is the axis around which the sectors are arranged. For a tetrahedral CH$_4$, four \texttt{tetra} sub-orbitals at the central kernel share the four tetrahedral lobes, with their split\_axis aligned with the C--H bond directions.
+
+The split is a design choice, not a fit: a tetrahedral CH$_4$ is built with \texttt{tetra} splitting because the molecule is tetrahedral, not because the energetics force the split topology. Bond energies and equilibrium geometries are then variational predictions of the model with that architecture.
+
+\section{Two implementations: mol\_fast and molecule.js}\label{sec:two-implementations}
+
+The two implementations differ in how they represent the partition, with consequences for diagnostics and speed.
+
+\paragraph{mol\_fast.js: unit-density orbitals with smoothed partition.} Each electron is represented as a unit-density orbital with explicit angular sector mask. The partition is represented by a smoothed indicator $w_i$ (the smoothed-indicator variant of Section~\ref{sec:bernoulli-update}). The full wave function on the partition is
+\[
+\Psi(\mathbf{x}) \;=\; \sum_i w_i(\mathbf{x})\, \tilde\psi_i(\mathbf{x}),
+\]
+with $\sum_i w_i = 1$ as a partition of unity. The smoothing makes derivatives across the interface well-defined throughout the relaxation. The implementation is approximately 1600 lines and is the fastest of the two.
+
+This is the variant used for the Level-3 validation in Part~III. Each closed-shell hydride, the H$_2$ bond, the dimer geometries, and the periodic-table sweeps in Chapter~\ref{ch:hydrides} are mol\_fast.js calculations.
+
+\paragraph{molecule.js: Voronoi labelling.} Each grid point carries a label $\ell(\mathbf{x}) \in \{1, \ldots, N\}$ that assigns it to exactly one electron. The boundary is the discrete set of grid points where $\ell$ changes value; the partition is strictly non-overlapping at every step. This variant carries the diagnostic infrastructure for condensed phases (Lindemann parameter, Brownian dynamics, force histograms) and is used for the interactive folding and the NaCl / CO$_2$ / N$_2$ work in Chapters~\ref{ch:folding} and~\ref{ch:condensed}.
+
+The two variants converge to the same Bernoulli partition in the continuum limit. Where they differ is in the speed--diagnostic trade-off: mol\_fast is leaner and faster, molecule.js is heavier and carries more measurements.
+
+\section{Code size and computational cost}\label{sec:size-cost}
+
+The full RealQM implementation is approximately 8000 lines of JavaScript and WGSL combined. For comparison:
+
+\begin{center}
+\begin{tabular}{l r r}
+\toprule
+Package & Approximate size (lines) & Language(s) \\
+\midrule
+RealQM (mol\_fast + molecule.js + WGSL) & $\sim 8\,000$ & JS, WGSL \\
+Quantum ESPRESSO & $\sim 200\,000$ & Fortran \\
+NWChem & $\sim 3\,000\,000$ & Fortran, C \\
+Gaussian & $\sim 3\,000\,000$ & Fortran \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The two-to-three-orders-of-magnitude size compression is not the result of code golf; it is the result of working directly in real space. Mainstream quantum chemistry packages contain large quantities of code for tasks that simply do not appear in RealQM:
+\begin{itemize}
+\item Basis-set machinery: Gaussian, plane-wave, or numerical basis sets; basis-set libraries; basis-set fitting.
+\item Two-electron integral evaluation: four-centre Gaussian integrals, density fitting, Cholesky decompositions, integral screening.
+\item Orbital coefficient bookkeeping: SCF iteration matrices, DIIS extrapolation, level shifting, fractional occupations.
+\item Analytic gradient machinery: Pulay terms, response equations, basis-set derivatives.
+\item Exchange--correlation functional libraries: Libxc and equivalents.
+\end{itemize}
+None of these are needed in the multiphase real-space formulation. The wave functions are values on a grid; their derivatives are stencils; the Hartree potentials are Poisson-relaxed; the forces are Coulomb gradients evaluated at nuclear positions. The size compression is structural, not stylistic.
+
+\paragraph{Speedup.} For typical jobs, RealQM runs orders of magnitude faster than CPU-based quantum chemistry on equivalent hardware. A water-dimer geometry optimisation that takes hours of CCSD(T)/CBS computation completes interactively in seconds. A 216-water cluster with explicit electrons runs at real-time interactive frame rates on a single GPU; the equivalent DFT-MD simulation requires tens to hundreds of CPU cores running for weeks. The speedup factor of $10^2$--$10^4$ is real and is the practical breakthrough of the framework, even if accuracy at very high precision (CCSD(T)-class) is not the goal.
+
+Two sources of the speedup are worth distinguishing. The first is the algorithmic simplification: local stencil updates instead of global matrix operations. The second is the architectural fit: stencil updates map naturally onto GPU compute kernels, which are the parallel-processing primitive of consumer hardware. CPU-based codes pay a structural penalty by trying to parallelise operations that have global data dependencies (matrix diagonalisation, integral transformation, FFTs). RealQM has no such operations.
+
+\section{The browser as a research environment}\label{sec:browser}
+
+A consequence of the implementation choice --- JavaScript and WebGPU --- is that the entire framework runs in a browser without installation. Opening a URL is sufficient to run a calculation; the GPU is initialised from the page, the simulation executes in the page, and the results are rendered in the page. There is no compilation step for the user, no environment setup, no dependence on operating-system version or library version.
+
+This has practical consequences that are not just about convenience:
+
+\begin{itemize}
+\item \emph{Reproducibility.} Anyone with a recent browser can reproduce the calculations in Part~III. The Gallery at the URL in the Appendix contains the working simulations from every validation chapter; each can be opened, parameters varied, and results regenerated in real time. There is no install-the-package step that historically gates reproducibility in computational chemistry.
+\item \emph{Interactivity.} The user can change parameters --- bond length, kernel softening radius, splitting topology, temperature --- and see the effect live, at 30+ fps. The traditional batch-job model of quantum chemistry (set up an input file, submit to a queue, wait, parse the output) is replaced by direct manipulation of a running simulation.
+\item \emph{Pedagogy.} A student can open the H$_2$ simulation, drag the protons apart, and watch the bond break in real time. The same simulation can be used as a teaching tool and as a research tool, because there is no separation between the two.
+\end{itemize}
+
+The implementation choice is therefore not just an engineering decision. It is part of how the framework relates to the community of users: chemistry simulations as web pages rather than as compiled binaries, with everything that follows from that.
+
+% --- End of Chapter 5 ---

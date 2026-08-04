@@ -1,0 +1,89 @@
+\chapter{Code and Reproducibility}\label{app:code}
+
+This appendix lists the source repositories, the public Gallery, and the hardware and browser requirements for running the calculations reported in this book. Everything is open and runs in the browser; no compilation step, no environment setup, no remote service is required.
+
+\section{Source repositories and public sites}\label{sec:repos}
+
+\begin{itemize}
+\item \textbf{Code repository:} \url{https://github.com/Claes542/RealMolecule}
+\item \textbf{Interactive Gallery:} \url{https://claes542.github.io/RealMolecule/gallery.html}
+\item \textbf{RealQM project site:} \url{https://physicalquantummechanics.blogspot.com}
+\item \textbf{Author's blog:} \url{https://claesjohnson.blogspot.com}
+\item \textbf{Leibniz World of Math:} \url{https://mathsimulationtechnology.wordpress.com}.\\
+The long-running site of the Body and Soul programme, on which the development of RealQM, Computational Thermodynamics, and the Mind--AI working method has been documented in real time over more than a decade. The site's title is an explicit homage to the Leibniz programme of automating computation discussed in the Foreword: a \emph{calculus ratiocinator} for the modern era, in which the mathematical mind frames the problem and the computer --- now with capable AI assistance --- carries the calculation. The present volume is, in the working sense, the consolidated form of much of what was developed and tested on that site.
+\end{itemize}
+
+The code repository contains the full implementation: \texttt{mol\_fast.js}, \texttt{molecule.js}, the WGSL compute shaders, the validation scan files, and the Gallery HTML pages. The Gallery URL opens the curated browser-rendered overview of the validation suite, with each entry linked to a runnable scan file for the corresponding chapter.
+
+\section{Hardware and browser requirements}\label{sec:requirements}
+
+\begin{itemize}
+\item \textbf{Browser:} Chrome 113+, Edge 113+, or Safari 17+ (WebGPU support).
+\item \textbf{Hardware:} any modern integrated or discrete GPU; $\sim$1~GB GPU memory for $\sim$200$^3$ grid; $\sim$4~GB GPU memory for $\sim$300$^3$ grid.
+\item \textbf{Operating system:} any (browser-based; no native dependency).
+\item \textbf{Internet connection:} required only to load the Gallery initially; after the page is cached, calculations run locally without network access.
+\end{itemize}
+
+A typical consumer laptop with an integrated GPU is sufficient for most of the calculations reported in this book. The condensed-phase work in Chapter~\ref{ch:condensed} benefits from a discrete GPU because of the larger grid sizes; a moderate gaming GPU is sufficient.
+
+\section{Reproducing the validation suite}\label{sec:reproducing}
+
+All results reported in Part~III can be reproduced by opening the relevant \texttt{.html} files in the repository. Each binding-energy data point in Chapter~\ref{ch:hydrides} corresponds to a specific URL parameterisation ($R$, $r_c$) of a specific scan file --- for example:
+\begin{verbatim}
+mol_fast_H4X_Z2_scan.html?R=1.0&rc=0.2
+\end{verbatim}
+which sets the bond length and the kernel softening radius for the group-14 hydride scan. The Gallery's ``Kernel Splitting'' and ``Periodic-Table Coverage'' cards link directly to the scan files used to generate the reported numbers; each card has a one-click ``Reproduce'' button that opens the parameterised scan with the values from the manuscript pre-set.
+
+\section{Why there are no figures in this appendix}\label{sec:no-figures}
+
+We deliberately omit static figures of the simulation results from this appendix and indeed from this book where reasonable. The Gallery contains many interactive visualisations --- density slices, 3D molecular views, force-arrow displays, real-time dynamics --- that are far more informative as live simulations than as static images. A reader who wants to inspect electron densities, watch molecules relax, or run their own kernel-architecture sweeps should consult the Gallery directly. Static images of the same content omit the responsiveness that makes the framework distinctive.
+
+A typical chapter is therefore accompanied by Gallery URLs rather than by figures. The chapter text describes what is computed; the Gallery shows what it looks like and lets the reader change parameters interactively.
+
+\section{Validation chapter pointers}\label{sec:chapter-pointers}
+
+For convenience, the Gallery entries corresponding to each validation chapter of Part~III are:
+
+\begin{itemize}
+\item Chapter~\ref{ch:atoms} (Atomic energies Li--Rn): Gallery card \emph{Atom Simulator}.
+\item Chapter~\ref{ch:h2} (H$_2$ covalent bond and He limit): Gallery card \emph{H$_2$ Bond + Helium}.
+\item Chapter~\ref{ch:hydrides} (Hydrides across the periodic table): Gallery card \emph{Periodic-Table Coverage}, sub-cards for groups 1, 2, 14, 16.
+\item Chapter~\ref{ch:dimers} (Dimers and reactions): Gallery cards \emph{S66 Dimer Geometries} and \emph{Reactive Chemistry}.
+\item Chapter~\ref{ch:excited} (Excited states): Gallery card \emph{Orthohelium}.
+\item Chapter~\ref{ch:blackbody} (Black-body radiation): companion file \texttt{wave\_pde\_blackbody.html}, a bank of independent matter oscillators $\nu_k = k\,\Delta\nu$ driven by thermal Langevin noise, with switchable dissipation modes (sharp §11 cutoff, sigmoid handoff, linear two-channel, Bose--Einstein, and non-linear threshold). Visualises the truncated Rayleigh--Jeans + matter-cutoff prediction of \S\ref{sec:planck-cutoff} against Planck, tungsten graybody data, and the Rayleigh--Jeans limit. Includes a Stefan--Boltzmann sweep button that confirms slope $4$. The single-oscillator companion \texttt{string\_forced.html} verifies the per-mode energy balance $R = \epsilon F$ of \S\ref{sec:RF-proof}.
+\item Chapter~\ref{ch:molrad} (Molecular radiation): two companion files.
+\begin{itemize}
+\item \texttt{co2\_modes.html}: partial-charge classical model that animates CO$_2$'s three normal modes with fixed partial charges $q_{\rm C} = +2$, $q_{\rm O} = -1$ from the asymmetric Bernoulli partition. Demonstrates the symmetry-based IR-active/inactive selection algebraically (the symmetric stretch dipole stays identically zero regardless of amplitude).
+\item \texttt{co2\_realqm\_modes.html}: full RealQM phase-sweep simulator. Drives \texttt{molecule.js} (the same multiphase variational solver used elsewhere in the book) through eight phases of one normal-mode cycle, re-relaxing the electron density at each geometry and reading the dipole components from integration of the relaxed density. Returns the asymmetric-stretch dipole derivative $|\partial\mu/\partial R| \approx 6.1$ D/\AA{} for CO$_2$ at the Level-3 architecture, overshooting the experimental $1.85$ D/\AA{} by a factor of $\sim 3$ that traces to the architecture's ionic partial-charge assignment.
+\end{itemize}
+\item Chapter~\ref{ch:folding} (Protein folding): Gallery cards \emph{Polyglycine Hairpin}, \emph{Polyglycine $\alpha$-Helix}, \emph{Chignolin}, \emph{Villin HP35}.
+\item Chapter~\ref{ch:condensed} (Condensed phases): Gallery cards \emph{NaCl Crystal Melt}, \emph{CO$_2$ Dry Ice}, \emph{Solid N$_2$}, \emph{216-water cluster}.
+\item Chapter~\ref{ch:nucleus} (Nuclear extension): Gallery card \emph{Nucleus Packing} (Level-5/6 universal nucleus model).
+\end{itemize}
+
+Each Gallery card carries the parameter set used to produce the numbers in the chapter, a description of what the simulation shows, an interpretation, and (where applicable) the \emph{Assessment by Claude} card that records the back-and-forth between human and AI during the validation.
+
+\section{License and citation}\label{sec:license-cite}
+
+The code is released under the licence stated in the \texttt{LICENSE} file of the repository (\url{https://github.com/Claes542/RealMolecule}). Refer to that file for current terms. We ask that work using or building on the framework cite this book and the underlying Foundations-of-Physics article.
+
+\paragraph{Suggested citation for the framework.}
+\begin{quote}
+Johnson, C. (2026). \emph{Real Quantum Mechanics: A Multiphase 3D Continuum Formulation}. \\
+Self-published draft, KTH Royal Institute of Technology, Stockholm.
+\end{quote}
+
+\paragraph{Suggested citation for the article.}
+The companion article is \cite{Johnson2026FoP}:
+\begin{quote}
+Johnson, C. (2026). Quantum Mechanics as Multiphase 3D Continuum Mechanics: Realised through Mind--AI Cooperation. \\
+\emph{Foundations of Physics} (submitted).
+\end{quote}
+
+\section{Reporting bugs and contributing}\label{sec:bugs}
+
+Bug reports, validation cases that fail, and suggested architectures for new molecular systems are welcome at the code repository. Pull requests that extend the validation suite, port the framework to new hardware, or improve the Gallery interface are particularly welcome.
+
+The framework is small enough that one person can hold the full implementation in their head; this is part of why we expect contributions from outside the original development to be tractable. A reader who has worked through this book has, in principle, the conceptual background to modify the code and extend the validation. The combination of small implementation and open Gallery is intended to support exactly this.
+
+% --- End of Appendix A ---

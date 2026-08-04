@@ -1,0 +1,89 @@
+\chapter{Schr\"odinger--Maxwell Coupling}\label{ch:sm-coupling}
+\index{Schr\"odinger--Maxwell coupling}\index{Larmor radiation reaction}\index{Maxwell equations}\index{minimal coupling}\index{radiation reaction}
+
+% Material drawn from prel book chapters/quantum2.tex (Schrödinger-Maxwell Equations
+% chapter) and chapters/quantum2.tex §"Radiating Hydrogen Atom".
+
+\begin{quote}
+\itshape Quantum mechanics and electromagnetics can naturally be combined because charged particles in relative motion generate electrical currents which generate electric and magnetic fields.\\
+\normalfont\hfill --- C.~Johnson, prel-book draft, 2017.
+\end{quote}
+\bigskip
+
+The chapters of Parts~I--III treated electrons as static unit-density wave functions on physical $\mathbb{R}^3$, in equilibrium configurations of an energy functional. Nothing in those chapters required electrons to oscillate, to emit radiation, or to couple to an external electromagnetic field. The variational principle picks out a stationary configuration, and the predictions are about that configuration.
+
+The real world contains time-dependent fields. Light passes through matter and is absorbed; atoms emit radiation when their internal configuration changes; molecular vibrations couple to the infrared; lasers stimulate transitions; X-rays scatter from electron densities. None of this is captured by a stationary variational principle, and a serious theory of matter has to be coupled to a theory of light to address it.
+
+This chapter sets out the coupling. It is the natural extension of RealQM into a theory that handles time-dependent electromagnetic fields alongside the multiphase 3D continuum of electronic charge densities. \textbf{Crucially, this coupling is direct in RealQM in a way it is not in StdQM:} because each $\psi_i^2$ is an actual charge density on physical $\mathbb{R}^3$, it can be plugged into Maxwell's equations as a source without any interpretational acrobatics. The wave function on $\mathbb{R}^{3N}$ of StdQM does not have this property; coupling it to a 3D electromagnetic field requires the elaborate machinery of QED.
+
+\section{The coupled system}\label{sec:sm-coupled}
+
+The Schr\"odinger--Maxwell system in RealQM consists of two sets of equations on the same physical 3D space:
+
+\paragraph{Maxwell's equations} for the electromagnetic field $(\mathbf{E}, \mathbf{B})$ with electronic charge density $\rho = \Psi^2$ and current density $\mathbf{J}$:
+\begin{align}
+\nabla \cdot \mathbf{E} &= 4\pi (\rho_{\rm nuclei} - \Psi^2), \label{eq:gauss} \\
+\nabla \cdot \mathbf{B} &= 0, \\
+\nabla \times \mathbf{E} &= -\frac{1}{c}\frac{\partial \mathbf{B}}{\partial t}, \\
+\nabla \times \mathbf{B} &= \frac{1}{c}\frac{\partial \mathbf{E}}{\partial t} + \frac{4\pi}{c} \mathbf{J}. \label{eq:ampere}
+\end{align}
+
+\paragraph{Time-dependent multiphase Schr\"odinger equations} for each $\psi_i$ on its territory $\Omega_i$, with the electromagnetic field entering through the minimal coupling $\mathbf{p} \to \mathbf{p} - (1/c)\mathbf{A}$:
+\begin{equation}\label{eq:tdse}
+i \dot\psi_i \;=\; \tfrac{1}{2}\bigl(-i\nabla - \tfrac{1}{c}\mathbf{A}\bigr)^2 \psi_i \;+\; (W + 2 \textstyle\sum_{j \ne i} V_j + \phi_{\rm ext})\, \psi_i
+\quad\text{in } \Omega_i,
+\end{equation}
+together with the Bernoulli boundary condition on $\Gamma_i$ (now time-dependent, with the boundary itself evolving).
+
+\paragraph{Current density.} The current is the standard quantum-mechanical probability-current expression, here read as an actual electronic current because $\psi_i^2$ is a charge density:
+\begin{equation}\label{eq:current}
+\mathbf{J}(\mathbf{x}, t) \;=\; \sum_i \mathrm{Im}\bigl[\psi_i^* (\nabla - \tfrac{i}{c}\mathbf{A}) \psi_i\bigr].
+\end{equation}
+
+The system is closed: $\Psi^2$ sources $\mathbf{E}$ via Gauss's law~\eqref{eq:gauss}, $\mathbf{J}$ sources $\mathbf{B}$ via Amp\`ere's law~\eqref{eq:ampere}, and the fields $(\mathbf{A}, \phi_{\rm ext})$ act back on the wave functions via the minimally-coupled time-dependent Schr\"odinger equation~\eqref{eq:tdse}.
+
+\section{Why this coupling is natural in RealQM}\label{sec:sm-natural}
+
+In standard quantum mechanics, coupling the $\Psi(\mathbf{x}_1, \ldots, \mathbf{x}_N)$ on $\mathbb{R}^{3N}$ to the electromagnetic field on $\mathbb{R}^3$ is non-trivial. The wave function lives on a higher-dimensional abstract space; the field lives on physical space; the coupling requires projecting the configuration-space wave function down to a 3D current density, which is done through expectation-value integrals and which loses the configuration-space structure that the wave function carries. The full treatment is quantum electrodynamics (QED), in which both the matter wave function and the electromagnetic field are quantised and the coupling is mediated through a Hilbert-space tensor product. QED is conceptually deep and computationally expensive.
+
+In RealQM, the matter wave function $\Psi$ already lives on physical $\mathbb{R}^3$. The coupling to the electromagnetic field on $\mathbb{R}^3$ is direct: $\Psi^2$ is a charge density that sources Gauss's law in the same physical sense that any other charge density does; the current is the standard expression~\eqref{eq:current}; the field acts back on the wave functions through minimal coupling, exactly as in classical Hamiltonian mechanics for a charged particle.
+
+\textbf{No second quantisation is required for the matter field, and the field--matter coupling is the same coupling that Maxwell's equations have with any classical charge distribution.} Whether the radiation field itself needs to be quantised (to give photon shot noise and stimulated/spontaneous emission ratios) is a separate question that the framework can be augmented with if desired; the simplest version of Schr\"odinger--Maxwell in RealQM treats both the matter and the radiation field as classical continuum quantities.
+
+\paragraph{Atomic radiation is real charge in motion.}
+The point is sharpest for \emph{atomic radiation}. In RealQM the emission of light by an atom is the \emph{motion in physical space of a real charge density}: as the electronic density $\Psi^2$ relaxes from one configuration toward another it oscillates in $\mathbb{R}^3$, and this moving charge --- with its current $\mathbf{J}$ of~\eqref{eq:current} --- is literally the source that drives the electromagnetic wave through Gauss's and Amp\`ere's laws~\eqref{eq:gauss},~\eqref{eq:ampere}, exactly as an oscillating classical charge or a radio antenna radiates. There is no intermediate abstraction: \emph{the thing that moves is the thing that radiates.} In StdQM there is no such moving charge in $3$D space. Atomic radiation is computed indirectly, as a transition \emph{dipole matrix element} $\langle \psi_f \,|\, \mathbf{x} \,|\, \psi_i\rangle$ between two stationary states of the $\mathbb{R}^{3N}$ wave function, with the emission rate read off from Fermi's golden rule and the probabilistic interpretation; the source of the field is then an expectation value over configuration space, not a charge density moving in physical space. \textbf{RealSE thus connects to electromagnetics in a more direct way than StdQM: it supplies to Maxwell's equations, as their input, the actual spatial motion of real charge --- which is what an electromagnetic wave is physically driven by.}
+
+\section{The radiative-damping term: Abraham--Lorentz radiation reaction}\label{sec:radiative-damping}
+
+When an atom radiates, it loses energy to the electromagnetic field. The corresponding back-reaction on the wave function is captured by a \emph{radiative-damping term} that opposes the time evolution. This term is the wave-equation analogue of the classical \textbf{Abraham--Lorentz radiation reaction}~\cite{Abraham1903,Larmor1897} --- the third-time-derivative term that an accelerating charge must include to account for the recoil from its own emitted radiation. The radiating Schr\"odinger equation takes the form
+\begin{equation}\label{eq:radiating-schrodinger}
+i\dot\psi \;+\; \bigl(\tfrac{1}{2}\Delta + V\bigr)\psi \;-\; \gamma \dddot\psi \;=\; f
+\quad\text{in } \mathbb{R}_+ \times \mathbb{R}^3,
+\end{equation}
+with $\psi(0, \cdot) = \psi^0$, where $f$ is an external forcing (an incoming light wave, an applied potential) and $-\gamma \dddot\psi$ is the Abraham--Lorentz term with small coefficient $\gamma$ derived from the Larmor formula.
+
+\paragraph{Outgoing radiation intensity.}
+The local intensity of outgoing radiation is
+\[
+I_{\rm rad}(\mathbf{x}, t) \;=\; \gamma\, |\ddot\psi(\mathbf{x}, t)|^2,
+\]
+the squared local acceleration weighted by $\gamma$. The total radiated power $\int \gamma |\ddot\psi|^2\, d\mathbf{x}$ is the Larmor formula in wave-equation form. The same $\gamma\, \overline{|\ddot u|^2}$ appears as the per-mode radiance $R_\nu$ in the black-body analysis of Chapter~\ref{ch:blackbody}, where the corresponding energy balance is worked out in detail.
+
+\section{Status: framework is ready, implementation is exploratory}\label{sec:sm-status}
+
+The Schr\"odinger--Maxwell coupling described above is conceptually a direct extension of the multiphase RealQM framework. The wave functions on physical $\mathbb{R}^3$ are already charge densities; Maxwell's equations on the same physical $\mathbb{R}^3$ couple to them directly; the time-dependent multiphase Schr\"odinger equation~\eqref{eq:tdse} is a straightforward generalisation of the imaginary-time relaxation in Chapter~\ref{ch:relaxation} to real-time evolution with electromagnetic coupling.
+
+\paragraph{What is implementable.}
+\begin{itemize}
+\item The time-dependent multiphase Schr\"odinger equation on a real-space grid is a standard explicit time-stepping problem, of the same form as the imaginary-time propagation that the WebGPU framework already runs.
+\item Maxwell's equations on the same grid are solvable by standard finite-difference time-domain (FDTD) methods.
+\item The coupling --- $\Psi^2$ as a source for Gauss, $\mathbf{J}$ as a source for Amp\`ere, $\mathbf{A}$ as a minimal-coupling term in Schr\"odinger --- is local at each grid point and adds modest cost beyond the existing solver.
+\end{itemize}
+
+\paragraph{What has been done.}
+The current public implementation in the Gallery (the Appendix) does not include the Schr\"odinger--Maxwell coupling. The dipole moment is computed as a diagnostic for stationary configurations, but no time-dependent radiation calculation has been run. The radiative-damping term~\eqref{eq:radiating-schrodinger} appears in the prel-book draft from 2017 but has not been ported to the WebGPU implementation.
+
+\paragraph{Why this matters.}
+The coupling is the gateway from a stationary-configuration theory of matter to a theory of light--matter interaction: emission, absorption, scattering, lasers, photochemistry, fluorescence, photosynthesis. The chapters that follow take up three specific consequences --- atomic radiation in Chapter~\ref{ch:excited}, molecular vibrational and rotational radiation in Chapter~\ref{ch:molrad}, and black-body radiation in Chapter~\ref{ch:blackbody} --- drawing on prel-book material that worked out these consequences in detail. The implementation of the full Schr\"odinger--Maxwell coupling within the current WebGPU framework is a natural next iteration of the codebase, and one we expect to make tractable in the same way the Mind--AI collaboration has made the existing chapters tractable.
+
+% --- End of Schrödinger-Maxwell Coupling chapter ---

@@ -1,0 +1,235 @@
+\chapter{RealSE: The Real Schr\"odinger Equation}\label{ch:equation}
+\index{RealQM}\index{Schr\"odinger equation}\index{multiphase formulation}\index{free-boundary problem}\index{Bernoulli condition}\index{non-overlap constraint}\index{Pauli exclusion}\index{antisymmetry}\index{kernel-electron interaction}\index{Hartree potential}\index{Euler-Lagrange equations}\index{Hellmann-Feynman theorem}\index{Pulay force}\index{forces from local potential}
+
+% Material to be added later from prel book (realquantum2.tex):
+%   - chapters/quantum3.tex (basic realQM exposition, alternative wording)
+
+\begin{quote}
+\itshape [\ldots]\,with the furthering of our understanding ``in the end everything will indeed become intelligible in three dimensions again''. [\ldots] I do not believe that one would obtain simpler calculational methods in this way, and it is probable that one will always do calculations using the multi-dimensional wave equation. But then one will be able to grasp its physical meaning better.\\
+\normalfont\hfill --- E.~Schr\"odinger, c.\ 1926.
+\end{quote}
+\bigskip
+
+This chapter writes down the equation on which RealQM is built --- the
+\textbf{Real Schr\"odinger Equation} (\textbf{RealSE}) --- derives its
+Euler--Lagrange equations, and identifies the free-boundary condition that
+closes the system. (RealQM names the \emph{framework}; RealSE names the
+\emph{equation} it solves, just as Real Thermodynamics is built on RealNSE.) The starting point is Schr\"odinger's 1926 wave function for the hydrogen atom. The end point is a multiphase variational problem on physical $\mathbb{R}^3$ whose minimisers describe atoms, molecules, and molecular complexes without ever leaving 3D space.
+
+\section{From hydrogen to many electrons}
+
+Schr\"odinger's 1926 model of the hydrogen atom is a single real-valued wave function $\psi : \mathbb{R}^3 \to \mathbb{R}$, normalised by $\int_{\mathbb{R}^3} \psi^2(\mathbf{x})\, d\mathbf{x} = 1$. The square $\psi^2(\mathbf{x})$ is the electronic charge density at the point $\mathbf{x}$ of physical space. The total energy is
+\begin{equation}\label{eq:H-energy}
+E(\psi) \;=\; \tfrac{1}{2} \int_{\mathbb{R}^3} |\nabla \psi(\mathbf{x})|^2\, d\mathbf{x}
+\;-\; \int_{\mathbb{R}^3} \frac{\psi^2(\mathbf{x})}{|\mathbf{x}|}\, d\mathbf{x},
+\end{equation}
+in atomic units (Hartree $= 1$, Bohr $= 1$). The first term penalises rapid spatial variation of the charge density --- a localisation cost --- and the second is the Coulomb attraction of that charge to a unit positive kernel at the origin. The ground state minimises $E(\psi)$ and gives the well-known $E = -\tfrac{1}{2}$~Ha eigenvalue, in agreement with observation.
+
+For an atomic or molecular system with $N>1$ electrons the question is how to extend~\eqref{eq:H-energy}. As discussed in Chapter~\ref{ch:dirac}, two extensions were possible. The standard one --- writing $\Psi(\mathbf{x}_1, \ldots, \mathbf{x}_N)$ on $\mathbb{R}^{3N}$ as an antisymmetric eigenfunction of an $N$-body Hamiltonian, with $|\Psi|^2$ a probability density --- replaces three-dimensional physical space with a $3N$-dimensional product space whose computational cost grows exponentially in $N$ and whose physical meaning has been contested ever since. We do not take that step here.
+
+\section{The multiphase 3D formulation}\label{sec:multiphase}
+
+The chapter's opening epigraph is the position Schr\"odinger himself articulated shortly after the introduction of the configuration-space wave function. The RealQM formulation realises that hope literally: the calculation does proceed in three dimensions, and the physical meaning of the wave function is recovered as a charge density on physical space.
+
+The \textbf{RealQM formulation} keeps the wave function in physical $\mathbb{R}^3$. The $N$-electron wave function $\Psi \in H^1(\mathbb{R}^3)$ is a sum of one-electron wave functions $\psi_i$ on non-overlapping spatial domains $\Omega_i$:
+\begin{equation}\label{eq:Psi-sum}
+\Psi(\mathbf{x}) \;=\; \sum_{i=1}^{N} \psi_i(\mathbf{x}),
+\qquad \psi_i \in H^1(\Omega_i), \qquad \int_{\Omega_i} \psi_i^2(\mathbf{x})\, d\mathbf{x} = 1,
+\end{equation}
+where $\{\Omega_i\}_{i=1}^{N}$ is a partition of physical space into open non-overlapping regions, $\Omega_i \cap \Omega_j = \emptyset$ for $i \ne j$, and $H^1(\Omega)$ denotes the space of real-valued functions on $\Omega$ with square-integrable first derivatives.
+
+The boundaries $\Gamma_i = \partial \Omega_i$ are not specified in advance: they emerge as a free boundary, with the $\psi_i$ continuous across joint boundaries $\Gamma_i \cap \Gamma_j$ as imposed by $\Psi \in H^1(\mathbb{R}^3)$, and the boundary location determined by the energy minimisation. We return to this point in Section~\ref{sec:bernoulli}.
+
+Three features of~\eqref{eq:Psi-sum} are worth flagging at the outset.
+
+\paragraph{Real-valued wave function in physical space.} The $\psi_i$ are real-valued functions of the same spatial coordinate $\mathbf{x} \in \mathbb{R}^3$, so $\Psi$ inherits the dimensionality of physical space. Because the $\psi_i$ have disjoint supports, the cost of representing $\Psi$ on a $K$-point grid is $O(K)$, rather than $O(K^N)$ as in the configuration-space formulation. This single fact is what makes the entire framework computationally tractable.
+
+\paragraph{Pauli exclusion through non-overlap.} The constraint that distinct electrons occupy disjoint domains plays the role of the Pauli exclusion principle. Antisymmetry of a many-body wave function is replaced by spatial separation of one-body wave functions. The two requirements are not equivalent --- antisymmetric wave functions on $\mathbb{R}^{3N}$ need not project onto non-overlapping one-body densities, and non-overlapping unit-density wave functions do not span the antisymmetric subspace --- but the variational consequence (no two electrons occupy the same spatial state) is recovered. We discuss the trade-off in Section~\ref{sec:pauli-nonoverlap}.
+
+\paragraph{No probabilistic interpretation needed.} Each $\psi_i^2$ is the actual electronic charge density of electron $i$ in its own domain $\Omega_i$. There is no need to invoke ``probability of finding electron $i$ at $\mathbf{x}$'': the density \emph{is} the physical charge distribution. The hydrogen reading of $\psi^2$ extends, electron by electron, to the multi-electron case.
+
+\section{The energy functional}\label{sec:energy}
+
+The total energy of $\Psi$ is the sum of three Coulomb contributions: kinetic, kernel--electron, and electron--electron:
+\begin{equation}\label{eq:TE}
+TE(\Psi) \;=\; K(\Psi) + PK(\Psi) + PE(\Psi),
+\end{equation}
+with
+\begin{align}
+K(\Psi)  &= \tfrac{1}{2} \int_{\mathbb{R}^3} |\nabla \Psi(\mathbf{x})|^2\, d\mathbf{x}
+        \;=\; \sum_{i=1}^{N} \tfrac{1}{2} \int_{\Omega_i} |\nabla \psi_i(\mathbf{x})|^2\, d\mathbf{x},
+        \label{eq:K} \\
+PK(\Psi) &= \int_{\mathbb{R}^3} W(\mathbf{x})\, \Psi^2(\mathbf{x})\, d\mathbf{x},
+        \qquad
+        W(\mathbf{x}) = -\sum_{a=1}^{M} \frac{Z_a}{|\mathbf{x} - \mathbf{R}_a|},
+        \label{eq:PK} \\
+PE(\Psi) &= \sum_{i=1}^{N} \int_{\Omega_i} \sum_{j \ne i} V_j(\mathbf{x})\, \psi_i^2(\mathbf{x})\, d\mathbf{x},
+        \qquad
+        V_j(\mathbf{x}) = \int_{\Omega_j} \frac{\psi_j^2(\mathbf{y})}{2\,|\mathbf{x} - \mathbf{y}|}\, d\mathbf{y}.
+        \label{eq:PE}
+\end{align}
+Three remarks.
+
+The kinetic-energy term $K(\Psi)$ is named ``kinetic energy'' by analogy with Schr\"odinger's hydrogen problem, but no electronic motion is implied. It is more accurately understood as a \emph{localisation cost} penalising rapid spatial variation of the charge density --- a strain-like elastic energy for the electronic continuum. The non-overlap of supports lets the global integral split into a sum of integrals over the individual $\Omega_i$.
+
+The kernel--electron term $PK(\Psi)$ describes the Coulomb attraction of the total electronic charge density $\Psi^2 = \sum_i \psi_i^2$ to nuclei of charge $Z_a$ at positions $\mathbf{R}_a$, with $M$ the number of nuclei. The nuclear--nuclear Coulomb term $V_{NN} = \sum_{a < b} Z_a Z_b / |\mathbf{R}_a - \mathbf{R}_b|$ is included additively when nuclear positions are varied.
+
+The electron--electron term $PE(\Psi)$ requires the most care. The exclusion $j \ne i$ in~\eqref{eq:PE} \emph{removes self-repulsion by construction}: the regions $\Omega_i$ and $\Omega_j$ are disjoint, so each electron contributes its own charge density only to the potentials seen by the \emph{other} electrons. There is no self-interaction error of the kind that plagues approximate density-functional methods. The factor $\tfrac{1}{2}$ in $V_j$ is the standard Coulomb double-counting prefactor; with it the sum over $i$ and over $j \ne i$ counts each pair $(i,j)$ once.
+
+\paragraph{Remark on kinetic energy as self-repulsion.}\index{kinetic energy as compression cost}\index{self-repulsion}
+The two preceding remarks together give a complete account of how a single electron is held against itself in RealQM: \textbf{the kinetic-energy gradient term penalises concentration of the charge density, and this penalty plays exactly the role of self-repulsion}. Each electron is formally free of Coulomb self-repulsion --- by construction $\psi_i$ does not appear in the potential $V_i^{\rm ext}$ it experiences. But each electron carries a kinetic-energy contribution $\tfrac{1}{2}\int_{\Omega_i} |\nabla \psi_i|^2$ measured by the gradient of its own charge density, and concentrating the same total charge into a smaller region of $\Omega_i$ sharpens the gradient, raising this cost. The density therefore resists being compressed into itself; the atom does not collapse onto its kernel because this compression cost balances the kernel attraction at equilibrium. RealQM thus does without an explicit Coulomb self-interaction --- and replaces it, exactly and without approximation, by the kinetic-energy gradient cost that the Schr\"odinger formulation has always carried. The Hardy inequality used in the one-paragraph stability-of-matter proof of Chapter~\ref{ch:som} is the quantitative statement of this kinetic-energy self-repulsion.
+
+\section{Euler--Lagrange equations}\label{sec:euler-lagrange}
+
+The ground-state configuration is found by minimising~\eqref{eq:TE} over $\Psi = \sum_i \psi_i$ with $\psi_i \in H^1(\Omega_i)$, $\int_{\Omega_i} \psi_i^2 = 1$, and over both the partition $\{\Omega_i\}$ and the nuclear positions $\{\mathbf{R}_a\}$. The minimisation has three groups of variables: the wave functions, the partition, and the nuclear positions. We treat them in turn.
+
+\paragraph{Variation with respect to $\psi_i$ at fixed $\Omega_i$.} Adding a Lagrange multiplier $E_i$ for the unit-norm constraint $\int_{\Omega_i} \psi_i^2 = 1$ and varying~\eqref{eq:TE} freely with respect to $\psi_i$ on $\Omega_i$ yields, by the standard calculus-of-variations argument,
+\begin{equation}\label{eq:Hi}
+\mathcal{H}_i\, \psi_i \;\equiv\; \Bigl(-\tfrac{1}{2}\Delta + W + 2\!\sum_{j \ne i} V_j\Bigr) \psi_i \;=\; E_i\, \psi_i \quad \text{in } \Omega_i,
+\end{equation}
+together with the natural Neumann boundary condition
+\begin{equation}\label{eq:neumann}
+\frac{\partial \psi_i}{\partial n} = 0 \quad \text{on } \Gamma_i.
+\end{equation}
+Equation~\eqref{eq:Hi} is the Schr\"odinger eigenvalue equation for electron $i$, with the one-body Hamiltonian
+\begin{equation}\label{eq:Hi-def}
+\mathcal{H}_i \;=\; -\tfrac{1}{2}\Delta \;+\; W \;+\; 2 \sum_{j \ne i} V_j,
+\end{equation}
+the kinetic operator plus the kernel potential plus the Hartree potentials of the \emph{other} electrons. Self-repulsion is absent because $V_i$ does not appear in the sum over $j$.
+
+The Neumann condition~\eqref{eq:neumann} is the natural boundary condition for free variation: it is what one obtains when the boundary $\Gamma_i$ is allowed to vary freely, with no externally imposed Dirichlet condition. We will see in Section~\ref{sec:bernoulli} that this homogeneous Neumann condition combines with continuity of $\psi_i$ across $\Gamma_i$ into the \emph{Bernoulli free-boundary condition} that closes the system.
+
+\paragraph{Variation with respect to the partition $\{\Omega_i\}$.} Holding the $\psi_i$ fixed, varying the location of an interface $\Gamma_i \cap \Gamma_j$ between two adjacent electron territories requires the energy to be stationary with respect to that variation. The resulting transversality condition is the \textbf{Bernoulli condition} discussed in Section~\ref{sec:bernoulli}: continuity of $\psi$ across the interface plus the homogeneous Neumann condition $\partial\psi_i/\partial n = 0$ on each side. Practically the wave-function update~\eqref{eq:Hi}--\eqref{eq:neumann} and the partition update are coupled; in the implementation (Chapter~\ref{ch:relaxation}) they evolve simultaneously toward the joint minimiser.
+
+\paragraph{Variation with respect to nuclear positions.} Varying the nuclear positions $\{\mathbf{R}_a\}$ at fixed wave function and partition gives a force on each nucleus. As discussed in Section~\ref{sec:forces}, this force can be computed either by differentiating the total energy or, equivalently at the variational minimum, by evaluating the local Coulomb gradient at the nuclear position. We use the latter throughout.
+
+\section{Pauli exclusion as non-overlap}\label{sec:pauli-nonoverlap}
+
+In StdQM the Pauli exclusion principle is encoded as antisymmetry of the $N$-electron wave function $\Psi^{\rm std}(\mathbf{x}_1, \ldots, \mathbf{x}_N)$ under exchange of any two electron labels. The antisymmetry is imposed at the level of the full wave function on $\mathbb{R}^{3N}$ and has the consequence, for example, that two electrons cannot occupy the same one-electron orbital with the same spin (the Slater determinant collapses).
+
+In RealQM the Pauli exclusion principle is encoded as \emph{spatial non-overlap} of the supports $\Omega_i$. The constraint $\Omega_i \cap \Omega_j = \emptyset$ enforces, more strongly than antisymmetry alone would, that distinct electrons occupy distinct regions of physical space. The two implementations of exclusion are not equivalent:
+\begin{itemize}
+\item Antisymmetric wave functions on $\mathbb{R}^{3N}$ generally have overlapping one-body densities, in the sense that the marginal density of one electron has support that overlaps the marginal density of another. RealQM rules this out.
+\item Non-overlapping unit-density wave functions on $\mathbb{R}^3$ are not antisymmetric under exchange in the StdQM sense; they live in a different mathematical space.
+\end{itemize}
+The two formulations therefore describe different mathematical objects. The variational consequence --- that adding a second electron costs more than adding the first because spatial territory is now contested --- is recovered in both. The energetic outcome is broadly similar in regimes where both have been tested. Where the consequences diverge most visibly is in the proof of stability of matter (Chapter~\ref{ch:som}): in StdQM antisymmetry is essential to ruling out catastrophic collapse, and the proof requires the Lieb--Thirring inequality with the antisymmetric kinetic-energy bound; in RealQM non-overlap and Hardy's inequality together do the same work in one paragraph.
+
+A useful way to think about the trade-off: antisymmetry is a constraint on the \emph{coordinates} of a wave function on $\mathbb{R}^{3N}$, and it does its work through algebra (sign changes under permutation). Non-overlap is a constraint on the \emph{supports} of one-body wave functions on $\mathbb{R}^3$, and it does its work through geometry (disjointness of regions). The two are doing analogous variational work in different mathematical languages.
+
+\paragraph{Individuality by spatial occupation.}\index{individuality of electrons}\index{indistinguishability}
+The deeper consequence of the difference is what it implies about the \emph{identity} of the electrons themselves. In RealQM each electron is an individuated object: it has its own region $\Omega_i$ of physical 3D space, its own scalar wave function $\psi_i$ on that region, its own bounding interface $\Gamma_i$ to its neighbours. Electron~3 is distinguished from electron~7 by its spatial location, by the shape and extent of its territory, by its position in the shell hierarchy. Each electron has individuality in the most direct physical sense: it occupies a specific portion of space that no other electron occupies. This is identity by spatial extension.
+
+The standard formulation takes the opposite position. In StdQM the antisymmetric wave function $\Psi^{\rm std}(\mathbf{x}_1, \ldots, \mathbf{x}_N)$ requires that no observable property distinguish electron~3 from electron~7; the electrons are postulated \emph{indistinguishable}, with the wave function changing sign under exchange of any two labels precisely to enforce that no measurement can tell them apart. Each electron is, marginally, a probability density spread out over the entire system; in the textbook phrasing, the electron is everywhere and nowhere, and the question ``which electron is at point $\mathbf{x}$?'' has no meaning. The price of this position is the elaborate apparatus of identical-particle statistics --- Slater determinants, second quantisation, exchange and correlation integrals, occupation numbers, permanent and determinant constructions of the symmetric group --- that the working calculation needs to deliver concrete numbers in chemistry and solid-state physics.
+
+RealQM does without this entire apparatus. Identical-particle statistics is not a feature of the theory; it is replaced by the simpler statement that distinct electrons occupy distinct regions of space. The complicated combinatorial machinery that StdQM requires to maintain its indistinguishability postulate is, on this reading, a price paid for a foundational stance --- denial of individuality --- that has no physical motivation beyond the antisymmetry it was invented to support. The Leibnizian reading developed earlier in this chapter is the appropriate philosophical complement: electrons in RealQM are individuated substances with their own perceptions of one another (the effective Coulomb potential), not interchangeable instances of a single species smeared across the configuration space.
+
+\paragraph{Pauli on his own principle.}\index{Pauli, Nobel Lecture 1945}
+That the antisymmetry formulation has the status of a working postulate rather than a derived consequence was acknowledged candidly by Pauli himself, on the occasion of receiving the 1945 Nobel Prize in Physics for the Exclusion Principle:
+
+\begin{quote}
+\itshape Already in my original paper I stressed the circumstance that I was unable to give a logical reason for the exclusion principle or to deduce it from more general assumptions. I had always the feeling and I still have it today, that this is a deficiency. Of course in the beginning I hoped that the new quantum mechanics, with the help of which it was possible to deduce so many half-empirical formal rules in use at that time, will also rigorously deduce the exclusion principle. Instead of it there was for electrons still an exclusion: not of particular states any longer, but of whole classes of states, namely the exclusion of all classes different from the antisymmetrical one. The impression that the shadow of some incompleteness fell here on the bright light of success of the new quantum mechanics seems to me unavoidable. \normalfont\hfill --- W.~Pauli, Nobel Lecture, 1945
+\end{quote}
+
+At the close of the same lecture, Pauli formulated a methodological standard for what a correct theory should look like:
+
+\begin{quote}
+\itshape A correct theory should neither lead to infinite zero-point energies nor to infinite zero charges, that it should not use mathematical tricks to subtract infinities or singularities, nor should it invent a ``hypothetical world'' which is only a mathematical fiction before it is able to formulate the correct interpretation of the actual world of physics. \normalfont\hfill --- W.~Pauli, Nobel Lecture, 1945
+\end{quote}
+
+The RealQM replacement of antisymmetry by spatial non-overlap can be read as a response to both passages. Antisymmetry, postulated and unsatisfactorily justified in StdQM, is replaced by a geometric constraint with a direct physical interpretation: distinct electrons occupy distinct regions of physical space. The ``hypothetical world'' of $3N$-dimensional configuration space, which Pauli's methodological standard would discourage, is not invoked at all.
+
+\section{The Bernoulli free-boundary condition}\label{sec:bernoulli}
+
+The non-overlap constraint $\Omega_i \cap \Omega_j = \emptyset$ means that each one-electron wave function $\psi_i$ is supported on its own spatial region $\Omega_i$, with the regions $\{\Omega_i\}$ partitioning the relevant volume. The interfaces $\Gamma_i \cap \Gamma_j$ between regions are not specified in advance --- they emerge from the energy minimisation. The variational principle~\eqref{eq:TE} is therefore a \textbf{free-boundary problem}, mathematically analogous to Bernoulli's classical free-boundary problem in potential flow and to the Stefan problem for phase transitions.
+
+At equilibrium, the boundary satisfies a \textbf{Bernoulli condition}: $\psi_i$ is continuous from within $\Omega_i$ toward the interface (no singular behaviour at the boundary), and the normal derivative $\partial \psi_i / \partial n$ vanishes at the interface (homogeneous Neumann). The Neumann condition is not externally imposed; it emerges from the variational principle. When~\eqref{eq:TE} is minimised jointly over the wave functions and the boundary location, the transversality condition at the boundary --- vanishing first variation for arbitrary admissible boundary deformations --- yields~\eqref{eq:neumann}, that is, $\partial \psi_i / \partial n = 0$ on $\Gamma_i$.
+
+Across the interface, the density $\psi_i^2$ is positive on the $\Omega_i$ side and zero on the other side, with the jump occurring sharply at $\Gamma_i$. The \textbf{Bernoulli condition} for RealQM is therefore the combination of three statements:
+\begin{enumerate}
+\item Continuity of $\psi_i$ as $\Gamma_i$ is approached from within $\Omega_i$.
+\item The homogeneous Neumann condition $\partial \psi_i / \partial n = 0$ on $\Gamma_i$.
+\item A jump from $\psi_i \ne 0$ inside to $\psi_i = 0$ outside.
+\end{enumerate}
+We collectively refer to this triple as the Bernoulli condition by analogy with Bernoulli's free-boundary problem in potential flow, where a free surface separates a region of moving fluid from a region of zero velocity, with continuity of the velocity potential and a kinematic Neumann condition at the surface.
+
+When the system is \emph{not at equilibrium}, density mismatches at the interfaces generate forces that drive boundary motion. The free boundary moves toward configurations satisfying the Bernoulli condition; the bulk wave functions and the boundary location relax together. This dynamic is part of how the variational principle arrives at the equilibrium configuration: the boundaries are not fixed but evolve as the wave functions relax. In the numerical implementation (Chapter~\ref{ch:relaxation}), the relaxation is realised through a smoothed indicator field that softens the partition during imaginary-time propagation and tightens to the Bernoulli condition at convergence.
+
+The free-boundary perspective places the wave-function formulation in a well-studied class of variational problems for which regularity theory, level-set methods, and Dirichlet--Neumann decompositions are available. The free boundary is what makes the model nontrivial; without the partition step, the formulation would reduce to a sum of independent one-electron problems, and chemistry would not emerge.
+
+\paragraph{Status as a model assumption.}
+The Bernoulli condition itself appears to be \emph{difficult to verify or disprove by direct experimental observation}. The inter-electron interface is not a quantity that current experiments resolve, and standard quantum-chemistry methods do not produce a comparable object: they work with overlapping orbitals or with a single total density, not with a partition of space into electron territories with a sharp boundary. In computations, however, the condition functions as a working model: imposing continuity and homogeneous Neumann at the free boundary is consistent with the variational principle, the relaxation reaches a stable boundary configuration, and the resulting energies and geometries agree with experiment across the cases reported in Part~III. We therefore adopt the Bernoulli condition as a model assumption supported by computational evidence rather than by direct measurement, and note this status explicitly.
+
+\section{Forces from the total electronic potential}\label{sec:forces}
+
+In standard quantum chemistry, forces on nuclei are typically computed as derivatives of the total energy with respect to nuclear coordinates: $\mathbf{F}_a = -\partial E / \partial \mathbf{R}_a$. The Hellmann--Feynman theorem states that for an exact wave function this equals the electrostatic force from the electron density on each nucleus, but for approximate wave functions the two differ by Pulay terms arising from the basis-set dependence on nuclear positions. The energy-derivative approach is the standard way forces enter molecular dynamics, geometry optimisation, and reaction-path calculations.
+
+In the multiphase electron-density formulation, forces are computed \textbf{directly from the gradient of the total electronic potential}:
+\begin{equation}\label{eq:force-coulomb}
+\mathbf{F}_a \;=\; -Z_a\, \nabla P(\mathbf{r}) \big|_{\mathbf{r} = \mathbf{R}_a},
+\end{equation}
+where $P(\mathbf{r})$ is the total Coulomb potential generated by all electron densities and other nuclei, evaluated at the position of nucleus $a$. There is no energy functional being differentiated; the force is the local electrostatic gradient on each nucleus, computed directly from the electron density and other nuclear charges via Coulomb's law.
+
+The two approaches give numerically the same result at the variational minimum (Hellmann--Feynman) but differ in conceptual standing. The local-potential view is closer to the physics: \textbf{nature does not carry a record of energy}, only of local potential gradients. A nucleus does not ``know'' the total energy of the molecule and then take a derivative; it experiences the Coulomb force from the surrounding charge distribution, locally and instantaneously. Dynamics in RealQM is therefore driven by physical forces evaluated pointwise from the density, not by differentiation of a global functional.
+
+This has practical consequences. Energy-derivative forces in standard QC require careful treatment of basis-set dependences (Pulay forces), analytic-gradient code that scales as the wave-function calculation itself, and consistency between the kinetic and potential terms in the energy functional. Local-potential forces in RealQM are evaluated directly on the real-space grid, are $O(N)$ in the number of grid points, and require no additional gradient machinery beyond the density and nuclear positions already maintained. The simplification is structural: by working with the electronic potential as the primary object driving dynamics, the framework avoids the energy-derivative bookkeeping that constitutes a substantial part of mainstream quantum-chemistry implementations.
+
+\section{Comparison with the standard formulation}\label{sec:vs-stdqm}
+
+The standard formulation (StdQM) seeks an antisymmetric $N$-electron wave function $\Psi^{\rm std}(\mathbf{x}_1, \ldots, \mathbf{x}_N)$ on $\mathbb{R}^{3N}$ as an eigenfunction of the many-body Hamiltonian. Approximate methods truncate the variational space: Hartree--Fock uses a single Slater determinant, configuration interaction and coupled cluster expand around it, density functional theory passes to a one-body density via the Hohenberg--Kohn--Kohn--Sham framework. The exponential scaling of the configuration space is the underlying obstacle, and the probabilistic interpretation of $|\Psi^{\rm std}|^2$ replaces the direct charge-density meaning of $\psi^2$ in Schr\"odinger's hydrogen atom~\eqref{eq:H-energy}.
+
+The RealQM formulation~\eqref{eq:Psi-sum}--\eqref{eq:PE} works in real $\mathbb{R}^3$ at the level of $N$ one-electron wave functions $\psi_i$ on disjoint spatial domains, with antisymmetry replaced by strict spatial non-overlap. The two requirements are not equivalent --- as discussed in Section~\ref{sec:pauli-nonoverlap} --- and the reformulation is therefore a different mathematical object, not a numerical approximation of the standard one. It is also closer in spirit to Schr\"odinger's original 1926 picture of $\psi^2$ as charge density than to the Born--Heisenberg configuration-space extension that produced StdQM.
+
+The natural question is how the two compare numerically. At the parameter-free Level-1 atomic model (Chapter~\ref{ch:atoms}) RealQM gives atom energies within ${\sim}1\%$ of observation across Li--Rn. At higher levels (Chapter~\ref{ch:hydrides}), Level-3 reductions match experimental atomization energies of closed-shell hydrides within 3--9\% across multiple periodic-table groups. Where the methods part company is in the cost: a single closed-shell hydride at Level 3 runs in milliseconds on a laptop GPU, while CCSD(T) on the same system requires minutes to hours on a CPU.
+
+\paragraph{Connection to Atoms in Molecules.}\index{Atoms in Molecules (AIM)}\index{Bader, R. F. W.}\index{zero-flux surface}
+Bader's theory of \emph{Atoms in Molecules}~\cite{Bader90} partitions the total electron density $\rho(\mathbf{x})$ obtained from a Slater-determinant wave function into atomic basins via the topology of the gradient field $\nabla \rho$. The basins are bounded by \emph{zero-flux surfaces}: the AIM defining condition is
+\[
+\nabla \rho(\mathbf{x}) \cdot \mathbf{n}(\mathbf{x}) \;=\; 0
+\quad\text{on the basin boundary,}
+\]
+where $\mathbf{n}$ is the unit normal to the boundary. Within each basin, $\rho$ has a single attractor (typically a nuclear position); the boundary is the locus where the gradient flow of $\rho$ has no normal component.
+
+RealQM takes that partitioning idea seriously as the \emph{primary} variable: rather than first computing $\rho(\mathbf{x})$ from a Slater-determinant wave function and then partitioning, the partition $\{\Omega_i, \psi_i\}$ minimises the Coulomb energy directly. The basin structure that AIM extracts as a post-processing step on a StdQM density is built into RealQM as the primary object of the variational problem --- which gives the AIM zero-flux partitioning the first-principles status that, in its original construction, it does not have.
+
+The technical link between the two frameworks is the boundary condition. The homogeneous Neumann condition $\partial \psi_i / \partial n = 0$ on $\Gamma_i$ that emerges variationally as part of the Bernoulli condition in RealQM (Section~\ref{sec:bernoulli}) is, on the one-electron densities $\psi_i^2$, exactly the AIM zero-flux condition: $\partial \psi_i / \partial n = 0$ implies $\partial \psi_i^2 / \partial n = 2 \psi_i \, \partial \psi_i / \partial n = 0$ at the boundary, so the density $\psi_i^2$ has vanishing normal gradient at the inter-electron interface. The RealQM partition is therefore a Bader partition --- with the difference, decisive for both the conceptual status of the framework and its computational cost, that the partition is obtained by direct variational minimisation as the primary object, not by topological post-processing of a Slater-determinant density.
+
+\paragraph{Connection to Leibniz monads.}\index{Leibniz monads}\index{monadology}
+A more philosophical reading of the same structure recalls Leibniz's \emph{monadology}. In Leibniz's account each monad is a simple, individuated substance, distinct from all others, with no internal parts and no external windows; what a monad has instead of windows is a \emph{perception} of the rest of the universe --- a representation, varying in clarity from monad to monad, of all the other monads. The collective state is held together by what Leibniz called \emph{pre-established harmony}: each monad evolves according to its own internal law, but the laws are co-arranged so that the perceptions agree across the system.
+
+The RealQM electron structure is a literal physical realisation of this picture. Each electron is an individuated $(\Omega_i, \psi_i)$ on its own region of physical space, distinct from all others by the non-overlap constraint; it has no internal sub-structure beyond its scalar wave function on $\Omega_i$. What it has instead of internal access to the rest of the universe is a \emph{perception} in the precise Leibnizian sense: the effective external potential
+\[
+V_i^{\rm ext}(\mathbf{x}) \;=\; V_{\rm tot}(\mathbf{x}) - V_i(\mathbf{x}) \;=\; \sum_{j \ne i} V_j(\mathbf{x}) + V_{\rm kernels}(\mathbf{x}),
+\]
+which is the Coulomb potential generated by all other electrons and all kernels, with this electron's own self-potential removed. Each electron \emph{perceives} the rest of the system through this scalar field; it does not directly access the internal wave-function structure of any other electron, only the Coulomb summary the other electrons contribute to its environment. The perceptions are not equal --- a valence electron's $V_i^{\rm ext}$ is dominated by nearby neighbours and quite different from a core electron's, just as Leibniz's monads have perceptions of varying clarity at different points in the cosmos.
+
+The \emph{pre-established harmony} of the monadology corresponds to the simultaneous variational principle that closes the RealQM system. Each $\psi_i$ satisfies its own one-electron equation~\eqref{eq:Hi}, with its own effective external potential $V_i^{\rm ext}$ frozen as input; but the $V_i^{\rm ext}$ that each electron sees is itself constructed from the $\{\psi_j\}_{j \ne i}$ of all other electrons, with their own equations holding simultaneously. The self-consistent solution is the configuration in which every electron's perception of the rest is compatible with every other electron's perception of the rest, jointly. The relaxation algorithm of Chapter~\ref{ch:relaxation} is the dynamical procedure by which the system finds this harmony; the converged state is the Leibnizian one in which each monad's internal law and each monad's perception of all the others are consistent.
+
+The analogy is not merely rhetorical. The structural elements of the monadology --- individuated substances, perceptions instead of direct access, pre-established harmony --- correspond precisely to the structural elements of RealQM --- non-overlapping electron territories, effective external Coulomb potentials, self-consistent simultaneous variational equations. The framework's connection to Leibniz, already noted in the Foreword on the side of automation of computation (the \emph{calculus ratiocinator}), extends here to the side of ontology (the monads). Both connections trace the same intellectual lineage: a continuum mathematics in which the universe is built from local individuated objects whose collective behaviour follows from a single principle.
+
+\section{What the equation contains, and what it does not}
+
+The full content of RealQM at the level of equations is~\eqref{eq:Psi-sum}--\eqref{eq:PE}, the Euler--Lagrange system~\eqref{eq:Hi}--\eqref{eq:neumann}, the Bernoulli free-boundary condition of Section~\ref{sec:bernoulli}, and the local-potential force law~\eqref{eq:force-coulomb}. Everything else in the book --- the hierarchy of reductions in Chapter~\ref{ch:hierarchy}, the numerical implementation in Part~II, the validation in Part~III, the stability proof in Chapter~\ref{ch:som} --- is either an architectural choice on top of these equations or a consequence of them.
+
+Three things the equation does \emph{not} contain are worth flagging:
+
+\begin{itemize}
+\item \emph{No basis set.} There is no $\{\chi_\mu(\mathbf{x})\}$ in which the $\psi_i$ are expanded. The $\psi_i$ are values on a real-space grid. Basis-set incompleteness, basis-set superposition error, and the entire apparatus of Gaussian or plane-wave bases are absent.
+\item \emph{No exchange--correlation functional.} There is no $E_{\rm xc}[\rho]$. The electron--electron interaction is the bare Coulomb integral~\eqref{eq:PE} with self-repulsion removed by the non-overlap construction. The DFT compromise --- replacing exchange and correlation by an approximate functional --- does not arise.
+\item \emph{No spin variable.} The $\psi_i$ are real-valued scalar fields with no internal two-component (spinor) structure. Spin does not appear as a separate dynamical degree of freedom; what appears is a geometric two-fold partition that does the same empirical work. Magnetic phenomena and spin--orbit coupling are not part of the present framework; they would require an extension we do not pursue here.
+\end{itemize}
+
+\paragraph{Spin as Pauli's Zweideutigkeit, realised geometrically.}\index{Zweideutigkeit, Pauli's}\index{spin}
+That spin appears in standard quantum mechanics as a two-valued quantum number was not derived; it was empirically imposed. Pauli, in his 1925 paper on the closed-shell structure of atoms, argued that the periodic table required a fourth quantum number with what he called \emph{eine eigent\"umliche, klassisch nicht beschreibbare Art von Zweideutigkeit} --- a peculiar, classically indescribable kind of two-valuedness. Uhlenbeck and Goudsmit interpreted this two-valuedness as an intrinsic angular momentum a few months later, and the spinor formalism developed from there. But the empirical content Pauli's Zweideutigkeit had to deliver was simpler than the spinor formalism that grew up around it: the closed-shell counts of the periodic table (2, 8, 18, 32, \ldots) require that each spatial orbital accommodate exactly two electrons, no more and no fewer.
+
+In RealQM the same empirical content is delivered geometrically. Two electrons sharing a spatial region naturally partition it into two non-overlapping sub-regions of equal weight, joined by a free boundary. The simplest case is the Helium ground state (Chapter~\ref{ch:hydrides}\footnote{Helium is treated in the chapter on H, H$_2$, and He in the validation part; the bipartition into two complementary half-spaces is the canonical RealQM Helium configuration.}): two electrons around a single $+2$ kernel resolve into two unit-density wave functions supported on two complementary half-spaces with the dividing plane as the free boundary. The \emph{two-territoriality} of the Helium ground state is the RealQM realisation of Pauli's Zweideutigkeit: a two-valued geometric feature of the partition that delivers the closed-shell-of-two count without any internal spinor variable.
+
+The same pattern repeats in heavier atoms. Each filled subshell of $2(2\ell+1)$ electrons is realised in RealQM as $2(2\ell+1)$ non-overlapping territories, with the factor of two relative to the orbital count of StdQM absorbed into the territory count rather than into a doubled occupation of a single orbital. The full periodic-table shell counts (2 for the first shell, 8 for the second, 18 for the third, 32 for the fourth) reproduce the standard shell organisation as a consequence of variational minimisation under the non-overlap constraint (Chapter~\ref{ch:hierarchy}, Level~1). Pauli's Zweideutigkeit is therefore not a primitive postulate in RealQM; it is the visible $\ell{=}0$ shadow of the framework's general principle that distinct electrons occupy distinct regions of physical space.
+
+\paragraph{Connection to electromagnetism: through charge density, not through spin.}\index{Schr\"odinger--Maxwell coupling}\index{electromagnetism, RealQM connection to}
+A consequence of the absence of a spinor variable deserves to be made explicit: RealQM does connect to electromagnetism, but the connection runs through the electronic charge density --- not through spin. Each $\psi_i^2$ is a literal charge density on physical $\mathbb{R}^3$ and therefore sources the Maxwell field directly in the same sense Maxwell's $\rho$ does. Schr\"odinger--Maxwell coupling (Chapter~\ref{ch:sm-coupling}), radiation from oscillating densities (Chapter~\ref{ch:excited}), molecular IR signatures (Chapter~\ref{ch:molrad}), and the black-body spectrum from oscillator banks (Chapter~\ref{ch:blackbody}) all use the charge-density picture of the electron to make contact with classical electromagnetism. The connection is direct: $\sum_i \psi_i^2(\mathbf{x}, t)$ is the charge density on physical space, $\sum_i \psi_i^2 \mathbf{v}_i$ the current, and these enter Maxwell's equations exactly as classical sources do.
+
+What the framework does \emph{not} use is the spin route. The standard electromagnetic phenomena that StdQM derives through spin --- the Zeeman effect, the Stern--Gerlach result, the electron's anomalous magnetic moment ($g_s = 2$ from Dirac, with QED corrections producing the famous $g{-}2$), spin--orbit coupling --- all require an internal two-component spinor variable and the Pauli or Dirac equation that couples it to the magnetic field. RealQM does not have that variable and does not yet derive those phenomena. The honest position is that RealQM's electromagnetic reach is the part of electromagnetism that is sourced by charge density and current and described by Schr\"odinger--Maxwell coupling in physical 3D space; the spin-derived magnetic phenomena are outside the present framework, in the sense already noted in the ``no spin variable'' bullet above and discussed in Chapter~\ref{ch:limits}.
+
+The equation is, in this sense, more austere than the StdQM Hamiltonian. It contains less --- no antisymmetry postulate, no spinor variable, no exchange-correlation functional --- and it also requires less to make it work. The book argues that the austerity is what makes the framework run on a laptop and what makes the stability proof one paragraph long --- that the things StdQM had to add are things RealQM does not need.
+
+% --- End of Chapter 2 ---

@@ -1,0 +1,170 @@
+\chapter{Black-Body Radiation}\label{ch:blackbody}
+\index{black-body radiation}\index{Rayleigh--Jeans law}\index{Planck spectrum}\index{Stefan--Boltzmann law}\index{Wien displacement law}\index{matter coordination cutoff}\index{equipartition}\index{Kirchhoff universality}\index{photoelectric effect}\index{UV catastrophe}\index{photon}\index{forced damped oscillator}
+
+% Drawn from prel book chapters/resonance1.tex and from blackbodyslayer.pdf
+% (Johnson's standalone work on classical/continuum derivation of the blackbody spectrum).
+
+\begin{quote}
+\itshape But the conception of localized light-quanta out of which Einstein got his equation must still be regarded as far from established. Whether the mechanism of interaction between ether waves and electrons has its seat in the unknown conditions and laws existing within the atom, or is to be looked for primarily in the essentially corpuscular Thomson--Planck--Einstein conception of radiant energy, is the all-absorbing uncertainty upon the frontiers of modern Physics.\\
+\normalfont\hfill --- R.~A.~Millikan, Nobel Lecture, 1923.
+\end{quote}
+\bigskip
+
+Black-body radiation is the historical seed of quantum mechanics (Prologue): Planck's 1900 fit to the observed spectrum required the postulate that matter--radiation energy exchange occurs in discrete quanta $E = h\nu$. The standard reading, since Planck, is that the discreteness is a property of the radiation field itself --- electromagnetic energy comes in photons of energy $h\nu$, and the Planck spectrum follows from Bose--Einstein statistics applied to a gas of such photons.
+
+The Schr\"odinger--Maxwell continuum picture of Chapter~\ref{ch:sm-coupling} reads black-body radiation differently. \textbf{The basic idea is classical continuum mechanics plus finite precision: no quanta, no quantum of action.} The radiation field is a classical electromagnetic wave; matter is a continuum of bound electronic oscillators governed by a wave equation; and the only new ingredient is a \emph{finite-precision cutoff} --- a shortest spatial scale the medium can resolve at temperature $T$. The constant $h$ is not Planck's quantum of action but a spatial-precision parameter setting that scale. The apparent discreteness $E = h\nu$ is then a property of the \emph{matter} spectrum (oscillators with sharp resonance frequencies), not a graininess of the field. This chapter develops the idea in two steps. First a \emph{model problem} --- a forced wave equation with radiation damping --- is reduced by Fourier analysis to a per-mode energy balance $R_\nu = \gamma\, T_\nu\, \nu^2$. Then this balance is placed in the physical setting of a \emph{black body as an atomic lattice}, where a maximal cutoff, perfect emissivity, and radiative equilibrium produce Kirchhoff's universality and the integrated Stefan--Boltzmann law. The full account is the standalone monograph~\cite{BlackbodySlayer}; this chapter is a compact summary.
+
+\paragraph{A black body is an atomic lattice, not a gas.}
+Black-body radiation is not the radiation of a single atom, and not of a dilute gas. It is carried by a large number of atoms organised in a lattice --- the walls of a cavity, a tungsten filament, the heated graphite reference below, the surface of a star. The smooth Planck spectrum is the \emph{collective} emission from $\sim 10^{23}$ bound electrons, each oscillating at frequencies tied to the lattice and shell structure, forming a dense band of normal modes that fills out a continuum. A dilute gas, by contrast, has no lattice and no dense band: it radiates only at the discrete spectral lines of its constituent atoms (Chapter~\ref{ch:excited}). This is Kirchhoff's empirical law of spectroscopy --- \emph{hot diffuse gas $\to$ emission lines; hot solid or dense plasma $\to$ continuous black body}. Black-body radiation is therefore a many-body, collective property of organised condensed matter.
+
+\section{The model problem and its Fourier analysis}\label{sec:1d-wave-model}\label{sec:RF-proof}
+
+The model for the matter side of black-body radiation is a 1D scalar wave equation for a real field $u(x,t)$ with a Larmor radiation-reaction term, a finite-precision viscosity term, and an external forcing:
+\begin{equation}\label{eq:1d-fp}
+\ddot u \;-\; u'' \;-\; \gamma\, \dddot u \;-\; \delta^2\, \dot u'' \;=\; f(x, t),
+\qquad x \in \mathbb{R},\; t > 0,
+\end{equation}
+primes denoting $\partial/\partial x$ and dots $\partial/\partial t$. The four terms read as: $\ddot u - u''$, the classical wave equation (the matter--field analogue of a Maxwell field component); $-\gamma\,\dddot u$, the Abraham--Lorentz radiation reaction, with $\gamma$ fixed by the Larmor formula; $-\delta^2\,\dot u''$, a finite-precision viscosity on $\dot u$ that smooths spatial structure below a coordination length $\delta = h/T$; and $f$, the incoming radiation, taken as a stationary broadband process. Here $h$ is not a quantum of action but a \emph{spatial-precision parameter}: $\delta = h/T$ is the smallest structure the medium can support at temperature $T$, and the cutoff $\nu = T/h$ is the frequency at which $\delta^2 \nu^2 \sim 1$.
+
+\paragraph{Fourier reduction to per-mode oscillators.}
+Equation~\eqref{eq:1d-fp} is linear, so Fourier decomposition in space gives one ODE per wavenumber $\nu$, and near resonance the third-derivative term reduces to the standard damping $\gamma\nu^2\dot u_\nu$:
+\begin{equation}\label{eq:waveeq}
+\ddot u_\nu \;+\; \nu^2 u_\nu \;-\; \gamma\, \dddot u_\nu \;=\; f_\nu,
+\qquad
+\ddot u_\nu + \gamma\nu^2 \dot u_\nu + \nu^2 u_\nu \approx f_\nu .
+\end{equation}
+This is the resonator model Planck used in 1900~\cite{Planck1900}, and the Lorentz oscillator of classical optics (Born and Wolf~\cite{BornWolf}, Jackson~\cite{Jackson} \S17). The radiated power per unit volume at frequency $\nu$ is the Larmor expression
+\begin{equation}\label{eq:Rnu}
+R_\nu \;\equiv\; \gamma\, \overline{\ddot u_\nu^2},
+\end{equation}
+with overbar a time average and $\gamma$ absorbing the Larmor factor $2/(3c^3)$; the incoming power is $F_\nu \equiv \overline{f_\nu^2}$.
+
+\paragraph{The basic energy balance.}
+The decisive assumption is that the forcing spectrum is approximately flat in a band of width $\pi/2$ around each resonance $\nu$, carrying weight $f_\nu^2$. A Parseval evaluation of the resulting resonance integral --- a Lorentzian of width $\gamma\nu^2 \ll 1$ narrow against the forcing band --- gives $\overline{u_\nu^2} \approx f_\nu^2/(\gamma\nu^4)$, so
+\begin{equation}\label{eq:Rnu-derivation}
+R_\nu \;\equiv\; \gamma\, \overline{\ddot u_\nu^2}
+\;\approx\; \gamma\nu^4\, \overline{u_\nu^2}
+\;\approx\; \gamma\nu^2\, \overline{\dot u_\nu^2}
+\;=\; \gamma\, T_\nu\, \nu^2
+\;\approx\; f_\nu^2,
+\end{equation}
+with $T_\nu \equiv \overline{\dot u_\nu^2}$ the per-mode energy. The proportionality constant is the emissivity $\epsilon$, giving the \textbf{basic energy balance}
+\begin{equation}\label{eq:RF}
+R_\nu \;=\; \epsilon\, F_\nu, \qquad \epsilon \le 1,
+\end{equation}
+with $\epsilon = 1$ for an ideal black body: all incident radiation is re-radiated, which is Kirchhoff's law that a perfect absorber is a perfect emitter. Two features are worth noting. First, although $\gamma \ll 1$ the radiance stays finite because $\overline{u_\nu^2}\sim 1/(\gamma\nu^4)$ on resonance --- the two factors of $\gamma$ cancel. Second, the analysis requires $\gamma\nu^2 < 1$, fixing the high-frequency cutoff. The full Fourier/Parseval derivation of~\eqref{eq:RF} is given in Section~\ref{sec:RF-proof-details} at the end of this chapter.
+
+\section{The black body as an atomic lattice}\label{sec:kirchhoff}\label{sec:gamma-independence}
+
+The per-mode balance~\eqref{eq:Rnu-derivation} is the building block. A black body assembles $\sim 10^{23}$ such oscillators into a lattice and brings them to a common temperature, with three consequences that define what ``a black body'' means.
+
+\paragraph{Maximal cutoff and $\epsilon = 1$.}
+The coordination length $\delta = h/T$ caps the modes the lattice can host coherently: there is a \emph{maximal} radiating frequency $\nu_c = T/h$, above which the radiative channel turns off and incoming energy goes into the viscous heating channel of~\eqref{eq:1d-fp} (the split $R+H=F$). Below the cutoff the lattice absorbs and re-radiates everything: $\epsilon = 1$, $R_\nu = F_\nu$ per mode.
+
+\paragraph{The Rayleigh--Jeans radiance $\gamma T\nu^2$.}
+With a common temperature $T_\nu = T$ across modes, the balance reads
+\begin{equation}\label{eq:rj}
+R_\nu \;=\; \gamma\, T\, \nu^2 \qquad (\nu \le \nu_c),
+\end{equation}
+the \textbf{Rayleigh--Jeans law}: a single equipartition temperature $T$ on every mode, times the Larmor $\nu^2$. (That $T_\nu = T$ holds across modes is a statistical-mechanical input set by matter-internal collisions; linear wave dynamics alone diagonalises into decoupled modes and does not thermalise them. Planck's 1900 derivation makes the same assumption.)
+
+\paragraph{Universality of $\gamma T$ from radiative equilibrium; the black body as thermometer.}
+The integrated radiated power is \emph{independent of} the damping coefficient $\gamma$ in the broadband limit: the Lorentzian response scales as $\overline{\dot u_\nu^2}\sim S_0/(\gamma\nu^2)$ while the radiance carries an explicit $\gamma$ in front, and the two cancel, leaving $R_\nu$ fixed by the forcing alone. Different materials --- graphite, glass, hydrogen --- have very different $\gamma$, yet radiate the same at temperature $T$. This $\gamma$-cancellation is the mechanism of \textbf{Kirchhoff's universality} (1859): the thermal spectrum depends only on $T$ and $\nu$, not on the specific matter. The same cancellation underlies the Thomas--Reiche--Kuhn sum rule~\cite{TRK}.
+
+Universality is achieved \emph{by choosing a reference}. Kirchhoff observed that materials radiate visibly differently, graphite excepted; he then built a box from graphite plates and viewed objects inside through a peephole, and found the spectrum depended only on temperature and frequency, not on the contents. The graphite-walled cavity acts as a reference black body --- temperature equilibration across modes, total absorption ($\epsilon = 1$), and the maximal cutoff $\nu = T/h$ --- and so functions as a \textbf{thermometer}, reporting the temperature of any body placed inside as the cavity temperature in radiative equilibrium. The wave model~\eqref{eq:1d-fp} reproduces this: two bodies $(\gamma_1, h_1)$ and $(\gamma_2, h_2)$ reach radiative equilibrium across a shared forcing iff $\gamma_1 h_1 = \gamma_2 h_2$, so a single effective parameter $\gamma h$ defines a black body. Universality is standardisation against a chosen reference, not an intrinsic property of arbitrary matter. The companion simulation \texttt{string\_forced.html} plots the emissivity $\epsilon$ converging to $1$ for broadband forcing and lets the reader vary $\gamma$ to verify the $\gamma$-independence directly.
+
+\section{Stefan--Boltzmann and the matter cutoff}\label{sec:planck-cutoff}\label{sec:stefan-boltzmann}
+
+\paragraph{One body: $R = \sigma T^4$.}
+Integrating the Rayleigh--Jeans radiance~\eqref{eq:rj} up to the cutoff $\nu_c = T/h$,
+\begin{equation}\label{eq:sb-onebody}
+R \;=\; 2\pi\!\!\int_0^{T/h}\!\! \gamma\, T\, \nu^2\, d\nu \;=\; \frac{2\pi\gamma}{3h^3}\, T^4 \;\equiv\; \sigma\, T^4,
+\end{equation}
+the \textbf{Stefan--Boltzmann law}: one factor of $T$ from the per-mode energy and three from the cube of the cutoff frequency. The cutoff position $\nu_c = T/h$ scales with temperature, which is the \textbf{Wien displacement law}.
+
+\paragraph{What is and is not supplied.}
+The framework gives Rayleigh--Jeans radiance truncated at $\nu_c$, with $T^4$ scaling and Wien displacement preserved; it does \emph{not} give the exact Planck shape $\nu^3/(e^{h\nu/T}-1)$. The truncated spectrum has a sharp cliff at $\nu_c$ where Planck has a smooth Wien rolloff. Recovering the Bose--Einstein factor $x/(e^x-1)$ that converts Rayleigh--Jeans into Planck requires either field quantisation (the standard route) or a nonlinear matter mechanism (open work). The honest scope is: a finite-energy classical alternative to the photon picture that captures the integrated thermodynamics --- Stefan--Boltzmann, Wien, Kirchhoff --- but not the detailed Planck functional form. The companion file \texttt{wave\_pde\_blackbody.html} makes this precise, including a Stefan--Boltzmann sweep that confirms slope $4$.
+
+\paragraph{Two bodies: one-way heat flow.}
+Two black bodies at $T_1 < T_2$ sharing a common forcing exchange
+\begin{equation}\label{eq:sb-twobody}
+Q_{12} \;=\; \sigma\,(T_2^4 - T_1^4), \qquad T_2 > T_1,
+\end{equation}
+a \emph{single} one-way flow from hot to cold, with no compensating back-radiation from cold to hot. Stefan anticipated this in 1879: only the surplus of emission over absorption is measurable, so the two-way reading (opposing flows $\sigma T_2^4$ and $\sigma T_1^4$) attributes physical meaning to quantities that cannot be measured separately. The two-way reading is the basis for the ``atmospheric back-radiation'' picture in greenhouse-gas accounting; the one-way reading derived here makes that picture untenable as a description of radiative heat flow~\cite{BlackbodySlayer}.
+
+\section{Empirical scope and the status of $h$}\label{sec:photoelectric-empirical}
+
+The matter-cutoff reading treats the field as a classical electromagnetic wave and locates the discreteness of light--matter interaction in the matter. Its empirical reach is uneven.
+
+\paragraph{Where it holds.}
+Integrated black-body thermodynamics (Stefan--Boltzmann, Wien, Kirchhoff universality), bulk radiative heat transfer, and atomic line frequencies via the dipole-overlap integral all follow. So does the \emph{photoelectric threshold}: a bound electron in a well of depth $W$ escapes only when $h\nu \ge W$, with $K_{\max} = h\nu - W$, read as an energy-conservation statement about the matter's bound-to-continuum transition rather than the energy of a discrete photon. The threshold lives in the matter's spectrum, not in any quantisation of the field --- the position Schr\"odinger held in \emph{Are There Quantum Jumps?} (1952). The data prove that energy exchange between light and bound matter occurs in steps of $h\nu$, a property of the coupled system, not of light alone.
+
+\paragraph{Where it requires extension.}
+Single-emitter photon-counting --- antibunching $g^{(2)}(0) < 0.5$, telegraphic quantum-jump statistics, photon-number-resolved detection --- and Compton-regime kinematics are not naturally explained by the matter-side reading as it stands; there the field-quantisation picture is the cleaner description, and the continuum reinterpretation is open work.
+
+\paragraph{Status.}
+The chapter narrows but does not eliminate the role of $h$: it lives in the matter (a finite-precision coordination length) rather than in the field (a quantum of action). If correct, this removes the photon from its position as a foundational entity --- light remains a classical electromagnetic wave, and the apparent discreteness of light--matter interaction comes from the discrete matter spectrum. This is a Schr\"odinger position taken to its conclusion, consistent with the framework's general principle (Prologue) that statistical interpretations are workarounds for representations that have outgrown their physical content.
+
+\section{Proof of the basic energy balance (18.5)}\label{sec:RF-proof-details}
+
+This closing section gives the Fourier/Parseval derivation of the basic energy balance~\eqref{eq:RF} promised in Section~\ref{sec:1d-wave-model}. The argument analyses the forced wave equation~\eqref{eq:waveeq} mode by mode under the near-resonance assumption on the forcing spectrum.
+
+\paragraph{Spatial decomposition.}
+Assume spatial periodicity with period $2\pi$ and decompose
+\begin{equation}\label{eq:rf-spatial}
+u(x, t) \;=\; \sum_{\nu = -\nu_m}^{\nu_m} u_\nu(t)\, e^{i\nu x},
+\end{equation}
+with maximal frequency $\nu_m$ satisfying $\gamma\nu_m^2 < 1$ (the high-frequency cutoff of Section~\ref{sec:planck-cutoff}). At each $\nu$ the wave equation reduces to the forced damped oscillator~\eqref{eq:waveeq}.
+
+\paragraph{Fourier transformation in time.}
+Fourier-transform in time, $u_\nu(t) = \int u_{\nu,\omega}\, e^{i\omega t}\, d\omega$. On the resonance peak $\omega \approx \nu$ the third-derivative term reduces by $\dddot u_\nu \approx -\nu^2\dot u_\nu$ (for a single Fourier mode $\dddot u_\nu = -i\omega^3 u_\nu$, $\dot u_\nu = i\omega u_\nu$, with $\omega^2 \approx \nu^2$ at the peak), giving
+\begin{equation}\label{eq:rf-fourier}
+\bigl(-\omega^2 + \nu^2\bigr)\, u_{\nu,\omega} \;+\; i\omega\, \gamma\nu^2\, u_{\nu,\omega} \;=\; f_{\nu,\omega}.
+\end{equation}
+
+\paragraph{Parseval and the resonance integral.}
+By Parseval's identity,
+\begin{equation}\label{eq:rf-parseval}
+\overline{u_\nu^2} \;\equiv\; \int_{-\infty}^{\infty} |u_\nu(t)|^2\, dt
+\;=\; 2\pi \int_{-\infty}^{\infty} \frac{|f_{\nu,\omega}|^2}{(\nu - \omega)^2 (\nu + \omega)^2 \;+\; \gamma^2 \nu^4 \omega^2}\, d\omega.
+\end{equation}
+The denominator is sharply peaked at $\omega = \pm\nu$. Near the positive peak $(\nu + \omega)^2 \approx 4\nu^2$ and $\omega^2 \approx \nu^2$, so with the change of variable $\omega = \nu + \gamma\nu^2\bar\omega$,
+\[
+\overline{u_\nu^2} \;\approx\; \frac{2\pi}{\gamma\nu^4} \int_{-\infty}^{\infty} \frac{|f_{\nu,\,\nu + \gamma\nu^2\bar\omega}|^2}{4\bar\omega^2 + 1}\, d\bar\omega .
+\]
+
+\paragraph{The near-resonance assumption.}
+The decisive assumption on the forcing spectrum is that it is approximately flat in a band of width $\pi/2$ around each resonance, with total weight $f_\nu^2$:
+\begin{equation}\label{eq:rf-nearres}
+|f_{\nu,\omega}|^2 \;\approx\; \frac{1}{\pi^2}\, f_\nu^2
+\qquad \text{for } |\nu - \omega| \le \tfrac{\pi}{4},
+\end{equation}
+and small elsewhere. Since $\gamma\nu^2 < 1$ makes the integration window $|\bar\omega| \lesssim \pi/(4\gamma\nu^2)$ wide compared with the Lorentzian width $1$, the integral evaluates to
+\begin{equation}\label{eq:rf-unsq}
+\overline{u_\nu^2} \;\approx\; \frac{1}{\gamma\nu^4}\, f_\nu^2.
+\end{equation}
+
+\paragraph{Per-frequency and integrated balance.}
+The radiance~\eqref{eq:Rnu} then satisfies
+\[
+R_\nu \;\equiv\; \gamma\, \overline{\ddot u_\nu^2}
+\;\approx\; \gamma\nu^4\, \overline{u_\nu^2}
+\;\approx\; \gamma\nu^2\, \overline{\dot u_\nu^2}
+\;=\; \gamma\, T_\nu\, \nu^2
+\;\approx\; f_\nu^2,
+\]
+with $T_\nu = \tfrac{1}{2}(\overline{\dot u_\nu^2} + \nu^2\overline{u_\nu^2}) \approx \overline{\dot u_\nu^2}$. The proportionality constant is the emissivity $\epsilon \lesssim 1$, giving $R_\nu = \epsilon\, f_\nu^2$; since $\epsilon$ depends only weakly on $\gamma$ and $\nu$, a single $\epsilon \approx 1$ models an ideal black body across the spectrum. Summing over modes with $R = 2\pi\sum_\nu R_\nu$ and $\|f\|^2 = 2\pi\sum_\nu f_\nu^2$ gives the integrated balance
+\begin{equation}\label{eq:rf-integrated}
+R \;=\; \int_0^{2\pi} \overline{\gamma\, \ddot u^2}\, dx \;=\; \epsilon \int_0^{2\pi} \overline{f^2}\, dx \;=\; \epsilon\, \|f\|^2,
+\end{equation}
+which is~\eqref{eq:RF}.
+
+\paragraph{Statement.}
+\begin{quote}
+\textbf{Theorem (Basic energy balance).} The radiance $R_\nu$ of the solution $u_\nu$ of~\eqref{eq:waveeq} satisfies $R_\nu = \gamma\,\overline{\ddot u_\nu^2} = \epsilon\, f_\nu^2$ with $\epsilon \lesssim 1$, provided $f_\nu$ satisfies the near-resonance assumption~\eqref{eq:rf-nearres} and $\gamma\nu^2 < 1$. Summed over modes, the radiance of $u$ satisfies $R = \iint \gamma\,\ddot u^2\, dx\, dt = \epsilon\,\|f\|^2 \equiv F$ under the same assumptions with $\gamma\nu_m^2 < 1$.
+\end{quote}
+
+\paragraph{Two features of the proof.}
+\emph{Weak damping yields finite radiation.} Although $\gamma \ll 1$, the radiance $R_\nu = \gamma\nu^4\,\overline{u_\nu^2}$ stays finite because $\overline{u_\nu^2} \sim 1/(\gamma\nu^4)$ on resonance --- the two factors of $\gamma$ cancel. This resonance enhancement lets a small radiative-damping term produce finite radiated power, and it is the same cancellation that makes the integrated power $\gamma$-independent (the mechanism of Kirchhoff universality, Section~\ref{sec:kirchhoff}). \emph{The cutoff $\gamma\nu_m^2 < 1$.} Above this frequency the resonance approximation breaks down, which is where the finite-precision cutoff $\nu = T/h$ of the model takes over.
+
+% --- End of Black-Body Radiation chapter ---

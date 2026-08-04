@@ -1,0 +1,172 @@
+\chapter{Limitations}\label{ch:limits}
+\index{regime mapping}\index{anions (limitations)}\index{dispersion!van der Waals}\index{Pauli repulsion (short-range)}\index{blind folding}\index{chemical accuracy}
+
+\begin{quote}
+\itshape With very few exceptions (such as Einstein and Laue) all the rest of the theoretical physicists were unadulterated asses and I was the only sane person left. [\ldots] The one great dilemma that ails us [\ldots] day and night is the wave--particle dilemma [\ldots] So unable is the good average physicist to believe that any sound person could refuse to accept the Copenhagen oracle.\\
+\normalfont\hfill --- E.~Schr\"odinger to J.~L.~Synge, 1959.
+\end{quote}
+\bigskip
+
+A serious theory of matter has to say what it cannot currently do as well as what it can. This chapter is an honest accounting of the boundary of RealQM's regime: where the framework works cleanly, where it works partially, and where the present formulation has not yet been extended. The accounting is empirical --- derived from systematic testing over a wide range of systems --- rather than a theoretical statement about which regimes the formulation must in principle handle. The framework's actual current regime is what the tests have shown it to be, and the tests have shown that some regimes lie beyond present reach.
+
+We organise the chapter around three categories: the working regime (where Parts~II and III have validated the framework), the partial regime (where the framework works only with constraints or only on geometry, not energetics), and \textbf{current limitations} (where the framework at the present stage of development does not yet handle the relevant physics, but where an extension --- explicit solvent, correlation, longer-range interactions --- is the natural next step). We close with the structural reasons for each limitation and an honest comparison to standard quantum chemistry on its terms.
+
+\section{The working regime}\label{sec:working-regime}
+
+These are the systems and phenomena where RealQM has been shown to reproduce experiment within a defined accuracy.
+
+\paragraph{Atomic and molecular energetics, Levels 1--3.}
+\begin{itemize}
+\item Total atomic energies Li--Rn (Chapter~\ref{ch:atoms}): $\sim$1\% of observation, parameter-free.
+\item H$_2$ covalent bond at Level 1 (Chapter~\ref{ch:h2}): 0.3\% on total energy vs Kolos--Wolniewicz, 3\% on dissociation energy vs experiment.
+\item Closed-shell hydrides across groups 1, 2, 14, 16 (Chapter~\ref{ch:hydrides}): atomization energies within 3--9\%.
+\end{itemize}
+
+\paragraph{Hydrogen-bonded geometries.}
+\begin{itemize}
+\item Five S66 dimers (water, methanol, methylamine, methylamine--water, formamide): equilibrium distances within 1--5\% of CCSD(T)/CBS.
+\item Pairwise H-bond recognition from $\sim$4~\AA{} distance: water dimer relaxes to 2.1~\AA{} H$\cdots$O contact, formamide--water to 3.0~\AA{} O$\cdots$O.
+\item Cyclic water tetramer: stable at O--O 3.0~\AA.
+\end{itemize}
+
+\paragraph{Ion solvation.}
+\begin{itemize}
+\item Na$^+$(H$_2$O)$_6$ first-shell geometry: 2.37~\AA{} vs experimental 2.40~\AA.
+\end{itemize}
+
+\paragraph{Reactive chemistry at short range.}
+\begin{itemize}
+\item Proton transfer (HF + H$_2$O, HCl + NH$_3$): qualitatively correct product geometries.
+\item H + H$_2$ exchange: symmetric H$_3$ saddle handled directly from local forces.
+\item Zundel-like symmetric proton-shared configurations.
+\item Acid dissociation (COOH deprotonation in water).
+\end{itemize}
+
+\paragraph{Dynamics at scale.}
+\begin{itemize}
+\item 216-water cluster at finite temperature: interactive frame rates on a single GPU.
+\item Ice melting under temperature ramp.
+\item Viscosity under shear in water.
+\end{itemize}
+
+\paragraph{Condensed phases (with calibrated overshoot).}
+\begin{itemize}
+\item NaCl crystal melt: transition character correct, $\sim$1.5$\times$ overshoot.
+\item CO$_2$ dry ice: partial cohesion via asymmetric Bernoulli; overshoot scales with missing dispersion.
+\item Solid N$_2$: residual quadrupolar cohesion only.
+\end{itemize}
+
+In all of the above, the framework has been tested against experiment or against high-precision reference calculations, and the agreement falls within the stated accuracy bands. These are the cases where RealQM can be used as a working tool.
+
+\section{The partial regime}\label{sec:partial-regime}
+
+These are systems where RealQM works only with added constraints, or where it captures geometry correctly but not energetics, or where the framework reaches the right qualitative behaviour but not the quantitative target.
+
+\paragraph{Peptide backbones.}
+The dipeptide-scale work requires \textbf{harmonic bond-length constraints} (typical $k = 2$~Ha/au$^2$, $r_0$ from experiment) to hold the backbone together while the H-bond forces drive the conformation. This is not pure ab initio --- the constraints are an external addition --- but it is a consistent framework: the constraints fix the bond network, and the rest of the chemistry emerges from the variational principle.
+
+The water bend angle requires a separate constraint ($k = 1.5$~Ha/rad$^2$, $\theta_0 = 104.5^\circ$) to keep the H--O--H geometry intact during dynamics. The angular constraint is at a higher level than the bond-length constraints; both are needed for stable peptide and water dynamics at the present resolution.
+
+\paragraph{Folding (partial).}
+\begin{itemize}
+\item Polyglycine $\beta$-hairpin folds from $150^\circ$ toward $\sim$105$^\circ$ but stalls before reaching the native fold. The framework provides the H-bond substrate but lacks the entropic hydrophobic effect that completes folding in biology.
+\item $\beta$-turn structures curl slowly but do not close. The cooperative many-body weak interactions required to complete the turn are below the framework's accuracy floor.
+\item Chignolin folds when supplemented with a SASA-based hydrophobic-pressure parameter; Villin HP35 folds to $\sim$78\% native H-bond pattern under universal $i \to i{+}4$ bias.
+\end{itemize}
+Folding therefore works only with the addition of an implicit-solvent hydrophobic parameter. Without that parameter, only the simplest folding cases (dry-environment $\beta$-hairpin) proceed, and they stall before completion.
+
+\paragraph{Geometry-not-energetics for non-covalent dimers.}
+S66 H-bonded dimer geometries are within 1--5\% of CCSD(T)/CBS, but \emph{absolute interaction energies} are below the model's $\sim$0.1~Ha noise floor and are not reliable. The framework correctly identifies the basin of attraction and the equilibrium geometry; it does not correctly predict the depth of the well at chemical accuracy.
+
+\paragraph{Charge centres in small ions.}
+Glycine deprotonates correctly to form the carboxylate, but the NH$_3^+$ on the other end of the zwitterion does not form reliably without additional waters or correlation. The charge-centre stabilisation that the zwitterion requires is at the edge of what the present Level-3 reduction handles.
+
+\section{Current limitations}\label{sec:current-limitations}
+
+These are systems and phenomena where RealQM at the current level of development does not yet reproduce experiment, even qualitatively. Each is a current limitation rather than an in-principle barrier: the extensions described after each item are concrete and tractable at the present stage of the framework.
+
+\paragraph{Blind protein folding.}
+Folding from an extended chain to native structure \emph{without} the SASA-based hydrophobic parameter does not work. Chignolin stays extended under H-bond forces alone; Villin's hydrophobic core does not pack without the SASA pressure. The framework's regime ends where the entropic hydrophobic effect becomes load-bearing for the fold.
+
+The structural reason: the hydrophobic effect arises from the configurational entropy of water molecules around exposed non-polar surfaces. RealQM is an electronic-energy framework; it does not represent water configurational entropy explicitly. With explicit solvent (Brownian-dynamics water molecules), the framework would in principle capture the effect, but the computational cost of such a simulation has not been carried through to a tested folding result.
+
+\paragraph{True anions ($-1$ states).}
+A free electron in a $-1$ anionic state delocalises across the simulation box and ultimately attaches itself to the nearest positive centre. The framework does not currently stabilise a localised loose electron --- the kinetic-energy cost of localisation is not balanced by anything in the Level-3 valence sector. Cl$^-$ as a free anion does not bind in the current framework; Cl$^-$ as part of an ion pair (Na$^+$Cl$^-$) is stable because the Na$^+$ provides the confining attraction.
+
+The structural reason: the multiphase formulation assigns each unit charge density to a non-overlapping territory. A free anion is a unit charge density without a confining counter-charge, and the variational principle at the current Level-3 reduction does not bind it in the absence of such a counter-charge. An extension that includes electron correlation between distinct territories, or that adds explicit polarisation of the surrounding medium, is the natural way to capture free-anion stability in a future iteration.
+
+\paragraph{Pauli repulsion at short range.}
+The repulsion that prevents two atoms from approaching closer than their hard-sphere radii is weak in RealQM. A test with Na$^+$ approached to 1.6~\AA{} from a water oxygen does not produce the strong repulsion expected. The non-overlap constraint prevents charge-density overlap exactly, but the resulting effective repulsion is shorter-ranged than the antisymmetry-driven Pauli repulsion of StdQM. For most chemistry this is invisible; for some close-contact situations (transition states, hard-sphere packing in dense liquids) it is a real limitation.
+
+\paragraph{Chemical-accuracy energies.}
+Quantitative agreement at the $\sim$1~kcal/mol level (chemical accuracy) is not achieved across most of the validated regime. Binding energies are typically off by 3--9\% (i.e.\ tens of kcal/mol for strongly bonded systems), and absolute energies are accurate only to $\sim$0.1~Ha (62~kcal/mol). For ranking molecules, predicting trends, identifying basins of attraction, and understanding mechanisms, this is sufficient; for high-precision thermochemistry, it is not.
+
+\paragraph{Dispersion (van der Waals).}
+The Level-3 reduction has no dispersion mechanism. The framework relies on a single unit density per electron territory, with no mechanism for the correlated electron motion that produces van der Waals attraction between non-polar species. Systems where dispersion dominates cohesion (CO$_2$, solid N$_2$, much of biological hydrophobicity) are outside the framework's regime; the condensed-phase calibration of Chapter~\ref{ch:condensed} quantifies the resulting overshoot.
+
+\section{Two specific phenomena: double-slit and entanglement}\label{sec:double-slit-entanglement}\index{double-slit experiment}\index{entanglement}
+
+Two phenomena from quantum-foundations discussions deserve a short remark here, because they are the experiments outside readers expect a framework like RealQM to address.
+
+\paragraph{The double-slit experiment: no mystery.}
+A single electron is indivisible: it carries one quantum of charge and one quantum of mass, and it cannot be split into two separate pieces by a barrier. In RealQM the electron is described by a wave function $\psi(\mathbf{x},t)$ on physical 3D space with $\psi^2$ a real continuous charge density. When the electron encounters a double-slit barrier, this wave passes through both slits at once --- not as two half-electrons, but as a single coherent wave that occupies both slit openings simultaneously while the electron itself remains one indivisible quantum. On the other side of the barrier the wave continues forward and arrives at the detection screen with the characteristic interference pattern of constructive and destructive superposition. When the wave reaches the screen, the screen --- a many-atom system with a nonlinear threshold response --- registers the electron's arrival at a single localised position; the location of the blip on any given trial varies because the electron is one indivisible unit landing in a continuous wave field that has more intensity at some locations than at others. Many repeated trials build up the interference pattern as the statistical accumulation of single-blip locations. \textbf{There is no mystery, no collapse, no observer-dependent reality}: a continuous wave goes through both slits, an indivisible electron lands at one location, and many trials accumulate into the interference pattern that the wave description predicts. This is Schr\"odinger's 1926 reading of the wave function carried out in 2026 without the interpretational machinery the intervening century added.
+
+The point is the brevity of the explanation. The whole account of the single-electron double-slit experiment fits in a single paragraph and uses only three ideas the reader already has from classical mechanics: a wave that propagates and interferes, an indivisible particle that arrives somewhere, and a detector with a nonlinear threshold response. The standard textbook treatment requires complex-valued probability amplitudes, the Born rule, the measurement postulate, an interpretive choice between Copenhagen, many-worlds, or Bohmian readings, and a century of foundational debate about what observation does to reality. In RealQM the same experimental record is accounted for in three sentences, with no foundational machinery beyond what classical wave mechanics already supplies. This is the pedagogical advantage anticipated in Chapter~\ref{ch:chemvphys}~\S\ref{sec:physics-education} made specific to the textbook's most-discussed quantum experiment.
+
+\paragraph{Entanglement: outside the present framework's scope.}
+Entanglement experiments of the Bell type --- correlated outcomes at spacelike separation, ruling out local hidden-variable theories (Aspect 1982; Aspect--Clauser--Zeilinger Nobel Prize 2022) --- involve pairs of particles produced in a correlated state and then separated by macroscopic distances before measurement. RealQM in its present form is a framework for bound stationary electronic structure on shared 3D physical space, with the multi-electron wave function written as a sum of one-electron wave functions on a partition of a common spatial domain. The framework does not currently describe pairs of particles separated by laboratory distances with correlated outcomes; the experimentally observed Bell correlations are real phenomena that any complete theory of matter must eventually accommodate, and the present volume does not undertake to do so. The honest position is that entanglement is outside the framework's current regime, in the same sense that spin--orbit coupling and magnetic phenomena are: there are concrete extensions that would be needed (a treatment of spatially separated correlated wave functions with a common origin), and they are not in the present manuscript. RealQM's contribution is to the chemistry and condensed-matter regime where the wave function is bound and lives on a shared 3D domain; the Bell-experiment regime is left for further work.
+
+\paragraph{The Stern--Gerlach two-fold: a different two-valuedness.}\index{Stern--Gerlach experiment}
+A natural follow-up question deserves a remark of its own. The Helium two-territoriality discussed in Chapter~\ref{ch:equation} as the RealQM realisation of Pauli's Zweideutigkeit is one kind of two-valuedness --- a \emph{counting} property of how many electrons fit per spatial orbital --- and it is sharp and explicit in the framework. The Stern--Gerlach two-fold splitting of a beam of silver atoms (1922) or hydrogen atoms (Phipps--Taylor 1927) in an inhomogeneous magnetic field is a \emph{different} two-valuedness: a single-electron magnetic-orientation property, with the beam splitting into exactly two beams along the field-gradient direction. StdQM uses the same quantum number ($s = 1/2$, $m_s = \pm 1/2$) to handle both, which makes them look like the same phenomenon; they are not. The hydrogen Phipps--Taylor experiment splits a beam of single electrons each with no closed-shell partition to invoke, and the splitting is empirical evidence for a two-fold magnetic-orientation degree of freedom that RealQM does not yet describe. Whether the partition geometry of RealQM can be extended to derive a Stern--Gerlach-type two-fold splitting from the response of a single-electron wave function to an inhomogeneous magnetic field --- some discrete-orientation outcome of the wave-function shape in a B-field gradient --- is an open research question. It is not a current claim of this book. The Stern--Gerlach result, like spin--orbit coupling, the Zeeman effect, and the anomalous magnetic moment, sits in the spin-magnetic-coupling regime that the framework's no-spinor-variable construction does not currently reach.
+
+\section{Structural reasons for the limits}\label{sec:why-limits}
+
+The current limitations are not arbitrary; each has a structural reason in the formulation, and each points to a concrete extension that would close it.
+
+\paragraph{Strong spatial correlation; no inter-domain configuration mixing.}
+Calling the multiphase formulation ``uncorrelated'' would be precisely backwards. The non-overlap construction \emph{is} a correlation, and a maximally strong one: no two electrons ever share the same point in space. This is a stricter spatial correlation than Hartree--Fock provides, which only enforces antisymmetry of a global wave function on a $3N$-dimensional configuration space and still allows electron densities to overlap in physical $\mathbb{R}^3$. In RealQM the electrons are spatially segregated into non-overlapping territories by construction; the framework is, if anything, \emph{over-correlated} in the spatial sense.
+
+What the Level-3 reduction does \emph{not} represent is \textbf{inter-domain configuration mixing}: the ground state of two interacting territories is taken as the product of their individual variational minima, rather than as a superposition over alternative territory shapes that the inter-territory Coulomb interaction would mix in. In StdQM language this is the content that post-Hartree--Fock methods (CI, CC, MP2) recover beyond the mean-field reference --- sometimes called ``dynamic correlation'', a piece of quantum-chemistry jargon that has nothing to do with real-time dynamics. The missing physics is a static ground-state effect: the true coupled-territory energy is lower than the rigid-territory sum because the optimal ground state mixes alternative configurations. Adding inter-domain configuration mixing --- whether through a CI-style superposition over alternative territory shapes or through a polarisability assigned to each territory --- is the natural extension that would close this limit.
+
+\paragraph{No dispersion.}
+Dispersion (van der Waals) is exactly this missing piece. London's original 1930 derivation uses time-\emph{independent} second-order perturbation theory: the dipole-dipole coupling between non-overlapping atoms admixes excited states into the joint ground state, lowering its energy by $\sim -C_6/r^6$. The ``correlated fluctuating dipoles'' picture is a heuristic translation of that static admixture into time-dependent language --- it does not require actual time evolution. The framework's rigid-territory ansatz freezes the joint state at the product of individual minima and so misses the admixture entirely, even though the framework is over-correlated in the non-overlap sense. The same configuration-mixing extension flagged above is what recovers dispersion within the multiphase framework.
+
+\paragraph{Weak Pauli.}
+The non-overlap constraint prevents charge-density overlap exactly, but the effective repulsion it generates is determined by the kinetic-energy cost of squeezing each electron density into a smaller region. This is weaker than the antisymmetry-driven Pauli repulsion of StdQM in the close-contact regime, where two atoms approach more closely than their hard-sphere radii. For chemistry at equilibrium geometries this is invisible; for transition states and dense-liquid packing it is a real limit.
+
+\paragraph{SIC and Voronoi partition: geometry yes, energies harder.}
+The combination of self-interaction correction (exact in RealQM by the non-overlap construction) and Voronoi-style spatial partitioning captures \emph{geometry} reliably --- where the lone pairs are, where the bond dipoles point, what the H-bond distance is. The same architecture captures \emph{energies} only to the noise floor of the absolute energy, because the absolute energy involves more delicate cancellations than the geometric structure does.
+
+\section{The regime mapping as a tool}\label{sec:regime-tool}
+
+The empirical regime mapping of this chapter is, in itself, a useful tool. Given a candidate system, one can ask: which regime does it fall in?
+
+\paragraph{Working regime: H-bond geometries, ion solvation, reactive short-range chemistry, condensed-phase non-dispersion cohesion.}
+If the system's chemistry is dominated by H-bonds (donors, acceptors, lone pairs), ionic interactions, or short-range reactive forces, RealQM is appropriate. The accuracy is 3--9\% on energies, 1--5\% on geometries; the cost is interactive on a laptop GPU.
+
+\paragraph{Partial regime: peptide backbones, partial folding, charge-centre stabilisation.}
+If the system requires constraints (bond network, backbone topology) or implicit-solvent corrections (SASA pressure), RealQM works but is no longer parameter-free. The partial regime is useful for exploration but should be reported as such.
+
+\paragraph{Current limitations: blind folding, free anions, transition-state Pauli barriers, dispersion-dominated systems.}
+If the system's behaviour depends on entropic hydrophobicity without a model, on stabilising a free electron, on short-range Pauli repulsion, or on dispersion, the present framework does not yet handle it. The next iteration --- with explicit solvent, correlation, or extended Pauli treatment --- is the natural way to extend the framework into these regimes; the present version should not be applied beyond its current reach.
+
+\section{Where RealQM uniquely wins}\label{sec:where-wins}
+
+The honest accounting of limits is balanced by an honest accounting of unique strengths. There is a regime where RealQM is the only practical tool:
+
+\paragraph{Timescale-blocked scenarios for DFT-MD.}
+Many real chemistry problems --- 200+-atom systems at ns--$\mu$s timescales, rare-event observation without metadynamics, interactive exploration of conformational space --- are inaccessible to DFT-MD on conventional hardware because the wall-clock cost is weeks of HPC cluster time. RealQM, running interactively on a single laptop GPU, reaches these regimes routinely. The accuracy is not CCSD(T)/CBS; the speed makes it possible to ask questions that are otherwise not asked.
+
+\paragraph{Interactive exploration of chemistry.}
+The browser-based implementation (Chapter~\ref{ch:webgpu}) allows a user to grab a proton, drag a substrate, change a kernel parameter, and watch the chemistry respond. This is not what StdQM-based packages do; it is a different mode of doing computational chemistry. For pedagogy, hypothesis generation, and rapid screening, RealQM offers something that mainstream tools do not.
+
+\paragraph{Scale through structural simplicity.}
+The 8000 lines of JavaScript and WGSL that constitute the full RealQM implementation are not just a smaller version of a large package; they are a different way of writing chemistry that scales differently. The structural simplicity of the multiphase formulation --- no basis sets, no integrals, no global solves --- is what makes the small implementation work at scale.
+
+\section{Where this leaves the framework}\label{sec:limits-summary}
+
+The picture is consistent: RealQM is a working framework for a defined regime of chemistry, with limits that are structurally understood and can be quantified from the framework's own predictions. It is not a replacement for high-precision quantum chemistry and is not claimed to be. It is a tool for a different set of questions --- larger systems, longer timescales, interactive exploration, chemistry-as-applied-physics --- with an honest map of its regime of validity.
+
+Part~V puts the framework in its broader context: where it sits in the long-standing chemistry-versus-physics debate, and the human--AI collaboration through which it was built.
+
+% --- End of Chapter 15 ---

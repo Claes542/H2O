@@ -1,0 +1,101 @@
+\chapter{RealQM vs Thermodynamics}\label{ch:thermodynamics}
+\index{thermodynamics}\index{second law}\index{Body and Soul, Vol 5}\index{computational thermodynamics}
+
+\begin{quote}
+\itshape What an organism feeds upon is negative entropy. [\ldots] It is by avoiding the rapid decay into the inert state of `equilibrium' that an organism appears so enigmatic.\\
+\normalfont\hfill --- E.~Schr\"odinger, \emph{What is Life?}, 1944.
+\end{quote}
+\bigskip
+
+Part VI opens with thermodynamics because the matter--light interaction worked out in Part V (Matter and Light) depends on thermal equilibrium, temperature, and energy equilibration, and the standard formulations of these concepts rest on a statistical-mechanical foundation that this book takes the same position on as it takes on statistics in the Prologue's coda: statistical aggregation is appropriate where the physical situation is genuinely an ensemble, but it is not foundational to a deterministic continuum formulation that solves the equations directly. Before pulling black-body radiation out of a forced-damped-oscillator model and asking it to reach the Planck spectrum without quantising the field, it is worth being explicit about what thermodynamic concepts the framework needs and how they relate to the Boltzmann--Gibbs statistical mechanics that has dominated thermodynamics since the late 19th century.
+
+The position is the parallel of the statistics position stated in the Prologue's Dublin coda: \textbf{statistical-mechanical averaging is foundational in the standard formulation because the underlying many-body dynamics is intractable; it is not foundational in a deterministic continuum formulation that solves the equations directly}.
+
+The position taken in this chapter is consistent with the position of \emph{Computational Thermodynamics} (Johnson, draft 2026), Volume 5 of the Body and Soul series~\cite{BodyAndSoulV}, which works out the deterministic continuum reformulation of thermodynamics in detail. This chapter is a compact summary of how that programme connects to the matter--light chapters that follow.
+
+\section{Two readings of thermodynamic equilibrium}\label{sec:two-thermo}
+
+Thermodynamics, like quantum mechanics, admits two foundational readings.
+
+\paragraph{Reading A: Boltzmann statistical mechanics.}
+A macroscopic system at temperature $T$ is described by a probability distribution over its microstates --- the Boltzmann factor $e^{-E/k_B T}$ for energy $E$, the canonical ensemble for systems at fixed temperature, the microcanonical ensemble for isolated systems. Macroscopic observables are averages over this distribution; equilibrium is the maximum-entropy distribution compatible with the constraints. Temperature is a Lagrange multiplier; entropy is the logarithm of the number of accessible microstates.
+
+This is the formulation that emerged from Boltzmann, Gibbs, and Maxwell in the late 19th century and that has been the canonical foundation of thermodynamics ever since. It is conceptually deep, mathematically rich, and probabilistic. It also requires the standard interpretation-of-probability question: in what sense is a deterministic Hamiltonian system ``probabilistically'' distributed over its microstates, and what makes the maximum-entropy distribution the ``right'' one to use?
+
+\paragraph{Reading B: Deterministic continuum mechanics.}
+A macroscopic system is a continuum described by deterministic field equations (density, momentum, energy fields evolving by Navier--Stokes or Euler-type equations). Equilibrium is the long-time stationary state of these field equations; temperature is a field-valued thermodynamic variable directly computable from the kinetic-energy density of the continuum; entropy is what the continuum equations require for consistency under irreversible processes (the entropy condition for shocks, the second law as a stability condition on the flow).
+
+This is the reading of \emph{Computational Thermodynamics}~\cite{BodyAndSoulV}: thermodynamics is continuum mechanics with an additional thermodynamic field structure, and the second law emerges from the requirement that the continuum equations be well-posed under irreversibility. The Boltzmann statistical-mechanical foundation is replaced by a direct deterministic continuum formulation in which probability does not appear at the foundational level.
+
+\paragraph{The two are not in conflict.}
+As in the QM case (Prologue, Coda: Dublin 1952), the two readings are not flatly contradictory. Boltzmann statistical mechanics is a working framework whose quantitative predictions agree with experiment across a vast range of conditions. The deterministic continuum formulation is an alternative whose foundational structure is different but whose predictions, where both are applicable, agree. The disagreement is about \emph{what is foundational}: probability or field equations.
+
+This book takes the same position on thermodynamics that it takes on quantum mechanics: where a deterministic real-space formulation works, it should be preferred, because it allows the framework to be checked against observation directly without an interpretational layer that has historically resisted clear formulation.
+
+\section{What RealQM needs from thermodynamics}\label{sec:realqm-needs}
+
+The matter--light chapters that follow this one need three thermodynamic concepts: \emph{temperature}, \emph{thermal equilibrium}, and \emph{energy equilibration across degrees of freedom}. Each can be supplied by either the statistical-mechanical or the deterministic-continuum framework, and each plays a specific role in the development.
+
+\paragraph{Temperature.}
+In the black-body chapter (Chapter~\ref{ch:blackbody}), each frequency-$\nu$ oscillator carries a temperature $T_\nu = \tfrac{1}{2}(\overline{\dot u_\nu^2} + \nu^2 \overline{u_\nu^2}) \approx \overline{\dot u_\nu^2}$, defined as the time-averaged kinetic-energy-like quantity of the oscillator. This is a deterministic continuum definition: it requires no ensemble average over microstates, only a time average over the oscillator's own dynamics. The Rayleigh--Jeans law $R_\nu = \gamma T_\nu \nu^2$ uses this temperature directly.
+
+The deterministic continuum reading therefore supplies the temperature concept that the matter--light framework needs, without invoking statistical-mechanical averaging.
+
+\paragraph{Thermal equilibrium.}
+In the same chapter, thermal equilibrium is defined as $T_\nu = T$ for all $\nu$ --- a common temperature across the oscillator spectrum. Equilibrium is reached via \emph{near-resonance interaction}: oscillators of nearly the same frequency exchange energy through their shared spectral content, and the exchange tends to equalise their temperatures.
+
+This is a continuum-mechanics statement: equilibration is the dynamical relaxation of a continuum coupling, not the statistical-mechanical maximum-entropy distribution. In the deterministic continuum formulation of \emph{Computational Thermodynamics}~\cite{BodyAndSoulV}, equilibrium emerges from the long-time behaviour of the continuum field equations under appropriate coupling; the near-resonance mechanism of the black-body chapter is one instance of this general pattern.
+
+\paragraph{Energy equilibration across degrees of freedom.}
+The black-body chapter relies on equipartition-like reasoning: every frequency carries the same energy $T$ at thermal equilibrium. In the deterministic continuum reading, this is recovered as a consequence of near-resonance: oscillators close in frequency exchange energy until their kinetic-energy averages equalise, and the equilibrium distribution across frequencies is what near-resonance allows.
+
+Standard equipartition (the $\tfrac{1}{2} k_B T$ per degree of freedom result from Boltzmann statistical mechanics) is a probabilistic statement; the near-resonance equipartition of the black-body chapter is a continuum-dynamics statement. They give numerically equivalent predictions in the regimes where both apply.
+
+\section{Negative entropy, order from order, and Schr\"odinger's 1944 argument}\label{sec:negentropy}
+
+The chapter's opening epigraph is from Schr\"odinger's 1944 \emph{What is Life?}, which is the major Schr\"odinger work on thermodynamics outside QM. The book argues that living matter is characterised by an unusually long timescale on which it avoids the equilibrium state ("the rapid decay into the inert state of equilibrium") by feeding on \emph{negative entropy} drawn from its environment.
+
+The argument is significant for several reasons that connect directly to the framework of this book:
+
+\paragraph{Order from order, not order from disorder.}
+Schr\"odinger contrasts statistical-mechanical equilibrium ("order from disorder" --- macroscopic order emerging from molecular chaos) with the order found in living matter, which he calls "order from order" --- macroscopic order maintained by an underlying microscopic order (DNA, protein folds, enzymatic specificity) that is itself orderly rather than chaotic. The "order from order" reading of biology is a continuum-mechanics reading of macroscopic structure: the microscopic constituents are organised, the macroscopic structure follows. It is not a statistical-mechanical reading.
+
+\paragraph{Negative entropy as informational structure.}
+Schr\"odinger's "negative entropy" anticipates Shannon's information theory by four years. The point is that a system that maintains itself in a low-probability configuration over long times must be drawing structured (negentropy-rich, information-rich) inputs from its environment and discarding unstructured (entropy-rich) outputs. The bookkeeping is thermodynamic, but the underlying mechanism is informational: the system is a continuum machine that processes structured matter and energy.
+
+\paragraph{Implication for RealQM.}
+The "order from order" reading of biology is consistent with the multiphase real-space formulation of this book. Atoms (Level 1) are ordered structures, not random distributions; molecules (Level 4) assemble from atoms with definite geometries; proteins (Level 5) fold into specific configurations; cells (Level 6) maintain their structure against thermodynamic equilibrium by metabolic coupling. The hierarchy of Chapter~\ref{ch:hierarchy} is, in Schr\"odinger's language, an "order from order" hierarchy --- structured units at each level produce structured units at the next.
+
+Statistical-mechanical equilibrium is a feature of the environment (the surrounding water, the surrounding atmosphere, the surrounding everything-else); the framework's domain is the structured object that maintains itself against this environment. The thermodynamics that RealQM needs is therefore primarily the thermodynamics of structured, non-equilibrium continuum systems, which the deterministic-continuum reformulation is designed to handle.
+
+\section{What this chapter does not do}\label{sec:thermo-not}
+
+We are careful about what is and is not claimed.
+
+\paragraph{Not claimed.}
+\begin{itemize}
+\item Statistical mechanics is wrong. It is internally consistent, empirically supported, and a useful working framework wherever ensemble averaging is the natural framing.
+\item The deterministic continuum formulation reaches every regime statistical mechanics reaches. Some regimes (large-system equilibrium fluctuations, critical phenomena, fluctuation--dissipation relations) are most naturally framed statistically, and the continuum formulation may have to add corresponding fluctuation terms to match.
+\item Thermodynamics has been solved by deterministic continuum mechanics. The Boltzmann formulation is roughly 150 years old and saturated with results; the deterministic-continuum reformulation in \emph{Computational Thermodynamics}~\cite{BodyAndSoulV} is a draft programme rather than a completed alternative.
+\end{itemize}
+
+\paragraph{Claimed.}
+\begin{itemize}
+\item The thermodynamic concepts that the matter--light chapters of this Part need --- temperature, equilibrium, equipartition --- can be supplied without statistical-mechanical averaging, through near-resonance dynamics of continuum oscillators.
+\item The deterministic continuum reading of thermodynamics is the natural foundation for the Schr\"odinger--Maxwell coupling and for the black-body derivation, in the same way that the deterministic real-space reading of QM is the natural foundation for the chemistry chapters of Part~III.
+\item Schr\"odinger's 1944 "order from order" reading of biology is consistent with the hierarchy of RealQM and supports the framework's overall position that probabilistic/statistical interpretive layers can be replaced by deterministic continuum formulations at each scale.
+\end{itemize}
+
+\section{What follows from this chapter}\label{sec:thermo-follows}
+
+With the thermodynamic foundation set on a deterministic continuum basis, the matter--light chapters of Part VI can be read as continuum-mechanics derivations of the corresponding phenomena:
+
+\begin{itemize}
+\item Chapter~\ref{ch:sm-coupling} sets out the Schr\"odinger--Maxwell coupling: the wave functions on physical $\mathbb{R}^3$ source the Maxwell field directly, with no second quantisation required for the matter.
+\item Chapter~\ref{ch:excited} works out atomic radiation as classical-antenna emission from an oscillating real charge density, with the Bohr frequency condition emerging from the relaxation of the real density between two stationary configurations; Chapter~\ref{ch:blackbody}~\S\ref{sec:photoelectric-empirical} rereads the photoelectric effect as a frequency-threshold phenomenon of bound matter rather than as evidence for photon quantisation of light.
+\item Chapter~\ref{ch:blackbody} derives the Rayleigh--Jeans law and the Planck spectrum from a forced-damped-oscillator model with near-resonance interaction, using the deterministic continuum thermodynamics laid out in this chapter for the temperature and equilibrium concepts.
+\end{itemize}
+
+The Part as a whole is the most speculative reach of the book --- the chapters above are at a different stage of validation from the chemistry chapters of Part~III --- but they fit together as a coherent extension of the framework into matter--light interaction. The unifying principle is the same as in the chemistry chapters: deterministic continuum mechanics on real 3D space, with probabilistic or statistical layers removed wherever a deterministic alternative is available.
+
+% --- End of RealQM vs Thermodynamics chapter ---

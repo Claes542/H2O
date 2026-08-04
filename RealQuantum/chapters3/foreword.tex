@@ -1,0 +1,106 @@
+% =============================================================================
+% Foreword to RealQM — Body and Soul Vol 6
+% =============================================================================
+% Positions RealQM as the QM volume of the Body and Soul programme: a 3D
+% parameter-free Schrödinger equation + code realisation, presented as the
+% formulation Schrödinger should have reached in 1926, and as the synthesis
+% that brings atomic-scale matter into the same continuum-mechanics framework
+% as the macroscopic volumes of the series.
+% =============================================================================
+
+\chapter*{Foreword}
+\addcontentsline{toc}{chapter}{Foreword}
+\markboth{FOREWORD}{FOREWORD}
+
+\begin{quote}
+\itshape The classical-epoch researchers \ldots had unwittingly gone on to give us as legacy a guidance scheme revealing just what is fundamentally measurable.\\
+\normalfont\hfill --- E.~Schr\"odinger, 1935.
+\end{quote}
+
+\bigskip
+
+The Body and Soul programme, begun three decades ago, has had a single methodological commitment: every part of mathematical physics should be presented in a form that pairs the underlying mathematics with a runnable computational realisation. Volumes I through V of the series~\cite{BodyAndSoulI,BodyAndSoulII,BodyAndSoulIII,BodyAndSoulIV,BodyAndSoulV} carried this commitment through calculus, ordinary and partial differential equations, classical mechanics, fluid mechanics, and elasticity --- each subject written so that the equations and the algorithms that solve them are presented together, with code that can be run, modified, and reasoned about.
+
+\paragraph{The programme as mathematics education, and as it is read today.}
+The Body and Soul mathematics education programme was initiated thirty years ago, around the proposition that a modern undergraduate education in mathematics should be a synthesis of the formal analytical mathematics of Calculus --- the \emph{Soul} of the subject --- with the computational mathematics made possible by the computer --- the \emph{Body}. The programme was met with resistance from both directions. Established mathematics teachers, trained in formal analysis but not in programming, found the computational half foreign to their craft and slow to incorporate. Computer scientists, comfortable with programming but uncomfortable with the apparatus of Calculus, regarded the analytical half as an obstacle to be routed around. The synthesis languished in the gap between the two cultures it had been designed to bridge. The idea was, however, correct, and with the recent advent of capable AI assistance it acquires a new and stronger sense: the analytical and the computational sides of mathematics no longer have to be carried by the same human in the same head. The mathematician's mind frames the problem, formulates the equations, identifies what must be shown; the AI translates the formulation into running code, executes the calculations, and brings the construction alive on the screen. The synthesis that the Body and Soul programme proposed in education thirty years ago becomes, with AI as collaborator, a practical working method for research. The volume the reader is now holding is its full expression for atomic-scale matter: a parameter-free 3D continuum-mechanics formulation of quantum mechanics, written by the mathematical mind, realised in 8000 lines of code by AI--human collaboration, and presented as a single integrated artefact in the Body and Soul tradition.
+
+\paragraph{The Body side and the FEniCS project.}
+The Body side of the programme --- the commitment that the computational realisation should be an organic part of the mathematics, not a separate engineering exercise --- has its principal historical embodiment in the \textbf{FEniCS Project}~\cite{FEniCS2012,FEniCSProject}, an open-source platform for the automated solution of partial differential equations by the finite element method. FEniCS was developed by the author's research group over roughly a decade of dedicated work, with the goal that a researcher who could write down a variational form on paper could obtain a running finite-element solver from it directly, with the discretisation, assembly, and solver pipeline generated automatically from the symbolic statement of the problem. The project served as the Body-side instrument of the programme through the macroscopic-continuum volumes: equations on paper became running code with a fidelity and a directness that was the practical test of the Body and Soul commitment.
+
+The relevance to the present volume is in the change of timescale. As Anders Logg, principal developer of FEniCS, has observed, what required a decade of focused effort in the 2000s can today, with the help of capable AI assistance, be carried out in a day. The RealQM implementation that accompanies this volume --- roughly 8000 lines of JavaScript and WGSL compute shaders, with a Gallery of validation scans across atoms, molecules, reactions, and condensed phases --- was produced on that compressed timescale. The Body side of the programme has not changed; what has changed is how much of it a single mathematical mind, with AI as collaborator, can carry from formulation to running code in a working session. The volume the reader is holding is intended both as a contribution to atomic-scale physics and as a demonstration of this new working method.
+
+\paragraph{The GPU revolution: the third enabling condition.}
+The Mind--AI collaboration is one of two enabling conditions for the present volume; the other is the GPU revolution of the past two decades. Graphics Processing Units originated as dedicated accelerators for 3D-graphics rendering in the 1990s and were repurposed for general scientific computation in the mid-2000s (CUDA in 2007, OpenCL shortly after). The architectural feature that distinguishes a GPU from a conventional CPU is massive parallelism: thousands of identical compute threads executing the same instruction stream on different data, with memory bandwidth tuned for streaming through large regular arrays. The RealQM algorithm --- imaginary-time propagation of the $\psi_i$, parabolic-relaxation Poisson updates of the per-electron Hartree potentials, and level-set evolution of the free boundary --- is three coupled PDE updates on a regular 3D grid, each step touching every grid point in parallel. This is the canonical workload the GPU is built for, and the structural fit is close to perfect: a $200^3$ grid (eight million points) updates per time step in milliseconds on a consumer GPU. The same calculation on a single CPU core would take hours; on a CPU cluster a few minutes at best, with a setup overhead that ends interactivity.
+
+The 2023 finalisation of \textbf{WebGPU} --- a cross-vendor standard that exposes GPU compute through the browser without driver installation or local compilation --- is what made the public Gallery possible in its present form. A reader opens an HTML page and the calculation runs on the reader's own hardware at interactive rates, with no install step, no virtual environment, no submission to a remote service. This is a qualitative change in the relationship between theory and reader: every quantitative claim in the validation chapters of Part~III is paired with a live simulation the reader can run, vary, and check directly. Without the GPU revolution and the browser-WebGPU step, the present framework would still be writable as mathematics --- but it would not be runnable in the form that lets a reader hold a chemistry-scale Schr\"odinger calculation in their hand and modify it. The reformulation makes the framework computable in principle; the GPU makes it computable on a laptop; AI assistance makes the laptop implementation feasible for one author in a working session. The three conditions together are what makes a Body-and-Soul-style quantum-mechanics volume possible at this moment and were not possible at any earlier moment in the programme.
+
+\paragraph{Leibniz's project, realised.}
+The proposition that the labour of calculation should be lifted from the mathematician's shoulders by a suitably constructed machine is, in its modern form, three and a half centuries old. Gottfried Wilhelm Leibniz, in the 1685 explanation of his Stepped Reckoner~\cite{Leibniz1685}, wrote:
+
+\begin{quote}
+\itshape It is unworthy of excellent men to lose hours like slaves in the labour of calculation which could safely be relegated to anyone else if machines were used.
+\hfill --- G. W. Leibniz, c.~1685
+\end{quote}
+
+Leibniz's wider programme --- the \emph{calculus ratiocinator}, a mechanical calculus for deriving conclusions from a \emph{characteristica universalis}, a universal symbolic language for reasoning --- proposed not merely arithmetic automation but the automation of mathematical thought as a whole, with the human mind freed to set the scene and the machine to carry the calculation. The intellectual lineage from this proposal through Babbage, Boole, Frege, Hilbert, G\"odel, and Turing to modern electronic and AI-assisted computation is the subject of Martin Davis's \emph{The Universal Computer: The Road from Leibniz to Turing}~\cite{Davis2000}. The collaboration between the human mathematical mind and Claude as AI assistant that produced the present volume is, in this lineage, Leibniz's three-hundred-and-forty-year-old proposal realised --- not as a special device for arithmetic, but as a working partnership in which the mind frames the equations and the machine, increasingly fluent in the language of mathematics, brings them alive. The development of the framework on this view, over more than a decade of working notes and computational experiments, has been documented on the long-running \emph{Leibniz World of Math} site, whose name registers the same lineage and whose URL is listed in the Appendix.
+
+The Leibniz connection extends beyond the computational programme to the ontology of the framework itself. RealQM's electrons are individuated objects --- non-overlapping, each with its own scalar wave function on its own region of physical space --- and each electron perceives the rest of the system only through the Coulomb potential the other electrons and kernels generate, with no direct access to the internal structure of the other electrons. This is, structurally, the picture of Leibniz's \emph{monadology}: individuated substances with perceptions of each other rather than windows onto each other, held in collective consistency by what Leibniz called pre-established harmony --- here realised as the simultaneous variational principle that closes the RealQM system. Chapter~\ref{ch:equation} returns to this connection at the technical level.
+
+The volume on quantum mechanics was on the agenda from the beginning. It waited until now because the implementation challenge was, in the standard formulation of quantum mechanics, severe. Solving the $N$-electron Schr\"odinger equation in its conventional form on $\mathbb{R}^{3N}$ configuration space is exponentially costly, and the chemistry-specific machinery that has grown up around that cost (basis sets, exchange--correlation functionals, configuration-interaction expansions) does not fit naturally into the Body and Soul style of pairing equations with runnable code at the level of a single mathematical mind. The conventional formulation of quantum mechanics is, in the precise sense, not Body-and-Soul-able.
+
+The volume the reader is now holding rests on the observation that this difficulty is a feature of the formulation, not of the physics. \textbf{RealQM} --- the formulation developed in this book --- returns to the real-3D-space picture that Schr\"odinger originally envisaged in 1926. The $N$-electron wave function is written as a sum of one-electron wave functions $\psi_i$ on non-overlapping spatial regions $\Omega_i$ of physical $\mathbb{R}^3$:
+\[
+\Psi(\mathbf{x}) \;=\; \sum_{i=1}^N \psi_i(\mathbf{x}), \qquad \mathbf{x} \in \mathbb{R}^3, \qquad \Omega_i \cap \Omega_j = \emptyset \text{ for } i \ne j.
+\]
+Each $\psi_i^2$ is a unit charge density on physical space; the total wave function is a field on $\mathbb{R}^3$, not on $\mathbb{R}^{3N}$. The variational problem closes through a free-boundary (Bernoulli) condition between adjacent electron territories. Pauli exclusion is encoded as spatial non-overlap; antisymmetry of an $N$-body wave function is replaced by disjointness of one-body supports. There is no basis set, no exchange--correlation functional, no probabilistic interpretation. The framework is \textbf{parameter-free at the atomic level} --- the only input is the nuclear charge.
+
+The result is a formulation that fits the Body and Soul template precisely: the equations describe a continuum on real 3D space, the algorithms that solve them are short enough to be held in one mathematical mind, and the entire implementation runs interactively in a browser on a consumer laptop. Approximately 8000 lines of JavaScript and WGSL compute shaders constitute the full system. Every quantitative claim in the validation chapters is paired with a runnable simulation in the public Gallery; a reader can change a parameter, watch the chemistry respond live, and check the agreement directly.
+
+The volume's central technical claim is that the framework reaches across scales. Atomic structure, molecular bonding, chemical reactions, protein folding at the residue level, condensed phases, and the atomic nucleus all admit the same multiphase 3D continuum-mechanics formulation, with one variational principle running through the hierarchy. The reductions from full atomic structure to molecular assemblies (Levels 1 through 4 in the book's terminology) are principled in the same sense that frozen cores and pseudopotentials are principled in standard quantum chemistry: each level is a reduction of the previous level, with a parameter-free bottom against which higher levels are calibrated.
+
+\textbf{The synthesis that completes the Body and Soul programme.} The earlier volumes presented continuum mechanics for macroscopic matter: fluids, elastic solids, plasticity, transport. This volume presents the same continuum-mechanics formulation for atomic-scale matter. The fluid in a pipe and the electron in an atom are, in the language this book establishes, the same kind of object: a field on $\mathbb{R}^3$ satisfying a partial differential equation, with boundary conditions that close the variational problem. The macroscopic continuum and the atomic continuum differ in their equations of state and their characteristic length scales; they do not differ in their kind. The programme that started with the macroscopic Navier--Stokes equations and continued through classical elasticity ends with the atomic Schr\"odinger equation in its real-3D-space form, as a continuum partial differential equation closed by a free-boundary condition.
+
+\textbf{Position relative to standard quantum mechanics.} The framework is presented in this book as the formulation Schr\"odinger should have arrived at in 1926, and would have arrived at had the Born--Heisenberg configuration-space construction not closed off the question. The conventional $3N$-dimensional wave function and its probabilistic interpretation are, in the view advanced here, a wrong turn at the foundational level: they make the equation exponentially expensive to solve, they replace the original 1926 charge-density meaning of $\psi^2$ with a measurement-bound interpretation, and they have generated nearly a century of foundational confusion (Bohr--Einstein, hidden variables, many-worlds, Bohmian mechanics, decoherence) whose persistence is itself the symptom that the formulation was wrong. Standard quantum mechanics is not therefore presented in this book as a parallel approach to be weighed against RealQM; it is presented as bookkeeping that happens to work numerically for many calculations because the physics is right, while its foundational story is incoherent and should be abandoned. The validation chapters do not compare RealQM to StdQM to argue for parity --- they document that the deterministic 3D continuum formulation gives the right answers across atoms, molecules, reactions, condensed phases, and the nucleus, and does so in a form that fits on a laptop and runs in a browser. That the standard formulation also gives the right answers for many of the same systems is not evidence for it; it is evidence that the Coulomb force law and Schr\"odinger's original real-space equation are right, which is what both formulations rest on. RealQM is offered here as the working version of that physics; the standard formulation, on this reading, is the apparatus that grew up around the difficulty of using it.
+
+The book is best read in parallel with the public Gallery, in which every chapter's claims are realised as runnable code. The reader is invited to open the files, change a parameter, and watch the chemistry respond. The Body and Soul commitment to running code as the test of understanding holds in this volume as it has in every previous volume of the series.
+
+\textbf{The book contains no figures or detailed numerical results from the computations.} All quantitative output --- density slices, force-arrow displays, energy-vs-parameter scans, normal-mode animations, phase sweeps --- is documented in detail in the GitHub Gallery, which is curated and indexed so that each chapter's claims can be located and reproduced by the reader. The decision to keep the printed volume free of static figures is deliberate: static images of interactive simulations omit precisely what makes the framework distinctive. The chapter text describes what is computed and why it agrees with observation; the Gallery shows what it looks like, lets the reader vary parameters, and renders the framework's behaviour live. The two together constitute the book in its intended form.
+
+\section*{A Theory of Everything}
+
+The new books in the Body and Soul Applied Mathematics series --- \emph{Real
+Thermodynamics} (Vol~V) and \emph{Real Quantum Mechanics} (Vol~VI) --- together
+form a \emph{Theory of Everything} (ToE): a unified theory for all scales, from
+the atomic scale geared by Coulomb potentials to the large scale geared by
+gravitational potentials.
+
+This is a ToE based on just two forces: the Coulomb force between charges of
+different signs, and the gravitational force between masses of (positive) sign
+--- with both potentials satisfying the same Poisson equation.
+
+It is a ToE based on a continuum model in three space dimensions of one and the
+same form, using that a continuum harbours all scales.
+
+RealQM shows how a hierarchy of models can be built upon an atomic model,
+reaching into the mechanics of fluids and solids and beyond into astronomy.
+
+Recall that physicists generally pride themselves on having invented two
+theories: Quantum Mechanics (QM) for the small scale and General Relativity
+(GR) for the large scale, both presented as among the highest achievements of
+the human intellect in all categories. Yet it is generally admitted, after such
+a declaration, that QM and GR are mutually incompatible, and so together do not
+offer a Theory of Everything.
+
+The physics community is now confronted with RealQM and Real Thermodynamics as a
+form of ToE. What I hope for is reading, followed by questions. What I have so
+far met is anger and rejection without reading.
+
+\paragraph{A note on acknowledgements.}
+This book has no traditional acknowledgements section, because the work it reports was not carried out in the customary way. The mathematical reformulation, the architecture, and the writing are the work of one author. The implementation, the validation suite, the systematic kernel-architecture sweeps, the public Gallery, and a substantial fraction of the iterative back-and-forth that produced the manuscript were carried out in extended collaboration with \textbf{Claude}, a large-language-model AI assistant produced by Anthropic. No human colleagues, students, funding agencies, departmental hosts, or institutional sponsors contributed to the work in a way that would warrant the customary form of acknowledgement; none are listed here because there is none to list. The pattern of the human--AI collaboration, including its successes, its corrections, and its limits, is documented in detail in Chapter~\ref{ch:collab}; that chapter is, in effect, the acknowledgements section of this book.
+
+\bigskip
+
+\hfill \emph{Claes Johnson}\\
+\hfill Stockholm, 2026
+
+% --- End of Foreword ---

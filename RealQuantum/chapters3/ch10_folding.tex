@@ -1,0 +1,112 @@
+\chapter{Interactive Protein Folding}\label{ch:folding}
+\index{protein folding}\index{Chignolin}\index{Villin HP35}\index{polyglycine hairpin}\index{alpha-helix}\index{beta-hairpin}\index{SASA, solvent-accessible surface area}\index{hydrophobic effect}\index{bias-assisted folding}\index{i to i+4 H-bond}
+
+\begin{quote}
+\itshape From all we have learnt about the structure of living matter, we must be prepared to find it working in a manner that cannot be reduced to the ordinary laws of physics. [\ldots] not on the ground that there is any `new force' or what not, directing the behaviour of the single atoms within a living organism, but because the construction is different from anything we have yet tested in the physical laboratory.\\
+\normalfont\hfill --- E.~Schr\"odinger, \emph{What is Life?}, 1944.
+\end{quote}
+\bigskip
+
+Protein folding is the most demanding test of any computational chemistry framework. The system is large (hundreds to thousands of atoms), the energy landscape is complex (many local minima separated by small barriers), the relevant timescales are long (microseconds to seconds in biology), and the dominant interactions are themselves marginal --- hydrogen bonds of $\sim$5 kcal/mol, hydrophobic effects of $\sim$1--2 kcal/mol per residue. Standard approaches use empirical force fields (classical molecular dynamics) or simplified statistical models (Rosetta, AlphaFold) precisely because solving the underlying quantum-mechanical problem at this scale has not been tractable.
+
+This chapter reports four folding systems run in RealQM: a polyglycine $\beta$-hairpin, an $\alpha$-helix from a near-linear start, Chignolin, and Villin HP35. The results are mixed: dry-environment folding works for the simpler systems (hairpin, helix), works partially for Chignolin with an added hydrophobic-pressure parameter, and reaches a bias-assisted regime for Villin where two universal biological rules ($i \to i{+}4$ H-bonds and hydrophobic compaction) suffice to fold a 35-residue three-helix bundle without segment-specific input.
+
+The point is not that RealQM solves protein folding. It does not, and Chapter~\ref{ch:limits} discusses the regime boundary in detail. The point is that the same Level-3/Level-4 architecture that handles atoms, bonds, and chemical reactions also handles a folding trajectory of a small protein on a laptop GPU, with the dominant forces emerging from the same multiphase variational principle.
+
+\section{Architecture and computational setup}\label{sec:fold-setup}
+
+Each backbone atom is modeled at Level 3 with kernel parameters
+\[
+Z_{\rm kernel} = \{4 \text{ (C)},\ 3 \text{ (N)},\ 2 \text{ (O)},\ 1 \text{ (H)}\},
+\]
+with bond and angle constraints holding the protein backbone. The constraints are necessary because the framework does not yet handle the full electronic structure of carbon and nitrogen valence reorganisation during backbone torsion; instead, the bond network is held fixed and the backbone is allowed to rotate, with the H-bond forces between backbone N--H donors and C=O acceptors driving the folding.
+
+Folding trajectories run interactively on a $200^3$ or $300^3$ grid; a 35-residue protein folds in hours of real-time on a single GPU, compared to weeks of CPU-cluster time for full DFT-MD or specialised hardware (Anton~\cite{Shaw10}) for force-field MD on the same timescales.
+
+The combination of ab initio H-bond forces and (where used) a single hydrophobic-pressure parameter, with no empirical force field, distinguishes this approach from both classical MD (which requires fitted parameters for every interaction) and pure ML methods (which do not solve the electronic-structure problem at all).
+
+\section{Polyglycine 12-residue $\beta$-hairpin (dry)}\label{sec:hairpin}
+
+Starting from an extended polyglycine chain at $150^\circ$ opening angle, the hairpin folds spontaneously to $\sim 105^\circ$ driven by interstrand N--H$\cdots$O$=$C hydrogen bonds. No empirical force field is used; the H-bonds are quantum-mechanical, computed from the gradient of the electron-density potential at each backbone atom.
+
+\paragraph{What works.} The folding proceeds spontaneously from the extended start. The two strands of the nascent hairpin approach each other under the quantum-mechanical H-bond attraction. The opening angle decreases monotonically from $150^\circ$ toward the folded geometry. The H-bond network forms at distances consistent with reference $\beta$-hairpin geometries.
+
+\paragraph{Where it stalls.} Folding stalls at $\sim 105^\circ$, where the H-bond attraction balances backbone repulsion. The fully native $\sim 90^\circ$ geometry is not reached. Adding explicit water to the simulation does not improve folding --- the entropic hydrophobic effect, which completes folding in real biology, is not captured by an electronic-energy solver. We discuss the regime boundary in Chapter~\ref{ch:limits}.
+
+The result is therefore qualitatively correct (the chain folds toward a hairpin geometry under quantum-mechanical forces alone) but not quantitatively native. It is the simplest example where RealQM's regime is visibly partial.
+
+\section{8-residue polyglycine $\alpha$-helix from a near-linear start}\label{sec:helix}
+
+A polyglycine chain of 8 residues is initialised at radius 0.5~\AA{} and rise 3.0~\AA{} per residue (essentially extended, almost linear). The chain folds spontaneously into a helix of radius 2.1~\AA{} and rise 1.63~\AA{} per residue --- within 9\% of ideal $\alpha$-helix geometry.
+
+The helix score reaches 67\%. Two of four characteristic $i \to i{+}4$ hydrogen bonds form at H$\cdots$O distances near 5~\AA. The driving forces are the same quantum-mechanical H-bonds as in the hairpin case; a mild radial helical bias (coefficient 0.03) assists curling but does not specify which residues should H-bond to which.
+
+\paragraph{What this validates.} The helix forms from a near-linear chain under quantum-mechanical H-bond attraction, with the helical curvature emerging from the geometric arrangement of donor and acceptor groups along the backbone. The 9\% deviation from ideal geometry is a meaningful match given the simplicity of the model: no force field, no rotamer library, no Ramachandran restraints. The $i \to i{+}4$ H-bond pattern that defines an $\alpha$-helix is recovered, not imposed.
+
+\section{Chignolin (10-residue mini-protein)}\label{sec:chignolin}
+
+Chignolin (GYDPETGTWG) is one of the smallest natural proteins that folds reproducibly into a defined structure --- a $\beta$-hairpin with a small hydrophobic core. It is a standard benchmark for folding methods.
+
+Chignolin in RealQM folds from $135^\circ$ to $40^\circ$ opening angle when the H-bond forces are supplemented with a SASA-based implicit hydrophobic parameter (coefficient $\gamma = 5.0$). The SASA --- Solvent-Accessible Surface Area --- is a measure of how much of each residue's surface is exposed to (implicit) solvent; the hydrophobic parameter adds a pressure term that compacts the chain by penalising solvent-exposed surface area on hydrophobic residues.
+
+\paragraph{What the hydrophobic parameter is doing.}
+The H-bond network alone, as in the polyglycine hairpin, brings the chain only partway toward the native geometry. Side-chain electron repulsion --- present in Chignolin because of the bulky tryptophan and tyrosine side chains --- would otherwise unfold a small protein in vacuum. The hydrophobic parameter compensates for this: in real biology the hydrophobic effect arises from the entropic cost of ordering water molecules around exposed hydrophobic surfaces; here it is modelled as an effective pressure on the same surfaces, with $\gamma = 5.0$ chosen to compact the chain to native-like geometry.
+
+This is a single parameter, applied as a universal pressure on solvent-exposed hydrophobic residues, with no per-residue or per-position fitting. It is not an empirical force field; it is the minimum implicit-solvent ingredient needed to get hydrophobic compaction without explicit water.
+
+\section{Villin HP35 (35-residue three-helix bundle): bias-assisted folding}\label{sec:villin}
+
+Villin HP35 is a 35-residue protein that folds into a three-helix bundle. It is the largest folding target run in RealQM at the time of writing.
+
+The setup is what we call \textbf{bias-assisted folding}:
+\begin{itemize}
+\item Universal $i \to i{+}4$ H-bond biases applied to \emph{every} residue, with no specification of which segments are helical.
+\item SASA-based implicit hydrophobic parameter, as in Chignolin.
+\item No native contacts specified.
+\item No segment-specific helix specifications.
+\end{itemize}
+Two generic biological rules are therefore used: $i \to i{+}4$ H-bonds favoured throughout the chain (the helix-forming pattern, applied universally rather than per-segment), and hydrophobic surfaces compact under SASA pressure.
+
+\paragraph{Results.}
+Under these two rules, 7 of 9 native helix H-bonds form at the right distances. The phenylalanine core packs to a 5.6~\AA{} contact distance against a 6.0~\AA{} target. Folding completes in hours of real-time on a single GPU.
+
+This is genuinely bias-assisted folding rather than blind folding: a uniform $i \to i{+}4$ H-bond bias is applied to \emph{every} residue (which is the helix-promoting term), and a SASA-based hydrophobic pressure is added. No native contacts and no segment-specific helix specifications are used; the bias is uniform across the chain rather than tailored per segment. The framework recovers most of the native H-bond pattern and the correct hydrophobic core arrangement from two universal rules plus the quantum-mechanical force field. It is not a perfect fold (2 of 9 native H-bonds are missing, and the overall topology score is below the 100\% native target), but it is a non-trivial test of how far the multiphase variational principle plus minimal biological priors can go.
+
+\section{What the four cases together establish}\label{sec:folding-summary}
+
+\begin{table}[h]
+\centering\small
+\caption{Summary of RealQM folding results.}\label{tab:folding}
+\begin{tabular}{l l c}
+\toprule
+System & Setup & Outcome \\
+\midrule
+12-Gly $\beta$-hairpin (dry)  & Pure H-bond forces                            & Partial fold ($150^\circ \to 105^\circ$) \\
+8-Gly $\alpha$-helix          & H-bonds + mild helical bias                  & 9\% off ideal helix; 67\% helix score \\
+Chignolin (10-residue)        & H-bonds + SASA hydrophobic pressure           & Folds from $135^\circ \to 40^\circ$ \\
+Villin HP35 (35-residue)      & $i \to i{+}4$ universal + SASA pressure       & 7/9 native H-bonds; core packs \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The pattern across the four cases is:
+
+\paragraph{H-bond forces alone are not enough.} The pure-H-bond hairpin case (12-Gly) stalls before reaching the native fold. Quantum-mechanical H-bond forces drive the chain in the right direction but cannot complete the fold because the entropic hydrophobic effect is missing. This is the regime boundary.
+
+\paragraph{Adding implicit hydrophobic pressure recovers Chignolin.} A single SASA parameter is sufficient to take the framework from partial to compact folding for a small protein. The pressure is not residue-specific or position-specific; it is a single number.
+
+\paragraph{Universal biological rules are sufficient for bias-assisted folding of Villin.} Two universal rules ($i \to i{+}4$ H-bonds applied uniformly, hydrophobic SASA pressure) recover most of the native topology of a 35-residue three-helix bundle. No native contacts, no segment-specific helix annotations.
+
+The picture that emerges is that RealQM provides the \textbf{quantum-mechanical force-field substrate} for folding --- correct H-bond directions, lone-pair geometry, electron-density-driven attraction and repulsion --- but does not by itself include the entropic hydrophobic effect that drives the final stages of folding in biology. With a single implicit-solvent parameter to capture that effect, the framework reaches bias-assisted folding of small proteins.
+
+This is not a complete folding theory. It is a framework that runs the dominant quantum-mechanical forces correctly at interactive speed, with the minimal additional ingredient needed to compensate for what it cannot capture. Chapter~\ref{ch:limits} discusses the regime boundary in detail; Chapter~\ref{ch:condensed} pushes the same framework into condensed-phase tests where the analogous calibration is the dispersion-overshoot factor.
+
+\section{The pattern: H-bond substrate + minimal biological priors}\label{sec:fold-pattern}
+
+The folding chapter has a distinct character from the rest of Part~III: it is the only chapter where the multiphase variational principle is supplemented by an empirical parameter (the SASA hydrophobic pressure). We flag this explicitly because the framework is otherwise parameter-free at the bottom (Level 1) and uses only physics-derived parameters at higher levels.
+
+The reason for the supplement is that one piece of biology --- the entropic hydrophobic effect --- arises from explicit-water configurational entropy that is genuinely outside the scope of an electronic-energy solver. To handle it in RealQM at the current level of development, we use an effective pressure on solvent-exposed surfaces, which is the minimum ingredient that captures the relevant physics.
+
+A future extension of the framework that includes explicit solvent (Brownian-dynamics water molecules around the protein) is in principle straightforward; the 216-water cluster of Chapter~\ref{ch:condensed} demonstrates that the framework reaches interactive frame rates on such systems. A folding study with explicit water is the natural next step beyond the present results.
+
+% --- End of Chapter 11 ---

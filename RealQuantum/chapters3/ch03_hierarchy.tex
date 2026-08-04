@@ -1,0 +1,181 @@
+\chapter{Hierarchy of Reductions: from Atoms to Cell Biology}\label{ch:hierarchy}
+\index{Levels of reduction!Level 0 (nucleus)}\index{Levels of reduction!Level 1 (atoms)}\index{Levels of reduction!Level 2 (spherical homogenisation)}\index{Levels of reduction!Level 3 (pseudo-kernel)}\index{Levels of reduction!Level 4 (molecules)}\index{Levels of reduction!Level 5 (residues)}\index{Levels of reduction!Level 6 (proteins)}\index{pseudo-kernel}\index{Zkernel@$Z_{\rm kernel}$}\index{rc@$r_c$ (softening radius)}\index{frozen-core approximation}\index{spherical homogenisation}
+
+\begin{quote}
+\itshape What an organism feeds upon is negative entropy. [\ldots] It is by avoiding the rapid decay into the inert state of `equilibrium' that an organism appears so enigmatic.\\
+\normalfont\hfill --- E.~Schr\"odinger, \emph{What is Life?}, Dublin lectures 1943, published 1944.
+\end{quote}
+\bigskip
+
+RealSE, written in Chapter~\ref{ch:equation}, describes the electrons of a molecule by dividing physical 3D space into \emph{non-overlapping domains} $\Omega_i$, one per electron, each carrying a single unit-density wave function $\psi_i$ on its own territory. The essential point is that a 2000-electron system does \emph{not} require 2000 wave functions each defined over all of 3D space (still less a single function on $3N$-dimensional configuration space, as in StdQM): it requires one $\mathbb{R}^3$ \emph{partitioned} into 2000 non-overlapping pieces, with one electron in each. A hydrogen atom is a single such piece; a 216-water cluster is $\mathbb{R}^3$ divided into roughly $2000$ electron domains; a small protein, tens of thousands; a cell, more domains than any computer can hold. Solving the full system at full resolution is possible in principle but neither necessary nor useful for most chemistry and biology questions: the inner-shell electrons of an oxygen atom do not participate in hydrogen bonding, and tracking them as separate wave functions wastes computational effort on degrees of freedom that the chemistry does not see.
+
+The framework is therefore organised as a hierarchy of \textbf{reductions}, in which inner structure is progressively absorbed into effective kernels and only the chemically or biologically relevant degrees of freedom are kept explicit. Each level is derived from the previous one by a specific operation, and each level is checked against the level below before being used as the foundation of the next. The reductions are not heuristic shortcuts; they are principled in the same sense that pseudopotentials and frozen-core methods are principled in standard quantum chemistry. The crucial difference is that the RealQM hierarchy has a \emph{parameter-free bottom} --- Level 1, the atomic model --- against which every higher-level architecture is calibrated.
+
+This chapter describes the levels in turn. Levels 1--4, which take us from atoms to molecular assemblies, are quantitatively validated in Part~III. Levels 5 and 6, which take us from molecular assemblies through proteins toward cell biology, are at the time of writing partially validated and partially vision: an active extension of the framework whose first concrete applications (residue-level protein docking, peptide folding) sit alongside more aspirational targets (multi-protein assemblies, membrane systems, cellular structures). We describe all six levels conceptually here; quantitative content for Levels 1--4 is in Part~III, and the status of Levels 5--6 is the subject of the present chapter's closing sections.
+
+\section{Level 0: the atomic nucleus}\label{sec:level0}
+
+\textbf{Level 0} sits below the chemistry levels: the atomic nucleus itself, as a multiphase 3D continuum of unit-charge proton and electron densities. In the proton--electron picture of the nucleus (predating Chadwick's 1932 discovery of the neutron and revisited periodically since), a stable nucleus with $Z$ protons and $N$ neutrons contains $(Z+N)$ unit-density protons and $N$ unit-density electrons, with $N \approx Z$ for stable nuclei.
+
+The Level-0 RealSE is the same equation as at Level 1, with two changes:
+
+\begin{itemize}
+\item \emph{Two species of constituent.} The electrons of Level 1 are joined by protons as a second species, with both species described as unit-charge densities on non-overlapping spatial territories. The Bernoulli boundary is now between species rather than between same-species electron territories.
+\item \emph{Mutual confinement.} There is no external positive kernel at Level 0; the protons themselves are the positive charges, and the electrons confine the protons through their negative charge while the protons confine the electrons through their positive charge. Confinement is mutual rather than externally provided.
+\item \emph{Mass weighting.} The kinetic-energy operator is mass-weighted ($\propto 1/m$), with $m_p / m_e \approx 1836$, which automatically places the natural length scale at femtometers rather than Bohr radii.
+\end{itemize}
+
+Level 0 is the deepest level of the hierarchy. The validation appears in Chapter~\ref{ch:nucleus} (now in Part~III as part of the validation suite), where the simplest non-trivial cases --- the He-4 nucleus and the D + D $\to$ He-4 fusion reaction --- are worked through. The chapter argues that the same framework that handles atoms in Chapter~\ref{ch:atoms} handles the atomic nucleus when the constituents are plugged in, with the roles of electrons and protons shifted relative to the chemistry case (Section~\ref{sec:role-shift} of that chapter spells out the role-shift in detail).
+
+We include Level 0 in the hierarchy because the framework is general: the same multiphase 3D continuum equation describes both nuclear and atomic scales, and treating them as separate frameworks would obscure what is structurally one variational problem at two scales. Quantitative validation at Level 0 is at the present stage less mature than at Levels 1--4; the chapter on the nucleus is honest about the speculative status of the quantitative claims while emphasising the structural correspondence with the chemistry levels.
+
+\section{Level 1: parameter-free atoms}\label{sec:level1}
+
+\textbf{Level 1} is parameter-free: the only input is the nuclear charge $Z$. An atom is described as a point kernel of charge $+Z$ at the origin surrounded by $N$ one-electron wave functions $\psi_i$ on non-overlapping shell-shaped domains $\Omega_i$, with the configuration determined by minimum-energy packing. There are no fitted constants, no chosen orbital basis, no exchange--correlation functional, no spin variables. The total Coulomb energy~\eqref{eq:TE} is minimised over the wave functions, the partition, and the radial extent of each shell. The ground state is whatever configuration results.
+
+A central feature of Level 1 is that \textbf{shell structure is not preset}. The familiar shell occupancies --- 2 electrons in the first shell, 8 in the next, 18 in the third, 32 in the fourth --- emerge from the variational principle as a consequence of minimum-energy packing: as electrons are added one at a time, each new electron occupies the lowest-energy spatial region available given the non-overlap constraint, and electron sizes naturally grow with distance from the kernel. The radial layering reproduces the standard $1s^2$, $2s^2 2p^6$, $3s^2 3p^6 3d^{10}$ counts and is reproduced quantitatively in the energetics.
+
+The angular structure --- the s/p/d distinction within a shell (spherical s, dumbbell p, four-lobe d) --- is only \emph{partially} captured by the unit-density partition, which divides each shell into spatial territories whose detailed angular shapes need not match the standard hydrogenic orbitals. The agreement of Level-1 atom energies with observation across Li--Rn (Chapter~\ref{ch:atoms}) is therefore evidence that the \textbf{radial} shell organisation is correctly derived from packing, while the finer angular labelling of subshells remains an approximation in this Level-1 description.
+
+Level 1 is what every higher level is anchored to. It is the only level at which RealQM makes a hard ab initio prediction: total atomic energies with no fitted parameters. Across Li--Rn the computed total energies agree with observation to approximately 1\%, with the largest deviations at very heavy atoms where relativistic corrections are not included. The full table is in Chapter~\ref{ch:atoms} and in the public Gallery.
+
+\paragraph{Shell geometry: Lewis's cubic atom and Platonic-solid correspondences.}\index{Lewis, G. N.}\index{cubic atom}\index{Platonic solids}
+The shell counts that emerge variationally --- 2, 8, 18, 32 for the first four shells --- align with Platonic-solid geometry in a striking way for the inner shells. The Helium first shell (2 electrons) partitions into two complementary half-spaces, the trivial two-fold symmetry already discussed as the geometric realisation of Pauli's Zweideutigkeit. The second (L) shell of 8 electrons partitions naturally into 8 unit-density territories whose centres sit at the 8 vertices of a \textbf{cube} around the kernel --- precisely \textbf{G. N. Lewis's 1916 cubic atom}~\cite{Lewis1916}, a pre-quantum proposal for the closed-shell octet that was set aside when standard QM took the orbital path instead. RealQM at Level 1 recovers Lewis's cube as the variational ground state of the L shell rather than as a postulate, with the territories being the eight octants of space around the kernel.
+
+Within shells, the subshell structure shows further Platonic correspondences. The $p$ subshell of 6 electrons aligns with the 6 vertices of an \textbf{octahedron} (equivalently, the 6 face centres of a cube); the canonical $\pm x, \pm y, \pm z$ directions of the standard $p_x, p_y, p_z$ orbitals doubled into 6 territories. Tetrahedral coordination (4 vertices, sp$^3$) and octahedral coordination (6 vertices, sp$^3$d$^2$) of inorganic chemistry both have direct Platonic realisations as RealQM partition geometries.
+
+The Platonic correspondence is not, however, a general organising principle. The $d$ subshell (10 electrons) and the $f$ subshell (14 electrons) do not match any single Platonic solid --- no Platonic solid has 10 or 14 vertices --- and the third (18) and fourth (32) shells overall require more general polyhedral tessellations. The Platonic geometry is therefore the small-shell limit of a broader space-filling polyhedral packing that RealQM produces variationally at each shell, with the higher shells generalising the Lewis cube the same way Archimedean and convex polytopes generalise the Platonic solids. The Level-1 framework partially vindicates Lewis's cubic atom while showing why his picture had to be generalised for heavier atoms.
+
+\paragraph{The Level-1 electronic territories are Bader basins.}\index{Atoms in Molecules (AIM)}\index{Bader basins}
+The non-overlapping spatial regions $\{\Omega_i\}$ over which the Level-1 unit-density electrons are supported coincide, in the variational solution, with the atomic basins of Bader's \emph{Atoms in Molecules} (AIM) theory~\cite{Bader90}: the boundary between adjacent electron territories satisfies the homogeneous Neumann condition $\partial \psi_i / \partial n = 0$ that emerges as the Bernoulli free-boundary condition (Section~\ref{sec:bernoulli}), which translates directly into the AIM zero-flux condition $\nabla \psi_i^2 \cdot \mathbf{n} = 0$ on the basin boundary. The difference between RealQM and AIM is one of status, not of geometry: AIM extracts these basins by gradient-flow topology applied to a Slater-determinant density computed first; RealQM obtains them as the variational solution of the energy minimisation directly. The Level-1 atomic shells and the inter-electron interfaces within them are, in this sense, Bader's atoms in molecules constructed as the primary object of the equation rather than read off as a feature of a solution computed in a higher-dimensional formulation.
+
+\section{Level 2: spherical homogenisation of inner shells}\label{sec:level2}
+
+\textbf{Level 2} spherically homogenises the inner shells. The shell occupancy is kept intact, but the angular structure of $\sum_{i \in \text{shell}} \psi_i^2$ is replaced by a spherically symmetric radial density of matching total charge. Concretely: if the first shell of a heavier atom contains 2 unit-density electrons, those two are replaced by a single radial density carrying total charge $+2$ on a spherical shell; if the second shell contains 8, those are replaced by a radial density carrying total charge $+8$; and so on.
+
+The operation is justified by the role inner shells play in chemistry. \textbf{Inner shells contribute only to the effective Coulomb potential seen by the valence electrons.} They do not participate in bond formation, they are not subject to angular reorganisation during chemical reactions, and their detailed angular structure is therefore irrelevant for bond-relevant chemistry. The Coulomb potential generated by a spherically symmetric charge density is identical, outside the support of that density, to the potential generated by the same total charge concentrated at a point --- a fact going back to Newton's shell theorem. The Level-2 step replaces the explicit angular structure of an inner shell with the spherically symmetric radial density that generates the same external potential, and the valence electrons see no difference.
+
+The savings are significant. Where Level 1 might use 18 explicit wave functions to represent the third shell of a heavier atom, Level 2 uses one radial density. The valence electrons remain explicit; the inner structure becomes a fixed spherical background.
+
+Level 2 is checked against Level 1 atom by atom: the total energy at Level 2 should match the Level-1 value to the accuracy of the spherical homogenisation, which for closed shells of inert configuration is sub-1\%. Once that check is passed, Level 2 becomes the starting point for the next reduction.
+
+\section{Level 3: pseudo-kernel with effective charge and softening radius}\label{sec:level3}
+
+\textbf{Level 3} further replaces the nucleus and the spherically homogenised inner shells \emph{together} by a single \textbf{pseudo-kernel} characterised by two parameters: an effective charge $Z_{\rm kernel}$ and a softening radius $r_c$. The valence electrons remain explicit.
+
+The pseudo-kernel potential at distance $r$ from the nucleus is
+\begin{equation}\label{eq:pseudo-kernel}
+V_{\rm kernel}(r) \;=\;
+\begin{cases}
+-Z_{\rm kernel}/r & \text{for } r > r_c, \\[2pt]
+\text{smooth softening matching the } -Z_{\rm kernel}/r \text{ tail} & \text{for } r \le r_c.
+\end{cases}
+\end{equation}
+The softening is regular at $r = 0$ and matches the Coulomb tail at $r = r_c$; the precise functional form inside the softening region is part of the implementation choice. Outside $r_c$, the valence electrons see a bare $-Z_{\rm kernel}/r$ Coulomb attraction with the screening of inner shells already absorbed into $Z_{\rm kernel}$.
+
+The two parameters are not free fits to experiment. They are determined by comparison with Level-2 results: $Z_{\rm kernel}$ is the net charge of (nucleus + inner shells) as seen by a valence electron at $r > r_c$, and $r_c$ is the radius at which inner-shell density becomes negligible compared to valence density. In practice, $r_c$ is set by matching the Level-3 atomic ground state to the Level-2 ground state for the same valence configuration.
+
+Level 3 is the level at which most of the validation in Part~III takes place. The H$_2$ covalent bond (Chapter~\ref{ch:h2}), closed-shell hydrides across the periodic table (Chapter~\ref{ch:hydrides}), the S66 H-bond geometries (Chapter~\ref{ch:dimers}), and the condensed-phase calibration (Chapter~\ref{ch:condensed}) are all Level-3 calculations. The reason is structural: Level 3 keeps explicit only the electrons that participate in bonding, which is the smallest set sufficient for chemistry. Going below Level 3 (full Level 1 with all inner shells explicit) is possible but wasteful; going above Level 3 (parameterising bonds themselves rather than electrons) loses the variational character.
+
+\paragraph{What $r_c$ encodes.} Across the working periodic-table groups in Chapter~\ref{ch:hydrides}, varying $r_c$ at fixed architecture traces a column of the periodic table. We interpret $r_c$ as the \textbf{inner-shell absorption radius}: the radius at which inner-shell electrons are absorbed into the kernel core. As $r_c$ grows, the kernel becomes more diffuse, the effective valence sees a larger inner core, and the bonding becomes weaker --- exactly as down a column. The same Level-3 architecture with a single varying parameter reproduces a periodic trend within 3--9\% per element.
+
+\section{Level 4: molecular assemblies}\label{sec:level4}
+
+\textbf{Level 4} combines Level-3 atoms into molecular assemblies. A molecule at Level 4 is a collection of Level-3 pseudo-kernels at specified positions $\mathbf{R}_a$, each with its own $(Z_{\rm kernel}, r_c)$, together with the valence electrons that bond them.
+
+The valence electrons may be either single-orbital (no split) or split into angular sectors aligned with bond directions. The choice of splitting topology --- \emph{sphere} (no split), \emph{hemi} (two hemispheres), \emph{third} (three $120^\circ$ sectors), \emph{tetra} (four $109.5^\circ$ sectors) --- together with the kernel charge $Z_{\rm kernel}$ and softening radius $r_c$ constitute the \textbf{architecture} of the model for that molecule.
+
+The architecture is not a fit. It is a choice of which bond-relevant geometry the valence electrons participate in: a tetrahedral CH$_4$ requires the \emph{tetra} split with four equivalent C--H bonds, a bent H$_2$O requires the bent geometry of two H atoms in one hemisphere and a lone pair in the other, a linear BeH$_2$ requires the \emph{hemi} split along the molecular axis. These geometric choices reflect what one already knows about molecular structure from VSEPR theory or from the standard quantum-chemical hybridisation picture; the role of RealQM is to predict the bond energies and equilibrium geometries that emerge from the variational principle once the architecture is fixed.
+
+The empirical content of Level 4 is therefore concentrated in the architecture choice. Once the splitting topology and the $(Z_{\rm kernel}, r_c)$ of each atom are set, everything else --- bond length, bond angle, atomization energy, force on each nucleus --- follows from the energy minimisation.
+
+\section{Level 5: residue-level reduction for proteins}\label{sec:level5}
+
+\textbf{Level 5} extends the hierarchy upward by treating an entire amino acid residue, rather than the individual atoms it contains, as the unit of representation. A residue at Level 5 is a small cluster of Level-3 pseudo-kernels with fixed internal geometry (the backbone N--C$_\alpha$--C\ topology plus the side chain), parameterised by residue-specific kernel charges, softening radii, and partial-charge patterns that capture the residue's chemistry as seen from outside.
+
+The motivation for Level 5 is computational: a small protein contains hundreds to thousands of atoms, and even at the Level-3 reduction the explicit-atom representation strains the practical grid sizes that a single GPU can hold. By absorbing the within-residue degrees of freedom into a residue-level effective object, Level 5 reduces the system to one variable centre per amino acid plus a backbone bond network, which is the scale at which folding dynamics and protein--protein interactions are naturally posed.
+
+\paragraph{Reduced-kernel architecture for residues.}
+A Level-5 residue carries:
+\begin{itemize}
+\item A representative position $\mathbf{R}_a$ on the backbone (typically the C$_\alpha$ carbon).
+\item Residue-specific effective parameters $(Z_{\rm kernel}, r_c)$ that match the residue's electrostatic shape to its Level-3 free-residue ground state.
+\item A side-chain effective charge and orientation, encoding the residue's partial charge (positive for Arg/Lys, negative for Asp/Glu, neutral for hydrophobic residues).
+\item A hydrophobicity coefficient encoding the residue's response to solvent-accessible surface area.
+\end{itemize}
+The backbone bond network is held by bond-length and angle constraints (as in Chapter~\ref{ch:limits}, the partial-regime peptide work). The Level-5 forces between residues are the same Coulomb gradients used at lower levels.
+
+\paragraph{Status of Level 5.}
+Level 5 is partially in use already. The reduced-kernel chignolin docking work in the codebase --- with cationic, anionic, and neutral ligand variants binding to a 10-residue $\beta$-hairpin record of Chignolin --- is a Level-5 calculation, with each residue represented as a single effective kernel rather than as its full atomic complement. The Brownian-dynamics protein-folding chapter (Chapter~\ref{ch:folding}) uses Level-3/Level-4 backbone atoms with bond constraints, which is operationally close to a Level-5 description without the full residue-level reduction.
+
+The natural development of Level 5 is a full residue-level parameterisation across the 20 standard amino acids, with the Level-4 backbone atoms replaced by a Level-5 residue object that carries the residue's effective electrostatic and hydrophobicity profile. Concrete first targets:
+
+\begin{itemize}
+\item A residue-level fold of Villin HP35, currently handled at Level 3 with universal $i \to i{+}4$ H-bond biases (Chapter~\ref{ch:folding}). The Level-5 version would have one degree of freedom per residue instead of one per backbone atom, reducing the system size by a factor of $\sim$5--8 while preserving the H-bond network as a Level-5 inter-residue interaction.
+\item Protein--ligand docking with explicit residue charges, which the chignolin Gallery card already demonstrates in a reduced form.
+\item Membrane proteins, where the membrane lipid bilayer is itself a Level-5 medium (lipid head groups, hydrophobic tails) and the protein interacts with it through Level-5 boundaries.
+\end{itemize}
+
+\section{Level 6: supramolecular structures and cell biology}\label{sec:level6}
+
+\textbf{Level 6} extends the hierarchy further by treating an entire protein, or an entire small organelle, as the unit of representation. A Level-6 object is a collection of Level-5 residues with fixed internal structure (the protein's fold), parameterised by a small number of effective parameters that capture the object's external behaviour: its overall charge, its surface-charge pattern, its dipole moment, its hydrophobic-surface distribution, its mechanical compliance.
+
+The motivation for Level 6 is biological: many of the questions that matter at the cellular level --- protein--protein recognition, oligomer assembly, transport across membranes, signal transduction --- are posed at the scale of whole proteins interacting with each other and with cellular structures. Resolving these at the atomic level is computationally inaccessible; at the residue level it is barely accessible; at the protein level it is the natural scale of the question.
+
+\paragraph{What Level 6 contains.}
+A Level-6 object carries:
+\begin{itemize}
+\item A representative position and orientation in physical 3D space.
+\item An effective Coulomb potential profile capturing the protein's electrostatic surface (sometimes called the Poisson--Boltzmann profile in the standard literature).
+\item A hydrophobic-surface distribution capturing where the protein presents non-polar surfaces to its environment.
+\item Mechanical degrees of freedom (rigid-body motion, hinge bending, allosteric coupling) parameterised at the protein level.
+\item Recognition surfaces: regions where the protein has specific complementary partners.
+\end{itemize}
+Level-6 interactions between two proteins are computed as Coulomb integrals between their effective potential profiles, augmented by hydrophobic-pressure terms on overlapping non-polar surfaces. The interaction takes a form recognisably similar to the Level-4 architecture for molecules but with the constituent units one or two orders of magnitude larger.
+
+\paragraph{What Level 6 enables.}
+The vision is that Level 6 takes the framework into cell biology:
+
+\begin{itemize}
+\item \emph{Protein--protein recognition.} The encounter geometry of two proteins forming a complex (antibody--antigen, enzyme--substrate, receptor--ligand) is determined by surface electrostatics and hydrophobic complementarity. Level-6 docking is the natural scale.
+\item \emph{Membrane-protein interactions.} A membrane protein embedded in a lipid bilayer is a Level-6 object in a Level-5 medium. The full system at the atomic level is intractable; at Level 6 it is the natural representation.
+\item \emph{Oligomer assembly.} Multi-protein complexes (microtubules, viral capsids, ribosomes) are Level-6 assemblies of Level-6 monomers. The same multiphase variational principle, applied at the protein level, should describe these structures.
+\item \emph{Subcellular structures.} Eventually: nuclei, mitochondria, ribosomes as Level-6 or Level-7 objects in a cellular context. This is the long-term aspiration.
+\end{itemize}
+
+\paragraph{Status of Level 6: vision, with first probes.}
+Level 6 is, at the time of writing, primarily vision rather than validated practice. The chignolin reduced-kernel docking work in the codebase --- ligand approaching a 10-residue record protein under Brownian dynamics --- is a first concrete probe of Level-6 mechanics, with the protein represented as a fixed Level-5 record and the ligand as a small Level-3/Level-5 object. The framework structure required to scale this up to whole-protein interactions and to cellular contexts is in place; the parameterisation, validation, and systematic deployment are the next several years of work.
+
+We include Level 6 in the hierarchy not as a claim that the framework already reaches cell biology, but as a statement of where the hierarchy points if the same variational principle is followed up the scale ladder. The bottom of the hierarchy is parameter-free atomic physics. The top of the hierarchy, as currently conceived, is cell biology. Whether the framework actually reaches the top is a question for the coming work; the chapter records the trajectory.
+
+\section{The hierarchy as a whole}
+
+The seven levels form a sequence in which each is calibrated against the level next to it:
+\begin{itemize}
+\item Level 0 (nucleus) is exploratory at the present stage. Its calibration is against the qualitative structure of stable small nuclei (mutual confinement, $N \approx Z$, He-4 magic-number binding) and against basic fusion reactions such as D + D $\to$ He-4 (Chapter~\ref{ch:nucleus}).
+\item Level 1 is ab initio at the chemistry scale. Its calibration is against \emph{observation}: total atomic energies for Li--Rn. Level 0 sits below it; Level 1 does not depend on Level 0 in practice because at the chemistry scale the nucleus is treated as a fixed positive kernel.
+\item Level 2 is calibrated against Level 1: spherical homogenisation of inner shells should preserve the Level-1 energy to sub-1\%.
+\item Level 3 is calibrated against Level 2: the pseudo-kernel parameters $(Z_{\rm kernel}, r_c)$ are chosen so that the Level-3 atomic ground state matches the Level-2 ground state in the valence sector.
+\item Level 4 is calibrated against Level 3 atoms plus experimental molecular geometries that fix the architecture topology.
+\item Level 5 is calibrated against Level 4 free-residue ground states and against partial-regime peptide dynamics from Chapter~\ref{ch:folding}.
+\item Level 6 is calibrated against Level 5 protein structures and against experimental protein--protein and protein--ligand recognition data.
+\end{itemize}
+The hierarchy is principled in the sense that each step is derived from the previous one by a specific reduction operation, not by an empirical fit to the scale's own data. The empirical content lies at two ends: total atomic energies at the bottom (which Level 1 reproduces parameter-free), and the choice of architecture topology at each level where geometry has to be set (the bond-relevant topology at Level 4, the residue fold at Level 5, the protein surface at Level 6).
+
+We emphasise that the hierarchy is also not optional. A naive implementation of RealQM that kept every electron of every atom explicit at full Level-1 resolution would not run on a laptop for systems larger than $\sim$10 atoms, and would waste resolution on inner-shell electrons that do not participate in chemistry. Similarly, a Level-4 implementation that tracked every atom of a protein at its molecular level would not reach the scale of cell-biological questions. \textbf{The hierarchy is what makes the framework computationally usable across scales}, from a single atom at Level 1 to a small protein at Level 5 and (eventually) toward cellular structures at Level 6, in the same way that the frozen-core approximation is what makes large quantum-chemistry calculations feasible at the atomic level.
+
+\section{Relation to pseudopotentials and frozen cores in StdQM}\label{sec:vs-pseudo}
+
+The Level-2 and Level-3 reductions have direct analogues in mainstream quantum chemistry. The \textbf{frozen-core approximation} keeps inner-shell orbitals fixed at the atomic ground state and treats only valence orbitals as variational; it corresponds to Level 2. \textbf{Pseudopotentials} (or effective core potentials) replace nucleus and inner shells by an effective potential acting on the valence orbitals; this corresponds to Level 3. The conceptual move --- inner shells are chemistry-irrelevant and can be absorbed into an effective core --- is the same in both frameworks. The two methods are not in conflict; they are doing the same kind of architectural reduction in different formalisms.
+
+There are, however, three structural differences:
+
+\begin{enumerate}
+\item \emph{Parameter-free bottom.} StdQM pseudopotentials are typically derived from all-electron Hartree--Fock or DFT calculations on the isolated atom, with the all-electron calculation itself depending on the choice of basis set and exchange--correlation functional. The Level-1 RealQM atomic model is parameter-free in a stronger sense: there is no basis set and no functional, only the variational minimisation of the Coulomb functional. This gives the hierarchy a single, fixed reference point.
+\item \emph{Real-space throughout.} StdQM pseudopotentials act on basis-set-expanded orbitals; the choice of pseudopotential and the choice of basis set are entangled. RealQM works on a real-space grid at every level. The pseudo-kernel acts on grid-valued wave functions, with no basis-set dependence. The two parameters $(Z_{\rm kernel}, r_c)$ are the only free parameters in the Level-3 reduction.
+\item \emph{No exchange to absorb.} StdQM pseudopotentials must absorb both the kinetic energy and the exchange contribution of the inner shells, because exchange between valence and core has to be represented in the effective potential. RealQM has no exchange to absorb --- non-overlap of supports replaces exchange --- so the pseudo-kernel only has to reproduce the Coulomb potential of the inner shells, which is a simpler functional form.
+\end{enumerate}
+
+The result is a hierarchy that is conceptually parallel to the StdQM frozen-core / pseudopotential machinery but mathematically simpler at each level. The price paid is the non-overlap constraint and the consequent loss of antisymmetry; the benefit is that the hierarchy is parameter-free at the bottom and depends on only two parameters per atomic species at the working level.
+
+% --- End of Chapter 3 ---

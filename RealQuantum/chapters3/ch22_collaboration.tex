@@ -1,0 +1,138 @@
+\chapter{The Human--AI Collaboration}\label{ch:collab}
+\index{Anthropic, Claude}\index{Claude (AI)}\index{Body and Soul programme}\index{human-AI collaboration}
+
+\begin{quote}
+\itshape If we are still going to have to put up with these damned quantum jumps, I am sorry that I ever had anything to do with quantum mechanics.\\
+\normalfont\hfill --- E.~Schr\"odinger to N.~Bohr, 1926.
+\end{quote}
+\bigskip
+
+The mathematical reformulation of Chapter~\ref{ch:equation} and the hierarchy of Levels 1--4 in Chapter~\ref{ch:hierarchy} are the work of the human author. They predate the AI collaboration and have been developed over a decade of independent work. The author also wrote the initial p5.js prototype simulations that established the numerical core --- real-space grid, imaginary-time propagation, Poisson solver, basic visualisation --- used as the starting point for the WebGPU implementation.
+
+The full WebGPU port, the validation suite reported in Part~III, the systematic kernel-architecture sweeps, and the curated public Gallery were developed from those starting templates through extended collaboration with \textbf{Claude}, an AI code assistant produced by Anthropic. We document the pattern of the collaboration in this chapter because we believe it is a worth-reporting example of how a single mathematical mind can produce research-grade interactive scientific software with an AI engineering partner, at a scale otherwise requiring a programming team.
+
+This chapter is not about the philosophy of human--AI cooperation in general. It is about a specific working relationship that produced specific results, with a specific division of labour, over a specific period of time. We report what happened, what worked, and where the AI's interpretations had to be corrected by the human.
+
+\section{Precursor: the Body and Soul project}\label{sec:body-and-soul}
+
+The Mind--AI cooperation described in this chapter did not begin in 2025. It is the most recent stage of a much longer programme by the author and his collaborators, known as \textbf{Body and Soul}, that has been running for more than two decades. Body and Soul is a constructive--computational reformulation of applied mathematics --- calculus, differential equations, fluid mechanics, solid mechanics, electromagnetics --- aimed at restoring the constructive character that mathematics had before the 20th-century formalist turn made it largely non-computational at the undergraduate level. The series of textbooks and monographs published under that banner~\cite{BodyAndSoulI,BodyAndSoulII,BodyAndSoulIII,BodyAndSoulIV,BodyAndSoulV} works through the standard curriculum of applied mathematics in a way in which every concept is realised numerically and every theorem is paired with an algorithm that produces a finite computable answer.
+
+The first three volumes (Eriksson, Estep, Johnson, Springer 2004) carried calculus and differential equations through the constructive reformulation. The fourth volume, \emph{Computational Turbulent Incompressible Flow} (Hoffman and Johnson, Springer 2007), took the same methodology into the regime of turbulent fluid mechanics --- arguably the hardest classical PDE problem in applied mathematics --- and produced working algorithms for the Navier--Stokes equations at high Reynolds number, paired with mathematical analysis of the Clay Millennium open problem on the regularity of weak solutions. The Hoffman--Johnson collaboration that produced Volume 4 is, in the framing of this chapter, the immediate human-collaboration precursor to the human--AI collaboration that has produced the present quantum-mechanics volume: in both cases a single mathematical agenda was carried through to a complete computational implementation by a small team working across years.
+
+The fifth volume, \emph{Computational Thermodynamics} (Johnson, in preparation), is currently a draft in development. It carries the constructive--computational reformulation into thermodynamics, with the same characteristic insistence that every concept be paired with a computable algorithm. Together with the present quantum-mechanics volume, it represents the two most recent extensions of the Body and Soul programme into regimes that have classically resisted the constructive treatment: thermodynamics, where statistical-mechanical language has dominated since Boltzmann, and quantum mechanics, where the probabilistic Born interpretation has dominated since 1926. The Body and Soul approach to both is the same: replace the probabilistic/statistical interpretive layer with a deterministic real-space formulation whose computations are directly checkable against observation.
+
+A \textbf{planned volume on quantum mechanics} has been part of the Body and Soul agenda since the early stages of the project. Quantum mechanics is the natural next target for the constructive--computational reformulation, for the same reason it was the target of Dirac's 1929 statement: the underlying physical laws are known, and the obstacle is making the equations tractable. The Body and Soul approach to such an obstacle has always been to write the algorithm that produces the answer, then verify against observation. For quantum mechanics, however, the algorithm-producing step was not feasible for a single mathematical mind to carry through to a complete validated implementation: the configuration-space scaling made the standard $3N$-dimensional formulation intractable, and the alternative real-space formulation required a working implementation of the kind that previously required a programming team.
+
+\textbf{The present book is the quantum-mechanics volume of Body and Soul, made possible by the Mind--AI cooperation.} The two-part contribution mirrors this: the mathematical reformulation (Chapter~\ref{ch:equation}) and the hierarchy of reductions (Chapter~\ref{ch:hierarchy}) extend the Body and Soul programme into quantum chemistry; the implementation, validation suite, and Gallery (Parts~II--III) realise the algorithmic ambition that the earlier solo work could not reach. The structural continuity is direct: each volume of Body and Soul replaces formalist abstractions with computable objects; this volume replaces the configuration-space wave function with non-overlapping unit densities on physical 3D space, and replaces the unsolvable many-body Schr\"odinger equation with a free-boundary variational problem that can be solved on a laptop GPU.
+
+The chapter's opening epigraph --- Schr\"odinger's 1926 ``damned quantum jumps'' remark to Bohr --- records the discomfort the founder felt with the direction the field took immediately after his 1926 wave equation. The RealQM volume of Body and Soul is, among other things, a long-overdue answer to that complaint: a formulation in which the wave function is a charge density on physical space, and there are no damned quantum jumps.
+
+\paragraph{Why the QM volume waited.}
+Earlier Body and Soul volumes were produced by the author and his collaborators on a timescale of several years per volume, through close mathematical work and conventional programming. The QM volume was sketched in lectures, blog posts, and partial drafts (including the 2017 draft from which the prel-book chapters of \texttt{RealQuantum/} are taken) but did not reach a complete implementation. The bottleneck was not the mathematics --- the multiphase reformulation has been stable in the author's notes for over a decade --- but the implementation. A working WebGPU port of the variational solver, with a full validation suite and a public Gallery, was not within reach of solo programming on any reasonable timescale.
+
+The AI partner closed that gap. The same person who had carried the earlier volumes to completion through years of solo work could now reach the implementation in months by working with Claude. The Body and Soul programme therefore acquired its long-planned QM volume not by changing the underlying mathematical reformulation --- the reformulation is the author's, and predates the AI collaboration by more than a decade --- but by making the implementation tractable for a single mathematical mind.
+
+\paragraph{Continuity of method, change of cost structure.}
+The methodological continuity from earlier Body and Soul volumes to this one is straightforward to state:
+\begin{itemize}
+\item Every quantitative claim in this book corresponds to a runnable simulation in the Gallery (the Appendix).
+\item Every architectural choice is checked against observation rather than against an analytic limit.
+\item Every limitation in Chapter~\ref{ch:limits} is identified empirically rather than reasoned about abstractly.
+\item Every reduction in the hierarchy of Chapter~\ref{ch:hierarchy} is calibrated against the previous level numerically.
+\end{itemize}
+What changed is the cost of executing this method on quantum mechanics. Body and Soul on calculus or fluid mechanics could be done by a small team over years; Body and Soul on quantum mechanics, with the multiphase formulation, became achievable for one author plus AI partner over months.
+
+The framing of this chapter --- \emph{mathematical mind + AI engineering partner}, discussed in Section~\ref{sec:framing} --- is therefore the natural extension of the Body and Soul model to a problem whose implementation cost had previously placed it out of reach. The book is the QM volume of Body and Soul, and the chapter you are reading is the working note on how the implementation cost was overcome.
+
+\section{Division of labour}\label{sec:division}
+
+The mathematics, the theory, the chemical questions, and the standards for what counts as evidence are the human's. The implementation, the systematic exploration, the speed of code generation, and the breadth of parameter sweeps are the AI's. Neither could have produced the work reported in this book alone in any reasonable timeframe.
+
+\paragraph{What the human brought.}
+\begin{itemize}
+\item The multiphase 3D reformulation of the $N$-electron Schr\"odinger equation (Chapter~\ref{ch:equation}).
+\item The Bernoulli free-boundary condition as the closing condition of the variational problem.
+\item The hierarchy of reductions, Levels 1--4 (Chapter~\ref{ch:hierarchy}).
+\item The initial p5.js prototype simulations that established the numerical core.
+\item The chemical intuition for which architectures to try on which molecules.
+\item The mathematical standards for what counts as a validation result.
+\item The connection to historical foundations (Dirac, Schr\"odinger 1926 letter, Solvay 1927).
+\item The interpretation of results in the broader context of the chemistry-versus-physics debate.
+\end{itemize}
+
+\paragraph{What the AI brought.}
+\begin{itemize}
+\item Translation of mathematical and chemical questions into runnable simulations.
+\item Real-time bug identification in the code.
+\item Systematic parameter sweeps with results tabulated and analysed.
+\item Drafting of candidate Gallery cards and validation summaries.
+\item Challenging claims that did not survive scrutiny.
+\item The full WebGPU implementation including the WGSL compute shaders.
+\item The infrastructure of the validation suite and the public Gallery.
+\end{itemize}
+
+The division was not rigid. The human wrote code; the AI proposed theoretical refinements that survived the human's review; both iterated on the framing of the results. What was rigid was the standard: a claim entered the manuscript or the Gallery only after both human and AI agreed it was supported by the evidence.
+
+\section{The working pattern}\label{sec:working-pattern}
+
+The interaction was iterative and surprisingly productive. A representative cycle:
+
+\begin{itemize}
+\item \textbf{9:00.} Human asks: ``What if the model uses $Z = 2$ instead of $Z = 4$ for carbon?''
+\item \textbf{9:05.} AI produces a working scan file in which the C kernel is parameterised by $Z$ and the user can sweep it.
+\item \textbf{9:30.} Partial results from a first sweep at three values of $r_c$ and two values of $Z$.
+\item \textbf{10:00.} Full sweep table with energies at the experimental bond length and at twice that.
+\item \textbf{10:30.} Refined analysis incorporating the latest data; identification of which $(Z, r_c)$ pair gives the best match for CH$_4$.
+\end{itemize}
+Across many such cycles --- spanning weeks to months on each major chapter of the validation --- the table reported in Chapter~\ref{ch:hydrides} was assembled. The same pattern produced the S66 dimer geometries, the protein-folding results, and the condensed-phase calibration.
+
+\paragraph{Why the speed matters.}
+The cost of an iteration on a question like ``does this kernel architecture match the chemistry?'' is normally measured in days or weeks: write the code, compile it, run it, parse the output, iterate. With the AI partner, the iteration cost dropped to minutes. The accessible space of questions grew correspondingly. Many of the systematic sweeps reported in Chapters~\ref{ch:atoms}--\ref{ch:condensed} would not have been undertaken at all if the iteration cost had remained at the pre-collaboration scale; the questions were possible because the answers were cheap.
+
+\paragraph{Why the breadth matters.}
+A single researcher exploring a parameter space typically tests a small number of points based on intuition and reasoning. The AI partner extends this by running systematic sweeps that cover the parameter space densely, identify trends, and surface results that intuition would not have predicted. Several of the Level-3 architecture results in this book --- including the periodic-table sweep of $r_c$ across groups 1, 2, 14, and 16 --- came out of such systematic sweeps. The human posed the question; the AI ran the experiments densely enough that the pattern became visible.
+
+\section{Where the AI was wrong}\label{sec:where-wrong}
+
+We record honestly where the AI's interpretations needed correction. The pattern is consistent enough to be worth describing as a working note for others contemplating similar collaborations.
+
+\paragraph{Premature convergence claims.}
+Several times the AI prematurely concluded that a result was ``within $X\%$ of experiment'' before convergence had been confirmed. The relaxation algorithm of Chapter~\ref{ch:relaxation} has multiple coupled convergence indicators (total energy, Hartree residual, boundary motion), and the AI sometimes reported an apparently stable energy before the boundary update had finished settling, leading to numbers that drifted by a few percent on continued iteration. In each case the human pushed back, the AI re-ran the calculation to deeper convergence, and the reported number was revised.
+
+\paragraph{Over-confident regime extrapolation.}
+Early in the collaboration the AI was inclined to extrapolate a successful result into regimes where it had not been tested. A working architecture for one molecule was sometimes proposed as a general method for an entire class before the class had been swept. The human's response was to demand the sweep before accepting the generalisation; this discipline shaped Chapter~\ref{ch:hydrides}'s structure, where every group was swept rather than extrapolated from one example.
+
+\paragraph{Insufficient skepticism on accuracy claims.}
+The model's accuracy at $\sim$3--9\% on bond energies was sometimes overstated as ``chemical accuracy'' in early drafts. Chemical accuracy is $\sim$1 kcal/mol; 3--9\% of $\sim$300~kcal/mol is $\sim$10--30 kcal/mol, an order of magnitude larger. The human enforced the distinction; the final accuracy claims in this book are more honest than the earlier AI-drafted versions were.
+
+\paragraph{Status of the corrections.}
+The Gallery's ``Assessment by Claude'' card reflects this history. Its caveats were rewritten more than once during the project as evidence accumulated and as overstated claims were retracted. The card is not a clean record of confident conclusions; it is a record of the back-and-forth that produced the conclusions. We consider this part of the contribution rather than an embarrassment to be hidden: \emph{the corrections are how the work was done}.
+
+\section{The framing: mathematical mind + AI engineering partner}\label{sec:framing}
+
+The right framing for the collaboration is \textbf{mathematical mind + AI engineering partner}. The human supplies the theory, the questions, the chemical intuition, and the standards for what counts as evidence. The AI supplies the implementation, the systematic exploration, and the speed.
+
+This is not the same as ``the AI did most of the work.'' The AI did not invent the multiphase 3D reformulation, did not derive the Bernoulli free-boundary condition, did not propose the hierarchy of Levels 1--4, did not connect the work to Dirac's 1929 position. These are the work of the human, accumulated over a decade of independent research. What the AI did was take those mathematical ideas and the initial p5.js prototypes, and build them out into a full implementation with a complete validation suite, in a fraction of the time it would have taken a programming team.
+
+\paragraph{What the AI cannot do.}
+The AI cannot evaluate whether a chemical result is surprising. It cannot judge which questions are worth asking. It cannot connect a numerical finding to a broader theoretical claim. It cannot decide what counts as a satisfying explanation. In every case where these judgements were called for, the human made the judgement; the AI implemented the consequence.
+
+\paragraph{What the human cannot do alone.}
+A single researcher cannot, in any reasonable timeframe, write 8000 lines of WebGPU compute shaders with a complete validation suite, a public Gallery, systematic kernel-architecture sweeps across multiple periodic-table groups, and condensed-phase calibration across three crystal systems. The breadth of the validation in Part~III is what the AI partner made possible.
+
+The combination is what produced the work. Either alone --- human without AI, or AI without human --- would have produced less, slower, and in a different form.
+
+\section{The collaboration as part of the contribution}\label{sec:collab-contribution}
+
+We report the collaboration as part of the contribution because we believe it has implications for how research-grade scientific software gets built going forward. The pattern --- a single mathematical mind paired with an AI engineering partner, producing in months what previously required a programming team and several years --- is not specific to this project. It is a working pattern that we expect to see repeated, particularly in fields where the underlying mathematics is mature but the implementation has been a bottleneck.
+
+\paragraph{Implications for scientific software.}
+The traditional model of scientific software --- large packages developed over decades by teams of dozens, with the code becoming progressively harder to modify --- may not be the only viable model. The RealQM implementation is approximately 8000 lines, built in months, modifiable by the same person who wrote it. The scale compression matters; software at this scale can be re-implemented, ported to new hardware, or radically refactored on a timescale of weeks. The maintenance overhead that constrains large packages is largely absent.
+
+\paragraph{Implications for who can do computational science.}
+The collaboration model also shifts the entry barrier. Producing a working WebGPU implementation of a quantum chemistry framework, with a complete validation suite, no longer requires a research group with dedicated software engineers. It requires one mathematical mind and one AI partner. This expands the population of people who can contribute computational tools to chemistry; the pattern is not specific to this author.
+
+\paragraph{What is reported here.}
+We do not claim the collaboration is the central contribution; the central contributions are the mathematical reformulation and the validation reported in Parts~I--IV. But the collaboration is part of how the science came into existence, and we report it as such. Readers contemplating similar collaborations will find the pattern described in this chapter --- division of labour, working iteration, recorded corrections, the framing of mathematical mind + AI engineering partner --- a useful template.
+
+% --- End of Chapter 17 ---

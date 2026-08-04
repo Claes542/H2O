@@ -1,0 +1,18 @@
+# LaTeX build artifacts (regenerable; sources and served PDFs are tracked)
+*.aux
+*.log
+*.toc
+*.out
+*.lof
+*.lot
+*.idx
+*.ind
+*.ilg
+*.bbl
+*.blg
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+
+# macOS
+.DS_Store
