@@ -28,12 +28,14 @@ electron mass merely the unit. If mass and energy are equivalent, one of the two
 energy. The apparent obstacle is the Penning trap, which seems to \emph{weigh}. We model it in energy alone: an ion
 of energy $E$ has inertia $E/c^2$ --- the momentum its own field carries when it moves --- and circles at
 $\omega_c=qBc^2/E$, reproducing the electron and proton cyclotron frequencies and rendering the He\,-4 ``mass
-defect'' as the binding energy read as a frequency shift. The one step this needs, $\mathbf p=(E/c^2)\mathbf v$
-with its historical factor $4/3$, is settled for bound systems by von~Laue's theorem: the localisation term is the
-cohesive stress that classical electrodynamics had to postulate, and we show at the level of the stress tensor that
-a RealQM bound state supplies it automatically --- indeed that the time-independent Schr\"odinger equation \emph{is}
-this local force balance. Mass is thereby an output, not an input; the elementary rest energies remain, as in every
-theory, the inputs no theory derives.
+defect'' as the binding energy read as a frequency shift. The one relation this needs, $\mathbf p=(E/c^2)\mathbf v$,
+is the measured law of inertia; RealQM's part is to show why it is natural --- the localisation term is a genuine
+cohesive stress, so every bound state is a stress-balanced equilibrium, and indeed the time-independent
+Schr\"odinger equation \emph{is} this local force balance. The account lives in a single inertial frame with
+Maxwell's equations: no comparison of frames, no Lorentz covariance, no relativity is invoked (the coefficient can,
+if one wishes, be \emph{derived} from Maxwell's own field mathematics, disposing of the historical $4/3$, but it is
+not needed). Mass is thereby an output, not an input; the elementary rest energies remain, as in every theory, the
+inputs no theory derives.
 \end{abstract}
 
 \setstretch{1.06}
@@ -116,9 +118,12 @@ is nothing but the binding energy read as a frequency shift: bound He\,-4 has $2
 $0.76\%$ higher $\omega_c$ (smaller $E$ in the denominator of \eqref{eq:wc}). The trap does not weigh a substance;
 it reports an energy. Mass has been eliminated.
 
-\section{Settling the bound-system inertia: von Laue and the localisation stress}
-The one step to justify is $\mathbf p=(E/c^2)\mathbf v$ --- that the moving cloud's inertia is exactly its
-energy. The historical obstacle is the factor $4/3$: integrating the field momentum of a moving Coulomb charge
+\section{The bound state is a stress-balanced equilibrium}
+The trap model uses one relation, $\mathbf p=(E/c^2)\mathbf v$ --- that a moving cloud's inertia is exactly its
+energy. This is the \emph{measured} law of \S4 and needs no derivation; what RealQM adds is the reason it is
+\emph{natural} --- the bound cloud is a stress-balanced equilibrium --- together with an optional route to the
+coefficient itself, for readers who prefer it derived rather than measured. That route must face the historical
+factor $4/3$: integrating the field momentum of a moving Coulomb charge
 gives $\mathbf p=\tfrac43(U/c^2)\mathbf v$, in conflict with $E/c^2$. The resolution is von~Laue's
 theorem~\cite{vonLaue,Rohrlich}: for a
 closed system with $\partial_\mu T^{\mu\nu}=0$, the four-momentum $P^\nu=\tfrac1c\int T^{0\nu}\,d^3x$ is a genuine
@@ -141,12 +146,12 @@ virial identity
 \label{eq:virial}
 \end{equation}
 the trace of the tensor condition \eqref{eq:laue}; for a bound equilibrium the full tensor virial holds and
-$\int T^{ij}\,d^3x=0$. Hence for \emph{any} RealQM bound cloud the total four-momentum is a four-vector and its
-inertia is exactly $E_{\text{total}}/c^2$, with no residual $4/3$. Consequently the cyclotron relation
-\eqref{eq:wc} holds \emph{exactly} for bound systems, and the electromagnetic-mass problem is settled for
-everything a Penning trap measures. What classical electrodynamics had to invent --- the cohesive stress --- is in
-RealQM the localisation energy it already has, and mechanical equilibrium is not an extra assumption but the
-defining property of its bound states.
+$\int T^{ij}\,d^3x=0$. That every RealQM bound cloud is a stress-balanced equilibrium is a single-frame fact, and
+it is the whole of RealQM's contribution here. On it the optional derivation rests: a stress-balanced system's
+four-momentum is a four-vector, so its inertia is exactly $E_{\text{total}}/c^2$ with no residual $4/3$, and
+\eqref{eq:wc} holds exactly. But the coefficient is in any case the measured law of \S4; what matters is that the
+cohesive stress classical electrodynamics had to \emph{invent} is, in RealQM, the localisation energy it already
+has, and that equilibrium is not an extra assumption but the defining property of its bound states.
 
 That inertia \emph{is} energy is, moreover, no definition smuggled in but a tested identity between two independent
 measurements. A Penning trap returns a cyclotron frequency --- an $F/a$, pure inertia --- from which one reads the
@@ -226,35 +231,34 @@ only by $V_{\text{ext}}$ leaves the residual $-\rho\,\partial_j V_{\text{ext}}$ 
 only when the confiner is itself part of the system --- the trap that makes a single trapped charge a bound
 \emph{geonium}. The honest boundaries of the construction are thus theorems of the same identity that settles it.
 
-\section{No relativity required: RealQM and Maxwell suffice}
-It is worth being exact about how little this argument imports: nothing beyond RealQM and Maxwell's equations, and
-the word ``relativity'' need never be spoken. That a moving charge resists acceleration in proportion to its field
-energy is a theorem of Maxwell alone --- the charge drags a magnetic field $\mathbf B\propto\mathbf v/c$, its field
-carries the Poynting momentum $\mathbf g=\mathbf S/c^2$, and the integral is J.~J.~Thomson's electromagnetic mass
-of 1881~\cite{Thomson}, two decades before special relativity. Inertia from energy is classical electromagnetism.
+\section{One frame is enough: no relativity is invoked}
+The entire argument is carried out in a single chosen inertial frame and never compared with another. In that frame
+a moving charge drags a magnetic field $\mathbf B\propto\mathbf v/c$ and its field carries the Poynting momentum
+$\mathbf g=\mathbf S/c^2$ --- Maxwell, and J.~J.~Thomson's electromagnetic mass of 1881~\cite{Thomson} --- while the
+relation $\mathbf p=(E/c^2)\mathbf v$ is the measured law of \S4. Nothing here asks how a \emph{differently moving}
+observer would describe the system, so no coordinate transformation, no Lorentz covariance, and no relativity
+enters.
 
-The one subtler step --- fixing the coefficient to exactly $E/c^2$ and disposing of the historical $4/3$ --- needs
-only that stresses carry momentum, the content of $\int T^{ij}=0$ and, at bottom, the Lorentz covariance of
-Maxwell's stress tensor. But that covariance is a property Maxwell's equations \emph{already possessed} in 1865: it
-is the structure from which Lorentz and Poincar\'e distilled the Lorentz transformations, and from which Einstein
-abstracted special relativity. Using it is not borrowing from a later theory but drawing on the prior object that
-theory was extracted from. The constant $c$ and the covariance are Maxwell's own; the relativity of simultaneity,
-the symmetric time dilation and the block universe --- the interpretive layer that made special relativity
-contentious --- are nowhere required, and the whole momentum balance may be carried out in ordinary
-three-dimensional vector form, without a single four-vector. Reading the common frame as the system's rest frame,
-the field-momentum integral yielding $E/c^2$ has a definite frame in which to be evaluated, and the historical
-``whose frame'' ambiguity behind the $4/3$ does not even arise.
+The historical $4/3$ is, accordingly, no paradox. It is merely the field-\emph{alone} momentum of a moving charge,
+$(4/3)(U_{\text{field}}/c^2)\mathbf v$, a legitimate quantity in the one frame; the contradiction appeared only when
+one demanded that the field's four-momentum transform \emph{between} frames --- a demand never made here. The
+\emph{total} inertia is the measured $E/c^2$, field and localisation stress together.
 
-This is the natural companion to RealQM's realism: as RealQM keeps Coulomb's law and drops Born's probabilities, so
-the present account keeps Maxwell and drops Einstein's interpretation --- the $c^2$ stays, the paradoxes go. Should
-one nonetheless wish to speak of different observers and their clocks, the consistent way is the neo-Lorentzian one:
-real fields at finite $c$ in a common frame, the Lorentz transformations relating observers' own light-built
-coordinates rather than dissolving a shared present, as in \emph{Many-Minds Relativity}~\cite{MMR}. But that is an
-optional coda; the elimination of mass needs Maxwell and RealQM and nothing else. Two honest limits remain: the
-coupling is leading order in $v/c$ --- RealQM's matter sector is Galilean, Maxwell's field covariant, and their
-marriage is exact only for slow motion, which is all the inertia result and the Penning trap require, a fully
-relativistic account of \emph{matter} (fast electrons, radiation, $g-2$) being Dirac's and lying at the honest
-boundary --- and the absolute rest energies remain inputs, the mass-spectrum problem, not a relativistic debt.
+Inter-frame agreement is a separate question, and it is where Special Relativity and Many-Minds Relativity part.
+Special Relativity --- despite its name --- asserts \emph{full} agreement: the laws take the same form for every
+inertial observer, with $c$ and the spacetime interval invariant. It is a principle of what all observers hold in
+common, an absolute, not a licence for ``everything is relative.'' Many-Minds Relativity~\cite{MMR} asks instead
+\emph{how far} two observers on different inertial systems actually agree, and finds the agreement \emph{partial},
+not complete. Our result needs neither answer, for it lives inside one frame. The optional derivation of the
+coefficient $E/c^2$ from von~Laue's theorem does invoke full covariance --- the strong agreement Special Relativity
+posits --- and is therefore exactly the step a many-minds view holds at arm's length; one more reason it is kept
+optional, with the measured law standing on its own.
+
+As RealQM keeps Coulomb and drops Born's probabilities, this account keeps Maxwell in one frame and invokes no
+relativity at all. Two honest limits remain: RealQM's Galilean matter sector and the Maxwell field couple
+consistently only to leading order in $v/c$ --- ample for inertia and the trap, with a fully relativistic account
+of \emph{matter} (fast electrons, radiation, $g-2$) being Dirac's and at the honest boundary --- and the absolute
+rest energies remain inputs, the mass-spectrum problem, not a debt of this account.
 
 \section{Absolute masses are inputs, not a debt}
 Nothing above requires the absolute rest energies of the free constituents. Every mass measurement is a
