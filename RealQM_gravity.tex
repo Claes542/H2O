@@ -1,0 +1,199 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\usepackage{authblk}
+\usepackage[margin=1in]{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xurl}
+\usepackage{setspace}
+
+\title{Charge Below, Gravity Above:\\[0.2em]
+\large RealQM, Maxwell, and Emergent Gravitation}
+\author[1]{Claes Johnson}
+\affil[1]{KTH Royal Institute of Technology, SE-100 44 Stockholm, Sweden \\
+\texttt{claesjohnson@gmail.com}}
+\date{\today \\[0.5em]
+\small\textit{Written in respectful cooperation between Claes Johnson and Claude (Anthropic), with Claude
+contributing a balanced, neutral view.}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+RealQM together with Maxwell's equations describes matter and light from charge and energy alone: the electron is
+a charge cloud in ordinary three-dimensional space, inertia is the derived quantity $E/c^2$, and mass enters
+nowhere as a primitive~\cite{NoMass}. Gravitation is absent from this description --- and need not be added. Gravity
+is negligible microscopically (between two protons it is $\sim 10^{-36}$ of the electric force) and dominates only
+at large scales, where electromagnetism has screened itself away in neutral bulk matter while unscreened gravity
+accumulates. We argue that this clean split --- electromagnetic, charged and small \emph{below}; gravitational,
+neutral and large \emph{above} --- is naturally read as gravity being \emph{emergent}: a coarse-grained, collective
+phenomenon rather than a fundamental force acting between individual particles, in the spirit of Sakharov's induced
+gravity~\cite{Sakharov}, Jacobson's derivation of the Einstein equation from thermodynamics~\cite{Jacobson}, and
+the holographic emergence of spacetime from entanglement~\cite{VanRaamsdonk,Padmanabhan}. The resulting picture is
+economical: \emph{one} mechanics (Newton's second law $\mathbf F=\dot{\mathbf p}$), \emph{one} inertia ($E/c^2$),
+and \emph{two} forces separated by regime --- electromagnetism coupling to charge, gravity to energy. On this view inertial mass ($E/c^2$, the energy content)
+is fundamental while \emph{gravitational} mass --- the role of that energy as gravity's charge --- is emergent,
+which turns the observed equality of the two masses from an unexplained coincidence into a consequence of
+emergence. We are explicit about the limits. Emergent gravity emerges as \emph{general relativity}, not Newtonian gravity (Newton is
+only its weak-field shadow); the proposal is established only in holographic models, not proven for our universe;
+and the framework is confined to non-extreme physics.
+\end{abstract}
+
+\setstretch{1.06}
+
+\section{Two forces, two regimes}
+Ordinary physics is run by two long-range forces, and they occupy almost disjoint territories. Electromagnetism
+governs the small and the charged: atoms, molecules, chemistry, materials, light. Gravitation governs the large
+and the neutral: apples, planets, stars, galaxies. The boundary between them is not arbitrary; it follows from two
+facts, one on each side.
+
+First, \emph{gravity is extraordinarily weak}. The gravitational attraction between two protons is about
+$10^{-36}$ of their electrostatic repulsion; between two electrons, about $10^{-43}$. At the scale of an atom
+gravity is not merely small, it is irrelevant to any digit anyone measures. Second, \emph{electromagnetism
+screens, and gravity does not}. Charge comes in two signs and bulk matter is neutral, so over macroscopic bodies
+the electric forces cancel; mass comes in one sign, so gravity never cancels --- it \emph{accumulates}. Aggregate
+enough neutral matter and electromagnetism has quietly removed itself while gravity has been adding up, until, at
+planetary scale, the weakest force in nature is the only one left standing.
+
+So the division ``electromagnetic below, gravitational above'' is not a modelling convenience but the way the two
+forces are actually organised: weakness keeps gravity out of the microscopic world, and screening keeps
+electromagnetism out of the macroscopic one.
+
+\section{One inertia, one mechanics, two forces}
+Underneath the two regimes there is a single mechanics. RealQM, together with Maxwell's equations, describes the
+microscopic world with \emph{no mass as a primitive}~\cite{NoMass}: the energy of matter is computed from charge
+and a geometric scale, and when a charge moves its inertia is the momentum its own field carries,
+\begin{equation}
+\mathbf p=\frac{E}{c^2}\,\mathbf v ,
+\label{eq:inertia}
+\end{equation}
+so that the inertial ``mass'' is simply the energy content $E/c^2$~\cite{Thomson}. Newton's second law, in its
+original form $\mathbf F=\dot{\mathbf p}$, then governs the response, with the force supplied by electromagnetism,
+$\mathbf F=q\mathbf E+q\mathbf v\times\mathbf B$, which couples to \emph{charge} and contains no mass at all.
+
+The macroscopic regime uses the \emph{same} law and the \emph{same} inertia. A neutral body has energy $E$, hence
+inertia $E/c^2$, and Newton's second law moves it; the only addition is a second force, gravity, which couples not
+to charge but to that same energy $E/c^2$. The economy is worth stating plainly:
+\begin{center}
+\begin{tabular}{lll}
+\hline
+ & couples to & inertia (response) \\
+\hline
+electromagnetism & charge $q$ & $E/c^2$ \\
+gravitation      & energy $E/c^2$ & $E/c^2$ \\
+\hline
+\end{tabular}
+\end{center}
+\emph{One} mechanics ($\mathbf F=\dot{\mathbf p}$), \emph{one} inertia ($E/c^2$), \emph{two} forces reading two
+different properties of the same matter --- its charge and its energy. Nothing here needs a separate primitive
+called mass; ``mass'' is the name of the inertia, and the inertia is energy.
+
+\section{Why the separation is clean}
+Because the two forces read different properties and inhabit different scales, they do not interfere in the
+regimes where each operates. In the microscopic world gravity is $10^{-36}$ too weak to enter RealQM's Coulomb
+bookkeeping, so RealQM$+$Maxwell is \emph{complete without gravitation}: atoms, bonds, spectra, and the propagation
+of light are electromagnetic through and through. In the macroscopic world the constituent charges have screened to
+neutrality, so gravitation is \emph{complete without electromagnetism}: celestial mechanics needs no Maxwell field.
+The separation is therefore not a truncation we impose but a consequence of \emph{weakness} on one side and
+\emph{neutrality} on the other.
+
+There is exactly one regime where the split must fail: where both conditions break at once, i.e.\ where gravity is
+strong \emph{and} energy is unscreened. That is the province of astrophysics and cosmology --- light bending near a
+star, the field energy of radiation gravitating in the early universe --- and there electromagnetism and
+gravitation genuinely couple through their shared currency, energy. Everywhere else, across the whole of
+non-extreme physics, the two theories run in disjoint domains.
+
+\section{Gravity as emergent on larger scales}
+That gravity should be at once the weakest force, unscreenable, universal in its coupling to energy, and important
+only in the large invites a stronger reading than ``fundamental but faint'': that gravity is \emph{emergent} --- a
+collective, coarse-grained effect of many degrees of freedom, in the way that temperature and pressure are
+collective effects meaningless for a single molecule. This is not a fringe suggestion but a recurring theme of
+modern gravitational theory.
+
+Sakharov proposed already in 1967 that gravity is an ``induced'' elastic response of the quantum
+vacuum~\cite{Sakharov}. Jacobson showed in 1995 that Einstein's field equations can be \emph{derived} as a
+thermodynamic equation of state, from the Clausius relation $\delta Q=T\,dS$ applied to local causal
+horizons~\cite{Jacobson} --- gravity appearing not as a fundamental force but as the large-scale thermodynamics of
+whatever the underlying degrees of freedom are, much as the gas law follows from statistics without tracking
+molecules. Padmanabhan developed this thermodynamic route in detail~\cite{Padmanabhan}, and in the holographic
+setting the emergence is sharpest of all: bulk spacetime geometry, and hence gravity, is built from the quantum
+\emph{entanglement} of a lower-dimensional field theory~\cite{VanRaamsdonk}.
+
+On this reading the microscopic world has no gravity to speak of --- not merely a negligible amount, but no
+fundamental gravitational interaction between individual charges at all, just as a single molecule has no
+temperature. Gravity is what \emph{emerges} when enough energy is coarse-grained together. This fits the two-regime
+picture exactly: the fundamental layer is charge and energy (RealQM$+$Maxwell), and gravitation is the large-scale
+collective phenomenon that appears above it. The very features that made the separation clean in \S3 --- gravity's
+weakness, its non-screening, its universal coupling to energy --- are precisely what one expects of an emergent,
+statistical effect rather than a microscopic force.
+
+\section{Gravitational mass: an emergent role of a fundamental quantity}
+A corollary sharpens what is, and is not, emergent, and it concerns mass directly. The \emph{quantity} $E/c^2$ ---
+the energy content of a piece of matter --- is fundamental and present at every scale: it is the inertial mass,
+RealQM computes it for a single atom, and a lone electron carries it. What is emergent is the \emph{role} of that
+quantity as \emph{gravitational} mass, the charge that sources and feels gravity. Where there is no gravity ---
+the microscopic world --- $E/c^2$ is inertia and nothing more; gravitational mass is not merely negligible there,
+it has \emph{no referent}, exactly as a single molecule has no temperature. Gravitational mass appears only when
+gravity does, at large scales. So inertial mass is fundamental; gravitational mass is the emergent role it takes on
+once gravity has emerged.
+
+This has a welcome consequence: it \emph{explains} the equivalence principle rather than positing it. The equality
+of gravitational and inertial mass --- the deepest empirical fact about gravity, tested to $10^{-13}$ --- is
+ordinarily an unexplained coincidence. Here it is automatic. Emergent gravity arises as the collective response to
+the energy that is \emph{already present} as inertia, so it can couple to nothing but $E/c^2$: the gravitational
+charge \emph{is} the inertial energy, by construction and not by accident. Equivalence is then not an input but an
+output of emergence.
+
+\section{What is honest to claim, and what is not}
+The picture is attractive and, in its non-extreme domain, coherent; but three limits must be stated plainly rather
+than glossed.
+
+\emph{First, emergent gravity emerges as general relativity, not Newton.} Jacobson's construction yields Einstein's
+equations, and holography yields general relativity in the bulk. A consistent large-scale gravity that couples to
+energy and propagates at finite speed is, in any case, forced towards general relativity by the requirement that
+the gravitational field's own energy also gravitate. Newtonian gravity is only the weak-field, slow-motion corner
+of what emerges; it is the working form in \S2, but not the fundamental large-scale theory, which must reproduce
+light bending, perihelion precession and gravitational waves.
+
+\emph{Second, emergence is proven only in models, not for our world.} The thermodynamic and holographic derivations
+are compelling and, in anti-de~Sitter/conformal-field-theory examples, essentially established; but that gravity is
+emergent \emph{in our universe} remains a hypothesis. The standard framework still treats gravity as a fundamental
+(spin-2) field, and the two views are not yet experimentally separated.
+
+\emph{Third, the framework is bounded to non-extreme physics, and inherits open sectors.} It says nothing about the
+strong and weak nuclear forces except through RealQM's own (unconventional) charge-cloud modelling of nuclei; the
+elementary rest energies remain inputs, as in every theory; and the genuinely relativistic and quantum-field
+regimes --- pair creation, the precision anomalies of quantum electrodynamics, and quantum gravity itself --- lie
+outside it by construction. Naming that boundary is a strength: it excludes exactly the regimes where the clean
+separation is known to break.
+
+\section{Conclusion}
+For the vast, non-extreme middle of physics --- chemistry, materials, optics, mechanics, the motion of ordinary
+bodies --- a single economical picture suffices. The fundamental layer is \emph{charge and energy}: RealQM and
+Maxwell, with inertia the derived quantity $E/c^2$ and no primitive mass. Upon it act two forces reading two
+properties of the same matter: electromagnetism its charge, gravitation its energy, kept in disjoint domains by the
+weakness of gravity below and the neutrality of bulk matter above. And the most natural place for gravitation in
+this picture is not as a second fundamental force but as an \emph{emergent}, large-scale, collective effect ---
+appearing, like thermodynamics, only when enough energy is gathered together, and absent as a microscopic
+interaction between charges. What emerges must, to match the sky, be general relativity rather than Newton, and
+whether it truly emerges in our universe is still open; but the organising thought is clean and, within its
+declared bounds, self-consistent: \emph{charge and energy below, emergent gravity above, and a single inertia
+$E/c^2$ carried through both.}
+
+\begin{thebibliography}{9}
+\bibitem{NoMass} C.~Johnson, \emph{Energy Without Mass: RealQM, Inertia, and the Penning Trap} (companion note).
+\bibitem{RealQM} C.~Johnson, \emph{Real Quantum Mechanics} (book).
+\bibitem{Thomson} J.~J.~Thomson, ``On the electric and magnetic effects produced by the motion of electrified
+  bodies,'' \emph{Philos.\ Mag.} \textbf{11}, 229--249 (1881).
+\bibitem{Sakharov} A.~D.~Sakharov, ``Vacuum quantum fluctuations in curved space and the theory of gravitation,''
+  \emph{Sov.\ Phys.\ Dokl.} \textbf{12}, 1040--1041 (1968).
+\bibitem{Jacobson} T.~Jacobson, ``Thermodynamics of spacetime: the Einstein equation of state,''
+  \emph{Phys.\ Rev.\ Lett.} \textbf{75}, 1260--1263 (1995).
+\bibitem{Padmanabhan} T.~Padmanabhan, ``Thermodynamical aspects of gravity: new insights,''
+  \emph{Rep.\ Prog.\ Phys.} \textbf{73}, 046901 (2010).
+\bibitem{VanRaamsdonk} M.~Van~Raamsdonk, ``Building up spacetime with quantum entanglement,''
+  \emph{Gen.\ Rel.\ Grav.} \textbf{42}, 2323--2329 (2010).
+\bibitem{MMR} C.~Johnson, \emph{Many-Minds Relativity} (book).
+\end{thebibliography}
+
+\end{document}
