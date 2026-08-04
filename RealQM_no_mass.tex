@@ -32,9 +32,8 @@ defect'' as the binding energy read as a frequency shift. The one relation this 
 is the measured law of inertia; RealQM's part is to show why it is natural --- the localisation term is a genuine
 cohesive stress, so every bound state is a stress-balanced equilibrium, and indeed the time-independent
 Schr\"odinger equation \emph{is} this local force balance. The account lives in a single inertial frame with
-Maxwell's equations: no comparison of frames, no Lorentz covariance, no relativity is invoked (the coefficient can,
-if one wishes, be \emph{derived} from Maxwell's own field mathematics, disposing of the historical $4/3$, but it is
-not needed). Mass is thereby an output, not an input; the elementary rest energies remain, as in every theory, the
+Maxwell's equations: no comparison of frames, no Lorentz covariance, no relativity is invoked (the coefficient
+admits a derivation within relativity, disposing of the historical $4/3$, but it is not needed here). Mass is thereby an output, not an input; the elementary rest energies remain, as in every theory, the
 inputs no theory derives.
 \end{abstract}
 
@@ -121,37 +120,28 @@ it reports an energy. Mass has been eliminated.
 \section{The bound state is a stress-balanced equilibrium}
 The trap model uses one relation, $\mathbf p=(E/c^2)\mathbf v$ --- that a moving cloud's inertia is exactly its
 energy. This is the \emph{measured} law of \S4 and needs no derivation; what RealQM adds is the reason it is
-\emph{natural} --- the bound cloud is a stress-balanced equilibrium --- together with an optional route to the
-coefficient itself, for readers who prefer it derived rather than measured. That route must face the historical
-factor $4/3$: integrating the field momentum of a moving Coulomb charge
-gives $\mathbf p=\tfrac43(U/c^2)\mathbf v$, in conflict with $E/c^2$. The resolution is von~Laue's
-theorem~\cite{vonLaue,Rohrlich}: for a
-closed system with $\partial_\mu T^{\mu\nu}=0$, the four-momentum $P^\nu=\tfrac1c\int T^{0\nu}\,d^3x$ is a genuine
-four-vector --- so that $\mathbf p=(E/c^2)\mathbf v$ --- \emph{if and only if} the stresses balance,
-\begin{equation}
-\int T^{ij}\,d^3x=0 \qquad\text{(mechanical equilibrium).}
-\label{eq:laue}
-\end{equation}
-The bare Coulomb field violates \eqref{eq:laue}: its stress is unbalanced (the charge would fly apart), and that
-imbalance is precisely the $4/3$. The classical repair was to \emph{postulate} a cohesive non-electromagnetic
-``Poincar\'e stress'' whose contribution restores \eqref{eq:laue} and cancels the $4/3$.
-
-RealQM does not postulate that stress --- it already contains it. The localisation term $\tfrac12\int|\nabla\psi|^2$
-is a genuine non-electromagnetic stress (a quantum pressure) that supplies exactly the cohesion balancing the
-Coulomb tension. And a RealQM bound state is, by construction, a stress-balanced equilibrium: as the minimiser of
-$E=T+V$ it is stationary under the scaling $\psi(\mathbf x)\mapsto\lambda^{3/2}\psi(\lambda\mathbf x)$, giving the
-virial identity
+\emph{natural}. Computed from Maxwell, the field-\emph{alone} momentum of a moving charge is the classical value
+$\tfrac43(U_{\text{field}}/c^2)\mathbf v$~\cite{Thomson,Abraham} --- not the total, and no paradox: the remainder is
+carried by whatever stress holds the charge together, the ``Poincar\'e stress'' classical electrodynamics had to
+\emph{postulate}. RealQM need not postulate it. The localisation term $\tfrac12\int|\nabla\psi|^2$ \emph{is} that
+cohesive stress, and a bound state is by construction a stress-balanced equilibrium: as the minimiser of $E=T+V$ it
+is stationary under the scaling $\psi(\mathbf x)\mapsto\lambda^{3/2}\psi(\lambda\mathbf x)$, giving the virial
+identity
 \begin{equation}
 2T+V=0,
 \label{eq:virial}
 \end{equation}
-the trace of the tensor condition \eqref{eq:laue}; for a bound equilibrium the full tensor virial holds and
-$\int T^{ij}\,d^3x=0$. That every RealQM bound cloud is a stress-balanced equilibrium is a single-frame fact, and
-it is the whole of RealQM's contribution here. On it the optional derivation rests: a stress-balanced system's
-four-momentum is a four-vector, so its inertia is exactly $E_{\text{total}}/c^2$ with no residual $4/3$, and
-\eqref{eq:wc} holds exactly. But the coefficient is in any case the measured law of \S4; what matters is that the
-cohesive stress classical electrodynamics had to \emph{invent} is, in RealQM, the localisation energy it already
-has, and that equilibrium is not an extra assumption but the defining property of its bound states.
+so the internal stresses balance,
+\begin{equation}
+\int T^{ij}\,d^3x=0 \qquad\text{(mechanical equilibrium).}
+\label{eq:laue}
+\end{equation}
+That every RealQM bound cloud is such an equilibrium is a single-frame fact, and it is the whole of RealQM's
+contribution here: the cohesive stress classical electrodynamics had to \emph{invent} is, in RealQM, the
+localisation energy it already has. The total inertia is then the measured $E_{\text{total}}/c^2$, the field-alone
+$4/3$ being merely a part of the whole. A first-principles \emph{derivation} of the exact coefficient, disposing of
+the $4/3$, does exist --- but only within relativity, where von~Laue's theorem makes a stress-balanced system's
+four-momentum a four-vector; it is not used here, and is precisely the step a single-frame account sets aside.
 
 That inertia \emph{is} energy is, moreover, no definition smuggled in but a tested identity between two independent
 measurements. A Penning trap returns a cyclotron frequency --- an $F/a$, pure inertia --- from which one reads the
@@ -159,8 +149,7 @@ mass difference between a nucleus and its separated constituents; the \emph{same
 no trap and no mass, by calorimetry of the reaction --- the $\gamma$-ray energy $Q$ released when the constituents
 combine. The two agree, $\Delta m\,c^2=Q$, to about one part in $10^{7}$~\cite{Rainville}. A frequency on one side, a photon energy
 on the other, joined only by $c^2$: it is this agreement, not a choice of words, that makes ``inertia is energy''
-a physical statement. RealQM's part is to compute the difference; von~Laue's is to guarantee that the inertia it
-predicts is exactly that energy.
+a physical statement. RealQM's part is to compute the difference; that the inertia equals it is the measured law of \S4.
 
 \section{The stress tensor made explicit: the localisation term as the cohesive stress}
 The settlement of the previous section can be shown directly, at the level of the stress tensor, with no appeal to
@@ -318,10 +307,8 @@ is never reached, the energy going ever more into inertia and ever less into spe
 
 \begin{thebibliography}{9}
 \bibitem{RealQM} C.~Johnson, \emph{Real Quantum Mechanics} (book).
-\bibitem{vonLaue} M.~von~Laue, ``Zur Dynamik der Relativit\"atstheorie,''
-  \emph{Ann.\ Phys.\ (Leipzig)} \textbf{35}, 524--542 (1911).
-\bibitem{Rohrlich} F.~Rohrlich, \emph{Classical Charged Particles}, 3rd ed.
-  (World Scientific, Singapore, 2007).
+\bibitem{Abraham} M.~Abraham, ``Prinzipien der Dynamik des Elektrons,''
+  \emph{Ann.\ Phys.} \textbf{10}, 105--179 (1903).
 \bibitem{Thomson} J.~J.~Thomson, ``On the electric and magnetic effects produced by the motion
   of electrified bodies,'' \emph{Philos.\ Mag.} \textbf{11}, 229--249 (1881).
 \bibitem{Madelung} E.~Madelung, ``Quantentheorie in hydrodynamischer Form,''
