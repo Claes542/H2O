@@ -92,10 +92,18 @@ output, never an input, droppable without loss.
 
 \section{A RealQM model of the Penning trap}
 The trap is precisely a machine for measuring inertia: a charge $q$ in a uniform field $B$ circles at the
-cyclotron frequency $\omega_c=qB/m$. To model it without mass, the inertia must \emph{come out}, not go in. It
-does, electromagnetically: a moving charge distribution drags its own field, and that field carries momentum
-$\mathbf p=(E/c^2)\,\mathbf v$, so the system resists acceleration with an inertia $E/c^2$ --- its own energy
-content. The cyclotron frequency is then
+cyclotron frequency $\omega_c=qB/m$. To model it without mass, the inertia must be energy. Two things must be kept
+apart here. Maxwell supplies the \emph{mechanism}: a moving charge drags its own field, and that field carries
+momentum, $\mathbf p\propto(\text{energy}/c^2)\,\mathbf v$ (Thomson's electromagnetic mass), so inertia is field
+momentum, not a separate substance. But Maxwell does not supply the exact \emph{coefficient}: the bare field
+integral gives the classical factor $4/3$ and only the field energy, not the total. The exact relation
+\begin{equation}
+\mathbf p=\frac{E}{c^2}\,\mathbf v
+\label{eq:pev}
+\end{equation}
+--- unit coefficient, total energy --- is the \emph{measured} law (\S4, and \S6 for its status): the trap gives
+the inertia $qB/\omega_c$, and it is found to equal $E/c^2$ to a part in $10^{7}$. So the field momentum is the
+mechanism and the measurement fixes the coefficient; with \eqref{eq:pev} the cyclotron frequency is then
 \begin{equation}
 \omega_c=\frac{qB}{E/c^2}=\frac{qBc^2}{E},
 \label{eq:wc}
