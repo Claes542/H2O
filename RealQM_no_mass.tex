@@ -195,6 +195,25 @@ divergence of the \emph{localisation} stress equals minus the force density $\rh
 supplies precisely the stress that balances the Coulomb force --- the cohesive ``Poincar\'e stress'' is here a
 \emph{consequence} of the stationary equation, not an addition to it.
 
+\paragraph{The stress balance is the time-independent Schr\"odinger equation.}
+Equation~\eqref{eq:balance} is not merely \emph{implied} by \eqref{eq:stat}; for the real, nodeless ground state
+it is equivalent to it, and the equivalence exposes what Schr\"odinger's stationary equation \emph{is}. Writing
+$\psi=\sqrt\rho$ and dividing \eqref{eq:stat} by $\psi$ gives
+\begin{equation}
+U + Q = \varepsilon,\qquad Q \equiv -\tfrac12\,\frac{\nabla^2\sqrt\rho}{\sqrt\rho},
+\label{eq:madelung}
+\end{equation}
+hence $\nabla(U+Q)=0$: at every point the potential force $-\rho\,\nabla U$ is cancelled by the quantum-pressure
+force $-\rho\,\nabla Q=\nabla\!\cdot\sigma^{Q}$, whose stress $\sigma^{Q}$ is the gradient part of \eqref{eq:TM}.
+The time-independent Schr\"odinger equation is thus a statement of \emph{local mechanical equilibrium} --- Newton's
+second law for a charge fluid carrying a quantum pressure --- with the eigenvalue $\varepsilon$ the constant of
+integration, the uniform level (a chemical potential) at which the balance settles; no probability enters, it is
+$\textstyle\sum\text{forces}=0$ for real charge. This is the Madelung--Bohm hydrodynamic form of the
+equation~\cite{Madelung,Bohm}; what RealQM adds is to read the fluid as the electron itself, so that the balance is
+a real equilibrium and the localisation term a real stress. The complex phase set aside here is precisely the
+\emph{flow}: the time-dependent equation is this same balance plus continuity and an Euler equation for
+$\mathbf v=\nabla S$ --- being's equilibrium acquiring becoming's dynamics.
+
 Splitting $U=V_{\text{ext}}+\Phi$, the Coulomb piece $-\rho\,\partial_j\Phi=\rho E_j$ is cancelled by the Maxwell
 stress ($\partial_i T^{\mathrm{EM}}_{ij}=\rho E_j$, the mutual fields pairing by Newton's third law), leaving
 \begin{equation}
@@ -295,6 +314,10 @@ is never reached, the energy going ever more into inertia and ever less into spe
   \emph{Ann.\ Phys.\ (Leipzig)} \textbf{35}, 524--542 (1911).
 \bibitem{Rohrlich} F.~Rohrlich, \emph{Classical Charged Particles}, 3rd ed.
   (World Scientific, Singapore, 2007).
+\bibitem{Madelung} E.~Madelung, ``Quantentheorie in hydrodynamischer Form,''
+  \emph{Z.\ Phys.} \textbf{40}, 322--326 (1927).
+\bibitem{Bohm} D.~Bohm, ``A suggested interpretation of the quantum theory in terms of
+  `hidden' variables. I,'' \emph{Phys.\ Rev.} \textbf{85}, 166--179 (1952).
 \bibitem{Rainville} S.~Rainville \emph{et al.}, ``A direct test of $E=mc^2$,''
   \emph{Nature} \textbf{438}, 1096--1097 (2005).
 \bibitem{Dehmelt} H.~Dehmelt, ``Experiments with an isolated subatomic particle at rest,''
