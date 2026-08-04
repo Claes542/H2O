@@ -19,28 +19,21 @@ contributing a balanced, neutral view.}}
 \maketitle
 
 \begin{abstract}
-RealQM computes the energy of matter --- every atom from hydrogen to the heaviest, and nuclear binding ---
-from a single dimensionless functional: a localisation cost plus Coulomb energy of charge densities in ordinary
-three-dimensional space. We observe that \emph{mass never enters this computation}. The coefficient of the
-localisation term, written $\hbar^2/2m$ in the textbook and read there as the kinetic energy $p^2/2m$ of a moving
-particle, is in RealQM merely a geometric scale: there is no motion in a stationary state, so $p^2/2m$ is
-bookkeeping, not physics, and the coefficient sets a length and an energy, not a mass. Atomic energies are then
-pure numbers in Hartree, with the electron mass appearing only as the common unit; the atom-to-nucleus jump is a
-change of geometric scale, not of mass, and the ``glue mass'' sometimes invoked for the nuclear scale is an
-artifact of insisting on the mass reading of the coefficient. If mass and energy are truly equivalent, one of the
-two words is redundant; we keep energy and eliminate mass. The apparent obstacle is the Penning trap, a machine
-that seems to \emph{weigh}. We set up a RealQM model of it: an ion is a charge cloud of total energy $E$, its
-inertia is the momentum its own field carries when it moves, $p=(E/c^2)v$, and in the trap's magnetic field it
-circles at $\omega_c=qBc^2/E$. Evaluated with energies alone --- no mass symbol --- this reproduces the electron
-($27.99$~GHz/T) and proton ($15.2$~MHz/T) cyclotron frequencies, and renders the He\,-4 ``mass defect'' as a
-$+0.76\%$ frequency shift equal to the binding energy. Mass is thus eliminated in favour of energy, and
-$E=mc^2$ ceases to be a borrowed conversion and becomes a statement RealQM \emph{earns}: the step
-$p=(E/c^2)v$, with its historical factor $4/3$, is settled for bound systems by von~Laue's theorem, the
-localisation term $\tfrac12\int|\nabla\psi|^2$ playing the cohesive stress that classical electrodynamics had to
-postulate and the virial $2T+V=0$ guaranteeing the stress balance it requires. The only remainder --- the
-absolute rest energies of the free constituents --- is not a debt of RealQM's: all masses are ratios to a
-reference, so only differences are physical, and the elementary mass ratios are the mass-spectrum problem no
-theory derives from scratch.
+RealQM computes the energy of matter --- every atom, and nuclear binding --- from one dimensionless functional:
+a localisation cost plus the Coulomb energy of charge densities in ordinary three-dimensional space. \emph{Mass
+never enters this computation.} The coefficient of the localisation term, written $\hbar^2/2m$ and read in
+textbooks as a kinetic energy $p^2/2m$, is here only a geometric scale --- a stationary state has no motion, so it
+fixes a length and an energy, not a mass --- and atomic energies come out as pure numbers in Hartree, with the
+electron mass merely the unit. If mass and energy are equivalent, one of the two words is redundant; we keep
+energy. The apparent obstacle is the Penning trap, which seems to \emph{weigh}. We model it in energy alone: an ion
+of energy $E$ has inertia $E/c^2$ --- the momentum its own field carries when it moves --- and circles at
+$\omega_c=qBc^2/E$, reproducing the electron and proton cyclotron frequencies and rendering the He\,-4 ``mass
+defect'' as the binding energy read as a frequency shift. The one step this needs, $\mathbf p=(E/c^2)\mathbf v$
+with its historical factor $4/3$, is settled for bound systems by von~Laue's theorem: the localisation term is the
+cohesive stress that classical electrodynamics had to postulate, and we show at the level of the stress tensor that
+a RealQM bound state supplies it automatically --- indeed that the time-independent Schr\"odinger equation \emph{is}
+this local force balance. Mass is thereby an output, not an input; the elementary rest energies remain, as in every
+theory, the inputs no theory derives.
 \end{abstract}
 
 \setstretch{1.06}
@@ -89,14 +82,12 @@ reading. The coefficient is a geometric scale; the nuclear scale is one number, 
 
 \section{Mass is not primitive; it is energy showing up as inertia}
 If mass and energy are genuinely equivalent, then ``mass'' is a redundant word and the physics can be told with
-energy alone. This is not a mere convention: a Penning trap measures a real thing --- \emph{inertia}, the
-resistance of a bound system to acceleration --- and the inertia deficit of a bound nucleus (He\,-4 is
-$0.76\%$ lighter than its constituents) is a measured mechanical fact. What makes $E=mc^2$ more than a unit swap is
-that this inertia deficit, weighed in a magnet, equals the binding energy measured independently by
-reaction $Q$-values and $\gamma$-ray energies, to parts in $10^{7}$. Two utterly different measurements agree
-through $c^2$. The lesson is not that mass and energy are two things linked by a formula, but that there is
-\emph{one} thing: energy, which manifests dynamically as inertia. ``Mass'' names that inertia; it is an output,
-never an input, and can be dropped from the vocabulary without loss.
+energy alone. This is not a mere convention. A Penning trap measures a real thing --- \emph{inertia}, a bound
+system's resistance to acceleration --- and the inertia deficit of a bound nucleus (He\,-4 is $0.76\%$ lighter
+than its constituents) is a measured mechanical fact that coincides, through $c^2$, with the binding energy
+measured independently by reaction $Q$-values (quantified in \S6). The lesson is not two things linked by a
+formula, but \emph{one} thing: energy, manifesting dynamically as inertia. ``Mass'' names that inertia --- an
+output, never an input, droppable without loss.
 
 \section{A RealQM model of the Penning trap}
 The trap is precisely a machine for measuring inertia: a charge $q$ in a uniform field $B$ circles at the
@@ -309,7 +300,7 @@ standing confirmation that the inertia it fights is $E/c^2$, growing without bou
 is never reached, the energy going ever more into inertia and ever less into speed.
 
 \begin{thebibliography}{9}
-\bibitem{RealQM} C.~Johnson, \emph{Real Quantum Mechanics}, RealMolecule gallery, and references therein.
+\bibitem{RealQM} C.~Johnson, \emph{Real Quantum Mechanics} (book).
 \bibitem{vonLaue} M.~von~Laue, ``Zur Dynamik der Relativit\"atstheorie,''
   \emph{Ann.\ Phys.\ (Leipzig)} \textbf{35}, 524--542 (1911).
 \bibitem{Rohrlich} F.~Rohrlich, \emph{Classical Charged Particles}, 3rd ed.
@@ -322,7 +313,7 @@ is never reached, the energy going ever more into inertia and ever less into spe
   \emph{Nature} \textbf{438}, 1096--1097 (2005).
 \bibitem{Dehmelt} H.~Dehmelt, ``Experiments with an isolated subatomic particle at rest,''
   \emph{Rev.\ Mod.\ Phys.} \textbf{62}, 525--530 (1990).
-\bibitem{MMR} C.~Johnson, \emph{Many-Minds Relativity} (2011).
+\bibitem{MMR} C.~Johnson, \emph{Many-Minds Relativity} (book).
 \bibitem{Time} C.~Johnson, \emph{Real Time Dependence in RealQM: the Timeless Atom},
   RealMolecule gallery.
 \bibitem{Dynamics} C.~Johnson, \emph{The Atom Does Not Run Its Own Dynamics},
