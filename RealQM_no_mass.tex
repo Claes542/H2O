@@ -165,6 +165,56 @@ on the other, joined only by $c^2$: it is this agreement, not a choice of words,
 a physical statement. RealQM's part is to compute the difference; von~Laue's is to guarantee that the inertia it
 predicts is exactly that energy.
 
+\section{The stress tensor made explicit: the localisation term as the cohesive stress}
+The settlement of the previous section can be shown directly, at the level of the stress tensor, with no appeal to
+a postulated cohesion. A RealQM cloud is a real field $\psi$, $\rho=\psi^2$, obeying the stationarity condition
+(atomic units)
+\begin{equation}
+-\tfrac12\nabla^2\psi + U\psi = \varepsilon\psi
+\qquad\Longleftrightarrow\qquad
+\nabla^2\psi = 2(U-\varepsilon)\psi,
+\label{eq:stat}
+\end{equation}
+with $U$ the potential the cloud sees --- external plus the Coulomb potential of the \emph{other} charges. The
+momentum flux carried by the localisation term $\tfrac12|\nabla\psi|^2$ is the matter stress tensor
+\begin{equation}
+T^{M}_{ij} = \partial_i\psi\,\partial_j\psi - \delta_{ij}\Big[\tfrac12|\nabla\psi|^2 + (U-\varepsilon)\rho\Big].
+\label{eq:TM}
+\end{equation}
+Taking its divergence and using \eqref{eq:stat} together with
+$\partial_i(\partial_i\psi\,\partial_j\psi)=(\nabla^2\psi)\,\partial_j\psi+\tfrac12\partial_j|\nabla\psi|^2$, every
+term collapses to one:
+\begin{equation}
+\boxed{\;\partial_i T^{M}_{ij} = -\rho\,\partial_j U\;}
+\label{eq:balance}
+\end{equation}
+verified symbolically and, on a three-dimensional grid for the hydrogen ground state, numerically to the
+finite-difference error. Equation~\eqref{eq:balance} is local Newton's second law for the static cloud: the
+divergence of the \emph{localisation} stress equals minus the force density $\rho\,\nabla U$. The quantum pressure
+supplies precisely the stress that balances the Coulomb force --- the cohesive ``Poincar\'e stress'' is here a
+\emph{consequence} of the stationary equation, not an addition to it.
+
+Splitting $U=V_{\text{ext}}+\Phi$, the Coulomb piece $-\rho\,\partial_j\Phi=\rho E_j$ is cancelled by the Maxwell
+stress ($\partial_i T^{\mathrm{EM}}_{ij}=\rho E_j$, the mutual fields pairing by Newton's third law), leaving
+\begin{equation}
+\partial_i\big(T^{M}+T^{\mathrm{EM}}\big)_{ij} = -\rho\,\partial_j V_{\text{ext}}.
+\label{eq:total}
+\end{equation}
+For a self-bound system --- an atom, molecule or nucleus with \emph{all} its constituents included, so
+$V_{\text{ext}}=0$ --- the total stress is divergence-free, and the tensor-virial identity
+$\int T^{ij}\,d^3x=\int\partial_k(x^i T^{kj})\,d^3x-\int x^i\,\partial_k T^{kj}\,d^3x=0$ (the surface term vanishing
+for a localised system) gives, on boosting, $\mathbf p=(E_{\text{total}}/c^2)\mathbf v$ with no residual $4/3$.
+For a spherical atom, isotropy reduces \eqref{eq:total} to its trace, the virial $2T+V=0$ of \eqref{eq:virial}.
+
+Three corollaries follow, and they are consequences of \eqref{eq:balance}, not caveats appended to it. First, the
+inter-particle (binding) stresses close exactly, so the mass \emph{defect} a Penning trap measures obeys
+$\mathbf p=(E/c^2)\mathbf v$ rigorously: RealQM is exact where it speaks. Second, RealQM carries no
+self-interaction, so the self-field terms are simply absent from \eqref{eq:balance}; the rest inertia of a
+\emph{lone} charge is not produced, and remains the elementary input discussed below. Third, a single cloud held
+only by $V_{\text{ext}}$ leaves the residual $-\rho\,\partial_j V_{\text{ext}}$ of \eqref{eq:total}, which closes
+only when the confiner is itself part of the system --- the trap that makes a single trapped charge a bound
+\emph{geonium}. The honest boundaries of the construction are thus theorems of the same identity that settles it.
+
 \section{Which relativity? Maxwell and von Laue, not Einstein's simultaneity}
 This step does invoke relativity --- but only its Lorentz-covariant \emph{core}, and it is worth being exact
 about which part. The factor $c^2$ enters through Maxwell alone: the field momentum $\mathbf g=\mathbf S/c^2$ and
