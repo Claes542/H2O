@@ -19,7 +19,7 @@
 \newcommand{\half}{\tfrac{1}{2}}
 
 \title{\textbf{Proton--Electron Cosmology}\\[0.25em]
-\large RealQM and Newtonian Gravitation from a Single Charge Seed}
+\large RealQM and Newtonian Gravitation from a Single Electric-Potential Seed}
 
 \author[1]{Claes Johnson}
 \affil[1]{KTH Royal Institute of Technology, Stockholm, Sweden \\ \texttt{claesjohnson@gmail.com}}
@@ -33,9 +33,10 @@
 \begin{abstract}
 We sketch an exploratory cosmology built from the RealQM / RealNucleus program, in which all matter is Coulombic
 (charge clouds in ordinary Euclidean space, no strong force, no elementary neutron) and all gravitation is
-Newtonian. The novelty here is a \textbf{single primitive seed}: a small-scale fluctuation of \emph{charge} alone.
-From it the universe develops in two tiers. \textbf{At the small scale}, the charge seed yields charge of both
-signs and of \emph{different spatial extent} --- small dense positive (protons) and large diffuse negative
+Newtonian. The novelty here is a \textbf{single primitive seed}: a small, small-scale fluctuation of the electric
+\emph{potential} $\varphi_E$ alone --- charge being its Laplacian, $\rho_c=-\varepsilon_0\grad^2\varphi_E$. From it
+the universe develops in two tiers. \textbf{At the small scale}, the Laplacian inflates the potential seed into
+charge of both signs and of \emph{different spatial extent} --- small dense positive (protons) and large diffuse negative
 (electrons); since a contracted cloud carries more energy, that extent \emph{is} the inertial mass ($E/c^2$), and
 Coulomb geometry then builds nuclei (RealNucleus) and atoms (RealQM). \textbf{At the large scale}, the
 \emph{energy} of that charged matter is a mass/inertia density $\rho$, and it is this $\rho$ --- seeded entirely by
@@ -43,7 +44,7 @@ the charges --- that sources gravitation through Poisson, $\rho=\grad^2\varphi_g
 carries both signs, so the gravitational source is two-fold; the perturbations separate into great chunks of
 positive mass \emph{interfoliated} with negative mass --- the cosmic web of filaments and clusters interleaved with
 under-dense voids, the negative sector acting as a repulsive dark energy. There is thus \emph{no primitive negative
-mass and no separate gravitational seed}: only charge is put in, mass is the energy of the charged world, and
+mass and no separate gravitational seed}: only the electric potential is seeded, mass is the energy of the charged world, and
 gravity is emergent. The construction is strictly non-relativistic --- Coulomb below, Newton above --- so the speed
 of light $c$ enters only the electromagnetic sector: there is a local speed limit for charges and light, but none
 for the large-scale gravitational motion of neutral bodies (two galaxies may approach at relative speed $>c$). We
@@ -68,7 +69,8 @@ reproduces nuclear binding from pure Coulomb interactions, with no strong-force 
 note asks what cosmology results if the \emph{same} ingredients are taken as the starting point of the universe,
 together with ordinary Newtonian gravitation.
 
-The answer is a \textbf{two-tier} cosmology from \textbf{one seed}. The seed is a fluctuation of \emph{charge}. It
+The answer is a \textbf{two-tier} cosmology from \textbf{one seed}. The seed is a fluctuation of the electric
+\emph{potential} (charge being its Laplacian). It
 shapes the small scale directly (charge $\to$ nuclei $\to$ atoms, all of RealQM); and the \emph{energy} of that
 charged matter, being mass, sources an \emph{emergent} Newtonian gravitation that shapes the large scale (the
 cosmic web, with a repulsive negative-mass sector as dark energy). We keep strictly to what Coulomb and Newton can
@@ -83,7 +85,7 @@ Poisson's equation with a two-valued ($\pm$) source,
 \qquad\qquad
 \text{gravitational:}\quad \rho_m=\frac{1}{4\pi G}\,\grad^2\varphi_g,
 \end{equation}
-the force being $-(\text{charge})\,\grad\varphi$ in each case. In this cosmology the electric source is the
+the force being $-(\text{charge})\,\grad\varphi$ in each case. In this cosmology the electric potential is the
 primitive seed (Section~\ref{sec:seed}) and the gravitational source is the emergent energy of the charged world
 (Section~\ref{sec:large}) --- but the \emph{machinery} is common. The one structural difference is the relative
 sign, and with it the force law:
@@ -99,7 +101,7 @@ gravitational (mass) & \textbf{attract} & repel \\
 \end{center}
 Concretely there are two independent binary signs --- the source $\pm\grad^2\varphi$ (two-valued) and the force
 $\mathbf F=\pm\grad\varphi$ (repulsive or attractive for like sources) --- and their \emph{four} combinations are
-exactly the four long-range ``charges'' of the world: the repulsive-for-like sign is electromagnetism, its $\pm$
+exactly the four ``charges'' the two forces couple to: the repulsive-for-like sign is electromagnetism, its $\pm$
 source the $\pm$charge of the small scale; the attractive-for-like sign is gravitation, its $\pm$ source the $\pm$
 mass/energy of the large scale. One operator and two signs thus yield $\{\pm\text{charge},\,\pm\text{mass}\}$.
 
@@ -142,13 +144,13 @@ small, \emph{small-scale} (short-wavelength) oscillation of $\varphi_E$ --- not 
 density contrast: the seed is tiny in amplitude but short in wavelength, and it is the short wavelength (large $k$)
 that the Laplacian amplifies into strong charge.
 
-Crucially, \textbf{only charge is seeded}. Mass and gravitation are not primitive; they arise, in
+Crucially, \textbf{only the electric potential is seeded} (charge being its Laplacian). Mass and gravitation are not primitive; they arise, in
 Section~\ref{sec:large}, as the \emph{energy} of the charged structures the seed produces. This is the essential
 departure from a cosmology of two independent potentials: here there is one seed, one potential, and gravity is a
 consequence.
 
 \section{The small scale: RealQM and RealNucleus}\label{sec:small}
-The charge seed produces charge of both signs and, decisively, of \emph{different spatial extent}: small dense
+The seed, inflated by the Laplacian, produces charge of both signs and, decisively, of \emph{different spatial extent}: small dense
 positive charge and large diffuse negative charge. These are the \textbf{proton} and the \textbf{electron}, and
 the whole charged world is built from them by Coulomb geometry.
 
@@ -220,20 +222,19 @@ run backwards,
 \rho \;=\; \frac{1}{4\pi G}\,\grad^2\varphi_g .
 \end{equation}
 The gravitational potential $\varphi_g$ is thus not a primitive but \emph{emergent}, the large-scale field of the
-aggregated energy of the charged world. The physical density is \emph{positive everywhere} --- it is that energy,
-$\rho\ge 0$ --- and what drives structure is its perturbation about the mean. Only \emph{formally} does this appear
-as $\pm$ mass: $\varphi_g$ comes in \textbf{two forms}, a \emph{well} over each over-dense region (effective
-positive mass) and an \emph{anti-well} over each under-dense region (effective negative mass --- a \emph{deficit}
-relative to the mean, not literal negative energy). As the perturbations grow they \textbf{separate}, by the
-gravitational force-sign: over-densities attract and draw together, under-densities are pushed away. The
-positive-mass regions are thereby \textbf{isolated} into great chunks --- filaments and clusters ---
-\emph{interfoliated} with the under-dense regions between them: the \textbf{cosmic web}, concentrated positive-mass
-nodes and filaments interleaved with voids. The under-dense, formally negative-mass sector --- dark and repulsive
---- can act as \textbf{dark energy}.
+aggregated energy of the charged world, whose \textbf{source is positive} throughout --- it is that energy,
+$\rho\ge 0$. The potential itself, however, comes in \textbf{two forms according to the sign of its Laplacian}:
+where $\grad^2\varphi_g>0$ it is a \emph{well} (effective positive mass, attractive), where $\grad^2\varphi_g<0$ an
+\emph{anti-well} (effective negative mass, repulsive). The $\pm$ mass is therefore \emph{formal} --- the sign of the
+curvature of $\varphi_g$, not a negative energy; the source is positive. By the gravitational force-sign, the wells
+attract and draw together while the anti-wells repel, so the positive-mass regions are \textbf{isolated} into great
+chunks --- filaments and clusters --- \emph{interfoliated} with the anti-well regions between them: the
+\textbf{cosmic web}, positive-mass nodes and filaments interleaved with voids, the anti-well (formally
+negative-mass) sector acting as \textbf{dark energy}.
 
 The negative side is \emph{emergent}, a redistribution of the one charge-seeded $\rho$, not a second seed: only
 charge is put in. This is the sense in which the largest structures and the smallest share one origin: the small
-scale is the charge seed directly; the large scale is the emergent gravity of its energy.
+scale is the seed and its charge directly; the large scale is the emergent gravity of their energy.
 
 \paragraph{A 2D test: cosmic-web morphology.} A mass-conserving 2D simulation of a $\pm$mass field
 $\rho=\grad^2\varphi$ from a random potential, evolved as compressible self-gravitating flow with same-sign
