@@ -8,7 +8,7 @@
 \usepackage{setspace}
 
 \title{Charge Below, Gravity Above:\\[0.2em]
-\large RealQM, Maxwell, and Emergent Gravitation}
+\large Coulomb for the Small, Newton for the Large}
 \author[1]{Claes Johnson}
 \affil[1]{KTH Royal Institute of Technology, SE-100 44 Stockholm, Sweden \\
 \texttt{claesjohnson@gmail.com}}
@@ -20,35 +20,25 @@ contributing a balanced, neutral view.}}
 \maketitle
 
 \begin{abstract}
-RealQM together with Maxwell's equations describes matter and light from charge and energy alone: the electron is
-a charge cloud in ordinary three-dimensional space, inertia is the derived quantity $E/c^2$, and mass enters
-nowhere as a primitive~\cite{NoMass}. Gravitation is absent from this description --- and need not be added. Gravity
-is negligible microscopically (between two protons it is $\sim 10^{-36}$ of the electric force) and dominates only
-at large scales, where electromagnetism has screened itself away in neutral bulk matter while unscreened gravity
-accumulates. We argue that this clean split --- electromagnetic, charged and small \emph{below}; gravitational,
-neutral and large \emph{above} --- is naturally read as gravity being \emph{emergent}: a coarse-grained, collective
-phenomenon rather than a fundamental force acting between individual particles, in the spirit of Sakharov's induced
-gravity~\cite{Sakharov}, Jacobson's derivation of the Einstein equation from thermodynamics~\cite{Jacobson}, and
-the holographic emergence of spacetime from entanglement~\cite{VanRaamsdonk,Padmanabhan}. The resulting picture is
-economical: \emph{one} mechanics (Newton's second law $\mathbf F=\dot{\mathbf p}$), \emph{one} inertia ($E/c^2$),
-and \emph{two} forces separated by regime --- electromagnetism coupling to charge, gravity to energy. On this view inertial mass ($E/c^2$, the energy content)
-is fundamental while \emph{gravitational} mass --- the role of that energy as gravity's charge --- is emergent,
-which turns the observed equality of the two masses from an unexplained coincidence into a consequence of
-emergence. We are explicit about the limits. Emergent gravity emerges as \emph{general relativity}, not Newtonian gravity (Newton is
-only its weak-field shadow); the proposal is established only in holographic models, not proven for our universe;
-and the framework is confined to non-extreme physics.
+RealQM with Coulomb's law describes matter at small scales --- the electron and the nucleus as charge clouds, atoms
+and molecules as their binding --- with inertia the energy content $E/c^2$ and no primitive mass~\cite{NoMass}.
+Gravitation plays no part there: between two protons it is $\sim10^{-36}$ of the electric force. It becomes the
+ruling force only in the large, and for a clean reason: charge comes in two signs and screens itself away in
+neutral bulk, while mass/energy is one-signed and only \emph{accumulates}. So the two forces occupy almost disjoint
+domains --- electromagnetism, direct and screening, \emph{below}; Newtonian gravitation, weak but cumulative,
+\emph{above} --- joined by a single mechanics ($\mathbf F=\dot{\mathbf p}$) and a single inertia ($E/c^2$), one
+force reading charge and the other mass. We keep strictly to what Coulomb and Newton can say, and mark --- without
+pursuing --- the extreme regimes (strong gravity, the highest energies) where more would be needed.
 \end{abstract}
 
 \setstretch{1.06}
 
-\paragraph{What is new, and what is standard.} The physics here is standard: the screening of charge and the
-accumulation of mass, the equality of gravitational and inertial mass, the local (field and potential) character
-of force, the emergent-gravity programme (Sakharov, Jacobson, and the holographic derivations), and the
-cosmological sequence of nucleosynthesis, recombination and structure formation. No new empirical fact and no new
-mathematics is claimed. What is the author's is a set of frameworks --- RealQM, RealNucleus, and Proton--Electron
-Cosmology --- and a synthesis built from the standard pieces: a single contrast, direct and small (charge) against
-emergent and large (gravity), rooted in the one asymmetry that charge is $\pm$ while energy is $+$; one description
-spanning nucleus, atom and cosmos; and gravity read as the emergent role of energy. The note is foundational and
+\paragraph{What is new, and what is standard.} The physics is standard: Coulomb's law and Newtonian gravitation,
+the screening of charge and the accumulation of mass, the equality of gravitational and inertial mass, and the
+local (field and potential) character of force. No new empirical fact and no new mathematics is claimed. What is
+the author's is the framework --- RealQM, with charge clouds for atoms and (RealNucleus) for nuclei --- and the
+synthesis: a single contrast, direct and small (charge) against cumulative and large (gravity), rooted in the one
+asymmetry that charge is $\pm$ while mass is $+$. The note keeps to non-extreme physics and is foundational and
 conceptual.
 
 \section{Two forces, two regimes}
@@ -58,286 +48,163 @@ The whole picture rests on a single contrast between the two forces, each a loca
 \hline
  & \textbf{Coulomb (charge)} & \textbf{gravity (mass)} \\
 \hline
-status        & fundamental, \emph{direct}   & \emph{emergent}, collective \\
+character     & direct, fundamental          & weak, cumulative \\
 scale         & small (microscopic)          & large (macroscopic) \\
-two-body force& real, $1/r^2$                & none fundamental (collective only) \\
+between two particles & real, $1/r^2$         & negligible (matters only in bulk) \\
 charge sign   & $\pm$: screens (local)       & $+$: accumulates (cumulative) \\
-in RealQM     & built in                     & not needed; emerges above \\
+in RealQM     & built in                     & not needed at this scale \\
 \hline
 \end{tabular}
 \end{center}
 \noindent Charge acts \emph{directly} between individual particles and cancels itself over neutral bulk;
-mass--energy gravitates only \emph{collectively} and never cancels --- so electromagnetism rules the small and
-gravitation, emergent, rules the large. The rest of this note unfolds this one contrast.
+mass gravitates only \emph{cumulatively} and never cancels --- so electromagnetism rules the small and gravitation
+rules the large. The rest of this note unfolds this one contrast.
 
-Ordinary physics is run by two forces, and it is worth being exact about what "range" means for them. Each force
-is \emph{local}: a body responds to the field --- an electric field, or a gravitational potential --- at its own
-position ($a=-\nabla\varphi$ there); nothing reaches across space to act on it. What is far-reaching is the
-\emph{field}, sourced by distant matter. Both fields fall off as $1/r^2$ in principle, yet their \emph{effective}
-reach is opposite: the electric field is screened to short reach in neutral matter, while the gravitational
-potential, unscreened, reaches long. So the range belongs to the field, not to the force, and the two occupy almost
-disjoint territories: electromagnetism governs the small and the charged --- atoms, molecules, chemistry,
-materials, light; gravitation governs the large and the neutral --- apples, planets, stars, galaxies. The boundary between them is not arbitrary; it follows from two
-facts, one on each side.
+It is worth being exact about what ``range'' means. Each force is \emph{local}: a body responds to the field --- an
+electric field, or a gravitational potential --- at its own position ($a=-\nabla\varphi$ there); nothing reaches
+across space to act on it. What is far-reaching is the \emph{field}, sourced by distant matter. Both fields fall
+off as $1/r^2$ in principle, yet their \emph{effective} reach is opposite: the electric field is screened to short
+reach in neutral matter, while the gravitational potential, unscreened, reaches long. So the range belongs to the
+field, not to the force, and the two occupy almost disjoint territories: electromagnetism governs the small and the
+charged --- atoms, molecules, chemistry, materials, light; gravitation governs the large and the neutral ---
+apples, planets, stars, galaxies. The boundary follows from two facts, one on each side.
 
 First, \emph{gravity is extraordinarily weak}. The gravitational attraction between two protons is about
 $10^{-36}$ of their electrostatic repulsion; between two electrons, about $10^{-43}$. At the scale of an atom
-gravity is not merely small, it is irrelevant to any digit anyone measures. Second, \emph{electromagnetism
-screens, and gravity does not}. Charge comes in two signs and bulk matter is neutral, so over macroscopic bodies
-the electric forces cancel; mass comes in one sign, so gravity never cancels --- it \emph{accumulates}. Aggregate
+gravity is not merely small, it is irrelevant to any digit anyone measures. Second, \emph{electromagnetism screens,
+and gravity does not}. Charge comes in two signs and bulk matter is neutral, so over macroscopic bodies the
+electric forces cancel; mass comes in one sign, so gravity never cancels --- it \emph{accumulates}. Aggregate
 enough neutral matter and electromagnetism has quietly removed itself while gravity has been adding up, until, at
 planetary scale, the weakest force in nature is the only one left standing.
 
-So the division ``electromagnetic below, gravitational above'' is not a modelling convenience but the way the two
-forces are actually organised: weakness keeps gravity out of the microscopic world, and screening keeps
-electromagnetism out of the macroscopic one.
+So ``electromagnetic below, gravitational above'' is not a modelling convenience but the way the two forces are
+organised: weakness keeps gravity out of the microscopic world, and screening keeps electromagnetism out of the
+macroscopic one.
 
-\section{One inertia, one mechanics, two forces}
-Underneath the two regimes there is a single mechanics. RealQM, together with Maxwell's equations, describes the
-microscopic world with \emph{no mass as a primitive}~\cite{NoMass}: the energy of matter is computed from charge
-and a geometric scale, and when a charge moves its inertia is carried by the momentum of its own field. Maxwell's
-equations supply the mechanism: the field momentum $\mathbf g=\mathbf E\times\mathbf B/4\pi c$ of a moving charge
-integrates to $\mathbf p\propto(\text{energy}/c^2)\,\mathbf v$ --- J.~J.~Thomson's electromagnetic mass of
-1881~\cite{Thomson} --- while the exact law,
+\section{One inertia, two forces}
+Underneath the two regimes there is a single mechanics. RealQM describes the microscopic world with \emph{no mass
+as a primitive}~\cite{NoMass}: the energy of matter is computed from charge and a geometric scale, and inertia is
+the energy content,
 \begin{equation}
 \mathbf p=\frac{E}{c^2}\,\mathbf v ,
 \label{eq:inertia}
 \end{equation}
-with total energy and unit coefficient, is the measured relation of the Penning trap~\cite{NoMass} (the bare field
-integral alone gives the classical factor $4/3$). Either way the inertial ``mass'' is the energy content $E/c^2$. Newton's second law, in its
-original form $\mathbf F=\dot{\mathbf p}$, then governs the response, with the force supplied by electromagnetism,
-$\mathbf F=q\mathbf E+q\mathbf v\times\mathbf B$, which couples to \emph{charge} and contains no mass at all.
-
-The macroscopic regime uses the \emph{same} law and the \emph{same} inertia. A neutral body has energy $E$, hence
-inertia $E/c^2$, and Newton's second law moves it; the only addition is a second force, gravity, which couples not
-to charge but to that same energy $E/c^2$. The economy is worth stating plainly:
+the measured relation of the Penning trap~\cite{NoMass}. Newton's second law, in its original form
+$\mathbf F=\dot{\mathbf p}$, governs the response. In the small, the force is electromagnetic,
+$\mathbf F=q\mathbf E+q\mathbf v\times\mathbf B$, coupling to \emph{charge}. In the large, the force is gravity,
+coupling not to charge but to the same energy $E/c^2$. The economy is worth stating plainly:
 \begin{center}
 \begin{tabular}{lll}
 \hline
  & couples to & inertia (response) \\
 \hline
 electromagnetism & charge $q$ & $E/c^2$ \\
-gravitation      & energy $E/c^2$ & $E/c^2$ \\
+gravitation      & mass/energy $E/c^2$ & $E/c^2$ \\
 \hline
 \end{tabular}
 \end{center}
 \emph{One} mechanics ($\mathbf F=\dot{\mathbf p}$), \emph{one} inertia ($E/c^2$), \emph{two} forces reading two
-different properties of the same matter --- its charge and its energy. Nothing here needs a separate primitive
-called mass; ``mass'' is the name of the inertia, and the inertia is energy.
+different properties of the same matter --- its charge and its mass. Nothing here needs a separate primitive called
+mass; ``mass'' is the name of the inertia, and the inertia is energy.
 
-The two properties differ in one decisive respect, and it governs everything that follows: \emph{charge comes in
-two signs, energy in one}. Because charge is $\pm$ it can cancel --- unlike charges attract, like charges repel,
-and bulk matter is neutral --- so electromagnetism \emph{screens}. Because the gravitational charge is energy, and
-the total energy of real matter is positive (potential energy may be negative, but $E_{\text{total}}=mc^2>0$),
-gravity's source has a single sign: it cannot cancel, it can only \emph{accumulate}, and it is always
-\emph{attractive}. This single fact is the root of the whole separation below --- screening removes electromagnetism
-over neutral bulk while single-signed gravity piles up --- and of the character of each force: $\pm$ sources make
-electromagnetism a spin-1 field with attraction and repulsion, a single-signed attractive source makes gravitation
-even-spin (spin-2, once light-bending excludes spin-0). A one-signed charge that only ever adds is, moreover,
-exactly the kind of quantity whose effect is collective and large-scale, which is why gravity, alone among the
-forces, looks emergent.
+\section{The sign of the charge}
+The two properties differ in one decisive respect, and it governs everything: \emph{charge comes in two signs,
+mass in one}. Because charge is $\pm$ it can cancel --- unlike charges attract, like charges repel, and bulk matter
+is neutral --- so electromagnetism \emph{screens}, and stays local and short-reaching. Because mass is one-signed
+and always positive, gravity's source cannot cancel: it can only \emph{accumulate}, and it is always
+\emph{attractive}. This single asymmetry is the root of the whole separation --- screening removes electromagnetism
+over neutral bulk while single-signed gravity piles up --- and it is why gravity, though the weakest force, is the
+one that only ever adds, and so comes to rule the large.
 
 \section{The nuclear scale: charge and energy, contracted}
-The fundamental layer reaches further down than the atom. RealNucleus~\cite{RealNucleus} applies the \emph{same}
+The small-scale layer reaches further down than the atom. RealNucleus~\cite{RealNucleus} applies the \emph{same}
 functional --- charge clouds minimising Coulomb energy against a localisation cost --- to the \emph{nucleus}, with
 only the geometric scale contracted from the \aa{}ngstr\"om and electron-volt of chemistry to the fermi and MeV of
-nuclear binding. One theory, one scale smaller, reproduces nuclear binding as Coulomb geometry: the
-He\,-4/deuteron binding ratio comes out $\approx 13$ against an experimental $\approx 12.7$, and the burning of
-hydrogen to helium appears as a rearrangement of protons and electrons rather than the action of a separate force.
-On this reading the ``strong'' nuclear binding is not a new fundamental interaction but RealQM at the nuclear scale
---- charge and energy once more, contracted by the coefficient of the localisation term. Electromagnetism and
-nuclear binding become \emph{one theory at two scales}, joined by that single geometric coefficient; the
-fundamental layer of the picture then spans the nuclear and the atomic worlds alike, and only \emph{gravity} is
-left to emerge above them. (This is a strong and unconventional claim; the limits section below records what it has still to answer.)
+nuclear binding. One theory, one scale smaller, reproduces nuclear binding as Coulomb geometry: the He\,-4/deuteron
+binding ratio comes out $\approx 13$ against an experimental $\approx 12.7$, and the burning of hydrogen to helium
+appears as a rearrangement of protons and electrons. On this (unconventional) reading the ``strong'' nuclear
+binding is not a new fundamental interaction but Coulomb geometry contracted, so electromagnetism and nuclear
+binding become \emph{one theory at two scales}, and the small-scale layer spans the nuclear and the atomic worlds
+alike.
 
-Two scales, one relation. A cloud's size varies inversely with its geometric scale while its energy varies directly
-with it, so size and mass are linked: a contracted cloud costs more localisation and Coulomb energy and is
-therefore \emph{heavier}, an extended one \emph{lighter}. Electron and proton sit at the two ends of this relation
---- the electron big and light (atomic scale, $\sim0.5$~\AA, $0.511$~MeV), the proton small and heavy (nuclear
-scale, $\sim1$~fm, $938$~MeV) --- so ``proton small, electron big'' and ``proton heavy, electron light'' are one
-fact, not two. What RealQM does \emph{not} supply is the \emph{value} of the ratio: the proton/electron size ratio
-$\sim5\times10^4$ is the nuclear-scale datum, the same input as the mass ratio $m_p/m_e$, which no theory derives
-from first principles. RealQM explains the size difference as a scale difference and ties it to the mass
-difference; fixing the scale itself is the mass-spectrum problem, part of the frontier below, and it is left open.
+\emph{Two scales, one relation.} A cloud's size varies inversely with its geometric scale while its energy varies
+directly with it, so size and mass are linked: a contracted cloud costs more localisation and Coulomb energy and is
+therefore \emph{heavier}, an extended one \emph{lighter}. Electron and proton sit at the two ends --- the electron
+big and light (atomic scale, $\sim0.5$~\AA, $0.511$~MeV), the proton small and heavy (nuclear scale, $\sim1$~fm,
+$938$~MeV) --- so ``proton small, electron big'' and ``proton heavy, electron light'' are one fact, not two. What
+is \emph{not} supplied is the value of the ratio: the proton/electron size ratio $\sim5\times10^4$, the same
+datum as the mass ratio $m_p/m_e$, is left open, as it is in every theory.
 
 Its \emph{existence}, however, is no idle fact. Were the atomic and nuclear scales equal, there would be no compact
 nucleus distinct from a diffuse electron cloud --- no layered atom, no chemistry, no molecules, no structure. The
 separation of scales is a \emph{precondition for complexity}, so any universe that supports structure, and hence
-observers, must exhibit it. This is an anthropic rationale for \emph{why} the two scales are separated, not a
-derivation of \emph{how far}: the magnitude of the ratio remains open, but its necessity for a complex world does
-not.
+observers, must exhibit it: an anthropic reason \emph{why} the scales are separated, though not a derivation of
+\emph{how far}.
 
 \section{Why the separation is clean}
-Because the two forces read different properties and inhabit different scales, they do not interfere in the
-regimes where each operates. In the microscopic world gravity is $10^{-36}$ too weak to enter RealQM's Coulomb
-bookkeeping, so RealQM$+$Maxwell is \emph{complete without gravitation}: atoms, bonds, spectra, and the propagation
-of light are electromagnetic through and through. In the macroscopic world the constituent charges have screened to
-neutrality, so gravitation is \emph{complete without electromagnetism}: celestial mechanics needs no Maxwell field.
-The separation is therefore not a truncation we impose but a consequence of \emph{weakness} on one side and
-\emph{neutrality} on the other.
+Because the two forces read different properties and inhabit different scales, they do not interfere where each
+operates. In the microscopic world gravity is $10^{-36}$ too weak to enter RealQM's Coulomb bookkeeping, so RealQM
+is \emph{complete without gravitation}: atoms, bonds, spectra and the propagation of light are electromagnetic
+through and through. In the macroscopic world the constituent charges have screened to neutrality, so Newtonian
+gravitation is \emph{complete without electromagnetism}: celestial mechanics needs no field of charge. The
+separation is therefore not a truncation imposed by hand but a consequence of \emph{weakness} on one side and
+\emph{neutrality} on the other. Only where gravity grows strong or energy runs unscreened do the two couple ---
+strong-field astrophysics and the highest energies --- and that lies outside the non-extreme scope kept here.
 
-There is exactly one regime where the split must fail: where both conditions break at once, i.e.\ where gravity is
-strong \emph{and} energy is unscreened. That is the province of astrophysics and cosmology --- light bending near a
-star, the field energy of radiation gravitating in the early universe --- and there electromagnetism and
-gravitation genuinely couple through their shared currency, energy. Everywhere else, across the whole of
-non-extreme physics, the two theories run in disjoint domains.
+\section{Gravity in the large}
+Gravity is at once the weakest force, unscreenable, and coupled to the one quantity that never cancels --- mass.
+These are exactly the properties of a force negligible between individual particles yet \emph{dominant in bulk}: as
+neutral matter aggregates, the electric forces cancel and the tiny gravitational pull, adding up over every
+particle, is eventually all that remains. Gravity is thus effectively a \emph{large-scale, cumulative} force, and
+it acts \emph{locally through a potential}: a body responds to the gradient of the gravitational potential at its
+own position, $a=-\nabla\varphi$, where $\varphi$ is sourced (Poisson, $\nabla^2\varphi=4\pi G\rho$) by all the
+surrounding mass. The Earth is not \emph{pulled} across space by the distant Sun; it rides the local slope of a
+global potential to which the Sun is the dominant nearby contributor.
 
-\section{Gravity as emergent on larger scales}
-That gravity should be at once the weakest force, unscreenable, universal in its coupling to energy, and important
-only in the large invites a stronger reading than ``fundamental but faint'': that gravity is \emph{emergent} --- a
-collective, coarse-grained effect of many degrees of freedom, in the way that temperature and pressure are
-collective effects meaningless for a single molecule. This is not a fringe suggestion but a recurring theme of
-modern gravitational theory.
-
-Sakharov proposed already in 1967 that gravity is an ``induced'' elastic response of the quantum
-vacuum~\cite{Sakharov}. Jacobson showed in 1995 that Einstein's field equations can be \emph{derived} as a
-thermodynamic equation of state, from the Clausius relation $\delta Q=T\,dS$ applied to local causal
-horizons~\cite{Jacobson} --- gravity appearing not as a fundamental force but as the large-scale thermodynamics of
-whatever the underlying degrees of freedom are, much as the gas law follows from statistics without tracking
-molecules. Padmanabhan developed this thermodynamic route in detail~\cite{Padmanabhan}, and in the holographic
-setting the emergence is sharpest of all: bulk spacetime geometry, and hence gravity, is built from the quantum
-\emph{entanglement} of a lower-dimensional field theory~\cite{VanRaamsdonk}.
-
-On this reading the microscopic world has no gravity to speak of --- not merely a negligible amount, but no
-fundamental gravitational interaction between individual charges at all, just as a single molecule has no
-temperature. Gravity is what \emph{emerges} when enough energy is coarse-grained together. This fits the two-regime
-picture exactly: the fundamental layer is charge and energy (RealQM$+$Maxwell), and gravitation is the large-scale
-collective phenomenon that appears above it. The very features that made the separation clean in \S3 --- gravity's
-weakness, its non-screening, its universal coupling to energy --- are precisely what one expects of an emergent,
-statistical effect rather than a microscopic force.
-
-\section{Gravitational mass: an emergent role of a fundamental quantity}
-A corollary sharpens what is, and is not, emergent, and it concerns mass directly. The \emph{quantity} $E/c^2$ ---
-the energy content of a piece of matter --- is fundamental and present at every scale: it is the inertial mass,
-RealQM computes it for a single atom, and a lone electron carries it. What is emergent is the \emph{role} of that
-quantity as \emph{gravitational} mass. Here one must distinguish \emph{responding} to gravity from being a
-\emph{fundamental source} of it. A single particle certainly \emph{responds}: an electron, and demonstrably a
-neutron --- which falls and even forms quantised bound states in the Earth's field~\cite{Nesvizhevsky} --- reacts
-to the gravitational field of a macroscopic body through its $E/c^2$, exactly as the equivalence principle
-requires. What is emergent is the other side: whether a \emph{lone} particle is a fundamental \emph{source} of
-gravity for another lone particle. On the emergent reading it is not --- the $\sim10^{-40}$ mutual ``force''
-between two electrons is an extrapolation with no fundamental referent, just as a single molecule has no
-temperature; gravity as a source-property appears only when energy is coarse-grained together, at large scales. So
-inertial mass is fundamental and every particle carries it (and responds to a macroscopic field with it);
-gravitational mass, as a \emph{source}, is the emergent role that same energy takes on once gravity has emerged
-from the many.
-
-This has a welcome consequence: it \emph{explains} the equivalence principle rather than positing it. The equality
-of gravitational and inertial mass --- the deepest empirical fact about gravity, tested to $10^{-13}$ --- is
-ordinarily an unexplained coincidence. Here it is automatic. Emergent gravity arises as the collective response to
-the energy that is \emph{already present} as inertia, so it can couple to nothing but $E/c^2$: the gravitational
-charge \emph{is} the inertial energy, by construction and not by accident. Equivalence is then not an input but an
-output of emergence.
+The charge that gravity acts on is the same energy content $E/c^2$ that gives inertia --- gravitational mass equals
+inertial mass, tested to a part in $10^{13}$, and every body carries it: a single neutron falls, and even forms
+quantised bound states in the Earth's field~\cite{Nesvizhevsky}. That equality is natural here rather than a
+coincidence, for gravity acts on the very energy that already \emph{is} the inertia. What a lone particle does
+\emph{not} evidently do is serve as a fundamental \emph{source} of gravity for another lone particle --- the
+$\sim10^{-40}$ mutual pull between two electrons has never been isolated, and gravity as a source shows itself only
+when mass is gathered. Whether it is therefore a fundamental force or a collective effect of aggregated matter is a
+question Coulomb and Newton do not settle, and we do not press it; either way, in the large gravity is what draws
+neutral matter together.
 
 \section{The cosmological perspective}
 The contrast is written across the history of the universe, and it turns on the sign of the charge. Early on ---
-hot and dense --- matter is \emph{ionised}: charge is unscreened, and electromagnetism, with the direct
-Coulomb-scale physics, is the active force. This is when nuclei are assembled (the same charge geometry as
-RealNucleus, one scale down) and, later, when nuclei and electrons combine into atoms. At that combination ---
-\emph{recombination} --- matter turns \emph{neutral}: the $\pm$ charges cancel, electromagnetism screens itself
-out, and radiation decouples and streams free as the relic background. That is the hinge.
+hot and dense --- matter is \emph{ionised}: charge is unscreened, and Coulomb physics is the active force. This is
+when nuclei are assembled (the same charge geometry as RealNucleus, one scale down) and, later, when nuclei and
+electrons combine into atoms. At that combination --- \emph{recombination} --- matter turns \emph{neutral}: the
+$\pm$ charges cancel and electromagnetism screens itself out. That is the hinge. After it, only the single-signed,
+cumulative pull remains, and gravity takes over: small density excesses grow, drawing neutral matter into stars,
+galaxies and the cosmic web. The universe's own timeline thus stages the two regimes in sequence --- \emph{charge
+builds the small (nuclei, atoms) while matter is charged; gravity builds the large (structure) once it is
+neutral} --- the handoff being the $\pm$-screens-to-$+$-accumulates transition of recombination. The direct force
+makes the constituents; the cumulative force assembles them.
 
-After it, with electromagnetism cancelled over neutral matter, only the single-signed, cumulative force remains,
-and \emph{gravity takes over}: small density excesses grow, drawing neutral matter together into stars, galaxies
-and the cosmic web. Structure formation is gravity acting exactly as the emergent, large-scale, collective force it
-is --- negligible between individual particles, decisive once enough neutral matter is gathered. So the universe's
-own timeline exhibits the two regimes in sequence: \emph{charge builds the small (nuclei, atoms) while matter is
-charged; gravity builds the large (structure) once matter is neutral}, the handoff being precisely the
-$\pm$-screens-to-$+$-accumulates transition of recombination. The direct force makes the constituents; the emergent
-force assembles them. (The global expansion at the largest scale is a further, large-scale gravitational regime ---
-an acknowledged edge, not pursued here.)
-
-This story has a natural realisation in terms of \emph{perturbations of the two potentials themselves}. In the
-companion essay \emph{Proton--Electron Cosmology}~\cite{Cosmology} a gravitational potential $\varphi_g$ and an
-electric potential $\varphi_E$ fluctuate on a Euclidean substrate, and mass and charge are read off as their
-curvature, $\rho=\nabla^2\varphi$ (Poisson run backwards). The present contrast then governs how their
-perturbations evolve: the electric potential's, being $\pm$, screen and remain local, while the gravitational
-potential's, being single-signed and cumulative, aggregate into large-scale structure. The two potentials are the
-primitive objects; the direct force and the emergent force are simply how their perturbations behave.
-
-\section{What is honest to claim, and what is not}
-The picture is attractive and, in its non-extreme domain, coherent; but three limits must be stated plainly rather
-than glossed.
-
-\emph{First, emergent gravity emerges as general relativity, not Newton.} Jacobson's construction yields Einstein's
-equations, and holography yields general relativity in the bulk. A consistent large-scale gravity that couples to
-energy and propagates at finite speed is, in any case, forced towards general relativity by the requirement that
-the gravitational field's own energy also gravitate. Newtonian gravity is only the weak-field, slow-motion corner
-of what emerges; it is the working form in \S2, but not the fundamental large-scale theory, which must reproduce
-light bending, perihelion precession and gravitational waves.
-
-\emph{Second, emergence is proven only in models, not for our world.} The thermodynamic and holographic derivations
-are compelling and, in anti-de~Sitter/conformal-field-theory examples, essentially established; but that gravity is
-emergent \emph{in our universe} remains a hypothesis. The standard framework still treats gravity as a fundamental
-(spin-2) field, and the two views are not yet experimentally separated.
-
-\emph{Third, the framework is bounded to non-extreme physics, and inherits open sectors.} With RealNucleus the
-\emph{strong}/nuclear sector is brought inside --- as charge clouds at a contracted scale rather than a separate
-force --- but this is a heterodox reduction that has still to be reconciled with the quark--gluon evidence of
-quantum chromodynamics (deep-inelastic scattering, jets, asymptotic freedom); the \emph{weak} interaction (beta
-decay) remains more open in the programme; the elementary rest energies remain inputs, as in every theory; and the
-genuinely relativistic and quantum-field regimes --- pair creation, the precision anomalies of quantum
-electrodynamics, and quantum gravity itself --- lie outside by construction. Naming that boundary is a strength: it
-excludes exactly the regimes where the clean separation is known to break.
-
-\section{A theory of (non-extreme) everything?}
-It is worth asking plainly whether the assembled picture is a theory of everything. The pieces do fit into one
-frame. A single fundamental layer --- \emph{charge and energy}, governed by RealQM --- runs from the nucleus
-(RealNucleus) through the atom, with Maxwell for the field; one interaction, Coulomb geometry, does the work at both
-the nuclear and atomic scales, so that electromagnetism and nuclear binding are the same theory at two settings of
-the geometric scale. Above this layer gravitation \emph{emerges} as the single-signed, cumulative, large-scale role
-of the same energy. One mechanics ($\mathbf F=\dot{\mathbf p}$), one inertia ($E/c^2$), one organizing asymmetry
-(charge $\pm$ screens, energy $+$ accumulates): from these the whole of non-extreme physics --- chemistry,
-materials, optics, nuclear binding, mechanics, and gravity --- is meant to follow. As a \emph{unified framework for
-non-extreme physics}, this is a genuine and economical candidate.
-
-Whether it deserves the unqualified name ``theory of everything'' is a separate matter, and honesty requires the
-qualifier. Four things remain to be answered before the word is earned. The strong sector is brought in by
-RealNucleus, but as a heterodox reduction that must still confront the quark--gluon evidence of quantum
-chromodynamics. The weak interaction --- beta decay, flavour --- is not yet accounted for. The elementary rest
-energies (the ratios $m_e/m_p$ and the rest) are inputs, as in every theory, not outputs. And the deepest grail, a
-\emph{quantum} theory of gravity unifying it with the rest, lies outside: the framework's gravity is classical and
-emergent, established in holographic models but not proven for our world. To these must be added the extreme
-regimes --- high-energy pair creation, the precision anomalies of quantum electrodynamics --- excluded by
-construction.
-
-The honest verdict is therefore this. A \emph{complete} theory of everything is neither claimed nor in hand. But a
-\emph{unified framework for the non-extreme world} --- charge and energy from the nucleus to the atom, gravity
-emergent above, and a single inertia $E/c^2$ carried through all of it --- is coherent, economical, and, within its
-declared bounds, self-consistent. That is a real unification. The frontier beyond it --- the weak force, the mass
-spectrum, quantum gravity, and reconciliation with the strong-interaction evidence --- is precisely where the word
-``everything'' would have to be won.
+This has a natural realisation in terms of the two potentials themselves. In the companion essay
+\emph{Proton--Electron Cosmology}~\cite{Cosmology} a gravitational potential $\varphi_g$ and an electric potential
+$\varphi_E$ fluctuate on a Euclidean substrate, with mass and charge read off as their curvature
+$\rho=\nabla^2\varphi$; the electric perturbations, being $\pm$, screen and stay local, while the gravitational
+ones, single-signed, aggregate into structure.
 
 \section{Conclusion}
 For the vast, non-extreme middle of physics --- chemistry, materials, optics, mechanics, the motion of ordinary
-bodies --- a single economical picture suffices. The fundamental layer is \emph{charge and energy} --- RealQM from
-the nucleus (RealNucleus) to the atom, with Maxwell for the field --- inertia the derived quantity $E/c^2$ and no
-primitive mass. Upon it act two forces reading two
-properties of the same matter: electromagnetism its charge, gravitation its energy, kept in disjoint domains by the
-weakness of gravity below and the neutrality of bulk matter above. And the most natural place for gravitation in
-this picture is not as a second fundamental force but as an \emph{emergent}, large-scale, collective effect ---
-appearing, like thermodynamics, only when enough energy is gathered together, and absent as a microscopic
-interaction between charges. What emerges must, to match the sky, be general relativity rather than Newton, and
-whether it truly emerges in our universe is still open; but the organising thought is clean and, within its
-declared bounds, self-consistent: \emph{charge and energy below, emergent gravity above, and a single inertia
-$E/c^2$ carried through both.}
+bodies --- two forces on ordinary matter suffice. Electromagnetism, Coulomb between charges, is direct and rules
+the small: atoms, molecules, and (in RealQM) nuclei. Newtonian gravitation, weak but cumulative, rules the large:
+planets, stars, galaxies. They stay in disjoint domains because charge screens and mass does not --- the direct
+force makes and binds the constituents, the cumulative force gathers them --- and throughout, inertia is the energy
+content $E/c^2$, one quantity carried through both. Only where gravity grows strong or energy runs unscreened ---
+strong-field astrophysics, the highest energies --- would more than Coulomb and Newton be needed; that lies beyond
+the scope kept here, and is left, honestly, at the edge.
 
 \begin{thebibliography}{9}
 \bibitem{NoMass} C.~Johnson, \emph{Energy Without Mass: RealQM, Inertia, and the Penning Trap} (companion note).
 \bibitem{RealQM} C.~Johnson, \emph{Real Quantum Mechanics} (book).
-\bibitem{Cosmology} C.~Johnson, \emph{Proton--Electron Cosmology} (companion essay).
 \bibitem{RealNucleus} C.~Johnson, \emph{RealNucleus}: nuclei as charge clouds in RealQM
   (submitted, \emph{Physics Essays}).
-\bibitem{Thomson} J.~J.~Thomson, ``On the electric and magnetic effects produced by the motion of electrified
-  bodies,'' \emph{Philos.\ Mag.} \textbf{11}, 229--249 (1881).
-\bibitem{Sakharov} A.~D.~Sakharov, ``Vacuum quantum fluctuations in curved space and the theory of gravitation,''
-  \emph{Sov.\ Phys.\ Dokl.} \textbf{12}, 1040--1041 (1968).
-\bibitem{Jacobson} T.~Jacobson, ``Thermodynamics of spacetime: the Einstein equation of state,''
-  \emph{Phys.\ Rev.\ Lett.} \textbf{75}, 1260--1263 (1995).
-\bibitem{Padmanabhan} T.~Padmanabhan, ``Thermodynamical aspects of gravity: new insights,''
-  \emph{Rep.\ Prog.\ Phys.} \textbf{73}, 046901 (2010).
-\bibitem{VanRaamsdonk} M.~Van~Raamsdonk, ``Building up spacetime with quantum entanglement,''
-  \emph{Gen.\ Rel.\ Grav.} \textbf{42}, 2323--2329 (2010).
+\bibitem{Cosmology} C.~Johnson, \emph{Proton--Electron Cosmology} (companion essay).
 \bibitem{Nesvizhevsky} V.~V.~Nesvizhevsky \emph{et al.}, ``Quantum states of neutrons in the Earth's
   gravitational field,'' \emph{Nature} \textbf{415}, 297--299 (2002).
 \end{thebibliography}
