@@ -14,7 +14,7 @@ Single Electric-Potential Seed* for consideration as an Article in *Universe*.
 
 The paper sets out an exploratory, non-standard cosmological model built from only two well-understood
 ingredients — electron–proton Coulomb interaction and Newtonian gravitation — with no Big Bang singularity, no
-inflaton, no dark-matter particle, and no cosmological constant. The single primitive is a small-scale
+inflation, no dark-matter particle, and no cosmological constant. The single primitive is a small-scale
 fluctuation of the electric potential; charge is its Laplacian, and the two-tier structure of the universe then
 follows: the Laplacian's short-wavelength weighting produces a small-scale proton–electron world of nuclei and
 atoms (the RealQM / RealNucleus program), and the ordinary energy/mass density of that Coulombic matter sources an
