@@ -1,0 +1,502 @@
+\documentclass[11pt]{article}
+
+\usepackage[a4paper, margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue, citecolor=blue}
+\usepackage{authblk}
+\usepackage{microtype}
+\usepackage{enumitem}
+\setlist[itemize]{leftmargin=1.4em}
+\setlist[enumerate]{leftmargin=1.6em}
+
+\newcommand{\grad}{\nabla}
+\newcommand{\half}{\tfrac{1}{2}}
+
+\title{\textbf{A Proton--Electron Cosmology}\\[0.25em]
+\large RealQM and Newtonian Gravitation from a Single Electric-Potential Seed}
+
+\author[1]{Claes Johnson}
+\affil[1]{KTH Royal Institute of Technology, Stockholm, Sweden \\ \texttt{claesjohnson@gmail.com}}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We sketch \textbf{RealUniv}, an exploratory cosmology built from the RealQM / RealNucleus program, in which all matter is Coulombic
+(charge clouds in ordinary Euclidean space, no strong force, no elementary neutron) and all gravitation is
+Newtonian. The novelty here is a \textbf{single primitive seed}: a small, small-scale fluctuation of the electric
+\emph{potential} $\varphi_E$ alone --- charge being its Laplacian, $\rho_c=-\varepsilon_0\grad^2\varphi_E$. From it
+the universe develops in two tiers. \textbf{At the small scale}, the Laplacian inflates the potential seed into
+charge of both signs and of \emph{different spatial extent} --- small dense positive (protons) and large diffuse negative
+(electrons); since a contracted cloud carries more energy, that extent \emph{is} the inertial mass ($E/c^2$), and
+Coulomb geometry then builds nuclei (RealNucleus) and atoms (RealQM). \textbf{At the large scale}, the
+\emph{energy} of that charged matter is a mass/inertia density $\rho$, and it is this $\rho$ --- seeded entirely by
+the charges --- that sources gravitation through Poisson, $\rho=\grad^2\varphi_g$. Read about the mean, $\rho$
+carries both signs, so the gravitational source is two-fold; the perturbations separate into great chunks of
+positive mass \emph{interfoliated} with negative mass --- the cosmic web of filaments and clusters interleaved with
+under-dense voids, the negative sector acting as a repulsive dark energy. There is thus \emph{no primitive negative
+mass and no separate gravitational seed}: only the electric potential is seeded, mass is the energy of the charged world, and
+gravity is emergent. The construction is strictly non-relativistic --- Coulomb below, Newton above --- so the speed
+of light $c$ enters only the electromagnetic sector: there is a local speed limit for charges and light, but none
+for the large-scale gravitational motion of neutral bodies (two galaxies may recede at relative speed $>c$, as
+observed). We
+state the picture, note that it \emph{reproduces} the primordial helium fraction as a consistency (with the
+observed $n$--$p$ gap $E_\ast$ and the standard freeze-out supplied, not derived), and set out its load-bearing
+open problems --- chiefly \emph{what sets the nuclear scale}, the same open datum as $E_\ast$.
+
+\medskip
+\noindent\textbf{Status.} An exploratory proposal, not established cosmology. It departs from the Standard Model and
+$\Lambda$CDM and must eventually be reconciled with them; the open problems of Section~\ref{sec:open} are
+load-bearing. Read it as ``what follows \emph{if}.''
+
+\medskip
+\noindent\textbf{Keywords:} cosmology; two-tier cosmology; proton--electron model of the nucleus; emergent
+gravitation; dark energy; primordial nucleosynthesis; RealQM.
+\end{abstract}
+
+\section{Introduction}
+Cosmology is unavoidably speculative at its foundations. The standard account --- hot Big Bang, cosmic
+inflation, $\Lambda$CDM --- fits the data only by invoking ingredients that are inferred rather than seen: an
+initial singularity, an inflationary epoch, dark matter, and dark energy, none of them observed in a laboratory,
+each introduced to close a gap. In a subject resting on such foundations it is
+legitimate, and useful, to ask what a \emph{simple, rational, non-standard} alternative would look like --- one
+built not from new fields and new epochs but from the most ordinary ingredients physics already has:
+\textbf{electron--proton Coulomb interaction and Newtonian gravitation}. This note develops one such model.
+
+The RealQM program formulates quantum mechanics as multiphase 3D continuum mechanics --- unit-charge densities on
+non-overlapping domains separated by free boundaries, minimising the Coulomb energy~\cite{realqm}. Its nuclear
+extension, RealNucleus, revives the pre-1932 proton--electron picture (neutron $=$ proton $+$ electron) and
+reproduces nuclear binding from pure Coulomb interactions, with no strong-force postulate~\cite{realnucleus}. This
+note asks what cosmology results if the \emph{same} ingredients are taken as the starting point of the universe,
+together with ordinary Newtonian gravitation.
+
+The answer, which we call \textbf{RealUniv}, is a \textbf{two-tier} cosmology from \textbf{one seed}. The seed is a
+fluctuation of the electric \emph{potential} (charge being its Laplacian). It
+shapes the small scale directly (charge $\to$ nuclei $\to$ atoms, all of RealQM); and the \emph{energy} of that
+charged matter, being mass, sources an \emph{emergent} Newtonian gravitation that shapes the large scale (the
+cosmic web, with a repulsive negative-mass sector as dark energy). We keep strictly to what Coulomb and Newton can
+say, mark the extreme regimes (strong gravity, the highest energies) where more would be needed, and keep the open
+problems explicit.
+
+\section{The machinery: two-valued Poisson, opposite force-signs}\label{sec:machinery}
+Both forces share \emph{one} structure and differ in a single sign. Each is the gradient of a potential obeying
+Poisson's equation with a two-valued ($\pm$) source,
+\begin{equation}
+\text{electric:}\quad \rho_c=-\varepsilon_0\,\grad^2\varphi_E,
+\qquad\qquad
+\text{gravitational:}\quad \rho_m=\frac{1}{4\pi G}\,\grad^2\varphi_g,
+\end{equation}
+the force being $-(\text{charge})\,\grad\varphi$ in each case. In this cosmology the electric potential is the
+primitive seed (Section~\ref{sec:seed}) and the gravitational source is the emergent energy of the charged world
+(Section~\ref{sec:large}) --- but the \emph{machinery} is common. The one structural difference is the relative
+sign, and with it the force law:
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+ & like sources & unlike sources \\
+\midrule
+electric (charge) & \textbf{repel} & attract \\
+gravitational (mass) & \textbf{attract} & repel \\
+\bottomrule
+\end{tabular}
+\end{center}
+Concretely there are two independent binary signs --- the source $\pm\grad^2\varphi$ (two-valued) and the force
+$\mathbf F=\pm\grad\varphi$ (repulsive or attractive for like sources) --- and their \emph{four} combinations are
+exactly the four ``charges'' the two forces couple to: the repulsive-for-like sign is electromagnetism, its $\pm$
+source the $\pm$charge of the small scale; the attractive-for-like sign is gravitation, its $\pm$ source the $\pm$
+mass/energy of the large scale. One operator and two signs thus yield $\{\pm\text{charge},\,\pm\text{mass}\}$.
+
+This single sign difference generates the two tiers. Because like charges \emph{repel} and unlike attract, matter
+neutralises into $\pm$ pairs, charge cancels, and electromagnetism \emph{screens} --- it stays local and
+small-scale. Because like masses \emph{attract}, mass \emph{clumps} and accumulates, growing without bound into
+large-scale structure; and because unlike masses repel, positive- and negative-mass regions \emph{separate} into
+the interfoliated web and voids of Section~\ref{sec:large}. The scale separation is thus a \emph{consequence} of
+the force-sign, not a separate assumption: small-scale electromagnetism and large-scale gravitation are one
+two-valued Poisson structure, read with two signs. (This is the static Poisson level; the electromagnetic sector
+carries $c$ and radiation, and $\pm$-mass gravitational dynamics has its own subtleties --- both belonging to the
+extreme regimes outside the Coulomb--Newton scope kept here.)
+
+A second asymmetry --- in the \emph{direction} the Poisson relation is used --- fixes the \emph{scale} of each
+force. For electromagnetism the \emph{potential} is primary: the seed is a small, \emph{small-scale} (short-
+wavelength) oscillation of $\varphi_E$ --- not a smooth ripple --- and charge is obtained by \emph{differentiating},
+$\rho_c=-\varepsilon_0\grad^2\varphi_E$. The Laplacian is a \emph{local} operator that \emph{magnifies} short
+wavelengths ($\rho_k\propto k^2\varphi_k$), so precisely because the seed is small-scale (large $k$) it is inflated,
+despite its tiny amplitude, into sharp, small-scale $\pm$ charges. For gravitation the \emph{source} is primary --- the mass/energy of
+the charged world --- and the potential is obtained by \emph{integrating}, $\varphi_g=4\pi G\,\grad^{-2}\rho_m$.
+The inverse Laplacian is a \emph{global} operator (convolution with the $1/r$ Green's function) that \emph{smooths},
+suppressing short wavelengths ($\varphi_k\propto\rho_k/k^2$) and building a broad, large-scale potential. So the
+same Poisson relation, run forward makes small-scale electromagnetism and run backward makes large-scale
+gravitation: \textbf{the Laplacian acts locally and magnifies; the inverse Laplacian acts globally and smooths} ---
+and that is why charge is small and gravity large.
+
+\section{The arena and the single seed}\label{sec:seed}
+The arena is a plain \textbf{3D Euclidean coordinate space} --- absolute space, simply given, with no physical
+medium. The only operator needed is the Laplacian $\grad^2$, and the
+only primitive is a small-scale fluctuation of the \textbf{electric potential} $\varphi_E$. Charge is not
+postulated separately; it is the curvature of that potential,
+\begin{equation}
+\rho_{\text{charge}} = -\varepsilon_0\,\grad^2\varphi_E ,
+\end{equation}
+with two immediate consequences. \textbf{Both signs:} $\rho_{\text{charge}}$ is positive where $\varphi_E$ is
+concave, negative where convex. \textbf{Net zero:} $\int\grad^2\varphi_E\,dV$ is a surface term that vanishes, so
+the universe carries \textbf{zero net charge} automatically --- equal numbers of protons and electrons, with no
+baryogenesis (and, once the neutron is read as a proton--electron pair, in the far stronger \emph{local} form of
+Section~\ref{sec:small}). And because the Laplacian multiplies each Fourier mode by $k^2$ ($\rho_k\propto k^2\varphi_k$), a
+small, \emph{small-scale} (short-wavelength) oscillation of $\varphi_E$ --- not a smooth ripple --- becomes a large
+density contrast: the seed is tiny in amplitude but short in wavelength, and it is the short wavelength (large $k$)
+that the Laplacian amplifies into strong charge.
+
+Crucially, \textbf{only the electric potential is seeded} (charge being its Laplacian). Mass and gravitation are not primitive; they arise, in
+Section~\ref{sec:large}, as the \emph{energy} of the charged structures the seed produces. This is the essential
+departure from a cosmology of two independent potentials: here there is one seed, one potential, and gravity is a
+consequence.
+
+\section{The small scale: RealQM and RealNucleus}\label{sec:small}
+The seed, inflated by the Laplacian, produces charge of both signs and, decisively, of \emph{different spatial extent}: small dense
+positive charge and large diffuse negative charge. These are the \textbf{proton} and the \textbf{electron}, and
+the whole charged world is built from them by Coulomb geometry.
+
+\paragraph{Size is inertial mass.} In RealQM a particle is a charge cloud whose size is fixed by the balance of a
+localisation (kinetic) cost against Coulomb attraction. A \emph{contracted} cloud costs more localisation and
+Coulomb energy and so carries \emph{more energy}; and inertia is energy content, $\text{mass}=E/c^2$~\cite{nomass}.
+Hence \textbf{small $=$ heavy, large $=$ light}: the proton (small, dense) is heavy, the electron (large, diffuse)
+is light. ``Proton small, electron big'' and ``proton heavy, electron light'' are one fact, not two --- a size
+difference read through $E/c^2$. (The numerical ratio $m_p/m_e=1836$ is not derived; it is the open input of
+Section~\ref{sec:open}, as it is in every theory.)
+
+\paragraph{No overlap, no self-interaction: self-repulsion is kinetic energy.} RealQM charge clouds do not overlap
+--- each electron occupies its own domain with a free boundary --- and carry \emph{no self-interaction}: there is
+no Coulomb self-repulsion term. The role such self-repulsion would play, resisting the collapse of a charge to a
+point, is carried instead by the \emph{localisation energy} $\half\int|\grad\psi|^2$: compressing a cloud sharpens
+its gradients and costs kinetic energy, so it resists compression and settles at a finite size (localisation cost
+against Coulomb attraction). A free electron, unconfined, therefore spreads; a bound one takes the size where
+localisation balances attraction. In RealQM, \textbf{self-repulsion appears as kinetic energy}.
+
+\paragraph{Charge is quantized: $\pm1$ the only possibility.} This same structure forces charge to come in
+identical units --- with no monopole and no compact gauge group imported. To exclude an electron's Coulomb energy
+with \emph{itself}, the ``self'' must be well defined: there must be an \emph{indivisible} entity whose interior is
+left out of the Coulomb sum. A divisible continuum of charge would make ``self'' ambiguous --- is half a cloud a
+self? do the two halves repel? --- and the no-self-interaction prescription ill-posed. So removing self-repulsion
+\emph{requires} indivisible units. An indivisible unit is identified by its \emph{spatial occupation} --- it is
+precisely what fills one domain --- and for all electrons, and equally all protons, to be the \emph{same} entity
+(identity), each such domain must carry the same charge. Discreteness and universality then follow at once: every
+electron carries one unit $-1$ and every proton $+1$, the two signs of the seed (Section~\ref{sec:seed}), and no
+intermediate charge can exist. The single premise is that the no-self-interaction law is one
+\emph{universal} law (the same ``self'' for every electron), not an ad-hoc per-blob subtraction; granted that,
+quantization is a \emph{consequence}, not a postulate. This is where the Standard Model must \emph{import} the
+result --- anomaly cancellation fixes only the $\pm$ \emph{ratio} of charges, and true quantization needs a Dirac
+monopole or a compact unifying group, both unobserved. What this argument does \emph{not} fix is the
+\emph{magnitude} of the unit (why the quantum has the size it does --- a scale question, sibling to the nuclear
+scale of Section~\ref{sec:open}), nor the fractional charges of confined quarks, which lie outside RealQM's
+no-substructure scope.
+
+\paragraph{Nuclei and atoms, one mechanism at two scales.} With a neutron taken as $p+e$, a neutral atom $(A,Z)$
+holds $A$ protons and $A$ electrons: $A-Z$ \emph{compact} inside the nucleus and $Z$ \emph{expanded} in orbitals.
+The electron occupies two size-phases, its extent adapting to the Coulomb well: compact in a deep well (inside a
+nucleus, ${\sim}$fm, ${\sim}$MeV) and expanded in a shallow one (atomic, ${\sim}$\AA, ${\sim}$eV). Chemistry and
+nuclear physics are then one Coulomb free-boundary mechanism at two scales: a molecule is nuclei glued by expanded
+(valence) electrons; a nucleus is protons glued by compact electrons. RealNucleus reproduces nuclear binding this
+way --- the He\,-4/deuteron binding ratio comes out $13.1$ against an experimental $12.7$, from Coulomb geometry
+alone~\cite{realnucleus}, and light-nucleus fusion (hydrogen burning) appears as a rearrangement of protons and
+electrons, not the action of a separate force.
+
+\paragraph{Neutrality is local, not merely cosmic.} Because a neutron \emph{is} a bound proton--electron pair,
+every nucleus $(A,Z)$ carries exactly $A$ protons and $A$ electrons, and $N_e=N_p$ is enforced \emph{atom by atom,
+by construction} --- not as a distant global sum. This is a far stronger statement than cosmic neutrality. Global
+neutrality asks only that the total charge of the universe vanish; it would tolerate vast regions of net positive
+and net negative charge cancelling only in the grand total. Local neutrality forbids exactly that: it holds at
+every atom, and local neutrality \emph{implies} the global kind while the converse fails --- so the local form is
+logically much the stronger. It is also the form actually put to the test: laboratory bulk-matter experiments
+bound the residual per-atom charge to $|q_p+q_e|\lesssim10^{-21}\,e$, a direct and stringent constraint, whereas
+cosmic net-charge limits are indirect inferences. In the Standard Model this exact local balance needs two
+separate ingredients --- charge quantization (from anomaly cancellation) and an \emph{assumed} neutral initial
+condition --- with the neutron, a distinct neutral particle, contributing nothing to the charge ledger and its
+abundance left to weak freeze-out. Here the same balance is automatic twice over: globally from the net-zero seed
+($\int\grad^2\varphi_E=0$, Section~\ref{sec:seed}), and locally because the neutron cannot unbalance a count of
+which it \emph{is} the matched pair. What remains owed is charge \emph{quantization} --- why each cloud carries
+exactly one $e$ --- which rides on the discreteness of the RealQM domains, a separate claim.
+
+\paragraph{The nuclear/atomic scale.} What sets the two sizes can be read from charge and the proton's finite size
+$R_p$ alone, with \emph{no mass and no $c$}. An electron attracted to one proton in vacuum must taper to zero at
+infinity; the localisation cost then forces a large cloud of size the atomic $a_0=\hbar^2/me^2\approx0.5$\,\AA. An
+electron caged among protons at a multiphase free boundary need \emph{not} taper to zero --- its density hands off
+to the proton density --- so a flat caged density has zero localisation cost, and it sits at the cage (proton) size
+$R_p\approx$ a few fm, bound by Coulomb (${\sim}$MeV at fm). The size ratio is therefore
+\begin{equation}
+\frac{a_0}{R_p}\;\approx\;\frac{1}{\alpha^2}\;\approx\;2\times10^{4},
+\end{equation}
+so the fine-structure constant appears here as a pure \emph{geometric} ratio of the two scales,
+$\alpha^2=R_p/a_0$, the ratio of nuclear to atomic size --- not a coupling constant. Empirically the H atom
+($\approx a_0=0.53$\,\AA) and the deuteron nucleus ($\approx 2.1$\,fm) give a ratio $\approx1/25{,}000$, matching
+$\alpha^2\approx1/18{,}800$ to order of magnitude. \emph{Why} the proton is ${\sim}$fm --- what fixes $R_p$ ---
+remains the central open problem.
+
+\section{Inertia is energy; the local speed limit}\label{sec:inertia}
+Throughout, inertia is the energy content: $\mathbf p=(E/c^2)\mathbf v$, the measured relation of the Penning
+trap~\cite{nomass}, and Newton's second law $\mathbf F=\dot{\mathbf p}$ governs the response. In the small, the
+force is electromagnetic and couples to \emph{charge}; in the large, it is gravity and couples to \emph{mass}
+$=E/c^2$. One mechanics, one inertia, two forces reading two properties of the same matter.
+
+The constant $c$ enters \emph{only} the electromagnetic sector --- through the field momentum of a moving charge,
+Thomson's electromagnetic mass. Consequently there is a \textbf{local speed limit}: a charge, or a pulse of light,
+cannot overtake light \emph{through} the local matter and fields, because feeding it energy only increases its
+inertia $E/c^2$ without bound as $v\to c$. But \textbf{Newtonian gravitation is $c$-free} --- instantaneous, with
+no $c$ in $\rho=\grad^2\varphi_g$ --- so it imposes \emph{no} speed limit on the large-scale motion of neutral
+bodies. Two galaxies may approach, or recede, at relative speed \emph{greater than $c$}; this is a global relative
+velocity of gravitating matter, not a local signal, and it violates no local causality (no local frame sees
+anything pass light through it). The speed limit is thus a property of the RealQM/Maxwell sector, not of gravity ---
+just as in observational cosmology distant galaxies recede faster than light without any local law being broken.
+(How Newtonian mechanics extends to relatively moving frames --- where $c$ and its kinematics would enter --- is a
+separate matter, taken up in \emph{Many-Minds Relativity}~\cite{mmr}, and lies outside the non-extreme scope kept
+here.)
+
+\section{The large scale: emergent Newtonian gravitation}\label{sec:large}
+The energy of the charged matter --- protons, electrons, their binding and radiation --- is a mass/inertia density
+$\rho$, \textbf{positive throughout} ($\rho\ge 0$), seeded entirely by the charges. It is this positive $\rho$ that
+sources gravitation, and the emergent potential $\varphi_g$ comes in \textbf{two forms}, its Laplacian taking
+either sign against the one positive source:
+\begin{equation}
+\pm\,\frac{1}{4\pi G}\,\grad^2\varphi_g \;=\; \rho \;\ge\; 0 .
+\end{equation}
+Thus $\varphi_g$ is not a primitive but \emph{emergent}, the large-scale field of the aggregated energy of the
+charged world, and it comes in two forms \textbf{according to the sign of its Laplacian}: the $+$ form is a
+\emph{well} ($\grad^2\varphi_g>0$, effective positive mass, attractive), the $-$ form an \emph{anti-well}
+($\grad^2\varphi_g<0$, effective negative mass, repulsive). The $\pm$ mass is therefore \emph{formal} --- the sign
+carried by the curvature of $\varphi_g$, not a negative energy; the source $\rho$ is positive. By the gravitational force-sign, the wells
+attract and draw together while the anti-wells repel, so the positive-mass regions are \textbf{isolated} into great
+chunks --- filaments and clusters --- \emph{interfoliated} with the anti-well regions between them: the
+\textbf{cosmic web}, positive-mass nodes and filaments interleaved with voids, the anti-well (formally
+negative-mass) sector acting as \textbf{dark energy}.
+
+\emph{Both} the positive and the negative mass are emergent --- the two forms of the gravitational potential of the
+one charge-seeded, positive energy $\rho$ --- neither a primitive, neither a second seed; they repel and
+\textbf{separate}, the positive isolating into the web and the negative emptying into the voids. Only charge is put
+in; the whole mass--gravity structure, of both signs, is the emergent large-scale field of that energy. This is the
+sense in which the largest structures and the smallest share one origin: the small scale is the seed and its charge
+directly, the large scale the emergent gravity of their energy.
+
+\paragraph{A 2D test: cosmic-web morphology.} A mass-conserving 2D simulation of a $\pm$mass field
+$\rho=\grad^2\varphi$ from a random potential, evolved as compressible self-gravitating flow with same-sign
+attraction and opposite-sign repulsion, develops the morphology of observed large-scale structure
+(Figure~\ref{fig:web}): intermixed positive- and negative-mass filamentary webs, mass concentrated at nodes,
+separated by large voids --- the voids here \emph{actively driven} by negative-mass repulsion rather than merely
+evacuated by gravity. A qualitative match (a 2D toy); quantitative tests (void-size distribution, correlation
+function) remain to be done.
+\begin{figure}[h]\centering
+\includegraphics[width=0.5\textwidth]{cosmic_web_pm2.png}
+\caption{2D self-gravitating $\pm$mass from $\rho=\grad^2\varphi$: positive- (warm) and negative- (cool) mass webs
+with concentrated nodes and large voids --- cosmic-web morphology, voids driven by negative-mass repulsion.
+Mass-conserving; periodic box.}\label{fig:web}
+\end{figure}
+
+\section{Dark energy and inflation from one seed}\label{sec:de-infl}
+Two central features of modern cosmology appear here as consequences of the \emph{same} machinery, from the one
+charge seed --- an economy worth stating, and honestly bounding.
+
+\emph{Dark energy.} The under-dense, formally negative-mass sector of Section~\ref{sec:large} is repulsive: the
+anti-wells push matter away, driving the voids to grow and separate. This is a built-in \textbf{dark-energy
+mechanism}, not put in by hand --- it is simply the $-$ side of the density perturbation, the anti-well form of the
+emergent $\varphi_g$. What is \emph{not} yet derived is its magnitude, or that its effective equation of state is
+$w\approx-1$; the mechanism is qualitative.
+
+That a \emph{negative-mass} sector might unify the dark components has been proposed before, most prominently by
+Farnes~\cite{farnes}, whose single negative-mass fluid --- sustained by continuous matter creation --- aims to
+account for both dark matter and dark energy within a modified $\Lambda$CDM framework (a proposal that has itself
+drawn debate). RealUniv shares the core intuition that negative mass drives cosmic acceleration, but differs at the
+root. There the negative mass is a \emph{primitive} fluid, with genuinely negative inertial mass and runaway
+motion, requiring a matter-creation term and retaining the expanding-space $\Lambda$CDM scaffold; here it is the
+\emph{emergent, formal} anti-well sign of a gravitational potential sourced entirely by ordinary \emph{positive}
+energy --- no negative inertial mass, no creation term, no Big Bang, and no separate dark-matter component at all
+(cosmic structure is the ordinary Coulombic mass of Section~\ref{sec:large}). The two proposals converge on
+negative mass as the key to the dark sector and diverge on whether it is fundamental or emergent.
+
+They differ, too, in scope. Farnes advances his negative masses avowedly as a \emph{toy model} --- a
+phenomenological component grafted onto $\Lambda$CDM to demonstrate that negative mass \emph{can} mimic the dark
+sector, illustrated by toy $N$-body simulations. RealUniv instead offers the negative sector as one facet of an
+\emph{integrated} model built from a single seed: the same charge fluctuation that yields nuclei and atoms
+(RealQM/RealNucleus) yields the energy that sources gravity, whose anti-well sign \emph{is} the negative sector ---
+derived, not posited, and not bolted onto a standard scaffold. The ambition is thus a full first-principles
+cosmology rather than a dark-sector patch. Honesty requires the counterweight: on the dark sector
+\emph{specifically}, RealUniv is so far only qualitative (the 2D toy of Section~\ref{sec:large}) and \emph{less}
+quantitatively developed there than Farnes's simulations. RealUniv's claim to be the fuller model rests on
+integrative scope --- one seed for matter and the dark sector alike --- not on validated dark-sector dynamics,
+which remain to be built.
+
+\emph{Inflation.} The Laplacian amplifies short wavelengths, $\rho_k\propto k^2\varphi_k$, so a tiny small-scale
+oscillation of the potential is magnified into a large density contrast --- an \textbf{``inflation'' of the density
+field}. This is amplification of the \emph{field}, not the exponential expansion of \emph{space} of the standard
+inflationary paradigm (which addresses the horizon and flatness problems); the two must not be conflated.
+
+Because $\rho=\grad^2\varphi$ is $k^2$-weighted, the amplification is short-wavelength dominated: the seed comes
+out as \emph{small-scale} charge structure. In this model that is not a spectral defect to be observed in the sky
+but the very mechanism by which the initial fluctuation becomes a \textbf{proton--electron universe} --- nuclei,
+atoms, bound matter at small scales (Section~\ref{sec:small}). One might object that a $k^2$-weighted (``blue'')
+density spectrum conflicts with the near scale-invariant, slightly red primordial spectrum ($n_s\approx0.96$)
+inferred from the CMB. But that inference is internal to the hot Big Bang: it reads the CMB as the red-shifted
+\emph{afterglow} of a hot dense phase and reconstructs a primordial density spectrum through recombination and a
+transfer function. This model has no Big Bang and no afterglow phase; it makes no claim about the CMB and requires
+none. The $n_s$ comparison therefore presupposes a framework the model does not adopt, and the short-wavelength
+weighting is read here as a feature --- the origin of small-scale matter --- rather than a conflict. The
+interpretation of the CMB itself we regard as a separate, open observational question outside the scope of a
+small-scale-structure cosmology.
+
+So from a single seed the model contains natural \emph{candidates} for both dark energy (negative mass) and a
+fluctuation amplification (``inflation of the density field'') --- an economy that a separate-mechanism cosmology
+does not have --- while neither is yet quantitatively validated.
+
+\section{The cosmic sequence and the helium fraction}\label{sec:sequence}
+The two sectors exchange energy in \emph{both} directions, and the cosmic sequence is that exchange in time.
+\emph{Upward}, the energy of the charged world is mass and sources gravity (Section~\ref{sec:large}).
+\emph{Downward}, gravitational attraction feeds energy back into electromagnetism: the collapse of a positive-mass
+region converts gravitational potential energy into heat, and that hot dense state drives the electromagnetic
+processes. Gravity supplies the energy; electromagnetism spends it as structure and light.
+
+Concretely: ordinary gravitational contraction of a positive-mass seed supplies one hot dense epoch, and the
+released binding energy leaves as light. As the contracting proton--electron matter heats, \textbf{deuterons and nuclei} form
+(${\sim}$MeV, RealNucleus), the Coulomb binding energy radiating away (the origin of light) and appearing as the
+mass defect. On cooling, nuclei capture expanded electrons into \textbf{atoms} (${\sim}$eV, RealQM), again
+radiating; at that recombination the matter turns neutral, electromagnetism screens out, and radiation streams
+free. Only \emph{then} does the weak, slow gravitational aggregation build the cosmic web of
+Section~\ref{sec:large}. So the universe's timeline stages the two tiers in order: \emph{charge builds the small
+while matter is charged; gravity builds the large once it is neutral}.
+
+A bound state survives once the bath can no longer ionise it, so the two electron phases switch on at two
+temperatures set by their two binding energies, forcing the order plasma $\to$ nuclei $\to$ atoms
+(Table~\ref{tab:epochs}). The temperature ratio between the epochs (${\sim}10^6$) is just the energy-scale ratio.
+
+\begin{table}[h]\centering
+\begin{tabular}{lll}
+\toprule
+epoch & process & temperature \\
+\midrule
+plasma & free $\pm$ charges & $>10^{10}$ K \\
+nuclei & compact $e$ captured $\to$ nuclei & ${\sim}10^{10}$ K ($kT{\sim}$MeV) \\
+atoms & expanded $e$ captured $\to$ atoms; radiation & ${\sim}3000$ K ($kT{\sim}$eV) \\
+\bottomrule
+\end{tabular}
+\caption{Two condensation epochs, separated by ${\sim}10^6$ in temperature.}\label{tab:epochs}
+\end{table}
+
+\paragraph{The helium fraction: a consistency, not a prediction.} The proton--electron picture reproduces the
+primordial helium; it is worth being exact about what is derived and what is borrowed. The electron has two
+size-phases --- \emph{compact} (inside a nucleus, i.e.\ inside a neutron, since $\text{neutron}=p+\text{compact
+}e$) and \emph{expanded} (atomic) --- interconverted by the two weak processes, compactify ($p+e\to n$) and expand
+($n\to p+e$, $\beta$-decay). Three quantities enter, and all three are \emph{inputs}:
+\begin{itemize}
+\item $E_\ast$ --- the \textbf{energy gap} between the two phases: the energy to compactify an electron, released
+when it expands. It plays the role the neutron--proton mass difference plays in standard cosmology and is
+\emph{identified with it}, $E_\ast\approx1.29$~MeV. It is an \emph{input}, not a RealNucleus output: its absolute
+size is the open nuclear-scale problem (Section~\ref{sec:open}) --- RealNucleus fixes dimensionless \emph{ratios},
+not the MeV scale.
+\item $T_\ast$ --- the \textbf{transition temperature}, $T_\ast\sim E_\ast/k\sim10^{10}$~K: above it the two phases
+interconvert freely, below it compactification becomes rare.
+\item $T_f$ --- the \textbf{freeze-out temperature} ($\approx0.8$~MeV): where the weak (size-changing) processes
+fall slower than the cosmic expansion and the neutron/proton ratio \emph{locks}. As in standard big-bang
+nucleosynthesis it is set by the weak-rate-vs-expansion balance, not predicted --- a second input.
+\end{itemize}
+In equilibrium the neutron/proton ratio is the Boltzmann factor $e^{-E_\ast/kT}$; at freeze-out it locks at
+$(n/p)_f=e^{-E_\ast/kT_f}$; a fraction $\beta$-decay back (survival factor $d$), and essentially all the rest end in
+He-4:
+\begin{equation}
+\Big(\frac{n}{p}\Big)_{\text{nuc}}=\frac{(n/p)_f\,d}{1+(n/p)_f(1-d)},
+\qquad
+Y=\frac{2\,(n/p)_{\text{nuc}}}{1+(n/p)_{\text{nuc}}} .
+\end{equation}
+With $E_\ast\approx1.29$~MeV, $T_f\approx0.8$~MeV and $d\approx0.74$: $(n/p)_f=0.199\to(n/p)_{\text{nuc}}=0.140\to
+Y=0.245$, the observed primordial helium. This is a \textbf{consistency}, not a new prediction: with the two inputs
+borrowed --- $E_\ast$ the observed $n$--$p$ gap, $T_f$ the standard freeze-out --- the size-transition picture
+\emph{reproduces} the standard result. Nothing here is derived; and, notably, RealNucleus's one genuine computed
+output, the He-4/deuteron binding ratio ($13.1$ vs $12.7$), does \emph{not} enter $Y$. The content is that the
+proton--electron reinterpretation is \emph{consistent} with the standard helium calculation, with $E_\ast$ the same
+open datum as the nuclear scale.
+
+\section{Complexity from the size asymmetry}\label{sec:complexity}
+The world is built not on a charge imbalance (charge is exactly balanced, $\pm e$) but on a \emph{size} imbalance:
+the proton has a fixed small size (a rigid anchor) while the electron's size is variable, adapting to its well ---
+${\sim}$\AA{} in an atom, ${\sim}$fm in a nuclear cage. The fixed proton supplies the anchors; the variable
+electron \emph{spans scales} --- spreading to bind atoms and molecules, compacting to bind nuclei --- producing the
+nested multi-scale hierarchy that \emph{is} complexity. With a single fixed size only one scale exists and nothing
+complex is built. The nuclear/atomic separation is thus a \textbf{precondition for complexity}, so any universe
+that supports structure, and hence observers, must exhibit it: an anthropic reason \emph{why} the scales are
+separated, though not a derivation of \emph{how far}. Notably, since a neutron is structurally $p+e$, it is heavier
+than a proton \emph{by construction}, so proton and hydrogen stability is automatic --- the usual fine-tuning
+bound ``$\alpha$ must not be too large or the proton decays'' simply does not arise.
+
+\section{Relation to $\Lambda$CDM and observations}\label{sec:lcdm}
+It is worth stating plainly what this model shares with the standard picture, where it differs, and what it does
+not yet address.
+
+\emph{Shared.} Ordinary matter is Coulombic and gravitation is attractive between masses; nuclei and atoms form and
+later assemble into a filamentary large-scale structure of clusters and voids; a helium mass fraction near
+$Y\approx0.25$ is accommodated.
+
+\emph{Different.} There is no initial singularity and no hot Big Bang, hence no cosmic microwave background as a
+red-shifted afterglow (Section~\ref{sec:de-infl}); no inflationary expansion of space (the amplification here is of
+the density \emph{field}, not of space); no dark-matter particle (structure is sourced by the ordinary
+energy/mass density of Coulombic matter); and no cosmological constant (a repulsive dark-energy sector arises as
+the negative-curvature part of the emergent gravitational potential). The neutron is composite ($p+e$), not
+elementary, and nuclear binding is Coulombic geometry rather than a strong force.
+
+\emph{Not yet addressed.} The model is deliberately restricted to Coulomb$+$Newton and does not, as it stands,
+account for the redshift--distance relation and the expansion history, the CMB acoustic-peak spectrum under any
+alternative interpretation, precise large-scale-structure statistics (the two-point correlation and its baryon
+acoustic feature), or light-element abundances beyond helium. These are the observational fronts on which any
+serious successor must eventually be tested; here we claim only internal consistency and economy of ingredients,
+not empirical parity with $\Lambda$CDM. What the model offers in exchange is fewer free primitives --- one seed, no
+dark-matter species, no separate inflaton, no cosmological constant --- at the cost of predictive machinery still
+to be built (Section~\ref{sec:open}).
+
+\section{Open problems}\label{sec:open}
+\begin{enumerate}
+\item \textbf{The nuclear scale.} What sets the ${\sim}10^4$--$10^5$ nuclear/atomic separation --- equivalently,
+the proton size $R_p$? The preferred reading takes $R_p$ (${\sim}$fm) as the input nuclear length, with the caged,
+zero-localisation electron sitting at it (no relativity needed); the ratio $a_0/R_p\approx1/\alpha^2$ then follows.
+Why $R_p$ has that value is open. This is the same datum as the mass ratio $m_p/m_e$ and the proton/electron size
+ratio: one open number.
+\item \textbf{The fluctuation spectrum and a law of motion.} Here $\rho=\grad^2\varphi$ is a definition, not yet a
+dynamics: $\varphi$ needs its own law of motion, and the seed spectrum is an input. The $k^2$-weighting makes the
+amplification short-wavelength dominated, which this model reads as the origin of small-scale matter rather than as
+a primordial-spectrum prediction (Section~\ref{sec:de-infl}); comparison with the CMB-inferred $n_s\approx0.96$
+presupposes the Big Bang afterglow interpretation, which the model does not adopt. The status of the CMB in a
+non-Big-Bang setting is itself an open question, but not one this small-scale-structure model needs to settle.
+\item \textbf{The mass ratio $m_p/m_e=1836$.} Built in qualitatively as a size difference, but its value is not
+derived (nor is it in the Standard Model).
+\item \textbf{The neutrino.} $\beta$-decay's continuous spectrum --- the 1930 objection that sank the
+proton--electron neutron~\cite{pauli}. The ``electron expands'' step needs a home for that energy and spin.
+\item \textbf{Precision and scope.} BBN abundances beyond helium, the fluctuation-to-structure statistics, and the
+extreme regimes (strong-field gravity, the highest energies) lie beyond the Coulomb$+$Newton scope kept here.
+\end{enumerate}
+
+\section{Summary}\label{sec:summary}
+\noindent On a given 3D Euclidean space, if the sole primitive is a small-scale fluctuation
+of the electric \emph{potential} (charge being its Laplacian) --- yielding small heavy protons and large light
+electrons, hence nuclei and atoms by Coulomb geometry
+(RealQM/RealNucleus) --- then the \emph{energy} of that charged matter, single quantity, sources an emergent
+Newtonian gravitation whose $\pm$ perturbations separate into the cosmic web (positive mass) and dark energy
+(negative mass), with the speed of light limiting only the electromagnetic sector; a unifying two-tier picture from
+one seed, whose survival hinges on a single hard question: what sets the nuclear scale.
+
+\begin{thebibliography}{9}
+\bibitem{realqm} C.\ Johnson, \emph{RealQM: Quantum Mechanics as Multiphase 3D Continuum Mechanics}, and
+interactive gallery, \url{https://claes542.github.io/RealMolecule/}.
+\bibitem{realnucleus} C.\ Johnson, \emph{RealNucleus: nuclear binding from a pure-Coulomb proton--electron model},
+manuscript, same repository.
+\bibitem{nomass} C.\ Johnson, \emph{Energy Without Mass: RealQM, Inertia, and the Penning Trap}, same repository.
+\bibitem{mmr} C.\ Johnson, \emph{Many-Minds Relativity}: absolute Euclidean space, $c$ as a wave speed, and a
+critique of Einstein's special relativity.
+\bibitem{pauli} W.\ Pauli, open letter to the Tübingen group (1930), proposing the neutrino to save energy
+conservation in $\beta$-decay.
+\bibitem{kolbturner} E.\ W.\ Kolb and M.\ S.\ Turner, \emph{The Early Universe}, Addison-Wesley (1990).
+\bibitem{farnes} J.\ S.\ Farnes, \emph{A unifying theory of dark energy and dark matter: Negative masses and
+matter creation within a modified $\Lambda$CDM framework}, Astronomy \& Astrophysics \textbf{620}, A92 (2018);
+arXiv:1712.07962.
+\end{thebibliography}
+
+\end{document}
