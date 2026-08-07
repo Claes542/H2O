@@ -44,3 +44,13 @@ in R1.
     conclusion is stronger: a finite p–e interface has **no acceptable BC** — physical (Neumann) is unstable,
     stable (Dirichlet) is unphysical — and only the *point* proton (no interface, Kato cusp) works. Size asymmetry
     reframed from "convenience" to "necessity."
+  - **Added paragraph "The neutron and the alpha"** (end of §9 subsection): the single-pair free-boundary
+    instability *is* the free-neutron instability — a neutron = one compact electron in one proton, proton and
+    compact electron comparable in size = the ill-posed regime → model predicts free neutron unstable (β-decay
+    ~15 min), the instability = the electron expanding back out. Nuclei escape via *collective confinement*: in the
+    α (⁴He = 4p+2e, 2 compact electrons caging 4 protons) each electron is held by several protons → restoring
+    force a lone pair lacks; same variational Coulomb binds it (He-4/deuteron ratio 13.1 vs 12.7), no strong force.
+    Free neutron unstable, bound neutron stable = one mechanism. Ties §9 free-boundary stability to the RealNucleus
+    section. Also settled: instability criterion is R_p/a0 ≪ 1 ⟺ m_p/m_e ≫ 1; 1836 is overkill (could be ~10–100
+    and still well-posed; ~1/positronium regime is ill-posed) — the model explains the ratio must be large, not its
+    value.
