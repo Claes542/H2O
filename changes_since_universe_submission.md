@@ -62,3 +62,22 @@ in R1.
     R_p). Lands right: real H (ratio 1836) deep stable; free neutron (nuclear compact-e ~ proton size, ratio ~1) at
     threshold ⇒ unstable; alpha rescued by collective confinement. Paper §9 paragraph 2 rewritten with the
     criterion as a displayed equation. Order-of-magnitude threshold; sharp value needs the free-boundary solver.
+  - **MAJOR RETRACTION + REWRITE: the free-boundary-stability framing was WRONG.** Independent 3D CPU checks
+    (`real_cosmology_numerics/interface3d.py`, `verify3d.py`, `shell3d.py`) showed: (a) the Neumann +/- interface
+    is STABLE to ripples (kinetic surface tension dominates; electrostatic response negligible) — no Mullins–Sekerka
+    fingering; (b) "energy minimised at contact" is a stable BOUND MINIMUM (two magnets sticking), NOT a runaway — I
+    had inverted it; (c) a big single proton doesn't hold a caged electron — the electron EXPANDS OUT (energetics),
+    which IS β-decay, not a boundary instability. Conclusion: **stability is ENERGETICS (which config is the ground
+    state), not free-boundary stability; the Neumann +/- boundary is always stable — a non-issue.** §9 subsection
+    retitled "…free-boundary stability" → **"Why the proton must be compact: an energetic argument"** and fully
+    rewritten: electron has TWO branches (expanded/atomic ~eV vs compact/nuclear ~MeV); a POINT proton has no
+    interior so holds the electron only AROUND it (atom, −13.6 eV, BC-independent as R_p→0) and CANNOT hold one
+    inside; holding an electron INSIDE (compact) needs a CAGE of ≥2 protons; the two branches CROSS at the neutron
+    (1p+1e, R_p~a_e), where the compact branch is not the ground state → electron expands → β-decay (m_n≈m_p+m_e,
+    0.78 MeV = on the ridge); stable nuclei begin at the deuteron (2p+1e), α (4p+2e) deeply bound (ratio 13.1 vs
+    12.7). ALL free-boundary-instability claims RETRACTED (fingering, no-interior-equilibrium, "Neumann unstable /
+    no acceptable BC", the R_p≳a_e criterion eq). Now 11 pp.
+  - Harness `big_proton_test.html` added (molecule_nucleus.js: electron-inside-proton-shell, Neumann
+    [USER_DIRICHLET_EP=false] vs Dirichlet ['both'] × big [m=1] vs heavy [m=1836] proton) — WebGPU/browser, the
+    definitive check for the author to run before finalizing §9. Numerics added to `real_cosmology_numerics/`:
+    interface3d.py, verify3d.py, shell3d.py, shell3d_long.py.

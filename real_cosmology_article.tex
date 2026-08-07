@@ -429,59 +429,47 @@ separated, though not a derivation of \emph{how far}. Notably, since a neutron i
 than a proton \emph{by construction}, so proton and hydrogen stability is automatic --- the usual fine-tuning
 bound ``$\alpha$ must not be too large or the proton decays'' simply does not arise.
 
-\subsection*{Why the proton must be a point: free-boundary stability}
-The size asymmetry is not merely the precondition for complexity; it is what makes an atom a \emph{well-posed,
-stable} object at all. The decisive quantity is the boundary condition where the electron meets the proton, and it
-behaves very differently depending on the proton's size.
+\subsection*{Why the proton must be compact: an energetic argument}
+The size asymmetry is more than the precondition for complexity: it selects which of the electron's two possible
+states is bound, and hence whether one obtains an atom, a nucleus, or nothing stable. The decision is purely
+\emph{energetic} --- which configuration is the ground state --- not a question of interface stability.
 
-A RealQM \emph{free boundary} sits where the energy is stationary in its position, and is stable only if that is a
-minimum. Whether it is depends on the \emph{sign of the force across it}. For \emph{like} charges (electron meeting
-electron) a displacement raises both the mutual repulsion and the localisation cost --- a restoring force, a stable
-minimum; this is why RealQM's electron--electron boundaries are well behaved. For \emph{opposite} charges (electron meeting
-proton) the force is \emph{attractive}, and a direct calculation of the cross-interface energy shows it is
-\emph{monotone} in the separation, pulling the boundary toward contact with no opposing Coulomb term. What
-``contact'' \emph{means} then decides stability, and this turns on the size ratio $R_p/a_e$ of the proton to the
-electron cloud it meets. If the proton is much smaller, $R_p\ll a_e$ (equivalently $m_p\gg m_e$), it nests as an
-effective \emph{point} inside the electron: there is no finite interface, ``contact'' is simply the electron
-centring on a point charge --- the stable, cusped atom --- and the electron's localisation cost supplies the
-restoring force. But if the proton is \emph{comparable}, $R_p\gtrsim a_e$ ($m_p\lesssim m_e$), ``contact'' means
-overlap of two comparable clouds, which non-overlap forbids: the Neumann free boundary is pinned against the
-constraint with no interior minimum, and the configuration collapses. The instability criterion is thus
-\begin{equation}
-R_p\gtrsim a_e \quad\Longleftrightarrow\quad m_p\lesssim m_e
-\end{equation}
-(comparable sizes, order-unity mass ratio). A Neumann-continuous free boundary is the \emph{physical} condition
-(nothing artificial is imposed), but in this regime it is \emph{unstable}.
+The electron has \textbf{two branches}. \emph{Expanded}: a diffuse cloud of size ${\sim}a_0$ that tapers to zero
+far away and binds by cusping on a positive charge --- the atom, ${\sim}$eV. \emph{Compact}: a small cloud of size
+${\sim}R_p$ that does \emph{not} taper but hands off to surrounding proton density at nearly zero localisation
+cost, bound by Coulomb at the small scale --- the nuclear glue, ${\sim}$MeV. Which branch is the ground state is
+fixed by the proton configuration.
 
-One could restore stability with a Dirichlet-$0$ boundary --- a density node between the clouds --- but that is
-\emph{unphysical}: it imposes a node with no physical cause, since nothing in the Coulomb-plus-localisation energy
-makes the charge vanish at a material interface. So a finite proton is caught in a bind: the \emph{physical}
-boundary condition (Neumann) is \emph{unstable}, and the \emph{stable} one (Dirichlet) is \emph{unphysical}. A
-finite $p$--$e$ interface has no acceptable condition at all.
+\textbf{A point proton has no interior.} It can hold an electron only \emph{around} it --- the electron cusps at
+the point (maximal density) and spreads outside as the expanded, atomic cloud. It \emph{cannot} hold an electron
+\emph{inside}, because there is no inside. So a small, point-like proton yields the atom, cleanly and deeply: as
+$R_p\to0$ the electron binds at the full $-13.6$ eV, independent of any boundary condition (forcing the density to
+zero at the point costs nothing --- a measure-zero constraint --- and, left free, the electron restores the cusp).
 
-The resolution nature adopts is to make the proton a \emph{point}: then there is no finite interface, and the
-dilemma evaporates. The electron simply cusps at the point (maximal density, the Kato cusp) and decays at infinity
---- the finite-energy, stable ground state --- and the free-boundary instability never arises. Minimal
-spherically symmetric computations bear this out: modelling the proton as a finite charge of radius $R_p$, both
-conditions return the exact hydrogen value as $R_p\to0$ and diverge only for a finite proton (at $R_p=a_0$: the
-Neumann/static binding is $-10.2$ eV, the Dirichlet/excluded one only $-4.9$ eV), while forcing the electron
-density to zero at the kernel \emph{point} leaves the energy at $-13.6$ eV unchanged --- a node at a single point
-is measure-zero, and left free the electron closes it and returns to the cusp. Only excluding the electron from a
-\emph{finite} region costs energy (a fully hollow shell binds at only $\approx-10.6$ eV). Thus the size asymmetry
-is not a convenience but a \emph{necessity}: an equal-sized proton makes the atom either unstable or ill-posed, and
-matter is well defined only because all the smallness is placed in the proton.
+\textbf{Holding an electron inside needs a cage.} The compact branch requires the electron to be \emph{surrounded}
+by positive charge, so that it can go flat and hand off on all sides at no localisation cost; a lone proton cannot
+surround it. Two or more protons, close together, can: they form a well with an interior deep enough to make the
+compact branch the ground state, bound at ${\sim}$MeV. This is why nuclear binding is collective --- and why a
+single proton, whatever its size, cannot make a nucleus.
 
-\paragraph{The neutron and the alpha.} This same instability reappears at the nuclear scale as a familiar fact. A
-neutron here is a single $p+e$ pair --- one compact electron bound in one proton, with the proton and the compact
-electron now \emph{comparable} in size: precisely the ill-posed, no-restoring-force regime above. The model
-therefore predicts the free neutron to be \emph{unstable}, and it is ($\beta$-decay, ${\sim}15$ min); the
-free-boundary instability \emph{is} the decay --- the compact electron expanding back toward atomic size. Nuclei
-escape it by \emph{collective confinement}. In the $\alpha$-particle ($^4$He $=4p+2e$, two compact electrons
-gluing four protons; Section~\ref{sec:small}), each electron is caged by several protons at once, so expelling it
-must work against the surrounding cage --- supplying the restoring force a lone pair lacks. The same variational
-Coulomb minimisation then binds the $\alpha$ (the He-4/deuteron binding ratio comes out $13.1$ against an
-experimental $12.7$~\cite{realnucleus}), with no strong force. Free neutron unstable, bound neutron stable: one
-mechanism, matching nature.
+\textbf{The two branches cross at the neutron.} A single $p+e$ with the electron squeezed to the proton scale
+($R_p\sim a_e$, one proton) is exactly the watershed: too large to be a clean atomic core, too alone to be a deep
+cage. There the compact branch is \emph{not} the ground state --- the expanded branch (a free proton plus electron,
+i.e.\ a hydrogen atom) lies lower --- so the electron expands and the object decays. This is the free neutron:
+unstable ($\beta$-decay, ${\sim}15$ min), the decay being nothing but the electron sliding from the compact branch
+to the expanded one. Its near mass-degeneracy $m_n\approx m_p+m_e$ and the tiny $0.78$ MeV release are the
+signature of sitting on the ridge.
+
+\textbf{Stable nuclei begin one proton later.} Add a second proton and the compact branch drops below the expanded
+one: $2p+1e$ (the deuteron) is the first stable electron-glued nucleus, and $4p+2e$ (the $\alpha$) is deeply bound
+--- the He-4/deuteron binding ratio coming out $13.1$ against an experimental $12.7$ from Coulomb geometry alone,
+no strong force~\cite{realnucleus}. Free neutron unstable, bound neutron (in a cage of protons) stable: one
+energetic mechanism, matching nature.
+
+Minimal computations are consistent: for a point/compact proton the electron binds at $-13.6$ eV regardless of the
+boundary condition imposed at the kernel, whereas around a single \emph{big} proton the electron expands back out
+(it is not held inside) --- the single-proton compact state is simply not the ground state. A definitive check in
+the full free-boundary solver (a big proton, $m_p=m_e$, against multi-proton cages) is left to future work.
 
 \section{Relation to $\Lambda$CDM and observations}\label{sec:lcdm}
 It is worth stating plainly what this model shares with the standard picture, where it differs, and what it does

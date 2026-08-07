@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html><body style="margin:0;background:#000;color:#fff;font-family:monospace">
+<div style="display:flex;flex-wrap:wrap;align-items:flex-start">
+  <div id="results" style="background:rgba(0,0,0,0.92);border:1px solid #444;padding:12px;margin:10px;font-size:12px;min-width:560px"></div>
+</div>
+<pre id="log" style="margin:0;padding:8px;color:#8cf;font-size:12px">Building electron-inside-proton-shell test...</pre>
+<script>
+// ===========================================================================
+//  ELECTRON INSIDE A PROTON SHELL  —  free-boundary BC test (molecule_nucleus.js)
+// ---------------------------------------------------------------------------
+//  1 electron (-1) as INNER core (r < R_shell), 1 proton (+1) as OUTER shell
+//  (r > R_shell), both centred at the box middle. The p-e free boundary at
+//  r = R_shell is set by USER_DIRICHLET_EP:
+//     false   -> ALL NEUMANN + continuity   (the physical case in question)
+//     'both'  -> Dirichlet psi=0 at e-P     (stable-but-unphysical case)
+//  and the proton is either BIG (mass 1 = electron-size cloud) or HEAVY
+//  (mass 1836 = compact, the control).
+//
+//  READ-OUT per run: total E (Ha), kinetic E_T, size proxy 1/sqrt(2 E_T) (a0;
+//  =1 for H). QUESTION: does the BIG-proton Neumann case hold a bound, compact
+//  electron, or does the electron expand / fail to bind (as the crude CPU model
+//  suggested)?  Compare against Dirichlet and against the heavy-proton control.
+//
+//  HOW TO RUN: open in Chrome/Edge with WebGPU enabled. It auto-runs the 4
+//  configs one per page-reload (~seconds each) and fills the table + console.
+//  HONEST LIMITS: grid h ~ 0.08 a0 (cannot resolve a true fm electron); this
+//  probes the ATOMIC-scale big/soft proton, i.e. exactly the equal-size regime.
+// ===========================================================================
+var A0_FM = 52917.7;
+var configs = [
+  { tag: 'Neumann (all),  big proton  m=1',    mass: 1,    bc: false  },
+  { tag: 'Dirichlet e-P,  big proton  m=1',    mass: 1,    bc: 'both' },
+  { tag: 'Neumann (all),  heavy proton m=1836',mass: 1836, bc: false  },
+  { tag: 'Dirichlet e-P,  heavy proton m=1836',mass: 1836, bc: 'both' }
+];
+var R_SHELL = 1.0;   // p-e free-boundary radius (a0): electron r<R, proton shell r>R
+
+var idx = 0, results = {};
+(function(){ var s = sessionStorage.getItem('bpt');
+  if (s){ var st = JSON.parse(s); idx = st.idx; results = st.results; sessionStorage.removeItem('bpt'); } })();
+
+if (idx < configs.length) {
+  var cfg = configs[idx];
+  var gridN = 128, scr = 10, gN2 = Math.round(gridN/2), h = scr/gridN;   // h ~ 0.078 a0
+  var atoms = [
+    { i: gN2, j: gN2, k: gN2, Z: 1, el: 'e' },   // 0: electron (-1), inner core
+    { i: gN2, j: gN2, k: gN2, Z: 1, el: 'P' }    // 1: proton (+1), outer shell (same centre)
+  ];
+  window.USER_NUCLEUS_MODE = true;
+  window.USER_NN = gridN;
+  window.USER_ATOMS = atoms;
+  window.USER_SCREEN = scr;
+  window.USER_STEPS = 6000;
+  window.USER_DYNAMICS = false;
+  window.USER_Z      = [1, 1];
+  window.USER_Z_NUC  = [0, 0];
+  window.USER_RC     = [0, 0];
+  window.USER_MASS   = [1, cfg.mass];          // electron 1 ; proton BIG(1) or HEAVY(1836)
+  window.USER_CHARGE = [-1, 1];                // electron -1, proton +1
+  window.USER_SHELL_RADIUS = R_SHELL;
+  window.USER_SHELL_INNER = [0];               // electron inner (inside the shell)
+  window.USER_SHELL_OUTER = [1];               // proton outer shell
+  window.USER_DIRICHLET_EP = cfg.bc;           // false = ALL NEUMANN+cont ; 'both' = Dirichlet psi=0
+  window.USER_CURV_REG = 0.5;
+  window.INIT_ZEFF = 1;
+  window.USER_BOND_PAIRS = [[0, 1, "e-P:"]];
+  window.CONVERGENCE_THRESHOLD = 0.02;
+  document.getElementById('log').textContent =
+    'run ' + (idx+1) + '/' + configs.length + ': ' + cfg.tag + '  (R_shell=' + R_SHELL + ' a0)';
+}
+
+function sizeProxy(ET){ return ET>0 ? 1/Math.sqrt(2*ET) : NaN; }
+
+function render() {
+  var div = document.getElementById('results');
+  var html = '<b style="color:#4fc3f7">Electron inside a proton shell &mdash; free-boundary BC test</b><br>'
+    + '<span style="color:#888;font-size:11px">1e (inner core) + 1p (outer shell) at R<sub>shell</sub>='+R_SHELL
+    + ' a0. Does the BIG-proton Neumann case hold a bound compact electron, or does it expand/fail to bind?'
+    + ' size proxy = 1/&radic;(2E<sub>T</sub>) a0 (=1 for H).</span><br><br>'
+    + '<table style="border-collapse:collapse"><tr style="color:#4fc3f7">'
+    + '<th style="padding:1px 8px;text-align:left">config</th><th>E (Ha)</th><th>E<sub>T</sub></th>'
+    + '<th>e size (a0)</th><th>bound?</th></tr>';
+  for (var i=0;i<configs.length;i++){
+    var c=configs[i], r=results[i];
+    var run=(idx<configs.length && idx===i && r===undefined);
+    var sz = r? sizeProxy(r.ET) : NaN;
+    var bound = r? (r.E < -0.02 ? '<span style="color:#0f0">yes</span>'
+                                : '<span style="color:#ffb74d">weak/no</span>') : '';
+    html += '<tr'+(run?' style="color:#ff0"':'')+'><td style="padding:1px 8px;text-align:left">'+c.tag+'</td>'
+      + '<td style="text-align:center">'+(r?r.E.toFixed(3):(run?'run&hellip;':'&mdash;'))+'</td>'
+      + '<td style="text-align:center">'+(r?r.ET.toFixed(3):'')+'</td>'
+      + '<td style="text-align:center;color:#8cf">'+(r?sz.toFixed(3):'')+'</td>'
+      + '<td style="text-align:center">'+bound+'</td></tr>';
+  }
+  html += '</table>';
+  if (Object.keys(results).length === configs.length) {
+    html += '<br><span style="color:#0f0"><b>Scan complete.</b></span> '
+      + '<span style="color:#888;font-size:11px">Compare row 1 (big proton, Neumann &mdash; the case in '
+      + 'question) against row 3 (heavy control) and row 2 (Dirichlet). If row 1 is weak/no-bind or the '
+      + 'electron size blows up, the crude CPU result (electron expands out of a big proton) is confirmed in '
+      + 'the real solver.</span>';
+  }
+  div.innerHTML = html;
+}
+render();
+
+window.onSweepDone = function(E, steps, E_T) {
+  results[idx] = { E: E, ET: (E_T||0) };
+  render();
+  idx++;
+  if (idx < configs.length){
+    sessionStorage.setItem('bpt', JSON.stringify({idx:idx, results:results}));
+    setTimeout(function(){ location.reload(); }, 500);
+  } else {
+    console.log('=== electron-in-proton-shell BC test done ===', JSON.stringify(results));
+  }
+};
+
+if (idx < configs.length){
+  var s = document.createElement('script');
+  s.src = 'molecule_nucleus.js?t=' + Date.now();
+  s.onload = function(){
+    var p = document.createElement('script');
+    p.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+    document.body.appendChild(p);
+  };
+  document.body.appendChild(s);
+}
+</script>
+</body></html>
