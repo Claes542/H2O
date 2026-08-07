@@ -54,3 +54,11 @@ in R1.
     section. Also settled: instability criterion is R_p/a0 ≪ 1 ⟺ m_p/m_e ≫ 1; 1836 is overkill (could be ~10–100
     and still well-posed; ~1/positronium regime is ill-posed) — the model explains the ratio must be large, not its
     value.
+  - **Correction (same day): the earlier "no interior equilibrium for ANY finite proton" was too strong.** The
+    U(d) monotone-to-contact result is only the *driver*; "contact" is benign (the stable cusped atom) when the
+    proton nests as a point inside the electron, and pathological (forbidden overlap → collapse) only when the
+    clouds are comparable. Correct **instability criterion: R_p ≳ a_e ⟺ m_p ≲ m_e** (comparable sizes / order-unity
+    mass ratio). For R_p ≪ a_e (m_p ≫ m_e) Neumann is *stable* (proton_size_scan confirms 99%+ binding at small
+    R_p). Lands right: real H (ratio 1836) deep stable; free neutron (nuclear compact-e ~ proton size, ratio ~1) at
+    threshold ⇒ unstable; alpha rescued by collective confinement. Paper §9 paragraph 2 rewritten with the
+    criterion as a displayed equation. Order-of-magnitude threshold; sharp value needs the free-boundary solver.

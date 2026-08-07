@@ -437,12 +437,21 @@ behaves very differently depending on the proton's size.
 A RealQM \emph{free boundary} sits where the energy is stationary in its position, and is stable only if that is a
 minimum. Whether it is depends on the \emph{sign of the force across it}. For \emph{like} charges (electron meeting
 electron) a displacement raises both the mutual repulsion and the localisation cost --- a restoring force, a stable
-minimum; this is why RealQM's electron--electron boundaries are well behaved. For \emph{opposite} charges (a finite
-electron meeting a finite proton) the force is \emph{attractive}, and a direct calculation of the cross-interface
-energy shows it is \emph{monotone} in the separation, minimised only at contact: there is \emph{no interior
-equilibrium} of the boundary for \emph{any} finite proton size. A Neumann-continuous (dense-on-both-sides) free
-boundary therefore has no restoring force --- it runs away toward contact and collapse. It is the \emph{physical}
-condition (nothing artificial is imposed), but it is \emph{unstable}.
+minimum; this is why RealQM's electron--electron boundaries are well behaved. For \emph{opposite} charges (electron meeting
+proton) the force is \emph{attractive}, and a direct calculation of the cross-interface energy shows it is
+\emph{monotone} in the separation, pulling the boundary toward contact with no opposing Coulomb term. What
+``contact'' \emph{means} then decides stability, and this turns on the size ratio $R_p/a_e$ of the proton to the
+electron cloud it meets. If the proton is much smaller, $R_p\ll a_e$ (equivalently $m_p\gg m_e$), it nests as an
+effective \emph{point} inside the electron: there is no finite interface, ``contact'' is simply the electron
+centring on a point charge --- the stable, cusped atom --- and the electron's localisation cost supplies the
+restoring force. But if the proton is \emph{comparable}, $R_p\gtrsim a_e$ ($m_p\lesssim m_e$), ``contact'' means
+overlap of two comparable clouds, which non-overlap forbids: the Neumann free boundary is pinned against the
+constraint with no interior minimum, and the configuration collapses. The instability criterion is thus
+\begin{equation}
+R_p\gtrsim a_e \quad\Longleftrightarrow\quad m_p\lesssim m_e
+\end{equation}
+(comparable sizes, order-unity mass ratio). A Neumann-continuous free boundary is the \emph{physical} condition
+(nothing artificial is imposed), but in this regime it is \emph{unstable}.
 
 One could restore stability with a Dirichlet-$0$ boundary --- a density node between the clouds --- but that is
 \emph{unphysical}: it imposes a node with no physical cause, since nothing in the Coulomb-plus-localisation energy
