@@ -466,10 +466,15 @@ one: $2p+1e$ (the deuteron) is the first stable electron-glued nucleus, and $4p+
 no strong force~\cite{realnucleus}. Free neutron unstable, bound neutron (in a cage of protons) stable: one
 energetic mechanism, matching nature.
 
-Minimal computations are consistent: for a point/compact proton the electron binds at $-13.6$ eV regardless of the
-boundary condition imposed at the kernel, whereas around a single \emph{big} proton the electron expands back out
-(it is not held inside) --- the single-proton compact state is simply not the ground state. A definitive check in
-the full free-boundary solver (a big proton, $m_p=m_e$, against multi-proton cages) is left to future work.
+Computations are consistent with this trend. A minimal spherically symmetric model gives the electron bound at
+$-13.6$ eV around a point/compact proton, independent of the boundary condition imposed at the kernel. The full
+free-boundary solver (\texttt{molecule\_nucleus.js}), run on one and two protons at Neumann continuity, shows the
+expected \emph{ordering}: a single proton binds the electron in the \emph{expanded} (atomic-size) branch, and
+adding a second proton and making the protons compact drives the electron to progressively smaller size and deeper
+binding --- the slide from the atomic toward the nuclear branch. The true nuclear (fm) scale lies below the
+accessible grid resolution (${\sim}0.08\,a_0$), so the absolute nuclear binding and the compact-branch instability
+of the free neutron are not resolved by these runs; those rest on RealNucleus~\cite{realnucleus} and on the
+energetic argument above.
 
 \section{Relation to $\Lambda$CDM and observations}\label{sec:lcdm}
 It is worth stating plainly what this model shares with the standard picture, where it differs, and what it does
