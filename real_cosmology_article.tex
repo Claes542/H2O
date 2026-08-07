@@ -429,6 +429,39 @@ separated, though not a derivation of \emph{how far}. Notably, since a neutron i
 than a proton \emph{by construction}, so proton and hydrogen stability is automatic --- the usual fine-tuning
 bound ``$\alpha$ must not be too large or the proton decays'' simply does not arise.
 
+\subsection*{Why the proton must be a point: free-boundary stability}
+The size asymmetry is not merely the precondition for complexity; it is what makes an atom a \emph{well-posed,
+stable} object at all. The decisive quantity is the boundary condition where the electron meets the proton, and it
+behaves very differently depending on the proton's size.
+
+A RealQM \emph{free boundary} sits where the energy is stationary in its position, and is stable only if that is a
+minimum. Whether it is depends on the \emph{sign of the force across it}. For \emph{like} charges (electron meeting
+electron) a displacement raises both the mutual repulsion and the localisation cost --- a restoring force, a stable
+minimum; this is why RealQM's electron--electron boundaries are well behaved. For \emph{opposite} charges (a finite
+electron meeting a finite proton) the force is \emph{attractive}, and a direct calculation of the cross-interface
+energy shows it is \emph{monotone} in the separation, minimised only at contact: there is \emph{no interior
+equilibrium} of the boundary for \emph{any} finite proton size. A Neumann-continuous (dense-on-both-sides) free
+boundary therefore has no restoring force --- it runs away toward contact and collapse. It is the \emph{physical}
+condition (nothing artificial is imposed), but it is \emph{unstable}.
+
+One could restore stability with a Dirichlet-$0$ boundary --- a density node between the clouds --- but that is
+\emph{unphysical}: it imposes a node with no physical cause, since nothing in the Coulomb-plus-localisation energy
+makes the charge vanish at a material interface. So a finite proton is caught in a bind: the \emph{physical}
+boundary condition (Neumann) is \emph{unstable}, and the \emph{stable} one (Dirichlet) is \emph{unphysical}. A
+finite $p$--$e$ interface has no acceptable condition at all.
+
+The resolution nature adopts is to make the proton a \emph{point}: then there is no finite interface, and the
+dilemma evaporates. The electron simply cusps at the point (maximal density, the Kato cusp) and decays at infinity
+--- the finite-energy, stable ground state --- and the free-boundary instability never arises. Minimal
+spherically symmetric computations bear this out: modelling the proton as a finite charge of radius $R_p$, both
+conditions return the exact hydrogen value as $R_p\to0$ and diverge only for a finite proton (at $R_p=a_0$: the
+Neumann/static binding is $-10.2$ eV, the Dirichlet/excluded one only $-4.9$ eV), while forcing the electron
+density to zero at the kernel \emph{point} leaves the energy at $-13.6$ eV unchanged --- a node at a single point
+is measure-zero, and left free the electron closes it and returns to the cusp. Only excluding the electron from a
+\emph{finite} region costs energy (a fully hollow shell binds at only $\approx-10.6$ eV). Thus the size asymmetry
+is not a convenience but a \emph{necessity}: an equal-sized proton makes the atom either unstable or ill-posed, and
+matter is well defined only because all the smallness is placed in the proton.
+
 \section{Relation to $\Lambda$CDM and observations}\label{sec:lcdm}
 It is worth stating plainly what this model shares with the standard picture, where it differs, and what it does
 not yet address.
