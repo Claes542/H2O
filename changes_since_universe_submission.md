@@ -81,3 +81,23 @@ in R1.
     [USER_DIRICHLET_EP=false] vs Dirichlet ['both'] × big [m=1] vs heavy [m=1836] proton) — WebGPU/browser, the
     definitive check for the author to run before finalizing §9. Numerics added to `real_cosmology_numerics/`:
     interface3d.py, verify3d.py, shell3d.py, shell3d_long.py.
+
+## 2026-08-07 (cont.) — two-level BC/energetics + nuclear-scale ceiling
+
+- **§9: two-level statement added** — free-boundary stability is the *enabling* condition (surface tension +
+  non-overlap hold any interface at a minimum; universal, so it can't discriminate), energetics is the *deciding*
+  condition (selects which boundary-stable config is the ground state: atom / decaying neutron / bound nucleus).
+  Resolves the flip-flop: the boundary is always stable; the physics is ground-state selection.
+- **§9 numerics updated to the REAL solver run** (`big_proton_test.html`, molecule_nucleus.js, 4 configs): all bind
+  (my crude "electron expands/unbinds" was an artifact); the *trend* supports energetics — 1p → most expanded
+  electron (atom, e size 1.5 a0), 2p+heavy → most compressed + deepest (−28.6 Ha, e size 0.47), i.e. compression
+  toward the nuclear branch with proton number+compactness. Grid h~0.08 a0 can't resolve fm, so the compact branch
+  / neutron instability are below resolution — those rest on RealNucleus + the energetic argument.
+- **§4: nuclear-scale CEILING added, relativity-free** — RealNucleus needs exactly ONE dimensionful input (the
+  nuclear scale R_p, or one binding energy); everything dimensionless (ratios, ladder) is parameter-free. That one
+  number is BOUNDED: RealQM = fixed persistent charge clouds, valid only while binding < electron energy content
+  E_e (~0.5 MeV, MEASURED, not relativistic). e²/R_p ≲ E_e ⇒ R_p ≳ e²/E_e (= r_e). **Stated α-free** (author: the
+  a0/R_p ≲ 1/α² form just re-expresses it as a ratio to a0 and imports the atomic coupling — not needed). Crossing
+  it (pair creation) is relativistic & outside RealQM; the boundary itself is a plain energy comparison. Nature
+  SATURATES it: deuteron e²/R_p ≈ 0.7 MeV > E_e ≈ 0.5 MeV → nuclear/β regime is where the static-cloud picture is
+  most stretched. Ties to §5 (inertia = energy).
