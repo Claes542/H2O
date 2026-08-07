@@ -101,3 +101,17 @@ in R1.
   it (pair creation) is relativistic & outside RealQM; the boundary itself is a plain energy comparison. Nature
   SATURATES it: deuteron e²/R_p ≈ 0.7 MeV > E_e ≈ 0.5 MeV → nuclear/β regime is where the static-cloud picture is
   most stretched. Ties to §5 (inertia = energy).
+
+## 2026-08-07 (cont.) — the count of free numbers (§10 frontier)
+
+- **§10 mass-ratio item corrected + "count of free numbers" note added.** Earlier item wrongly said m_p/m_e is
+  "the same open number as the nuclear scale" — FALSE. Corrected: RealQM's mass=size logic *wants* m_p/m_e to set
+  the electron/nucleus size scale (→ one number), but m_p/m_e=1836 implies a nuclear size ~29 fm whereas the actual
+  is ~2–3 fm (r_e=α²a0), i.e. a0/R_p≈2.5e4 (≈1/α²) exceeds 1836 by ~14×. The nucleus is ~14× more compact than the
+  naive size–mass law (flat collective caging). **Deriving that factor would collapse two numbers → one** (m_p/m_e
+  fixes the nuclear scale, hence α); it's missing → gap 1836≠1/α² is the single unsolved step from two to one.
+  Also: α is NOT derived from the scale input — α=√(R_p/a0), so α ≡ the nuclear scale (same information), not a
+  bonus; the scale input IS α (approx, via R_p≈r_e). Added closing "count of free numbers": TWO dimensionless
+  constants (α ≡ nuclear scale; m_p/m_e) over a unit scale that is convention; everything else parameter-free; the
+  ~14× gap is the frontier to one. (Neutrino item also tightened: field-carrier attempt too weak → neutrino neither
+  derived nor eliminated.) 12 pp.
