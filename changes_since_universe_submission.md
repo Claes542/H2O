@@ -115,3 +115,27 @@ in R1.
   constants (α ≡ nuclear scale; m_p/m_e) over a unit scale that is convention; everything else parameter-free; the
   ~14× gap is the frontier to one. (Neutrino item also tightened: field-carrier attempt too weak → neutrino neither
   derived nor eliminated.) 12 pp.
+
+## 2026-08-08 — MAJOR REFRAME to two-valued Poisson (thesis change, author-confirmed "B")
+
+- **Thesis switched from (A) "single electric-potential seed, gravity emergent" to (B) "two-valued Poisson: two
+  mirror forces, two constants, charge and mass as parallel sources."** Motivation (author): don't claim "mass =
+  size" (14× off) or "Newton comes from Coulomb"; Coulomb and Newton are the SAME Poisson equation with opposite
+  sign + own constant (the §2 four-variant machinery taken as the foundation, not a stepping-stone to a reduction).
+- Article edits: title subtitle → "Coulomb for the Small, Newton for the Large — Two Forces from One Poisson
+  Template"; abstract rewritten (two forces/two sources/two constants, parallel, no single-seed/emergent/mass=size;
+  reduction-to-one left OPEN); §1 "one seed" → "two mirror forces"; §3 retitled "The arena and the sources"
+  (Coulomb source = φ_E fluctuation; Newton source = energy of matter; parallel; reduction open); §4 "Size is
+  inertial mass" → "Energy, not mass — and its relation to size" (inertia=energy MEASURED; energy~size RELATED not
+  IDENTIFIED, ~14× gap; cosmology needs only energy-gravitates); §6 retitled "The large scale: Newtonian
+  gravitation" (drop "emergent"; Newton = parallel force, own Poisson + G; ±mass → web/dark energy kept); §7 title
+  "…from one seed" → "…from the same machinery"; §10 count → "two coupling constants α (Coulomb) & G (Newton), one
+  per force" + residual m_p/m_e within Coulomb (~14× gap) + deeper open question whether α,G reduce to one;
+  **added SM comparison (~19 SM parameters + several ΛCDM vs two force-constants)**; Summary rewritten to two mirror
+  forces. 12 → 13 pp, builds clean.
+- **Essay `real_cosmology_essay.tex` (new, 3 pp)** written on (B): "A Universe from Coulomb and Newton — Two Mirror
+  Forces"; non-technical; mass never a primitive (energy content, measured); energy~size related-not-identified;
+  two forces/two constants; **references the technical article + gallery for the math** (author request). NOT the
+  cooperation-note family (cosmology-family drops it).
+- Numerics/essay note: "mass = size" and "gravity emergent / Newton from Coulomb" are RETRACTED as theses (kept
+  only as open aspiration = the two-to-one frontier). Consistent with the earlier free-boundary retraction.
