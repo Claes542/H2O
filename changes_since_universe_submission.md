@@ -165,3 +165,12 @@ in R1.
   (Newton → cosmic web/voids)" — echoes the §2 four-combination table.
 - Full read-through §1–§10 + Summary: internally consistent on (B); no residual (A)-thesis language; 0 undefined
   refs, no doubled words. 13 pp. Manuscript zip remade (tex+figure only).
+
+## 2026-08-08 — gravity force-rule corrected (like attract / unlike repel; voids = negative mass)
+- §6 corrected to the symmetric mirror rule: **like masses attract, unlike masses repel**, positive and negative
+  mass behaving IDENTICALLY (neither distinguished). Large scale **splits into chunks of like mass**; we (positive
+  matter) see positive chunks as the cosmic web and negative-mass chunks as **voids** — apparent voids are NOT
+  empty but regions of negative mass, whose repulsion of positive matter = dark energy. (Was: "anti-wells repel"
+  — which wrongly omitted that −/− attract.)
+- Abstract + §7 (dark energy) + §Relation-to-ΛCDM aligned: voids = negative-mass regions; dark energy = the
+  negative-mass sign of the two-signed gravitational Poisson repelling positive matter. 13 pp, builds clean.
