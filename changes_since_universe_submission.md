@@ -158,3 +158,10 @@ in R1.
   for upload purposes.
 - Article 13 pp, builds clean, 0 undefined refs. Still R1-banked (Universe holds the 2026-08-06 version); resubmit
   guidance: contact editor (major reframe + retitle), don't double-submit.
+
+## 2026-08-08 (final polish)
+- Added the essence to §Summary: "the Laplacian carries two signs and the gradient two signs; the four combinations
+  realise two-sign charge at the small scale (Coulomb → nuclei/atoms) and two-sign mass/energy at the large scale
+  (Newton → cosmic web/voids)" — echoes the §2 four-combination table.
+- Full read-through §1–§10 + Summary: internally consistent on (B); no residual (A)-thesis language; 0 undefined
+  refs, no doubled words. 13 pp. Manuscript zip remade (tex+figure only).
