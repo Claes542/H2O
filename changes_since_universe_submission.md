@@ -139,3 +139,22 @@ in R1.
   cooperation-note family (cosmology-family drops it).
 - Numerics/essay note: "mass = size" and "gravity emergent / Newton from Coulomb" are RETRACTED as theses (kept
   only as open aspiration = the two-to-one frontier). Consistent with the earlier free-boundary retraction.
+
+## 2026-08-08 (2nd round) — consistency polish of the (B) reframe
+
+- Retitled **"A Coulomb–Newton Cosmology: Based on a Proton–Electron Model (RealQM/RealNucleus)"** (was
+  "…from a Single Electric-Potential Seed"). Cover letter title + body updated to match + (B) framing.
+- Abstract: replaced the convoluted "read about the mean this source carries both signs" with the clean
+  **two-signed Poisson**: ±(1/4πG)∇²φ_g=ρ giving the potential **positive and negative curvature** (attractive
+  wells / repulsive anti-wells) → cosmic web + dark energy. Matches §2 machinery and §6.
+- Swept residual (A)-framing to (B): §7 opening/close ("one charge seed" → "the same two-valued machinery, one
+  feature per sector"); Farnes paragraph ("integrated model built from a single seed / derived" → "the anti-well
+  sign of the gravitational Poisson, part of the common machinery"); §Relation-to-ΛCDM ("emergent gravitational
+  potential" → "negative-mass sign of the gravitational Poisson"). Verified: the only remaining "single seeded
+  potential" mention is the sentence explicitly leaving that reduction OPEN (correct).
+- **Upload packaging per MDPI note:** `real_cosmology_manuscript.zip` = main text + figure ONLY
+  (real_cosmology_article.tex + cosmic_web_pm2.png), no supplementary/cover-letter inside. Cover letter
+  (cover_letter_universe.pdf) uploaded separately. Old bundled real_cosmology_Universe_submission.zip is superseded
+  for upload purposes.
+- Article 13 pp, builds clean, 0 undefined refs. Still R1-banked (Universe holds the 2026-08-06 version); resubmit
+  guidance: contact editor (major reframe + retitle), don't double-submit.
