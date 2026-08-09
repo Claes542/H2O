@@ -174,3 +174,15 @@ in R1.
   — which wrongly omitted that −/− attract.)
 - Abstract + §7 (dark energy) + §Relation-to-ΛCDM aligned: voids = negative-mass regions; dark energy = the
   negative-mass sign of the two-signed gravitational Poisson repelling positive matter. 13 pp, builds clean.
+
+## 2026-08-09 — essay ΛCDM/blackbody critique + gallery
+- Essay gained a section "A comparison with the standard model, and a soft spot in it": ΛCDM's pillars; the CMB's
+  near-perfect Planck spectrum read (standardly) as the relic of a hot dense equilibrium; the author's blackbody
+  analysis that a true Planck curve is the signature of a RESONANT LATTICE (metallic gitter, sharp cutoff), NOT of
+  a hot dense gas/plasma → a fireball can't make a perfect Planck spectrum → **the CMB can say nothing about the
+  existence of a hot dense initial state**. Honestly flagged as contesting the textbook (Kirchhoff) view = author's
+  position; references C. Johnson, Computational Blackbody Radiation. Essay now 4 pp; also updated its gravity
+  section earlier to the symmetric like-attract/unlike-repel rule (voids = negative mass).
+- Gallery: cosmology entries retitled to "A Coulomb–Newton Cosmology"; article now listed under **Articles** (new
+  "Cosmology — Coulomb and Newton" category); essay under **Essays**; nav/card/submission-card updated to (B)
+  framing + new title; submission card points to manuscript zip + essay + cover letter.
