@@ -21,7 +21,7 @@
   <canvas id="cv" width="400" height="400"></canvas>
   <div id="controls">
     <label>γ (p = γe = ρT): <input id="rngGamma" type="range" min="0" max="2" step="0.05" value="1" /><span id="lblGamma">1.00</span></label>
-    <label>shock visc C (ν += C·h·|∇·u|): <input id="rngCvisc" type="range" min="0" max="20" step="0.5" value="5" /><span id="lblCvisc">5.0</span></label>
+    <label>shock visc C (ν += C·h·|∇·u|): <input id="rngCvisc" type="range" min="0" max="20" step="0.5" value="1" /><span id="lblCvisc">1.0</span></label>
     <button id="btnPause">Pause</button>
     <button id="btnReset">Reset</button>
     <label>fluid substeps/frame: <input id="rngSubsteps" type="range" min="1" max="20" step="1" value="8" /><span id="lblSubsteps">8</span></label>
@@ -71,14 +71,14 @@ const N        = 100;   // dark-energy version: 100^3 for a fast +/- mass seed
 const H        = 1 / N;
 const DT       = 0.05 * H;
 const PX       = 400 / N;       // canvas pixels per cell
-const NU       = 0.3 * H;       // artificial viscosity (lighter, so small bumps persist)
+const NU       = 0.05 * H;      // low base viscosity so +/- structure clumps, not diffuses (velocity clamp keeps CFL safe)
 // Poisson relaxation step, clamped for forward-Euler stability of the 3D
 // 7-point Laplacian (coeff·12 ≤ 2 ⇒ coeff ≤ h²/6). 0.05·dt is fine at N≤50
 // but unstable at N=100, so we cap at 0.4·h²/6.
 const POISSON_DT = Math.min(0.05 * DT, 0.4 * H * H / 6);
 let   gammaVal = 1;             // ideal gas p = γe = ρT; γ_ad = 1+γ; live via slider
 // Gravitational coupling: Δφ = −G·ρ (G plays the role of 4πG_Newton).
-const G_GRAV   = 10;
+const G_GRAV   = 20;
 const NCELL    = N * N * N;
 const KCUT     = (N / 2) | 0;   // mid-z slice for particle trace and cross-cut
 const JCUT     = (N / 2) | 0;
@@ -102,7 +102,7 @@ const rngCvisc  = document.getElementById('rngCvisc');
 const lblCvisc  = document.getElementById('lblCvisc');
 const lblTime   = document.getElementById('lblTime');
 
-let cviscVal = 5;        // shock-viscosity coefficient C in ν += C·h·|∇·u|
+let cviscVal = 1;        // shock-viscosity coefficient C in ν += C·h·|∇·u|
 let gammaDirty = true;   // re-upload params when γ or C changes
 rngGamma.addEventListener('input', () => {
   gammaVal = parseFloat(rngGamma.value);
@@ -205,7 +205,7 @@ async function main() {
   }
   let sMean = 0; for (let q = 0; q < NCELL; q++) sMean += seedR[q]; sMean /= NCELL;
   let sAbs = 0; for (let q = 0; q < NCELL; q++) { seedR[q] -= sMean; sAbs += Math.abs(seedR[q]); } sAbs /= NCELL;
-  const SEED_AMP = 0.25;   // gentler +/- amplitude (reduce blow-up risk)
+  const SEED_AMP = 0.4;
   for (let q = 0; q < NCELL; q++) {
     const rho = SEED_AMP * seedR[q] / (sAbs + 1e-9);   // signed +/- mass
     initState[q * 4 + 0] = rho;
@@ -286,9 +286,9 @@ async function main() {
     // Regularized velocity: with signed mass the density crosses zero everywhere,
     // so a bare m/rho diverges. Use a large floor and a hard clamp to keep the
     // advection stable across the +/- interfaces.
-    fn vxof(c: vec4<f32>) -> f32 { return clamp(c.z / (abs(c.x) + 0.5), -8.0, 8.0); }
-    fn vyof(c: vec4<f32>) -> f32 { return clamp(c.w / (abs(c.x) + 0.5), -8.0, 8.0); }
-    fn vzof(c: vec4<f32>, mz: f32) -> f32 { return clamp(mz / (abs(c.x) + 0.5), -8.0, 8.0); }
+    fn vxof(c: vec4<f32>) -> f32 { return clamp(c.z / (abs(c.x) + 0.12), -8.0, 8.0); }
+    fn vyof(c: vec4<f32>) -> f32 { return clamp(c.w / (abs(c.x) + 0.12), -8.0, 8.0); }
+    fn vzof(c: vec4<f32>, mz: f32) -> f32 { return clamp(mz / (abs(c.x) + 0.12), -8.0, 8.0); }
     @compute @workgroup_size(4, 4, 4)
     fn fluid(@builtin(global_invocation_id) gid: vec3<u32>) {
       let n = u32(P.N);
