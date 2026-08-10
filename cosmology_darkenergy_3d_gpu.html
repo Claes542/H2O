@@ -205,7 +205,7 @@ async function main() {
   }
   let sMean = 0; for (let q = 0; q < NCELL; q++) sMean += seedR[q]; sMean /= NCELL;
   let sAbs = 0; for (let q = 0; q < NCELL; q++) { seedR[q] -= sMean; sAbs += Math.abs(seedR[q]); } sAbs /= NCELL;
-  const SEED_AMP = 0.6;
+  const SEED_AMP = 0.25;   // gentler +/- amplitude (reduce blow-up risk)
   for (let q = 0; q < NCELL; q++) {
     const rho = SEED_AMP * seedR[q] / (sAbs + 1e-9);   // signed +/- mass
     initState[q * 4 + 0] = rho;
@@ -283,9 +283,12 @@ async function main() {
     @group(0) @binding(4) var<storage, read_write> state_out: array<vec4<f32>>;
     @group(0) @binding(5) var<storage, read_write> mz_out:    array<f32>;
     ${helpers}
-    fn vxof(c: vec4<f32>) -> f32 { return c.z / (abs(c.x) + 0.01); }
-    fn vyof(c: vec4<f32>) -> f32 { return c.w / (abs(c.x) + 0.01); }
-    fn vzof(c: vec4<f32>, mz: f32) -> f32 { return mz / (abs(c.x) + 0.01); }
+    // Regularized velocity: with signed mass the density crosses zero everywhere,
+    // so a bare m/rho diverges. Use a large floor and a hard clamp to keep the
+    // advection stable across the +/- interfaces.
+    fn vxof(c: vec4<f32>) -> f32 { return clamp(c.z / (abs(c.x) + 0.5), -8.0, 8.0); }
+    fn vyof(c: vec4<f32>) -> f32 { return clamp(c.w / (abs(c.x) + 0.5), -8.0, 8.0); }
+    fn vzof(c: vec4<f32>, mz: f32) -> f32 { return clamp(mz / (abs(c.x) + 0.5), -8.0, 8.0); }
     @compute @workgroup_size(4, 4, 4)
     fn fluid(@builtin(global_invocation_id) gid: vec3<u32>) {
       let n = u32(P.N);
@@ -577,16 +580,19 @@ async function main() {
       // Direct density map on the k = KCUT plane (robust for signed mass):
       // red = positive mass (web/nodes/filaments), blue = negative mass (voids);
       // brightness ~ |rho|.
-      let rmax = 1e-6;
+      let rsum = 0, rn = 0, nBad = 0;
       for (let q = 0; q < N * N; q++) {
-        const a = Math.abs(lastState[(q + kOff) * 4]);
-        if (a > rmax) rmax = a;
+        const v = lastState[(q + kOff) * 4];
+        if (!isFinite(v)) { nBad++; continue; }
+        rsum += Math.abs(v); rn++;
       }
+      const rscale = (rn > 0 ? rsum / rn : 1e-6) * 2.5 + 1e-9;  // ~2.5x mean|rho| (robust vs hot cells)
       const cell = Math.ceil(PX) + 1;
       for (let j = 0; j < N; j++) {
         for (let i = 0; i < N; i++) {
           const r = lastState[(i + N * j + kOff) * 4];
-          const t = Math.pow(Math.min(1, Math.abs(r) / rmax), 0.6);
+          if (!isFinite(r)) { ctx2d.fillStyle = 'magenta'; ctx2d.fillRect(PX*i, PX*j, cell, cell); continue; }
+          const t = Math.pow(Math.min(1, Math.abs(r) / rscale), 0.5);
           const c = Math.round(255 * t);
           ctx2d.fillStyle = (r >= 0)
             ? `rgb(${c},${Math.round(0.12 * c)},${Math.round(0.12 * c)})`
