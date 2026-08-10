@@ -568,47 +568,31 @@ async function main() {
       }
     }
 
-    // Particle reset every t > 0.1 (matches the p5 cadence)
-    particleResetTimer += DT * stepsThisFrame;
-    if (particleResetTimer > 0.5) {
-      resetParticles();
-      particleResetTimer = 0;
-      ctx2d.fillStyle = 'rgb(255,255,255)';
-      ctx2d.fillRect(0, 0, 400, 400);
-    } else {
-      ctx2d.fillStyle = 'rgba(255,255,255,0.04)';
-      ctx2d.fillRect(0, 0, 400, 400);
-    }
+    // Clear to black for the density map.
+    ctx2d.fillStyle = 'rgb(0,0,0)';
+    ctx2d.fillRect(0, 0, 400, 400);
 
     if (lastState) {
-      // Read vx, vy on the k = 20 plane for advection. Index into the flat
-      // state array using (i + N·(j + N·k))·4 = ... + N²·KCUT·4.
-      const ADVECT = 40000;  // amplified: the homogeneous-box infall velocity is
-                             // much weaker than the sphere collapse, so the
-                             // particle displacement needs more gain to be seen.
-      const advDt = DT * stepsThisFrame;
       const kOff = N * N * KCUT;
+      // Direct density map on the k = KCUT plane (robust for signed mass):
+      // red = positive mass (web/nodes/filaments), blue = negative mass (voids);
+      // brightness ~ |rho|.
+      let rmax = 1e-6;
+      for (let q = 0; q < N * N; q++) {
+        const a = Math.abs(lastState[(q + kOff) * 4]);
+        if (a > rmax) rmax = a;
+      }
+      const cell = Math.ceil(PX) + 1;
       for (let j = 0; j < N; j++) {
         for (let i = 0; i < N; i++) {
-          const idx = i + N * j + kOff;
-          const off = idx * 4;
-          const rho_c = lastState[off + 0];
-          const vx = lastState[off + 2] / (Math.abs(rho_c) + 0.01);
-          const vy = lastState[off + 3] / (Math.abs(rho_c) + 0.01);
-          const pk = i + N * j;
-          px[pk] += ADVECT * vx * advDt;
-          py[pk] += ADVECT * vy * advDt;
+          const r = lastState[(i + N * j + kOff) * 4];
+          const t = Math.pow(Math.min(1, Math.abs(r) / rmax), 0.6);
+          const c = Math.round(255 * t);
+          ctx2d.fillStyle = (r >= 0)
+            ? `rgb(${c},${Math.round(0.12 * c)},${Math.round(0.12 * c)})`
+            : `rgb(${Math.round(0.25 * c)},${Math.round(0.45 * c)},${c})`;
+          ctx2d.fillRect(PX * i, PX * j, cell, cell);
         }
-      }
-
-      // colour each tracer by the sign of the mass it sits in:
-      // red = positive-mass web, blue = negative-mass (dark-energy) voids
-      for (let pk = 0; pk < N * N; pk++) {
-        const ci = Math.min(N-1, Math.max(0, Math.round(px[pk] / PX)));
-        const cj = Math.min(N-1, Math.max(0, Math.round(py[pk] / PX)));
-        const rr = lastState[(ci + N * cj + kOff) * 4];
-        ctx2d.fillStyle = rr >= 0 ? 'rgba(255,40,40,0.5)' : 'rgba(60,110,255,0.5)';
-        ctx2d.fillRect(px[pk], py[pk], 1, 1);
       }
 
       // Auto-scale each trace to its own deviation so even a small-amplitude
@@ -636,31 +620,15 @@ async function main() {
       }
       const phiScale = 110 / phiMax, rhoScale = 110 / rhoMax, TScale = 110 / TMax;
 
-      // Cross-cut profiles along (i, JCUT, KCUT), deviations auto-scaled to ±110 px
-      for (let i = 0; i < N; i++) {
-        const idx = i + N * JCUT + N * N * KCUT;
-        const off = idx * 4;
-        const rho_c = lastState[off + 0];
-        const T_c   = lastState[off + 1] / (rho_c + 1e-9);
-        const phi_c = lastPhi ? lastPhi[idx] : 0;
-        ctx2d.fillStyle = 'rgba(0,0,255,0.55)';
-        ctx2d.beginPath(); ctx2d.arc(PX*i, 200 - rhoScale*rho_c, 1, 0, Math.PI*2); ctx2d.fill();
-        ctx2d.fillStyle = 'rgba(0,200,0,0.55)';
-        ctx2d.beginPath(); ctx2d.arc(PX*i, 200 - TScale*(T_c-1), 1, 0, Math.PI*2); ctx2d.fill();
-        ctx2d.fillStyle = 'rgba(0,200,200,0.55)';
-        ctx2d.beginPath(); ctx2d.arc(PX*i, 200 - phiScale*phi_c, 1, 0, Math.PI*2); ctx2d.fill();
-      }
-      ctx2d.strokeStyle = 'rgba(120,120,120,0.4)';
-      ctx2d.beginPath(); ctx2d.moveTo(0, 200); ctx2d.lineTo(400, 200); ctx2d.stroke();
+      // (cross-cut profile overlay removed; the ±density map is the display)
 
-      ctx2d.fillStyle = '#000';
+      ctx2d.fillStyle = '#fff';
       ctx2d.font = '11px sans-serif';
       ctx2d.textBaseline = 'top';
       ctx2d.fillText("Cosmology 3D: Two-Valued Poisson — ±mass, dark energy (GPU)",  10, 14);
       ctx2d.fillText(`N = ${N}³ = ${(N*N*N).toLocaleString()} cells,  p = γe = ρT,  γ = ${gammaVal.toFixed(2)},  ν = h`, 10, 34);
       ctx2d.fillText(`Initial: signed ±mass fluctuation (zero mean), e = |ρ|;  shock visc C = ${cviscVal.toFixed(1)}`, 10, 54);
-      ctx2d.fillText("Blue: ρ   Green: T   Cyan: φ  (each auto-scaled to ±110px)", 10, 310);
-      ctx2d.fillText(`Tracers coloured by mass sign — red = +mass web, blue = −mass voids (k = ${KCUT} plane)`, 10, 330);
+      ctx2d.fillText(`Density on the k = ${KCUT} plane — red = +mass web (nodes, filaments), blue = −mass voids (dark energy)`, 10, 330);
       ctx2d.fillText(`peak |φ| = ${phiMaxGlobal.toExponential(2)}   peak |ρ| = ${rhoMaxGlobal.toExponential(2)}   peak |v| = ${vMaxGlobal.toExponential(2)}`, 10, 388);
       window.__diag = { phi: phiMaxGlobal, drho: rhoMaxGlobal, v: vMaxGlobal, t: simTime };
     }
