@@ -481,11 +481,20 @@ dominated the result in our own numerical experiments. The deficit reading needs
 
 \emph{Inflation, and the spectrum.} The Laplacian amplifies short wavelengths, $\rho_k\propto k^2\varphi_k$: an
 inflation of the density \emph{field}, not the exponential expansion of \emph{space}, which addresses the horizon
-and flatness problems and is not reproduced here. One might expect the $k^2$ weighting to leave nothing at large
-scales. It does not: in power $P_\rho(k)=k^4P_\varphi(k)$, so a seed with equal fluctuation power per octave
-($P_\varphi\propto k^{-3}$, requiring no tuning) gives $P_\rho\propto k$, the standard form of the primordial
-matter spectrum. We claim no more than that the expected conflict does not arise; the observed departure from this
-form is not derived, and would have to be compared through a transfer function this model does not possess.
+and flatness problems and is not reproduced here. Within the electric sector this has a tidy consequence --- one
+might expect the $k^2$ weighting to leave nothing at large scales, and it does not, since in power
+$P_{\rho_E}(k)=k^4P_{\varphi}(k)$, so a potential with equal fluctuation power per octave
+($P_\varphi\propto k^{-3}$, requiring no tuning) gives $P_{\rho_E}\propto k$.
+
+It is tempting to read that as delivering the primordial \emph{matter} spectrum, and earlier versions of this
+paper did. It does not, and the reason is the same one that runs through Section~\ref{sec:principle}:
+$\rho_E=-\varepsilon_0\grad^2\varphi_E$ is the \textbf{charge} density, and charge screens to neutrality precisely
+at the scales where the matter spectrum lives. Carrying the result across would require the seed's long
+wavelengths to modulate its short-wavelength power --- the very link this paper does not assume
+(Section~\ref{sec:open}). \textbf{The large-scale matter spectrum is therefore an input here, not a result}, its
+shape included; the simulations of Section~\ref{sec:large} impose it. What the calculation above establishes is
+only that the electric sector carries power at every scale rather than collapsing onto the finest, which is what
+the $k^2$ weighting might have suggested.
 
 \section{The cosmic sequence and the helium fraction}\label{sec:sequence}
 The two sectors exchange energy in both directions. \emph{Upward}, the energy of the charged world is mass and
@@ -674,10 +683,13 @@ requires local-type non-Gaussianity --- the same skewness wanted in item~1(iii),
 both. This would also be what it takes for the seed to supply the large-scale inhomogeneity that is currently an
 input. Whether a skewed seed's small-scale power correlates with its own long-wavelength Laplacian, and with which
 sign, is a well-posed calculation, not attempted here.
-\item \textbf{The fluctuation spectrum and a law of motion.} $\rho=\grad^2\varphi$ is a definition, not a
-dynamics: $\varphi$ has no equation of motion and the seed spectrum is an input. Section~\ref{sec:de-infl} shows
-only that the natural choice is consistent with the observed matter spectrum --- a consistency check, not a
-prediction. Supplying $\varphi$ with a law of motion is the substantial piece of theory still missing.
+\item \textbf{The fluctuation spectrum and a law of motion.} $\rho_E=-\varepsilon_0\grad^2\varphi_E$ is a
+definition, not a dynamics: $\varphi_E$ has no equation of motion, and its spectrum is an input at the small scale
+just as the matter spectrum is an input at the large one (Section~\ref{sec:de-infl}). These are two separate gaps
+and the second is the load-bearing one: the shape as well as the amplitude of the large-scale contrast is
+supplied, so the model does not predict $P(k)$. Closing it would need the seed's long wavelengths to modulate its
+short-wavelength power, as in item~2 above; short of that, supplying $\varphi_E$ with a law of motion would close
+only the first.
 \item \textbf{The mass ratio $m_p/m_e=1836$, and why it is not the nuclear scale.} The mass ratio implies a nuclear
 size $a_0/(m_p/m_e)\approx29$~fm, whereas the actual scale is ${\sim}2$--$3$~fm; equivalently the size ratio
 $a_0/R_p\approx2.5\times10^4\approx1/\alpha^2$ exceeds $1836$ by a factor ${\sim}14$. The nucleus is that much more
