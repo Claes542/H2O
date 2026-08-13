@@ -67,7 +67,11 @@ space, has no such continuum limit handing directly to the mechanics of material
 This paper carries that hierarchy to its top. \textbf{Newtonian gravitation} acts on the energy of the matter
 RealQM builds and matters only in the large, so adding it extends the same model to galactic scales --- a seamless
 extension, in that nothing about the mathematics changes: one more Poisson equation, one more force term in the
-same continuum mechanics. Where the extension leads is cosmology, and cosmology is its natural arena, being the
+same continuum mechanics. The hierarchy also extends \emph{sideways} at the small scale, and the two directions
+should be distinguished. Coulomb is the static limit of \textbf{Maxwell}, and restoring the time dependence gives
+\textbf{Maxwell $+$ Newton}, which brings \textbf{radiation} into the same framework --- light as something the
+matter does (Section~\ref{sec:inertia}). This paper stays with Coulomb $+$ Newton and notes where the wider pair
+would be needed. Where the extension leads is cosmology, and cosmology is its natural arena, being the
 subject in which the nuclear scale meets the astronomical. Stars shine by nuclear fusion: a process at
 $10^{-15}$~m sets the luminosity and chemical output of objects at $10^{9}$~m and thereby the evolution of galaxies
 at $10^{21}$~m. Light-element abundances are fixed by nuclear reaction rates yet read off the sky as cosmological
@@ -261,6 +265,24 @@ bodies: two galaxies may recede at relative speed $>c$, a global relative veloci
 than a local signal, violating no local causality --- as in observational cosmology, where distant galaxies recede
 faster than light without any local law being broken.
 
+\paragraph{Coulomb is the static limit; Maxwell adds radiation.} What is used throughout this paper is
+\emph{electrostatics} --- Coulomb's law, the $t$-independent first member of the electromagnetic pair. That is a
+restriction of convenience, not of principle, and the rung above is worth naming because it is the one that adds
+the missing physical process. Replacing Coulomb by the full \textbf{Maxwell} equations extends the same continuum
+framework to time-dependent charge and current, and with them to \textbf{radiation}: the model becomes
+\textbf{Maxwell $+$ Newton}, and light ceases to be an ingredient supplied from outside and becomes something the
+matter \emph{does}. Nothing in the mathematics changes character here either --- fields on the same space, sources
+from the same charge densities --- so this is a continuation of the hierarchy rather than a departure from it.
+
+The gain is not decorative. Two of the three epochs of Section~\ref{sec:sequence} are \emph{defined} by radiation:
+nuclei form and the Coulomb binding energy leaves as light; atoms form and the matter turns transparent, releasing
+the radiation that had been trapped. In the present electrostatic treatment those steps are described by their
+energy bookkeeping alone --- so much binding energy released --- with no account of the emission itself. Maxwell
+supplies the missing half, and it is also what any eventual treatment of the microwave background would have to be
+built on. The time-dependent form of RealQM required for this, in which a real charge density carries a
+\emph{complex} current and a radiating dipole, is developed in~\cite{complexrealqm}; nothing in the present paper
+depends on it, and we make no claim here about radiation beyond noting where it enters.
+
 \section{The computational model}\label{sec:computational}
 Both tiers are solved by the same numerical primitive: a Poisson solve coupled to a relaxation on a uniform
 Cartesian grid, $\grad^2$ the standard 7-point stencil, the matter field then advanced --- downhill in energy at
@@ -363,21 +385,44 @@ source; nothing in them is new. That such systems develop a filamentary web from
 the Zel'dovich approximation~\cite{zeldovich} collapse proceeds anisotropically, since the tidal-tensor eigenvalues
 generically differ, so a region contracts first to a sheet, then a filament, then a node --- the morphology made
 quantitative by Hessian-eigenvalue classification~\cite{hahn}. Figure~\ref{fig:web} shows the model's own equations
-doing this. Two features bear on how such pictures should be judged. The web is a \emph{transient}: in a
-non-expanding box the filament fraction falls from $33\%$ to $1\%$ within a factor of three in time, and neither
-snapshot reproduces the volume fractions inferred for the real web (voids ${\sim}60$--$80\%$, walls
-${\sim}20$--$30\%$, filaments ${\sim}10$--$20\%$). What regulates the rate in the observed universe is expansion,
-omitted here. And visual impression disagrees with volume statistics: the right panel \emph{looks} more web-like
-yet is classified almost entirely void, thin bright structures dominating the eye while occupying little volume ---
-a standing caution about web-like images generally.
+doing this, in a coasting background and with $\gamma_{\rm ad}=1.4>4/3$, so that the arrest criterion above is
+satisfied.
+
+Three things in that run are worth stating, since each was checked rather than assumed. \emph{The arrest works}:
+peak/mean stays bounded near $10^3$ for the whole run, whereas the same seed at $\gamma_{\rm ad}=1.2<4/3$ runs to
+$1.3\times10^4$ and climbing --- collapse shuts itself off at finite density exactly where the Jeans-mass criterion
+says it should. \emph{The web is nevertheless a transient}: it forms, sharpens, and then \emph{coarsens}, small
+nodes merging into large ones until little web is left, so the morphology has a window rather than a limit. And
+\emph{a non-expanding box is worse, but not for the expected reason}. It builds a web and then destroys it
+thermally: with no expansion to drain the heat of compression, pressure unwinds the structure and the deep-void
+fraction falls from $87\%$ back to ${\sim}0\%$ with peak/mean returning to ${\sim}10$. Expansion is thus not needed
+to keep the box from collapsing --- a zero-mean source exerts no net force on a uniform state, so a static box is
+self-consistent here in a way it is not in ordinary Newtonian cosmology --- but it \emph{is} needed to keep a web
+from blowing itself apart. The two roles should not be confused.
+
+A caution about reading such runs, and it cuts both ways. Volume statistics and visual impression disagree, and
+neither is sufficient alone. In the run of Figure~\ref{fig:web} the deep-void fraction and the mass concentration
+both climb monotonically --- to $73\%$ and $80\%$ --- while the picture is becoming \emph{less} web-like, because
+concentration keeps rising as the web coarsens into isolated clumps. Conversely a thin bright filamentary image can
+occupy very little volume and be classified almost entirely void. A further trap is instrumental: a
+Hessian-eigenvalue classifier thresholded on the \emph{r.m.s.} curvature reports the field as structureless exactly
+when it is most clumped, since a handful of extreme peaks then set the threshold and genuine ridges fall below it
+(a median-based threshold does not do this). Web-like appearance, web-like statistics and web-like classification
+are three different claims.
+
 \begin{figure}[h]\centering
-\includegraphics[width=0.86\textwidth]{cosmic_web_stages.png}
-\caption{Gravitational instability of the contrast source \eqref{contrast} from a Gaussian seed ($128^3$, thin
-slab; bright $=$ overdense, dark $=$ underdense). \emph{Left:} sheet--filament stage, $33\%$ filament and $46\%$
-wall by volume. \emph{Right:} the same run later, collapsed to nodes, $1\%$ filament and $93\%$ void. The
-morphology is the classical Zel'dovich sequence~\cite{zeldovich}, not particular to this model. Non-expanding box,
-so the web stage is transient.}\label{fig:web}
+\includegraphics[width=\textwidth]{cosmic_web_contrast.png}
+\caption{Gravitational instability of the contrast source \eqref{contrast} from a Gaussian seed, coasting
+background, $\gamma_{\rm ad}=1.4>4/3$ ($160^3$, line-of-sight projection, logarithmic scale; bright $=$ overdense).
+Filaments meeting at nodes with deep voids between, then coarsening. Total mass is conserved to $10^{-5}$ and the
+$N=96$ and $N=128$ runs agree on all quoted statistics. The morphology is the classical Zel'dovich
+sequence~\cite{zeldovich} and is \emph{not} particular to this model; it illustrates the dynamics and is not
+offered as evidence for the cosmology.}\label{fig:web}
 \end{figure}
+
+Against the observed web the run gets the voids about right and the rest wrong: at the last panel $73\%$ of the
+volume is deep void (observed ${\sim}60$--$80\%$), but filaments and walls hold only ${\sim}5\%$ and ${\sim}3\%$ of
+the volume against an observed ${\sim}10$--$20\%$ and ${\sim}20$--$30\%$. The matter sits in structures too thin.
 
 The honest debt runs the other way. Standard simulations reproduce the observed web using \emph{cold dark matter}
 in an \emph{expanding} background, neither available here. Baryons alone are the harder case: before recombination
@@ -662,6 +707,9 @@ chapters. Free download from the GitHub gallery: \url{https://claes542.github.io
 \bibitem{realnucleus} C.\ Johnson, \emph{RealNucleus: nuclear binding from a pure-Coulomb proton--electron model},
 in~\cite{realqmbook}.
 \bibitem{nomass} C.\ Johnson, \emph{Energy Without Mass: RealQM, Inertia, and the Penning Trap}, in~\cite{realqmbook}.
+\bibitem{complexrealqm} C.\ Johnson, \emph{Complex Time-Dependent RealQM: Currents, Radiation, and Magnetism},
+in~\cite{realqmbook} --- the time-dependent (Maxwell) extension, in which a real charge density carries a complex
+current and radiates.
 \bibitem{pauli} W.\ Pauli, open letter to the Tübingen group (1930), proposing the neutrino to save energy
 conservation in $\beta$-decay.
 \bibitem{farnes} J.\ S.\ Farnes, \emph{A unifying theory of dark energy and dark matter: Negative masses and
