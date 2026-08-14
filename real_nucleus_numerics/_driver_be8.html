@@ -1,0 +1,95 @@
+<!DOCTYPE html><html><body style="margin:0;background:#000">
+<pre id="out" style="color:#0f0;font:12px monospace">starting</pre>
+<script>
+window.__err = [];
+window.onerror = function (m, src, l) { window.__err.push(m + ' @' + (src||'').split('/').pop() + ':' + l);
+  var e = document.getElementById('out'); if (e) e.textContent = 'ERROR ' + window.__err.join(' | '); };
+</script>
+<script>
+
+// RealNucleus: Be-8 = 8 protons + 4 electrons  (atomic number 4, mass 8; N=Z=4).
+// ASYMMETRIC model (the stable one, = the -90 alpha scaled up): the 4 electrons each pair
+// with a proton -> 4 neutrons; together with the 4 bare protons they form the 4+4 octet
+// (cube = two interpenetrating tetrahedra). Geometry frozen, proton subdivision locked.
+// Binding vs free constituents (8p + 4e). Deuteron scale: 9.5 model <-> 2.22 MeV.
+// Be-8 exp binding 56.5 MeV (~2 alphas); expect E ~ 2 x (-90) = -180 if it builds as two alphas.
+(function() {
+  var gridN = 200, scr = 10, N2 = 100;
+  var h = scr / gridN;
+  var atoms = [];
+
+  // 8 protons on a cube = 4+4 (two tetrahedra)
+  var R = 1.3, sc = R / Math.sqrt(3);
+  var cube = [[1,1,1],[1,-1,-1],[-1,1,-1],[-1,-1,1],     // tet A (0..3)  -> these 4 get electrons (neutrons)
+              [-1,-1,-1],[-1,1,1],[1,-1,1],[1,1,-1]];    // tet B (4..7)  -> bare protons
+  for (var t = 0; t < 8; t++)
+    atoms.push({ i: Math.round(N2 + cube[t][0]*sc/h), j: Math.round(N2 + cube[t][1]*sc/h),
+                 k: Math.round(N2 + cube[t][2]*sc/h), Z: 1, el: 'P' });  // 0..7 protons +1
+
+  // 4 electrons, each near one tet-A proton (they pair -> 4 neutrons)
+  for (var e = 0; e < 4; e++)
+    atoms.push({ i: Math.round(N2 + 0.6*cube[e][0]*sc/h), j: Math.round(N2 + 0.6*cube[e][1]*sc/h),
+                 k: Math.round(N2 + 0.6*cube[e][2]*sc/h), Z: 1, el: 'e' });  // 8..11 electrons -1
+
+  // lock every proton-proton boundary -> hold the octet subdivision rigid
+  var locked = [];
+  for (var a = 0; a <= 7; a++) for (var b = a + 1; b <= 7; b++) locked.push([a, b]);
+
+  var mass = [], charge = [], Zarr = [], Znuc = [], rc = [];
+  for (var p = 0; p < 8; p++) { mass.push(1836); charge.push(1); Zarr.push(1); Znuc.push(0); rc.push(0); }
+  for (var q = 0; q < 4; q++) { mass.push(1);    charge.push(-1); Zarr.push(1); Znuc.push(0); rc.push(0); }
+
+  console.log('RealNucleus Be-8 (asymmetric): 8 protons (4+4 octet) + 4 electrons = 4 neutrons + 4 protons');
+
+  window.USER_BOND_PAIRS = [ [0,1,"P-P:"], [0,8,"P-e:"] ];
+  window.USER_REFERENCE = { energy: "Be-8 = 8p + 4e; exp binding 56.5 MeV (~2 alphas, ratio 25.5 x deuteron)" };
+
+  window.USER_NUCLEUS_MODE = true;
+  window.USER_NN = gridN;
+  window.USER_ATOMS = atoms;
+  window.USER_SCREEN = scr;
+  window.USER_STEPS = 1000000;
+  window.USER_DYNAMICS = false;                 // freeze octet; R set by minimum of E(R)
+  window.USER_FORCE_SCALE = 1.0;
+  window.USER_ARROW_SCALE = 200.0;
+  window.USER_DAMPING = 0.9;
+  window.USER_N_MOVE = 50;
+  window.USER_Z = Zarr;
+  window.USER_Z_NUC = Znuc;
+  window.USER_RC = rc;
+  window.USER_MASS = mass;                       // 8 protons heavy, 4 electrons light
+  window.USER_CHARGE = charge;                   // protons +1, electrons -1
+  window.USER_SHELL_RADIUS = 0.5;
+  window.USER_SHELL_INNER = [8, 9, 10, 11];      // electrons
+  window.USER_SHELL_OUTER = [0,1,2,3,4,5,6,7];   // octet proton shell
+  window.USER_CURV_REG = 0.5;
+  window.USER_DIRICHLET_EP = 'electron';
+  window.USER_LOCKED_GROUPS = locked;            // hold the 4+4 octet subdivision
+  window.INIT_ZEFF = 1;
+})();
+
+
+window.__label = 'be8';
+window.__done = false;
+window.onSweepDone = function (E) {
+  if (window.__done) return;
+  window.__done = true;
+  var r = JSON.stringify({case: window.__label, E: Number(E), steps: window.__steps || null});
+  document.title = 'RESULT ' + r;
+  document.getElementById('out').textContent = 'RESULT ' + r;
+  fetch('/__result?payload=' + encodeURIComponent(r));
+};
+// progress into the DOM so a --dump-dom shows how far it got even without convergence
+setInterval(function () {
+  if (window.__done) return;
+  var e = document.getElementById('out');
+  var g = 'gpu?';
+  try { g = 'gpuReady=' + gpuReady + ' gpuError=' + (gpuError || 'none') + ' init=' + (typeof initProgress !== 'undefined' ? initProgress : '?'); }
+  catch (ex) { g = 'gpu-binding: ' + ex.message; }
+  if (e) e.textContent = 'PROGRESS E=' + (window._prevE === undefined ? 'n/a' : Number(window._prevE).toFixed(6))
+                       + ' conv=' + (window._convCount || 0) + ' | ' + g;
+}, 250);
+</script>
+<script src="/molecule_nucleus.js"></script>
+<script src="/real_nucleus_numerics/p5.min.js"></script>
+</body></html>
