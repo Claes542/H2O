@@ -35,11 +35,28 @@ def seed_field(NF):
     KX, KY, KZ = np.meshgrid(k, k, k, indexing='ij')
     k2 = KX**2 + KY**2 + KZ**2
     kmag = np.sqrt(k2); kmag[0,0,0] = 1.0
-    if SEEDTYPE == 'power':
+    if SEEDTYPE in ('power', 'powerj'):
         amp = kmag**0.5                                   # P(k) = |delta_k|^2 ~ k
         amp *= np.exp(-0.5*(kmag/(0.35*NF))**2)           # de-alias at the grid scale only
         amp[0,0,0] = 0.0
         f = np.fft.ifftn(np.fft.fftn(w)*amp).real
+        if SEEDTYPE == 'powerj':
+            # Normalising a scale-free seed to unit TOTAL variance is unfair to it:
+            # P ~ k puts most variance below the Jeans length, where pressure forbids
+            # growth, so the collapsible modes are starved by the normalisation itself.
+            # Instead match the two seeds where it matters -- equal rms when smoothed
+            # at the Jeans scale, which is the smallest scale that can collapse.
+            lamJ = 2*np.pi*np.sqrt(GAMMA*T0)/np.sqrt(G_GRAV*RHOBAR)
+            W = np.exp(-0.5*(kmag*2*np.pi/NF)**2*(lamJ*NF/(2*np.pi))**2)
+            def sig_at_J(g):
+                return float(np.std(np.fft.ifftn(np.fft.fftn(g)*W).real))
+            corr_cells = CORR_BOX*NF
+            g = np.fft.ifftn(np.fft.fftn(w)*np.exp(-0.5*k2*corr_cells**2/NF**2*np.pi**2)).real
+            g = (g - g.mean())/g.std()                    # the bump seed, unit variance
+            f = f/f.std()
+            f *= sig_at_J(g)/max(sig_at_J(f), 1e-30)      # equal power at lam_J
+            f -= f.mean()
+            return f                                       # already normalised: do not rescale
     else:
         corr_cells = CORR_BOX * NF
         f = np.fft.ifftn(np.fft.fftn(w)*np.exp(-0.5*k2*corr_cells**2/NF**2*np.pi**2)).real
@@ -79,8 +96,14 @@ def run(N, tmeas):
             out += (F-np.roll(F,1,ax))/h
         return out
 
-    f = coarsen(FINE, N); f = (f - f.mean())/f.std()
+    f = coarsen(FINE, N)
+    if SEEDTYPE == 'powerj':
+        f = f - f.mean()          # keep the lam_J-matched amplitude; do NOT rescale to unit variance
+    else:
+        f = (f - f.mean())/f.std()
     rho = np.maximum(RHOBAR*(1.0+SEED_AMP*f), 0.02*RHOBAR); rho *= RHOBAR/rho.mean()
+    print(f"   [seed N={N}: f_std={f.std():.3f}, rho in [{rho.min():.3f},{rho.max():.3f}], "
+          f"frac at floor={100*float((rho <= 0.0201*RHOBAR).mean()):.2f}%]", flush=True)
     e = rho*T0
     mx = np.zeros_like(rho); my = np.zeros_like(rho); mz = np.zeros_like(rho)
     t, a, H, step = 0.0, 1.0, H0, 0
