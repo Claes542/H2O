@@ -33,8 +33,11 @@ protons carrying the mass $m_p$ and electrons the mass $m_e$ --- interacting by 
 mechanics, the model has the same mathematical form as the models of the macroscopic materials those atoms build,
 so a hierarchy of continuum models over increasing scales follows from it. Adding \textbf{Newtonian gravitation},
 which acts on the energy of that matter and matters only in the large, carries the hierarchy to galactic scales:
-one form of model from nuclei to the cosmic web. Cosmology is its natural arena, being the subject in which the
-nuclear scale meets the astronomical.
+one form of model from nuclei to the cosmic web. The reach is computational and not only formal --- both ends are
+solved by the same primitive, a Poisson solve coupled to a relaxation of a real field on a Cartesian grid, so the
+gravitational sections are at the same time an application of the small-scale model's computational capacity, with
+the physics in them deliberately textbook. Cosmology is its natural arena, being the subject in which the nuclear
+scale meets the astronomical.
 
 \medskip
 \noindent The chain is computed throughout. A small perturbation of the electric potential $\varphi_E$ has its
@@ -710,6 +713,13 @@ inflated into sharp charges. For gravitation the source is primary and the poten
 \emph{integrating}: the inverse Laplacian is global and smooths ($\varphi_k\propto\rho_k/k^2$), building a broad
 potential. The same relation run forward makes small-scale electromagnetism and run backward large-scale
 gravitation --- and that is why charge is small and gravity large.
+
+One practical consequence of the shared form deserves recording alongside the formal one, since it is what made
+the chain computable end to end rather than merely statable: sharing an operator, the two tiers also share a
+solver. The same Poisson-plus-relaxation primitive on the same kind of grid produces a free-boundary atom and an
+$8\times10^6$-cell self-gravitating flow, with no change of formalism and no fitted parameters at either end.
+Whether the framework is right is decided by the physics; that it can be \emph{followed}, scale by scale and
+without a change of instrument, is decided by this.
 
 This is a \emph{structural parallel}, observed after the fact, and we resist promoting it into a premise. It does
 not say gravitation is derived from electromagnetism, or that one seed generates both sectors: the gravitational
