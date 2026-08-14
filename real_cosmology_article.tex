@@ -291,7 +291,10 @@ packages that few of their users read. The model here is at the other extreme: o
 electron in ordinary three-dimensional space, a Poisson solve coupled to a relaxation on a Cartesian grid, cost
 linear in electron number, no basis set and no fitted parameter. The atom solver used for this work is $350$ lines
 of JavaScript and runs in a browser tab; the script behind Figure~\ref{fig:web} is $115$ lines of Python. The
-whole chain of this paper is computed by code a reader can read.
+whole chain of this paper is computed by code a reader can read. That this holds at \emph{both} ends is not
+economy of effort but a structural fact: Coulomb and Newton are the same computational problem, a discrete
+Laplacian inverted against a two-valued source, so the same solver serves a nucleus and a cosmic web and no
+separate large-scale machinery has to be built (Section~\ref{sec:computational}).
 
 \emph{Simplicity is not accuracy, and the claim is only the former.} Lattice QCD delivers the hadron spectrum from
 first principles at the percent level, which the present model cannot do at all --- the absolute MeV scale is its
@@ -372,6 +375,24 @@ typical grid  & $100^3$ per atom & $200^3=8\times10^6$ cells\\
 \bottomrule
 \end{tabular}
 \end{center}
+\paragraph{Why one code covers both, and exactly how far the sameness goes.} The two columns are not similar by
+arrangement. Read the \emph{field solve} row: the two equations are one equation, differing in the sign of the
+source and in a constant. Coulomb and Newton pose the \emph{same computational problem} --- invert a discrete
+Laplacian on a grid against a two-valued source --- so the expensive and nontrivial half of the work is literally
+one routine, and it neither knows nor cares whether the grid spacing is a femtometre or a megaparsec. That is why
+there is no separate large-scale method to develop, and why the code stays small while the physics changes scale
+by forty orders of magnitude. It is also, stated computationally, the observation recorded formally in
+Section~\ref{sec:machinery}; nothing in the construction takes it as a premise, but the solver has been using it
+throughout.
+
+The sameness stops in a definite place, and it is worth marking. What differs between the columns is the
+\emph{relaxation}: steepest descent to a static minimiser at the small scale, explicit time-stepping of a
+compressible flow at the large one. That difference is one of question --- equilibrium versus evolution --- not of
+scale or of force, and a static gravitational configuration or a time-dependent Coulomb problem would swap the two
+without touching the field solve. The choice of iteration (multigrid against red--black SOR) is likewise
+implementation and history: either solves either, and the pairing above is what each tier was written with, not
+what it requires.
+
 At the small scale the cost grows \emph{linearly} in electron number where a wavefunction method grows
 exponentially, and the Neumann-free interface --- located by the flow rather than imposed --- lets one code
 describe an atom, a molecule and, with the electron compacted, a nucleus. These solvers run in the browser
