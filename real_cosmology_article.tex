@@ -370,7 +370,8 @@ field solve   & $-\grad^2\varphi=\rho_{\rm charge}/\varepsilon_0$ & $\grad^2\var
 solver        & multigrid V-cycles, Jacobi smoother & red--black SOR, $\omega=2/(1+\sin\pi/N)$\\
 relaxation    & steepest descent on the Coulomb energy & explicit compressible flow in time\\
 free surfaces & interfaces $\partial\Omega_i$ move with the energy & the $\rho=0$ contact wall\\
-typical grid  & $100^3$ per atom & $200^3=8\times10^6$ cells\\
+typical grid  & one global lattice, $200^3$ for a large molecule; ${\sim}10^3$ cells per electron domain &
+$200^3=8\times10^6$ cells\\
 \bottomrule
 \end{tabular}
 \end{center}
