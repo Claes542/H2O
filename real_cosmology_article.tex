@@ -427,33 +427,22 @@ the mean, \eqref{contrast}, so the \emph{source} takes both signs --- positive w
 negative where sparser --- while the matter itself is positive everywhere. There is no negative mass and no second
 species: the two signs are \emph{excess} and \emph{deficit} of one substance.
 
-\paragraph{Why the subtraction is forced, and what is chosen.} The zero mean is not an assumption added to
-Newton's law; it is what makes $\varphi_g$ exist. On an unbounded (or periodic) domain the Poisson equation
-$\grad^2\varphi_g=4\pi G\sigma$ is solvable only if $\langle\sigma\rangle=0$: for a uniform positive source the
-potential diverges, and the net force on a point depends on the order in which the infinite distribution is summed
---- the Neumann--Seeliger difficulty, which is not a peculiarity of this model but of Newtonian cosmology as such.
-Some constant must therefore be subtracted, and no Newtonian cosmology escapes it. Standard practice supplies it
-as bookkeeping and calls it the Jeans swindle.
+\paragraph{The subtraction is standard; what follows it is not.} A uniform positive source has no Newtonian
+potential at all: $\grad^2\varphi_g=4\pi G\sigma$ is solvable on an unbounded or periodic domain only if
+$\langle\sigma\rangle=0$ --- the Neumann--Seeliger difficulty --- so a constant must be subtracted and no
+Newtonian cosmology escapes it. Standard practice supplies it as bookkeeping and calls it the Jeans swindle.
+Taking $\bar\rho=M_{\rm tot}/V_{\rm tot}$ makes the total gravitational charge of the universe vanish, matching
+the zero net charge of the Coulomb sector, and dilutes as $a^{-3}$ with the matter, so the cancellation holds at
+every epoch.
 
-What is \emph{chosen} is only which constant, and $\bar\rho=\langle\rho\rangle=M_{\rm tot}/V_{\rm tot}$ is the
-simplest --- the one that makes the total gravitational charge of the universe vanish, matching the zero net charge
-of the Coulomb sector. Two consequences follow. First, $\bar\rho$ is a boundary condition on the universe as a
-whole, so the local force law refers to a globally fixed constant: the model is non-local in this one limited
-sense, and a mean over some finite radius $R$ would instead make the dynamics depend on an arbitrary $R$. Second,
-$\bar\rho$ is time-dependent --- under expansion it dilutes as $a^{-3}$ with the matter, so the cancellation is
-preserved at every epoch.
-
-The non-standard step is thus not the subtraction but the refusal to treat it as bookkeeping: here the mean
-genuinely carries no gravitational charge, and the consequences are followed to the end (Section~\ref{sec:de-infl}).
-This is where the model parts company with general relativity rather than with Newton, since in general relativity
-a homogeneous background \emph{does} curve spacetime and the existence argument above does not apply --- the
-solvability difficulty is Newtonian. What that costs is stated in Section~\ref{sec:towards}.
-
-This is \emph{not} modified gravity but a modified source. The force law is untouched --- no altered $1/r^2$, no
-extra field, no acceleration-dependent coupling --- and for a galaxy, where the cosmic mean lies thirty orders of
-magnitude below the local density, subtracting $\bar\rho$ changes nothing. What is non-standard is what counts as a
-source at the largest scale. The accurate description is \emph{standard Newtonian dynamics with a non-standard
-cosmological boundary condition}.
+None of that is new, and none of it is argued for here. The non-standard step comes after: the mean is taken to
+carry no gravitational charge \emph{in fact}, and no relativistic background is imported to restore it, so the
+consequences are followed to the end (Section~\ref{sec:de-infl}). That is where the model parts company with
+general relativity rather than with Newton --- in general relativity a homogeneous background does curve
+spacetime, and the solvability argument above simply does not arise. What it is \emph{not} is modified gravity:
+the force law is untouched, and for a galaxy, where the cosmic mean lies thirty orders of magnitude below the
+local density, subtracting $\bar\rho$ changes nothing. The accurate description is \emph{standard Newtonian
+dynamics with a non-standard cosmological boundary condition}.
 
 \paragraph{The force-rule.} Under \textbf{like sources attract, unlike repel}, all four combinations are realised
 and each is observed. Two overdense regions attract: clustering. Two underdense regions attract: \emph{voids
@@ -725,18 +714,12 @@ discrepancy\\
 \end{tabular}
 \end{center}
 
-\noindent The last row should be read in both directions. The standard machinery is heavy because the
-formulations behind it are, and it buys quantitative results this construction does not reach; that is not in
-dispute, and simplicity is not accuracy. But neither is simplicity here mere economy. It buys \emph{range}: no
-standard method carries a nucleus to a cosmic web without changing formalism at least twice, whereas here nothing
-changes but the constant in front of the Laplacian. It buys \emph{size}, the cost growing linearly in electron
-number where a wavefunction method grows exponentially. It buys \emph{testability}: with no basis set and no
-fitted exchange--correlation function there is nothing in the code that can absorb a discrepancy, so a wrong
-prediction surfaces as a wrong number rather than as a retuned parameter, and any reader can rerun it in an
-afternoon and try to break it. And it buys the paper's own argument. The claim here is that the microscopic world
-has the same continuum form as the macroscopic one; a solver that looks like a solver for macroscopic matter ---
-and works --- is evidence for precisely that. The simplicity is not a convenience attached to the result. It
-\emph{is} part of the result.
+\noindent Read the last row in both directions. The standard machinery is heavy because its formulations are,
+and it buys quantitative results this construction does not reach; simplicity is not accuracy. But it is not mere
+economy either: it buys range (nothing changes between the tiers but the constant in front of the Laplacian),
+linear rather than exponential cost, and testability, since with no fitted function to absorb a discrepancy a
+wrong prediction surfaces as a wrong number. It also buys the paper's own argument --- a solver that looks like
+one for macroscopic matter, and works, is evidence that the microscopic world has the same continuum form.
 
 \paragraph{On the cosmological constant: fixed, not absent.} In the Newtonian limit of general relativity with
 $\Lambda$ the field equation reads $\grad^2\varphi=4\pi G\rho-\Lambda c^2$, so $\Lambda$ enters precisely as a
@@ -759,42 +742,19 @@ is not claimed: it is recorded because \eqref{coastdl} follows from the model wh
 it.
 
 \subsection*{What is not claimed}
-The model here is \textbf{Coulomb $+$ Newton}, and that is a real boundary rather than a form of words. Radiation is
-not in \emph{this} treatment, which is electrostatic: Coulomb is the static limit of Maxwell. It is, however,
-already part of the framework rather than an extension awaiting invention --- the time-dependent form, in which a
-real charge density carries a complex current and a radiating dipole, is developed in~\cite{complexrealqm} and
-reproduces atomic spectra. Adding it is seamless in the same sense the gravitational addition is: restoring the
-time dependence adds terms without altering the form of the model. What follows from that for the cosmological
-questions below has not been worked out, and is the natural next step rather than a gap in principle.
-
-The microwave background sits squarely in that deferred sector, and its standing here should not be
-misstated in either direction. It plays no role in the construction: nothing above uses it, needs it, or is
-calibrated against it, in contrast to $\Lambda$CDM, where it is load-bearing. But a relic radiation field is not
-foreign to this picture either. The sequence of Section~\ref{sec:sequence} passes through a hot dense phase
-reached by contraction rather than by an initial singularity, and ends with matter turning neutral near
-$3000$~K and radiation streaming free --- which is a release of relic radiation by the same mechanism, differing
-in what produced the heat. What is not supplied is everything quantitative about it: its present temperature, the
-near-perfection of its blackbody spectrum, its isotropy to about one part in $10^5$, and its acoustic peaks. Those
-are questions for the radiation sector --- available in the framework, not yet turned on this problem --- and they
-are open rather than answered.
-
-A distinction should be drawn before any of it is attempted, because it decides how much is actually owed. That a
-microwave background exists, that its spectrum is Planckian to within some $5\times10^{-5}$ of the peak
-(COBE/FIRAS), and that it carries anisotropies of order $10^{-5}$ structured into peaks in the angular power
-spectrum, are \emph{measurements}. That those peaks record a last-scattering surface at $z\approx1100$ and read off
-the densities of the $\Lambda$CDM parameter set is an \emph{interpretation}, made inside a model; a different
-framework owes its own reading and does not inherit that one. Radiation is left over from everything that has
-happened, and what a relic signifies depends on what is taken to have happened --- which is genuinely open. The
-spectrum carries the heaviest burden of all, since a Planck curve of that quality is not produced by just any
-process, and this paper takes no position on what produces it. The standard account reads it as thermalization in
-an optically thick medium; the author's own analysis of blackbody radiation~\cite{blackbody} reaches a different
-conclusion, on which a Planck curve is the signature of a resonant lattice rather than of a hot disordered gas,
-and would therefore deny that the spectrum evidences a hot dense past at all. That question belongs to the
-radiation sector and is settled in neither direction here.
-
-The same deferral applies to large-scale-structure statistics including the baryon acoustic feature, to galaxy
-formation, and to light-element abundances beyond helium. None is treated, and nothing above should be read as
-bearing on them.
+The model is \textbf{Coulomb $+$ Newton}, and radiation is not in it: Coulomb is the static limit of Maxwell. The
+time-dependent form, in which a real charge density carries a complex current and radiates, exists and reproduces
+atomic spectra~\cite{complexrealqm}; it is simply not turned on this problem. The microwave background therefore
+sits in a deferred sector. It plays no role in the construction --- nothing above uses it or is calibrated against
+it, unlike $\Lambda$CDM, where it is load-bearing --- though a relic field is not foreign to the picture, since
+the sequence of Section~\ref{sec:sequence} passes through a hot dense phase reached by contraction and ends with
+radiation streaming free. What is not supplied is everything quantitative: the temperature, the isotropy, the
+acoustic peaks. Its Planckian spectrum is measured; that the peaks record a last-scattering surface at
+$z\approx1100$ and read off the $\Lambda$CDM densities is an interpretation made inside a model, and not
+inherited here. The standard reading takes the spectrum for thermalization in an optically thick medium; the
+author's analysis of blackbody radiation~\cite{blackbody} takes it for the signature of a resonant lattice. This
+paper settles neither. The same deferral covers large-scale-structure statistics and the baryon acoustic feature,
+galaxy formation, and light elements beyond helium.
 
 \subsection*{The obstacles inside what \emph{is} claimed}
 A limited ambition excuses what a paper does not touch, and what needs machinery it has not introduced can wait
@@ -814,59 +774,33 @@ freezes}. Either the mean must gravitate after all, discarding the coasting pred
 seed specifies rather than something gravity builds, and would then have to carry the observed shape of $P(k)$ as
 well. This is the sharpest obstacle between the present framework and a cosmology.
 
-\paragraph{Which branch is taken here, and what it costs.} The second branch is the one this framework points to,
-and the reason is worth stating because it is easy to miss. The figure $10^{-5}$, which sets how much
-amplification is demanded, is not a measurement of any seed: it is the amplitude of the microwave-background
-anisotropies \emph{read as the primordial perturbation at last scattering}, an interpretation internal to the
-standard model of cosmology and one this paper does not inherit (see the discussion of the background below).
-Without that number, the requirement changes shape. Here $\rho=\grad^2\varphi_E$ does not describe a small ripple
-on top of pre-existing matter; it \emph{is} the matter, structured at order unity from the outset. Nothing then
-needs to be amplified by $10^5$, and gravity's role is morphology --- turning order-unity contrast into filaments,
-sheets and voids --- rather than amplitude. On the eternal reading below, where the seed is a permanent
-statistical property rather than an initial condition, frozen growth stops being a defect and becomes something
-closer to a requirement.
+\paragraph{Which branch is taken, and where the obstruction sits.} The second branch is the one this framework
+points to. The figure $10^{-5}$, which sets how much amplification is demanded, is not a measurement of any seed:
+it is the microwave anisotropy amplitude read as the primordial perturbation at last scattering, an
+interpretation this paper does not inherit. Here $\rho=\grad^2\varphi_E$ is not a ripple on pre-existing matter,
+it \emph{is} the matter, structured at order unity from the outset, so nothing needs amplifying by $10^5$ and
+gravity's role is morphology rather than amplitude. The price is that the \emph{shape} of the spectrum becomes
+the seed's responsibility, and Section~\ref{sec:large} reports that no seed yet discharges it; a second price is
+that galaxy populations do evolve with redshift, which is evidence of some real growth.
 
-That is a position, not an escape, and it has a price which the preceding sections have already begun to pay. If
-structure is supplied rather than grown, the \emph{shape} of the spectrum becomes the seed's responsibility, and
-the measurement reported in Section~\ref{sec:large} says that responsibility is not currently discharged: the
-seed that collapses has the large-scale slope wrong by about two in the exponent and imposes its own correlation
-length as the web scale, while the seed with the right slope does not collapse. A second cost is observational.
-Galaxy populations \emph{do} evolve with redshift, which is evidence of some genuine growth, and a picture in
-which structure is specified rather than assembled owes an account of that evolution. Both are open, and both are
-now questions about the seed rather than about gravitation --- which is progress of a kind, in that they are
-well-posed and computable with the machinery already in hand.
+It is worth locating the obstruction, because it does not lie where the new content is. Every link in the chain
+--- Newtonian arena, Neumann--Seeliger subtraction, vanishing background source, $\bar\rho$ decoupled from $H$
+--- belongs to the gravitational tier. Charge quantization, the neutron as $p+e$, nuclear binding and the two
+masses are statements about matter, indifferent to how the background expands. In general relativity the mean
+gravitates, Friedmann relocks source to friction and $\delta\propto a$ returns; what is surrendered is the
+coasting prediction~\eqref{coastdl}, not any result of the preceding sections, and restoring growth restores
+neither the dark-matter amplitude nor an account of the microwave background.
 
-\paragraph{Where that obstruction sits, and where it does not.} It is worth locating precisely, because it does
-not lie where the new content is. Every link in the chain just given belongs to the gravitational tier: a
-Newtonian arena forces the Neumann--Seeliger subtraction, the subtraction removes the mean from the source, a
-vanishing background source gives $a\propto t$, and the consequent decoupling of $\bar\rho$ from $H$ starves the
-growth equation. Nothing in that chain involves RealQM. Charge quantization, the neutron as $p+e$, nuclear binding
-from Coulomb geometry and the two masses are statements about \emph{matter}, and are indifferent to how the
-background expands. The obstruction is a defect of the \emph{arena}, not of the matter model, and it is the price
-of the deliberate choice to keep gravitation textbook. In general relativity no subtraction is required: the full
-density gravitates, Friedmann locks $\bar\rho=3H^2/8\pi G$, source and friction scale alike, and $\delta\propto a$
-returns. What would be surrendered is the coasting prediction~\eqref{coastdl}, not any result of the preceding
-sections. That escape is real and is not taken here, since taking it means leaving the Newtonian arena in which
-the two-tier construction is posed --- but it should not be mistaken for a full remedy either, because restoring
-growth restores neither the dark-matter amplitude nor an account of the microwave background.
-
-\paragraph{Why not simply stay Newtonian on a fixed background?} The arena here already \emph{is} fixed and
-Euclidean: in a Newtonian setting $a\propto t$ is not expanding space but matter in free inertial expansion
-through it --- the Milne solution, which is what a vanishing background source leaves. No expansion of space is
-claimed anywhere in this paper. The redshift is a \textbf{Doppler shift} from sources in relative motion, $H_0$ a
-velocity gradient rather than a property of a metric, and this is no weaker observationally: the $(1+z)$
-stretching of supernova light curves, usually cited as showing that space expands, follows equally from
-relativistic Doppler with the increasing light-travel time from a receding source. What differs is not the
-redshift but what is said to expand, and here it is the matter.
-
-Whether the bulk motion could be dropped as well is then a fair question, and the three arenas trade against each
-other. With matter coasting, as here, $H=1/t$ while $\bar\rho\propto t^{-3}$ decouples from it and growth freezes.
-With no bulk motion at all, $H=0$ and $\ddot\delta=4\pi G\bar\rho\,\delta$ gives exponential growth on the Jeans
-time, so the obstruction vanishes --- but so do the Hubble law and the redshift, and a static substitute would
-still owe the observed $(1+z)$ stretching, which a non-kinematic redshift does not give. With a relativistic
-background the mean gravitates, Friedmann relocks source to friction and $\delta\propto a$ returns, at the cost of
-the three claims above and the return of the dark sector. Free inertial expansion buys the Hubble law; a static
-box buys structure; nothing above buys both.
+\paragraph{Why not simply stay Newtonian on a fixed background?} The arena already \emph{is} fixed and Euclidean:
+$a\propto t$ in a Newtonian setting is not expanding space but matter in free inertial expansion through it, the
+Milne solution. No expansion of space is claimed here. Redshift is a \textbf{Doppler shift} of sources in
+relative motion, $H_0$ a velocity gradient, and the $(1+z)$ stretching of supernova light curves --- usually cited
+as showing space expands --- follows equally from relativistic Doppler with the increasing light-travel time from
+a receding source. Dropping the bulk motion as well would cure the obstruction, since $H=0$ gives
+$\ddot\delta=4\pi G\bar\rho\,\delta$ and exponential growth on the Jeans time, but it costs the Hubble law and
+the redshift with it. The computations of Section~\ref{sec:computational} live in that static arena --- a
+periodic box with no expansion --- so they exhibit Jeans collapse in fixed space and are not evidence for the
+coasting background.
 
 \paragraph{Two further entries, both within the model's reach.} There is no extra gravitating component
 co-located with galaxies, so flat rotation curves and cluster mass-to-light ratios stand where Newtonian dynamics
