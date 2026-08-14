@@ -80,17 +80,28 @@ matter sought as a new particle in particle colliders and underground detectors 
 largest missing mass in the universe is a machine that collides protons. A model that spans from nuclei to galaxies
 is therefore not an ambition imposed on the subject but what the subject already requires.
 
-\paragraph{Why the gravitational half is deliberately unoriginal.} A reader who reaches
+\paragraph{Why gravitation is here, and why it is deliberately textbook.} A reader who reaches
 Section~\ref{sec:large} will find nothing there that Newton did not have: the Poisson equation, a body force, a
-compressible gas. That is intended, and it is worth saying why rather than leaving it to look like a gap.
-Cosmology is not only the large scale. It is the whole chain, and its first question --- where the protons and
-electrons came from --- is a \emph{small-scale} question, which is where this framework has something new to say:
-charge quantized by indivisibility, the neutron as $p+e$, nuclear binding from Coulomb geometry, two extents
-giving exactly two masses. Gravitation's job is to take that matter and gather it. If the gravitational sector
-were also novel, any success at large scales could be attributed to the new gravity rather than to the matter, and
-nothing would be learned. Keeping Newton textbook is what makes the test clean: \textbf{Cosmology $=$ Coulomb
-$+$ Newton}, with the novelty in what gravity acts \emph{on}, and gravity itself the control rather than the
-claim.
+compressible gas. That is intended, for two reasons worth stating rather than leaving to look like a gap.
+
+The first is that cosmology is not only the large scale. It is the whole chain, and its first question --- where
+the protons and electrons came from --- is a \emph{small-scale} question, which is where this framework has
+something new to say: charge quantized by indivisibility, the neutron as $p+e$, nuclear binding from Coulomb
+geometry, two extents giving exactly two masses. Gravitation's job is to take that matter and gather it. If the
+gravitational sector were also novel, any success at large scales could be attributed to the new gravity rather
+than to the matter, and nothing would be learned. Keeping Newton textbook is what makes the test clean:
+\textbf{Cosmology $=$ Coulomb $+$ Newton}, with the novelty in what gravity acts \emph{on}, and gravity itself
+the control rather than the claim.
+
+The second is that the gravitational sections are a direct application of the \emph{computational} capacity the
+small-scale model is built on, and are included as a demonstration of it. Nothing in that machinery is particular
+to Coulomb: it is a Poisson solve coupled to a relaxation of a real, non-negative field on a uniform Cartesian
+grid, with free boundaries located by the flow instead of imposed. Change the sign convention of the kernel and
+relax in time rather than downhill in energy and the same primitive is self-gravitating gas dynamics
+(Section~\ref{sec:computational}). The claim being demonstrated is therefore not that gravitation needs revision
+but that one computational form, unchanged in its essentials, spans from a nucleus to a cosmic web --- close to
+forty orders of magnitude in length --- and does so on hardware as ordinary as a laptop or a browser. A method that could reach only the scale
+it was designed for would be a far weaker instrument.
 
 \paragraph{The main idea, and the plan.} \emph{One small perturbation of one potential, followed upward by
 computation in one form of model, yields quantized charges and masses, then nuclei, atoms and molecules, and
@@ -356,11 +367,16 @@ over-diffusive and the filaments never sharpen.
 energies and nuclear binding follow from the same free-boundary minimisation without adjustable parameters. At the
 large scale they are \emph{morphological only} --- dimensionless units, a periodic box, no expansion, no redshift,
 no calibration to any survey --- and nothing in them tests the cosmological claims of
-Sections~\ref{sec:de-infl}--\ref{sec:towards}.
+Sections~\ref{sec:de-infl}--\ref{sec:towards}. As \emph{physics} that is a weak claim, and it is not strengthened
+here. As a demonstration of the \emph{method} it is a strong one, and the two should not be confused: an $8\times
+10^6$-cell self-gravitating flow and a free-boundary atom are the same solver on the same grid at scales some
+forty orders of magnitude apart, with no basis sets, no fitted parameters and no change of formalism between
+them.
 
 \section{The large scale: Newtonian gravitation}\label{sec:large}
 Nothing in this section is new, by design (see the Introduction): it is Newtonian gravitation as it has always
-been, acting on the matter the preceding sections built. The mass/energy density of that matter --- protons,
+been, acting on the matter the preceding sections built. What is being carried over from the small scale is not
+physics but \emph{method} --- the same grid, the same Poisson solve, the same relaxation of a real field. The mass/energy density of that matter --- protons,
 electrons, their binding and radiation --- is $\rho$, positive throughout. It is the source of the second force, but enters its Poisson equation only through its departure from
 the mean, \eqref{contrast}, so the \emph{source} takes both signs --- positive where matter is denser than average,
 negative where sparser --- while the matter itself is positive everywhere. There is no negative mass and no second
