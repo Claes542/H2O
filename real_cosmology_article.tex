@@ -543,6 +543,35 @@ Renormalising instead to give the same power \emph{at} $\lambda_J$ does not resc
 is ${\sim}26$ times larger, which drives the density negative over $46\%$ of the volume, and the seed is then not a
 perturbation but a saturated field.
 
+That leaves the question the two runs were circling, which is not whether the seed collapses but whether it
+carries the observed \emph{shape}. The matter power spectrum rises as $P(k)\propto k^{n_s}$ with
+$n_s\approx0.96$ on the largest scales, turns over, and falls beyond. Measuring $P(k)$ directly from these runs
+(spherically averaged in $k$-shells, at $N=96,128,160$, all at $t=1$) gives a consistent and unfavourable answer:
+
+\begin{center}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+seed & $n$ on $k=2$--$8$, seed $\to$ evolved & $k$ of the peak of $k^3P$ & peak/mean\\
+\midrule
+Gaussian bump (Figure~\ref{fig:web}) & $-1.5\to-1.0$ & $16$--$18$, stable in $N$ & $870$--$2900$\\
+scale-free, $P_\rho\propto k$ & $+0.9\to-0.9$ & $24$--$49$, wandering & $1.7$--$2.0$\\
+\midrule
+observed & $\approx+1$ & --- & ---\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Neither seed delivers it. The one that collapses has the large-scale slope wrong by about two in the
+exponent, with too much power on large scales rather than too little, and its web scale is simply its own
+correlation length --- $k\approx17$, fixed by the seed and unchanged as the grid is refined, so the characteristic
+scale of the pattern is put in by hand rather than selected by gravity. The one with the correct large-scale slope
+does not collapse at all. A control run with the gravitational coupling set to zero shows in addition that the
+late-time slope is not the seed slope in either case: pressure smoothing decays the small scales and leaves
+relatively more power at large ones, an effect gravity partly opposes rather than causes. So a seed cannot simply
+be handed the observed spectrum and be expected to deliver it downstream. The script is
+\texttt{power\_spectrum.py} in the numerics directory.
+
 A raw scale-free spectrum is therefore unusable as an initial condition here, in either direction. That is not a
 peculiarity of this model --- it is why standard cosmology processes the primordial spectrum through a
 \textbf{transfer function}, which suppresses the small-scale power before structure formation begins --- but this
@@ -808,6 +837,28 @@ freezes}. Either the mean must gravitate after all, discarding the coasting pred
 seed specifies rather than something gravity builds, and would then have to carry the observed shape of $P(k)$ as
 well. This is the sharpest obstacle between the present framework and a cosmology.
 
+\paragraph{Which branch is taken here, and what it costs.} The second branch is the one this framework points to,
+and the reason is worth stating because it is easy to miss. The figure $10^{-5}$, which sets how much
+amplification is demanded, is not a measurement of any seed: it is the amplitude of the microwave-background
+anisotropies \emph{read as the primordial perturbation at last scattering}, an interpretation internal to the
+standard model of cosmology and one this paper does not inherit (see the discussion of the background below).
+Without that number, the requirement changes shape. Here $\rho=\grad^2\varphi_E$ does not describe a small ripple
+on top of pre-existing matter; it \emph{is} the matter, structured at order unity from the outset. Nothing then
+needs to be amplified by $10^5$, and gravity's role is morphology --- turning order-unity contrast into filaments,
+sheets and voids --- rather than amplitude. On the eternal reading below, where the seed is a permanent
+statistical property rather than an initial condition, frozen growth stops being a defect and becomes something
+closer to a requirement.
+
+That is a position, not an escape, and it has a price which the preceding sections have already begun to pay. If
+structure is supplied rather than grown, the \emph{shape} of the spectrum becomes the seed's responsibility, and
+the measurement reported in Section~\ref{sec:large} says that responsibility is not currently discharged: the
+seed that collapses has the large-scale slope wrong by about two in the exponent and imposes its own correlation
+length as the web scale, while the seed with the right slope does not collapse. A second cost is observational.
+Galaxy populations \emph{do} evolve with redshift, which is evidence of some genuine growth, and a picture in
+which structure is specified rather than assembled owes an account of that evolution. Both are open, and both are
+now questions about the seed rather than about gravitation --- which is progress of a kind, in that they are
+well-posed and computable with the machinery already in hand.
+
 \paragraph{Where that obstruction sits, and where it does not.} It is worth locating precisely, because it does
 not lie where the new content is. Every link in the chain just given belongs to the gravitational tier: a
 Newtonian arena forces the Neumann--Seeliger subtraction, the subtraction removes the mean from the source, a
@@ -824,7 +875,15 @@ growth restores neither the dark-matter amplitude nor an account of the microwav
 
 \paragraph{Why not simply stay Newtonian on a fixed background?} The arena here already \emph{is} fixed and
 Euclidean. In a Newtonian setting $a\propto t$ is not expanding space but matter in free inertial expansion
-through static space --- the Milne solution, which is exactly what a vanishing background source leaves behind.
+through static space --- the Milne solution, which is exactly what a vanishing background source leaves behind. No
+expansion of space is claimed anywhere in this paper, and none is needed. The redshift is then what it was before
+the metric reading was available: a \textbf{Doppler shift} from sources in relative motion through a fixed
+Euclidean space, with $H_0$ a velocity gradient rather than a property of a metric. This is not a weaker position
+observationally than it may sound. The stretching of supernova light curves by $(1+z)$ --- the observation usually
+cited as showing that space itself expands --- follows equally from relativistic Doppler together with the
+increasing light-travel time from a receding source, since the two descriptions are kinematically equivalent for a
+freely expanding cloud. What distinguishes them is not the redshift but what is said to be doing the expanding,
+and here it is the matter.
 The real question is therefore whether the bulk motion could be dropped as well, and the three available arenas
 are best set side by side, since each cures one thing at the cost of another.
 \begin{center}
