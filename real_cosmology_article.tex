@@ -687,15 +687,26 @@ machinery & lattice QCD: Monte Carlo over a $4$D path integral, ${\sim}10^5$-lin
 chemistry packages with $\mathcal{O}(N^7)$ methods and fitted functionals & a Poisson solve $+$ relaxation on a
 grid, linear in electron number, no basis set and no fitted parameter; the atom solver is $350$ lines\\[2pt]
 what that buys & the hadron spectrum at the percent level, chemical accuracy, and quantitative reach far beyond
-this domain & binding and ionisation energies, nuclear binding \emph{ratios}; code a reader can read and
-break\\
+this domain & one instrument across the entire range --- nucleus, atom, molecule, and an $8\times10^6$-cell
+self-gravitating flow --- at linear rather than exponential cost, running interactively on a laptop; binding and
+ionisation energies and nuclear binding \emph{ratios} parameter-free; and nothing anywhere in it that can absorb a
+discrepancy\\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\noindent The last row is the one to weigh against the one above it: the standard machinery is heavy because the
-formulations behind it are, and it buys results this construction does not reach. Simplicity here is a claim about
-form, not about accuracy.
+\noindent The last row should be read in both directions. The standard machinery is heavy because the
+formulations behind it are, and it buys quantitative results this construction does not reach; that is not in
+dispute, and simplicity is not accuracy. But neither is simplicity here mere economy. It buys \emph{range}: no
+standard method carries a nucleus to a cosmic web without changing formalism at least twice, whereas here nothing
+changes but the constant in front of the Laplacian. It buys \emph{size}, the cost growing linearly in electron
+number where a wavefunction method grows exponentially. It buys \emph{testability}: with no basis set and no
+fitted exchange--correlation function there is nothing in the code that can absorb a discrepancy, so a wrong
+prediction surfaces as a wrong number rather than as a retuned parameter, and any reader can rerun it in an
+afternoon and try to break it. And it buys the paper's own argument. The claim here is that the microscopic world
+has the same continuum form as the macroscopic one; a solver that looks like a solver for macroscopic matter ---
+and works --- is evidence for precisely that. The simplicity is not a convenience attached to the result. It
+\emph{is} part of the result.
 
 \paragraph{On the cosmological constant: fixed, not absent.} In the Newtonian limit of general relativity with
 $\Lambda$ the field equation reads $\grad^2\varphi=4\pi G\rho-\Lambda c^2$, so $\Lambda$ enters precisely as a
