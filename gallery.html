@@ -174,21 +174,39 @@ footer a { color: #4fc3f7; text-decoration: none; }
     <div id="news-web" class="card" style="border-color:#ffa726;background:#140f0a;grid-column:1/-1;padding:18px">
       <h3 style="color:#ffa726">Cosmology &middot; A Coulomb&ndash;Newton Cosmology (RealUniv) &mdash; cosmic-web sim, article, essay &amp; PDF</h3>
       <div class="desc" style="margin-top:6px">
-        A 2D compressible self-gravitating simulation of the cosmology's mass-generation step: seed a random
-        fluctuation of the gravitational potential, <b>generate mass by the Laplacian</b> (&rho; = &nabla;&sup2;&phi;),
-        then evolve with <b>same-sign attraction / opposite-sign repulsion</b> (mass-conserving, |&nabla;&phi;| capped
-        so no collapse). It develops the <b>morphology of observed large-scale structure</b>: two <b>intermixed
-        filamentary webs</b> (+mass warm, &minus;mass cool) with <b>concentrated nodes</b> and <b>large voids</b>
-        &mdash; and here the <b>voids are driven by &minus;mass repulsion</b>, not merely
-        gravitational evacuation. (The article now reads the signed source as a <b>density contrast</b>
-        &rho;&minus;&rho;&#772; rather than a negative-mass substance &mdash; same solver, but voids are underdense
-        regions and the dark-energy reading is withdrawn.) Qualitative (2D toy); quantitative tests (void statistics, correlation function)
-        to come. <b>Full picture in the article:</b> <b>two mirror forces</b> from one two-valued Poisson template
-        &mdash; Coulomb (small: charge &rarr; nuclei, atoms) and Newton (large: mass), like charges repel and like
-        masses attract; the large scale <b>splits into an overdense web and the underdense voids between</b>
-        it, and a <b>two-size electron</b> gives
-        <b style="color:#66bb6a">Y = 0.245</b> (the observed primordial helium). <b>Two constants</b> (&alpha;, G),
-        one per force; whether they reduce to one is left open. Exploratory; open problems stated up front.
+        <b>One faint ripple in the electric potential, followed upward by computation.</b> Curvature of
+        &phi;<sub>E</sub> is charge, <b>quantized to &plusmn;1</b> by the indivisibility of a unit cloud; the same
+        cloud in <b>two extents</b> gives the compact proton and the diffuse electron, and with the two extents the
+        two masses. Coulomb then builds nuclei, atoms and molecules (neutron = p + compact e, nuclear binding from
+        Coulomb geometry, no strong force), and <b>Newton acts on the energy of what has been built</b> &mdash;
+        through its departure from the mean, &rho;&minus;&rho;&#772;, so the source takes both signs while the
+        matter is positive everywhere. The web is <b>overdense</b>, the voids <b>underdense</b>: no negative-mass
+        substance, and the earlier dark-energy reading is withdrawn.
+        <div style="margin-top:8px">
+        <b>Cosmology = Coulomb + Newton.</b> The gravitational half is deliberately textbook &mdash; if it were also
+        novel, any success at large scales could be credited to the new gravity rather than to the matter. It is
+        also a demonstration of the <b>computational</b> capacity: the two tiers pose the <b>same problem</b>
+        (a discrete Laplacian inverted against a two-valued source), so one solver spans <b>nucleus to cosmic
+        web</b>, some forty orders of magnitude &mdash; the atom solver is <b>350 lines</b>, the web figure's
+        script <b>115</b>, no basis sets and no fitted parameters.
+        </div>
+        <div style="margin-top:8px">
+        <b>What follows, and what does not.</b> With no net background source the expansion <b>coasts</b>,
+        a &prop; t &mdash; and here that is matter drifting through <b>fixed Euclidean space</b>, so redshift is an
+        ordinary <b>Doppler shift</b> and nothing stretches space. <b>Three dimensionless constants</b>
+        (&alpha;, m<sub>p</sub>/m<sub>e</sub>, &alpha;<sub>G</sub>). Y &asymp; 0.25 is accommodated &mdash; a
+        consistency, not a prediction.
+        </div>
+        <div style="margin-top:8px">
+        <b>Stated openly:</b> in a coasting background <b>structure cannot grow</b> (&delta; stays constant), so the
+        pattern must be supplied by the seed &mdash; and measuring P(k) from the runs shows no seed yet does it: the
+        one with the right large-scale slope will not collapse, the one that collapses imposes its own scale.
+        <b>No dark-matter account</b> (rotation curves stand where Newton left them); the microwave background
+        belongs to the deferred radiation sector. One way out is recorded: a <b>continuous feed</b> to
+        &phi;<sub>E</sub> restores growth without touching the expansion &mdash; and in a coasting universe, where
+        R = ct grows as fast as the mass it encloses, new matter arrives with negative potential energy equal to its
+        rest energy, so creation is <b>energetically free</b>.
+        </div>
         <div style="margin-top:10px">
           <a href="cosmology_mass_from_fluctuation.html"><img src="cosmic_web_pm2.png" style="max-width:300px;width:55%;border:1px solid #333;border-radius:4px"></a>
         </div>
@@ -1239,6 +1257,24 @@ footer a { color: #4fc3f7; text-decoration: none; }
         longer sources gravitation, so the non-Gaussianity hypothesis is gone from the argument and the large-scale
         inhomogeneity is an acknowledged <b>input</b>. The two-valued Poisson parallel is now a <b>conclusion</b>,
         used nowhere in the construction.</div>
+        <div style="margin-top:6px;font-size:0.9em;color:#c9a06a"><i>Revised 2026-08-14:</i> the gravitational half
+        is now explained rather than left looking like a gap &mdash; <b>Cosmology = Coulomb + Newton</b>, gravity
+        kept textbook so that it is the <b>control</b> and not the claim, and the same sections double as a
+        demonstration that <b>one solver spans nucleus to cosmic web</b> (the two tiers pose the same problem: a
+        discrete Laplacian against a two-valued source). New <b>head-to-head comparison table</b> with the standard
+        account on its two real axes, origin of matter and machinery, including the rows where the standard account
+        is ahead. The coasting expansion is <b>demoted to a consequence</b> &mdash; the supernova error budget is
+        gone, since the paper does not perform that analysis &mdash; and <b>redshift is a Doppler shift</b> of
+        matter moving through fixed Euclidean space, with no expansion of space claimed anywhere. Scope is
+        separated from defect: what the paper does not touch is listed once, while what it touches and gets wrong
+        (frozen growth in a coasting background) is kept in full. <b>New numerics:</b> P(k) measured from the runs
+        (N = 96, 128, 160) shows <b>no seed yet carries the observed spectrum</b> &mdash; the one with the right
+        large-scale slope will not collapse, the one that collapses imposes its own scale. And a new section,
+        <b>&ldquo;A feed, and a zero sum&rdquo;</b>: a continuous feed to &phi;<sub>E</sub> restores structure
+        formation without touching the expansion, and in a coasting universe (R = ct grows as fast as the mass it
+        encloses) new matter arrives with negative potential energy equal to its rest energy, so creation is
+        <b>energetically free</b> &mdash; the expansion law that starves growth is the one that makes replenishment
+        cost nothing.</div>
         <div style="margin-top:6px">
           <a href="real_cosmology_article.pdf" style="color:#ffa726">article (PDF)</a> &middot;
           <a href="real_cosmology_essay.pdf" style="color:#ffa726">essay (non-technical)</a> &middot;
