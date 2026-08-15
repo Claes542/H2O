@@ -436,22 +436,26 @@ the mean, \eqref{contrast}, so the \emph{source} takes both signs --- positive w
 negative where sparser --- while the matter itself is positive everywhere. There is no negative mass and no second
 species: the two signs are \emph{excess} and \emph{deficit} of one substance.
 
-\paragraph{The subtraction is standard; what follows it is not.} A uniform positive source has no Newtonian
-potential at all: $\grad^2\varphi_g=4\pi G\sigma$ is solvable on an unbounded or periodic domain only if
-$\langle\sigma\rangle=0$ --- the Neumann--Seeliger difficulty --- so a constant must be subtracted and no
-Newtonian cosmology escapes it. Standard practice supplies it as bookkeeping and calls it the Jeans swindle.
-Taking $\bar\rho=M_{\rm tot}/V_{\rm tot}$ makes the total gravitational charge of the universe vanish, matching
-the zero net charge of the Coulomb sector, and dilutes as $a^{-3}$ with the matter, so the cancellation holds at
-every epoch.
+\paragraph{The subtraction is standard, and it is a choice.} On a periodic box $\grad^2\varphi_g=4\pi G\sigma$
+is solvable only if $\langle\sigma\rangle=0$, so a constant must be subtracted there as a matter of arithmetic.
+On unbounded $\mathbb{R}^3$ the situation is weaker and should not be overstated: a uniform source does admit
+solutions --- $\varphi=\tfrac{2\pi G\rho_0}{3}|x|^2$ is one --- but no solution is translation-invariant, the
+isolated-system boundary condition at infinity cannot be met, and the force on a point depends on the order in
+which the infinite distribution is summed. That is the Neumann--Seeliger difficulty, and it is a difficulty of
+Newtonian cosmology as such, not of this model. Standard practice removes it by subtracting the mean and calls it
+the Jeans swindle; taking $\bar\rho=M_{\rm tot}/V_{\rm tot}$ makes the total gravitational charge vanish,
+matching the zero net charge of the Coulomb sector, and dilutes as $a^{-3}$ so the cancellation holds at every
+epoch.
 
-None of that is new, and none of it is argued for here. The non-standard step comes after: the mean is taken to
-carry no gravitational charge \emph{in fact}, and no relativistic background is imported to restore it, so the
-consequences are followed to the end (Section~\ref{sec:de-infl}). That is where the model parts company with
-general relativity rather than with Newton --- in general relativity a homogeneous background does curve
-spacetime, and the solvability argument above simply does not arise. What it is \emph{not} is modified gravity:
-the force law is untouched, and for a galaxy, where the cosmic mean lies thirty orders of magnitude below the
-local density, subtracting $\bar\rho$ changes nothing. The accurate description is \emph{standard Newtonian
-dynamics with a non-standard cosmological boundary condition}.
+None of that is new, and it should be labelled accurately: \eqref{contrast} is a \textbf{modelling choice} ---
+peculiar-potential dynamics on a periodic domain --- and \emph{not} a theorem forcing the mean to be
+non-gravitating. The non-standard step is to take that choice as physics: the mean carries no gravitational charge
+in fact, no relativistic background is imported to restore it, and the consequences are followed to the end
+(Section~\ref{sec:de-infl}). That is where the model parts company with general relativity rather than with
+Newton, since a homogeneous background there does curve spacetime. What it is \emph{not} is modified gravity: the
+force law is untouched, and for a galaxy, where the cosmic mean lies thirty orders of magnitude below the local
+density, subtracting $\bar\rho$ changes nothing. The accurate description is \emph{standard Newtonian dynamics
+with a non-standard cosmological boundary condition}.
 
 \paragraph{The force-rule.} Under \textbf{like sources attract, unlike repel}, all four combinations are realised
 and each is observed. Two overdense regions attract: clustering. Two underdense regions attract: \emph{voids
@@ -732,16 +736,29 @@ introduced it in 1917 with the same Neumann--Seeliger difficulty in view. What d
 in $\Lambda$CDM, with an unexplained coincidence with today's matter density, and here fixed by vanishing total
 gravitational charge, tracking the matter as $a^{-3}$.
 
-\paragraph{The Hubble diagram that follows.} The coasting background is not a choice made here but a
-consequence of the subtraction: with no net source, $\ddot a=0$ and $a\propto t$, so $H(z)=H_0(1+z)$ and
+\paragraph{The Hubble diagram, and which one it is.} A vanishing background source gives $\ddot a=0$ and
+$a\propto t$, and it is worth being careful about what follows, because two different distance laws carry that
+same expansion rate. Flat Friedmann--Lema\^itre geometry with $a\propto t$ --- the $R_h=ct$ model --- gives
 \begin{equation}\label{coastdl}
-d_L(z) \;=\; \frac{c}{H_0}\,(1+z)\,\ln(1+z).
+d_L(z) \;=\; \frac{c}{H_0}\,(1+z)\,\ln(1+z),
 \end{equation}
-This is the Hubble diagram of the $R_h=ct$ class, and it is testable against supernova compilations, which is
-where this framework would be decided at the large scale. Published comparisons have generally favoured
-$\Lambda$CDM, a conclusion contested by Melia~\cite{melia}. The analysis is not attempted here and the outcome
-is not claimed: it is recorded because \eqref{coastdl} follows from the model whether or not the paper mentions
-it.
+but it obtains it from \emph{metric expansion}, which this paper does not claim. The kinematics asserted here ---
+matter in inertial motion through a fixed Euclidean space, with redshift a Doppler shift --- is instead the Milne
+situation, and taken with special-relativistic Doppler it gives
+\begin{equation}\label{milnedl}
+d_L(z) \;=\; \frac{c}{H_0}\Big(z+\tfrac12 z^2\Big),
+\end{equation}
+which differs from \eqref{coastdl} at the tenths-of-a-magnitude level over $0<z<2$. The two must not be mixed,
+and \eqref{coastdl} is recorded here only to be set aside: it belongs to a geometry this model does not adopt.
+
+Which law this framework actually predicts is not settled by either. Section~\ref{sec:inertia} imposes the speed
+limit in the electromagnetic sector alone, so recession velocities are not bounded by $c$ and the
+special-relativistic Doppler formula behind \eqref{milnedl} is not automatically the right one either. A distance
+law for this model must be derived from its own ingredients --- source trajectories, the redshift mechanism,
+photon propagation, flux dilution and the clock-rate factor --- and that derivation is not attempted here. Until
+it exists, the supernova Hubble diagram is where this framework would be decided at the large scale, but the
+comparison cannot honestly be made. Published comparisons of $R_h=ct$ have generally favoured $\Lambda$CDM, a
+conclusion contested by Melia~\cite{melia}.
 
 \subsection*{What is not claimed}
 The model is \textbf{Coulomb $+$ Newton}, and radiation is not in it: Coulomb is the static limit of Maxwell. The
@@ -790,7 +807,7 @@ It is worth locating the obstruction, because it does not lie where the new cont
 --- belongs to the gravitational tier. Charge quantization, the neutron as $p+e$, nuclear binding and the two
 masses are statements about matter, indifferent to how the background expands. In general relativity the mean
 gravitates, Friedmann relocks source to friction and $\delta\propto a$ returns; what is surrendered is the
-coasting prediction~\eqref{coastdl}, not any result of the preceding sections, and restoring growth restores
+coasting background and whatever distance law it turns out to imply, not any result of the preceding sections, and restoring growth restores
 neither the dark-matter amplitude nor an account of the microwave background.
 
 \paragraph{Why not simply stay Newtonian on a fixed background?} The arena already \emph{is} fixed and Euclidean:
