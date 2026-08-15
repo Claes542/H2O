@@ -26,10 +26,12 @@ This runs the protocol that answers all four:
   Phase C  ratios against HE-4, not the deuteron. The deuteron then appears as a
            prediction, which is a far stronger test than using it to calibrate.
 
-Auto-stop is disabled outright (CONVERGENCE_THRESHOLD = 0 never fires); each run
-gets a wall-clock budget, and convergence is judged afterwards from the E-trace
-by the relative drift over its last quarter. A run that has not settled is
-reported as unsettled rather than silently used.
+The auto-stop is kept but tightened by a factor of twenty (|dE| < 5e-4 against
+the pages' 0.01), because it is also how a result gets reported at all -- with it
+disabled the run simply never posts back. A wall-clock budget is the fallback,
+and convergence is judged afterwards from the E-trace by the relative drift over
+its last quarter, so a run that stopped early is still flagged as unsettled
+rather than used silently.
 
 usage:
   python3 ladder_protocol.py scan   [--grid 160] [--budget 300] [case ...]
@@ -64,6 +66,10 @@ CASES = {
     'be8':      ('nucleus_be8_2alpha_cloud.html',56.4996),   # the dumbbell, not one shell
 }
 REFERENCE = 'he4'
+# The solver stops on |dE| < THRESH between samples. Disabling it entirely (0)
+# does not work: the run then never reports, so the tight threshold is both the
+# convergence fix and the mechanism by which a result comes back at all.
+THRESH = 5e-4
 LAMBDAS = [0.75, 0.85, 1.00, 1.15, 1.30]
 
 DRIVER = """<!DOCTYPE html><html><body style="margin:0;background:#000">
@@ -74,13 +80,18 @@ window.onerror = function (m, src, l) { window.__err.push(m + ' @' + (src||'').s
 </script>
 <script>
 %(config)s
-window.CONVERGENCE_THRESHOLD = 0;          // never auto-stop; the budget ends the run
+window.CONVERGENCE_THRESHOLD = %(thresh)s;   // the solver's own stop, tightened; the budget is a fallback
 window.__label = %(label)r;
 window.__trace = [];
 window.__done = false;
 window.onSweepDone = function (E) { window.__done = true; report(Number(E)); };
+function gpuState() {
+  try { return 'ready=' + gpuReady + ' err=' + (gpuError || 'none') + ' init=' + (typeof initProgress !== 'undefined' ? initProgress : '?'); }
+  catch (ex) { return 'binding: ' + ex.message; }
+}
 function report(E) {
-  var r = JSON.stringify({case: window.__label, E: E, trace: window.__trace, err: window.__err});
+  var r = JSON.stringify({case: window.__label, E: E, trace: window.__trace, err: window.__err,
+                          gpu: gpuState(), prevE: (window._prevE === undefined ? 'undef' : String(window._prevE))});
   document.getElementById('out').textContent = 'RESULT ' + r;
   fetch('/__result?payload=' + encodeURIComponent(r));
 }
@@ -91,8 +102,10 @@ setInterval(function () {
   var e = document.getElementById('out');
   if (e && !window.__done) e.textContent = 'PROGRESS n=' + t.length + ' E=' + v;
 }, 250);
-window.__deadline = setTimeout(function () {         // budget reached: report the trace
-  if (!window.__done && window.__trace.length) { window.__done = true; report(window.__trace[window.__trace.length - 1]); }
+window.__deadline = setTimeout(function () {         // budget reached: report whatever there is
+  if (window.__done) return;
+  window.__done = true;
+  report(window.__trace.length ? window.__trace[window.__trace.length - 1] : null);
 }, %(budget_ms)d);
 </script>
 <script src="/molecule_nucleus.js"></script>
@@ -121,7 +134,8 @@ def build(label, page, grid, lam, budget_s):
         cfg = re.sub(r'N2 = \d+', f'N2 = {grid // 2}', cfg, count=1)
 
     out = HERE / f'_drv_{label}_{grid}_{int(lam*100)}.html'
-    out.write_text(DRIVER % dict(config=cfg, label=label, budget_ms=int(budget_s * 1000)))
+    out.write_text(DRIVER % dict(config=cfg, label=label, budget_ms=int(budget_s * 1000),
+                                 thresh=repr(THRESH)))
     return out
 
 
@@ -152,11 +166,15 @@ def run(httpd, driver, budget_s):
     chrome = subprocess.Popen(
         [CHROME, '--new-window', f'--user-data-dir={profile}', '--no-first-run',
          '--no-default-browser-check', '--window-position=3000,3000',
-         '--window-size=500,400', url],
+         '--window-size=500,400',
+         # without this an offscreen window counts as occluded, Chrome stops
+         # requestAnimationFrame, p5's draw() never runs and nothing is computed
+         '--disable-features=CalculateNativeWinOcclusion',
+         '--autoplay-policy=no-user-gesture-required', url],
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     t0 = time.time()
     try:
-        while httpd.result is None and time.time() - t0 < budget_s + 90:
+        while httpd.result is None and time.time() - t0 < budget_s + 45:
             time.sleep(2)
     finally:
         chrome.terminate()
@@ -211,8 +229,13 @@ def phase_scan(args, grid, budget, cases):
         for lam in LAMBDAS:
             drv = build(label, page, grid, lam, budget)
             r = run(httpd, drv, budget)
-            if r is None:
-                print(f'    lambda={lam:.2f}  no result', flush=True); continue
+            if r is None or r.get('E') is None:
+                if r is None:
+                    print(f'    lambda={lam:.2f}  NO POST-BACK at all', flush=True)
+                else:
+                    print(f'    lambda={lam:.2f}  posted but E=None | gpu: {r.get("gpu")} | '
+                          f'prevE={r.get("prevE")} | trace={len(r.get("trace") or [])} | err={(r.get("err") or [])[:2]}', flush=True)
+                continue
             ok, span = settled(r['trace'])
             print(f'    lambda={lam:.2f}  E={r["E"]:>10.4f}  {"settled" if ok else "UNSETTLED"} (drift {span:.1e})', flush=True)
             if r['E'] is not None and (best is None or r['E'] < best[1]):
@@ -235,8 +258,9 @@ def phase_ladder(args, grids, budget, cases):
         for N in grids:
             drv = build(label, page, N, lam, budget)
             r = run(httpd, drv, budget)
-            if r is None:
-                print(f'    N={N}  no result', flush=True); continue
+            if r is None or r.get('E') is None:
+                why = (r or {}).get('err') or ['no post-back within the budget']
+                print(f'    N={N}  NO RESULT: {why[:2]}', flush=True); continue
             ok, span = settled(r['trace'])
             print(f'    N={N:>4}  E={r["E"]:>10.4f}  {"settled" if ok else "UNSETTLED"} (drift {span:.1e})', flush=True)
             if ok:
@@ -279,6 +303,8 @@ def main():
         i = args.index('--grid'); grid = int(args[i + 1]); del args[i:i + 2]
     if '--grids' in args:
         i = args.index('--grids'); grids = [int(x) for x in args[i + 1].split(',')]; del args[i:i + 2]
+    if '--thresh' in args:
+        i = args.index('--thresh'); globals()['THRESH'] = float(args[i + 1]); del args[i:i + 2]
     if '--budget' in args:
         i = args.index('--budget'); budget = int(args[i + 1]); del args[i:i + 2]
     cases = args or list(CASES)
