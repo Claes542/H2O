@@ -223,6 +223,9 @@ proton--electron pair, in the far stronger \emph{local} form of Section~\ref{sec
 multiplies each Fourier mode by $k^2$, a short-wavelength oscillation becomes a large charge density.
 
 \section{The small scale: RealQM and RealNucleus}\label{sec:small}
+These results are established in~\cite{realqm,realnucleus} and in the treatise~\cite{realqmbook}; they are
+\emph{used} here rather than re-derived, and what follows states what the small scale supplies to the chain and
+on what terms. A reader who grants them may proceed to Section~\ref{sec:large}.
 The seed has delivered charge in both signs, quantized at $\pm1$, in two spatial extents: small dense positive and
 large diffuse negative charge, the \textbf{proton} and the \textbf{electron}. From here the whole charged world is
 built by \eqref{realqmE}, by Coulomb geometry alone.
@@ -288,29 +291,11 @@ framework, so nothing forbids one, and the model owes an account of why the univ
 --- the counterpart, in this language, of the question it has avoided. We do not have one, and it belongs with the
 open problems of Section~\ref{sec:open}.
 
-\paragraph{The comparison is also computational.} Where the standard account is quantitative about bound matter it
-is so through machinery of a quite different weight. On the nuclear side the predictive instrument is lattice QCD:
-a Monte Carlo evaluation of a path integral over quark and gluon fields on a discretized four-dimensional
-spacetime, run as supercomputer campaigns of millions of core-hours with community codebases of order $10^5$
-lines. On the atomic and molecular side the many-electron Schr\"odinger equation lives in $3N$ dimensions and is
-never solved as written; what is solved is a hierarchy of approximations to it --- Hartree--Fock, coupled cluster
-at $\mathcal{O}(N^7)$, density functionals whose exchange--correlation part is in practice fitted --- inside large
-packages that few of their users read. The model here is at the other extreme: one real, non-negative density per
-electron in ordinary three-dimensional space, a Poisson solve coupled to a relaxation on a Cartesian grid, cost
-linear in electron number, no basis set and no fitted parameter. The atom solver used for this work is $350$ lines
-of JavaScript and runs in a browser tab; the script behind Figure~\ref{fig:web} is $115$ lines of Python. The
-whole chain of this paper is computed by code a reader can read. That this holds at \emph{both} ends is not
-economy of effort but a structural fact: Coulomb and Newton are the same computational problem, a discrete
-Laplacian inverted against a two-valued source, so the same solver serves a nucleus and a cosmic web and no
-separate large-scale machinery has to be built (Section~\ref{sec:computational}).
-
-\emph{Simplicity is not accuracy, and the claim is only the former.} Lattice QCD delivers the hadron spectrum from
-first principles at the percent level, which the present model cannot do at all --- the absolute MeV scale is its
-open problem (Section~\ref{sec:open}) --- and coupled cluster reaches a chemical accuracy not matched here. Those
-codes are complicated because the formulations behind them are, and they buy real results with it. What a short
-and inspectable code buys instead is of a different kind: every number in it can be traced to the equation that
-produced it, there is no fitted function absorbing the discrepancy, and any result can be rerun and broken by a
-reader in an afternoon. That is a virtue for a model asking to be tested, not evidence that it is right.
+\paragraph{The comparison is also computational.} The contrast in machinery is as sharp as the contrast in
+content --- lattice QCD and $\mathcal{O}(N^7)$ chemistry packages against a Poisson solve and a relaxation on a
+grid --- and it is set out with the rest of the comparison in Section~\ref{sec:towards}, together with the
+honesty it requires: those codes are complicated because their formulations are, and they buy quantitative
+results this construction does not reach.
 
 \section{Complexity, and the two domains}\label{sec:complexity}
 The world is built not on a charge imbalance (charge is exactly balanced) but on a \emph{size} imbalance: the
