@@ -340,7 +340,7 @@ def phase_ladder(args, grids, budget, cases):
         for label in cases:
             page, _ = CASES[label]
             lam = st.get('scan', {}).get(label, {}).get('lambda', 1.0)
-            pts = []
+            pts, unsettled = [], []
             print(f'--- ladder {label} (lambda {lam:.2f})', flush=True)
             for N in grids:
                 drv = build(label, page, N, lam, budget)
@@ -351,12 +351,17 @@ def phase_ladder(args, grids, budget, cases):
                 ok, span = settled(r['trace'])
                 print(f'    N={N:>4}  E={r["E"]:>10.4f}  '
                       f'{"settled" if ok else "UNSETTLED"} (drift {span:.1e})', flush=True)
-                if ok:
-                    pts.append((N, r['E']))
-            if pts:
+                # fit every grid point: nothing has settled to 2e-3 yet, and an
+                # empty fit tells us less than a fitted one carrying its caveat
+                pts.append((N, r['E']))
+                if not ok:
+                    unsettled.append(N)
+            if len(pts) >= 2:
                 e0, resid = richardson(pts)
-                st['ladder'][label] = {'lambda': lam, 'points': pts, 'E0': e0, 'resid': resid}
-                print(f'    -> h->0: E = {e0:.4f} +- {resid:.4f}  (from {len(pts)} settled grids)', flush=True)
+                st['ladder'][label] = {'lambda': lam, 'points': pts, 'E0': e0,
+                                       'resid': resid, 'unsettled': unsettled}
+                flag = f'  [{len(unsettled)} of {len(pts)} unsettled]' if unsettled else ''
+                print(f'    -> h->0: E = {e0:.4f} +- {resid:.4f}{flag}', flush=True)
             save(st)
     finally:
         shutdown_browser()
