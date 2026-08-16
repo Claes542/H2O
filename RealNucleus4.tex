@@ -32,8 +32,9 @@ differing only in the \emph{sign} of the charge --- interacting through \textbf{
 only}, with \textbf{no strong force}. Binding is by \textbf{dual confinement}: the electron
 clouds hold the protons together against their repulsion while the protons cage the electrons
 against theirs. Calibrating one energy scale on the deuteron ($2.22$~MeV), the alpha emerges at
-\textbf{103\%} of its experimental binding with no fitting (alpha/deuteron ratio $13.1$ versus
-$12.7$), and the ladder $^2\mathrm{H}\to{}^4\mathrm{He}\to{}^8\mathrm{Be}\to{}^{16}\mathrm{O}$
+\textbf{${\sim}87\%$} of its experimental binding with no fitting (alpha/deuteron ratio
+${\approx}11$ versus $12.7$; earlier single-mesh runs gave $13.1$, but on a refined ladder the
+deuteron settles some $27\%$ deeper and the ratio plateaus near $11$, see \S\ref{sec:mesh}), and the ladder $^2\mathrm{H}\to{}^4\mathrm{He}\to{}^8\mathrm{Be}\to{}^{16}\mathrm{O}$
 binds as \emph{single} connected units with near-constant binding per nucleon (saturation) as the
 nucleus adds shells. No \emph{weak} force is needed either: the model ``neutron''
 ($\mathrm{1p}+\mathrm{1e}$) is computed \emph{unbound}, so free-neutron $\beta$-decay into a
@@ -371,7 +372,8 @@ the electrons it encloses. The minimal break of that symmetry --- the two electr
 gluing the four proton quarters --- already recovers most of the binding ($E=-18.5$, $69\%$ of
 experiment). Concentrating the glue optimally, as a $-2$ core in a nested $2{+}2$ proton
 arrangement, then sharpens it to $E=-27.8$, i.e. \textbf{29.1~MeV against the experimental 28.3
-(103\%)}, with the alpha/deuteron ratio $13.1$ versus the experimental $12.7$. That a single
+(${\sim}87\%$)}, with the alpha/deuteron ratio ${\approx}11$ versus the experimental $12.7$
+once both energies are taken on a refined mesh (\S\ref{sec:mesh}). That a single
 Coulomb scale carries the most tightly bound light nucleus with no adjustable parameter is the
 central quantitative result.
 
@@ -429,7 +431,11 @@ $^{16}$O & $2{+}2{+}2{+}2\mid 4{+}4{+}4{+}4$ & $-129$ to $-138$ & $135$--$144$ &
 \bottomrule
 \end{tabular}
 \caption{The RealNucleus ladder. One scale fixed on the deuteron
-($-2.12\leftrightarrow 2.22$~MeV); all other entries follow with no fitting. Experimental
+($-2.12\leftrightarrow 2.22$~MeV); all other entries follow with no fitting.
+\textbf{Calibration under revision:} on a refined mesh the deuteron settles near $-2.7$ rather than
+$-2.12$ (\S\ref{sec:mesh}), which multiplies every MeV entry below by ${\approx}0.79$ and takes the
+alpha from $103\%$ to ${\sim}87\%$. The entries are left as originally computed; only $^4$He and
+$^2$H have so far been put on a mesh ladder. Experimental
 bindings: $^2$H 2.22, $^4$He 28.3, $^8$Be 56.5, $^{16}$O 127.6~MeV.}
 \label{tab:ladder}
 \end{table}
@@ -463,13 +469,14 @@ $-32.99$, $-39.85$, $-34.23$ at $\lambda=0.75$, $0.85$, $1.00$, and the deuteron
 $-5.21$, $-4.85$ at $\lambda=0.75$, $0.85$, $1.00$, $1.15$: in each case a genuine \emph{interior}
 minimum, bracketed on both sides, at $\lambda\approx0.85$.
 
-Two things follow. The binding does not deepen without limit as the configuration is squeezed, so
-these systems possess a preferred size selected by the variation rather than fixed by hand --- which
-is the saturation question of \S4.3 answered, for these two cases, as a computation rather than an
-observation. And since both nuclei prefer the \emph{same} factor, the choice of radial convention
-largely cancels in ratios, which is the quantity the ladder reports. The value $0.85$ itself is
-obtained at a single resolution and its precise location is not converged; what is established is
-the existence of the minimum, not its position.
+One thing follows and one does not. The binding does not deepen without limit as the configuration
+is squeezed: these systems possess a preferred size, selected by the variation rather than fixed by
+hand, which is the saturation question of \S4.3 answered for these two cases as a computation
+rather than an observation. What does \emph{not} follow is that the imposed radii were wrong. The
+location of the minimum moves with the mesh, and it moves back: on a finer mesh the alpha is deeper
+at $\lambda=1$ ($-29.8$) than at $\lambda=0.85$ ($-28.6$), and the ratio at $\lambda=1$ is much the
+closer to experiment. The scan therefore establishes the \emph{existence} of an interior minimum,
+not its position, and gives no ground for revising the radii of Table~\ref{tab:ladder}.
 
 \subsection{Electron concentration sets the binding; shell spread sets saturation}
 
@@ -858,17 +865,30 @@ optimally and so sharpen the agreement to a few percent. Some configurations rel
 to oscillating rather than sharply converged energies, so the quoted percentages are
 experimental-scale agreements, not few-percent determinations.
 
+\subsection{The mesh, and what it does to the ladder}
+\label{sec:mesh}
+
 A second and larger reservation concerns the discretisation, and it should be stated plainly: the
 energies quoted here are \emph{single-grid} values, not extrapolated to vanishing mesh. Later runs
 on a refined ladder show the dependence is substantial and, more importantly, \emph{differential}
 --- $^4$He moves from $-39.8$ to $-28.1$ between $N=140$ and $N=230$, while the deuteron, being
 barely bound and spatially extended, is more sensitive still, so a coarse mesh over-binds it by a
 larger factor than it over-binds the alpha. Since the ladder is normalised on the deuteron, that
-differential enters every ratio quoted here. The alpha/deuteron ratio consequently \emph{rises}
-with resolution, and a determination of it requires both energies extrapolated to $h\to0$, which is
-not done in this paper. Until that is carried out the ratio $13.1$ should be read as a
-single-resolution result rather than a converged one, and the reference should arguably be $^4$He,
-whose energy is by far the more robust of the two. The equal proton mass is a
+differential enters every ratio quoted here. The alpha/deuteron ratio consequently rises with resolution --- and then stops. Taking
+the deuteron on four meshes at the configuration used here gives $-5.21$, $-3.52$, $-2.70$, $-2.74$
+at $N=140$, $170$, $200$, $230$: a plateau near $\mathbf{-2.7}$, the last two meshes agreeing to
+$1.6\%$. The alpha over the same range settles near $-29$. The ratio therefore climbs from about
+$7$ on coarse meshes to $\mathbf{{\approx}11}$ and remains there, against an experimental $12.7$.
+
+Two consequences follow, and neither is small. The deuteron energy $-2.12$ used to fix the scale in
+Table~\ref{tab:ladder} is \emph{not} the converged value; the converged one is some $27\%$ deeper,
+which rescales every MeV entry in that table by a factor ${\approx}0.79$. And the alpha, quoted
+above at $103\%$ of experiment on the old calibration, stands at ${\sim}87\%$ on the converged one.
+Only $^4$He and $^2$H have been examined on multiple meshes; the $^8$Be and $^{16}$O entries are
+left as computed and inherit the same rescaling, so their percentages should be read as provisional
+until they too are put on a mesh ladder. Being $13\%$ low on a nuclear binding ratio from Coulomb
+geometry with no fitted parameter remains a substantial result --- but it is $13\%$ low, not $3\%$
+high, and the difference was a matter of resolution rather than of physics. The equal proton mass is a
 modelling choice that sets the absolute size scale. None of these reintroduces a strong force;
 they mark the work needed to turn a demonstration into a fully predictive theory --- principally,
 a free-boundary determination of the equilibrium shell count and spacing for each nucleus.
@@ -893,7 +913,7 @@ anyone --- and as an invitation to test it harder and, if it is wrong, to find o
 
 Carried into the nucleus, RealQM describes protons and electrons as one kind of charge cloud of
 opposite sign, bound by Coulomb alone through \emph{dual confinement}: electrons holding protons
-in, protons holding electrons in. One scale fixed on the deuteron yields the alpha at 103\% of
+in, protons holding electrons in. One scale fixed on the deuteron yields the alpha at ${\sim}87\%$ of
 experiment, the binding-per-nucleon volume law, the marginal stability of $^8$Be, and ---
 through the spreading of shells with nucleon number --- the saturation that places $^{16}$O at
 the experimental scale.
