@@ -224,10 +224,34 @@ def stop_browser(proc, profile):
 
 
 _JOB = [0]
+# Each iframe acquires its own WebGPU device, and blanking the frame does not
+# release it promptly: with one browser for the whole sweep, jobs succeed and
+# then stop (1 job under launch-per-run, 3 under one-browser). So recycle the
+# browser every few jobs -- often enough to stay ahead of the leak, rarely
+# enough that the first-launch-only failure never bites.
+JOBS_PER_BROWSER = 3
+_BROWSER = {'proc': None, 'profile': None, 'n': 0}
+
+
+def recycle_if_needed(httpd):
+    if _BROWSER['proc'] is None or _BROWSER['n'] >= JOBS_PER_BROWSER:
+        if _BROWSER['proc'] is not None:
+            stop_browser(_BROWSER['proc'], _BROWSER['profile'])
+            time.sleep(3)
+        _BROWSER['proc'], _BROWSER['profile'] = start_browser(httpd)
+        _BROWSER['n'] = 0
+    _BROWSER['n'] += 1
+
+
+def shutdown_browser():
+    if _BROWSER['proc'] is not None:
+        stop_browser(_BROWSER['proc'], _BROWSER['profile'])
+        _BROWSER['proc'] = None
 
 
 def run(httpd, driver, budget_s):
-    """Hand the next driver to the already-running browser and wait for its post-back."""
+    """Hand the next driver to the browser, recycling it periodically."""
+    recycle_if_needed(httpd)
     httpd.result = None
     _JOB[0] += 1
     httpd.current_url = (f'http://127.0.0.1:{httpd.server_address[1]}'
@@ -278,7 +302,6 @@ def phase_scan(args, grid, budget, cases):
     """Phase A: minimise E over the overall size factor lambda."""
     st = load(); st.setdefault('scan', {})
     httpd = serve()
-    browser, profile = start_browser(httpd)
     try:
         for label in cases:
             page, _ = CASES[label]
@@ -306,14 +329,13 @@ def phase_scan(args, grid, budget, cases):
                 print(f'    -> lambda* = {best[0]:.2f}{edge}', flush=True)
             save(st)
     finally:
-        stop_browser(browser, profile)
+        shutdown_browser()
 
 
 def phase_ladder(args, grids, budget, cases):
     """Phase B: grid ladder at lambda*, extrapolated to h -> 0."""
     st = load(); st.setdefault('ladder', {})
     httpd = serve()
-    browser, profile = start_browser(httpd)
     try:
         for label in cases:
             page, _ = CASES[label]
@@ -337,7 +359,7 @@ def phase_ladder(args, grids, budget, cases):
                 print(f'    -> h->0: E = {e0:.4f} +- {resid:.4f}  (from {len(pts)} settled grids)', flush=True)
             save(st)
     finally:
-        stop_browser(browser, profile)
+        shutdown_browser()
 
 
 def phase_report():
