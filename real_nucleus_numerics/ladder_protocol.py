@@ -114,6 +114,33 @@ window.__deadline = setTimeout(function () {         // budget reached: report w
 """
 
 
+CONTROLLER = """<!DOCTYPE html><html><body style="margin:0;background:#111;color:#0f0;font:12px monospace">
+<div id="s">controller: waiting</div>
+<iframe id="f" style="width:520px;height:340px;border:1px solid #333"></iframe>
+<script>
+// One browser for the whole run. Each case gets a FRESH iframe document, so the
+// solver starts from a clean global context without relaunching Chrome -- which
+// is what failed before: only the first launch in a sequence ever computed.
+var cur = -2;
+async function tick() {
+  try {
+    var r = await (await fetch('/__next', {cache: 'no-store'})).json();
+    if (r.i !== cur) {
+      cur = r.i;
+      var f = document.getElementById('f');
+      f.src = 'about:blank';
+      document.getElementById('s').textContent = 'controller: job ' + r.i + ' ' + (r.url || '(done)');
+      if (r.i >= 0 && r.url) setTimeout(function () { f.src = r.url; }, 400);
+    }
+  } catch (e) {}
+  setTimeout(tick, 1500);
+}
+tick();
+</script>
+</body></html>
+"""
+
+
 def build(label, page, grid, lam, budget_s):
     """Extract the page's config, scale every radius by lam, and rescale the grid."""
     html = (ROOT / page).read_text()
@@ -149,40 +176,69 @@ class _Handler(SimpleHTTPRequestHandler):
             self.server.result = json.loads(q['payload'][0])
             self.send_response(204); self.end_headers()
             return
+        if self.path.startswith('/__next'):
+            body = json.dumps({'i': self.server.current, 'url': self.server.current_url}).encode()
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Cache-Control', 'no-store')
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
         return super().do_GET()
 
 
 def serve():
     httpd = ThreadingHTTPServer(('127.0.0.1', 0), partial(_Handler, directory=str(ROOT)))
     httpd.result = None
+    httpd.current = -2
+    httpd.current_url = None
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
     return httpd
 
 
-def run(httpd, driver, budget_s):
-    httpd.result = None
-    url = f'http://127.0.0.1:{httpd.server_address[1]}/real_nucleus_numerics/{driver.name}'
+def start_browser(httpd):
+    """One Chrome for the whole session, pointed at the controller."""
+    ctl = HERE / '_controller.html'
+    ctl.write_text(CONTROLLER)
+    url = f'http://127.0.0.1:{httpd.server_address[1]}/real_nucleus_numerics/{ctl.name}'
     profile = tempfile.mkdtemp(prefix='ladder-')
-    chrome = subprocess.Popen(
+    proc = subprocess.Popen(
         [CHROME, '--new-window', f'--user-data-dir={profile}', '--no-first-run',
-         '--no-default-browser-check', '--window-position=3000,3000',
-         '--window-size=500,400',
-         # without this an offscreen window counts as occluded, Chrome stops
-         # requestAnimationFrame, p5's draw() never runs and nothing is computed
+         '--no-default-browser-check', '--window-position=2400,2400',
+         '--window-size=560,420',
          '--disable-features=CalculateNativeWinOcclusion',
          '--autoplay-policy=no-user-gesture-required', url],
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    t0 = time.time()
+    time.sleep(6)
+    return proc, profile
+
+
+def stop_browser(proc, profile):
+    proc.terminate()
     try:
-        while httpd.result is None and time.time() - t0 < budget_s + 45:
-            time.sleep(2)
-    finally:
-        chrome.terminate()
-        try:
-            chrome.wait(timeout=15)
-        except subprocess.TimeoutExpired:
-            chrome.kill()
-        shutil.rmtree(profile, ignore_errors=True)
+        proc.wait(timeout=15)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+    shutil.rmtree(profile, ignore_errors=True)
+
+
+_JOB = [0]
+
+
+def run(httpd, driver, budget_s):
+    """Hand the next driver to the already-running browser and wait for its post-back."""
+    httpd.result = None
+    _JOB[0] += 1
+    httpd.current_url = (f'http://127.0.0.1:{httpd.server_address[1]}'
+                         f'/real_nucleus_numerics/{driver.name}')
+    httpd.current = _JOB[0]
+    t0 = time.time()
+    while httpd.result is None and time.time() - t0 < budget_s + 60:
+        time.sleep(2)
+    httpd.current_url = None
+    httpd.current = -1          # blank the iframe between jobs, freeing GPU resources
+    time.sleep(2)
     return httpd.result
 
 
@@ -222,54 +278,66 @@ def phase_scan(args, grid, budget, cases):
     """Phase A: minimise E over the overall size factor lambda."""
     st = load(); st.setdefault('scan', {})
     httpd = serve()
-    for label in cases:
-        page, _ = CASES[label]
-        best = None
-        print(f'--- scan {label} (grid {grid})', flush=True)
-        for lam in LAMBDAS:
-            drv = build(label, page, grid, lam, budget)
-            r = run(httpd, drv, budget)
-            if r is None or r.get('E') is None:
-                if r is None:
-                    print(f'    lambda={lam:.2f}  NO POST-BACK at all', flush=True)
-                else:
-                    print(f'    lambda={lam:.2f}  posted but E=None | gpu: {r.get("gpu")} | '
-                          f'prevE={r.get("prevE")} | trace={len(r.get("trace") or [])} | err={(r.get("err") or [])[:2]}', flush=True)
-                continue
-            ok, span = settled(r['trace'])
-            print(f'    lambda={lam:.2f}  E={r["E"]:>10.4f}  {"settled" if ok else "UNSETTLED"} (drift {span:.1e})', flush=True)
-            if r['E'] is not None and (best is None or r['E'] < best[1]):
-                best = (lam, r['E'])
-        if best:
-            st['scan'][label] = {'lambda': best[0], 'E': best[1], 'grid': grid}
-            print(f'    -> lambda* = {best[0]:.2f}', flush=True)
-        save(st)
+    browser, profile = start_browser(httpd)
+    try:
+        for label in cases:
+            page, _ = CASES[label]
+            best = None
+            print(f'--- scan {label} (grid {grid})', flush=True)
+            for lam in LAMBDAS:
+                drv = build(label, page, grid, lam, budget)
+                r = run(httpd, drv, budget)
+                if r is None or r.get('E') is None:
+                    if r is None:
+                        print(f'    lambda={lam:.2f}  NO POST-BACK at all', flush=True)
+                    else:
+                        print(f'    lambda={lam:.2f}  posted but E=None | gpu: {r.get("gpu")} | '
+                              f'trace={len(r.get("trace") or [])}', flush=True)
+                    continue
+                ok, span = settled(r['trace'])
+                print(f'    lambda={lam:.2f}  E={r["E"]:>10.4f}  '
+                      f'{"settled" if ok else "UNSETTLED"} (drift {span:.1e})', flush=True)
+                if best is None or r['E'] < best[1]:
+                    best = (lam, r['E'], ok)
+            if best:
+                st['scan'][label] = {'lambda': best[0], 'E': best[1],
+                                     'settled': best[2], 'grid': grid}
+                edge = ' (AT THE EDGE OF THE SCAN -- no interior minimum)' if best[0] in (LAMBDAS[0], LAMBDAS[-1]) else ''
+                print(f'    -> lambda* = {best[0]:.2f}{edge}', flush=True)
+            save(st)
+    finally:
+        stop_browser(browser, profile)
 
 
 def phase_ladder(args, grids, budget, cases):
     """Phase B: grid ladder at lambda*, extrapolated to h -> 0."""
     st = load(); st.setdefault('ladder', {})
     httpd = serve()
-    for label in cases:
-        page, _ = CASES[label]
-        lam = st.get('scan', {}).get(label, {}).get('lambda', 1.0)
-        pts = []
-        print(f'--- ladder {label} (lambda {lam:.2f})', flush=True)
-        for N in grids:
-            drv = build(label, page, N, lam, budget)
-            r = run(httpd, drv, budget)
-            if r is None or r.get('E') is None:
-                why = (r or {}).get('err') or ['no post-back within the budget']
-                print(f'    N={N}  NO RESULT: {why[:2]}', flush=True); continue
-            ok, span = settled(r['trace'])
-            print(f'    N={N:>4}  E={r["E"]:>10.4f}  {"settled" if ok else "UNSETTLED"} (drift {span:.1e})', flush=True)
-            if ok:
-                pts.append((N, r['E']))
-        if pts:
-            e0, resid = richardson(pts)
-            st['ladder'][label] = {'lambda': lam, 'points': pts, 'E0': e0, 'resid': resid}
-            print(f'    -> h->0: E = {e0:.4f} +- {resid:.4f}', flush=True)
-        save(st)
+    browser, profile = start_browser(httpd)
+    try:
+        for label in cases:
+            page, _ = CASES[label]
+            lam = st.get('scan', {}).get(label, {}).get('lambda', 1.0)
+            pts = []
+            print(f'--- ladder {label} (lambda {lam:.2f})', flush=True)
+            for N in grids:
+                drv = build(label, page, N, lam, budget)
+                r = run(httpd, drv, budget)
+                if r is None or r.get('E') is None:
+                    print(f'    N={N}  no result', flush=True)
+                    continue
+                ok, span = settled(r['trace'])
+                print(f'    N={N:>4}  E={r["E"]:>10.4f}  '
+                      f'{"settled" if ok else "UNSETTLED"} (drift {span:.1e})', flush=True)
+                if ok:
+                    pts.append((N, r['E']))
+            if pts:
+                e0, resid = richardson(pts)
+                st['ladder'][label] = {'lambda': lam, 'points': pts, 'E0': e0, 'resid': resid}
+                print(f'    -> h->0: E = {e0:.4f} +- {resid:.4f}  (from {len(pts)} settled grids)', flush=True)
+            save(st)
+    finally:
+        stop_browser(browser, profile)
 
 
 def phase_report():
