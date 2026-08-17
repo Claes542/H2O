@@ -189,6 +189,54 @@ between them — which is the point of interest, because standard plasma physics
 *switches models* at the degeneracy boundary while this would be one functional
 throughout.
 
+## The repair: one dimensionless number at the interface
+
+The compressibility question has an answer, and it is constructive.
+
+**No hidden mechanism exists.** Letting the interfaces move changes nothing —
+with constant ψ_i the kinetic energy stays zero and Coulomb only fixes the cells
+to equal volume. Requiring domains to be connected and carry unit charge changes
+nothing either — any equal-volume connected tiling admits the same constant
+solution. The formulation contains no term that was overlooked.
+
+**But the two boundary conditions bracket the target**, which points at the fix.
+Replace the interface condition by a **Robin** condition, ψ′ + βψ = 0, which
+interpolates between them. For a cubic cell of side a = n^(−1/3) the problem is
+separable and each direction gives κ = ka from κ tan(κ/2) = βa, with energy
+density (3κ²/2)·n^(5/3):
+
+| interface condition | κ | C | C/C_TF |
+|---|---|---|---|
+| Neumann, βa = 0 (present choice) | 0 | 0 | 0.00 |
+| **Robin, βa = 1.146** | **1.3835** | **2.8712** | **1.00** |
+| Dirichlet, βa → ∞ | π | 14.804 | 5.16 |
+
+**One dimensionless number, βa ≈ 1.15, reproduces Thomas–Fermi exactly** — and
+with it the screening length, the plasmon dispersion, and degeneracy pressure,
+all at once, since all three follow from C.
+
+### Which turns the question into a cheap, decisive test
+
+βa is a *parameter*, and the framework's claim is to have none. So the test is
+whether the same number works for atoms:
+
+- If atoms **tolerate** βa ≈ 1.15 — plausible, since there the density is shaped
+  by nuclear attraction and the interface matters far less — then the number is
+  not fitted but **determined**, fixed once by the electron gas and thereafter
+  used everywhere. The framework is repaired and gains three parameter-free
+  predictions.
+- If atoms **require** βa = 0, then the interface condition needed for bound
+  matter and the one needed for free matter are different, and that is a
+  structural inconsistency rather than a gap.
+
+The atom calibration currently uses Neumann, βa = 0, and works. Whether it
+merely *tolerates* that value or *requires* it has never been asked — and it can
+be answered by rerunning He or H₂ with a Robin interface at βa = 1.15 and seeing
+whether the binding energies survive.
+
+That is the next calculation, it uses the existing solver, and it decides
+whether there is a paper here.
+
 ## Status
 
 Settled analytically and confirmed in the solver source, with no computation
@@ -202,12 +250,7 @@ density. **The coefficient is zero:** for a uniform gas with Neumann interfaces
 the minimising density is constant and C = 0, so the model has no degeneracy
 pressure and no quantum screening.
 
-So the plasma track's first question is not about plasmas. It is whether RealQM
-should have a mechanism supplying Fermi pressure in the absence of an attractor,
-and if so what it is. Candidates worth examining: whether the free-boundary
-condition at a *moving* interface differs from the static Neumann condition used
-here; and whether the constraint that each electron occupy a *connected* domain
-of prescribed charge does work that the energy integral alone does not capture.
-
-Until that is resolved, a RealQM plasma screens thermally (Debye) and not
-quantum-mechanically, which is itself a testable claim.
+Both candidate mechanisms were examined and neither supplies the missing cost.
+What does supply it is a Robin interface condition with one dimensionless
+parameter βa ≈ 1.15, and the open question is now whether atoms tolerate that
+same value — which is a computation with the existing solver, not a search.
