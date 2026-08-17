@@ -136,6 +136,31 @@ X-ray scattering and EELS observable, and sodium and aluminium have
 well-determined positive dispersion coefficients. A flat plasmon is not what is
 seen.
 
+## Landau damping: the one with a positive prognosis
+
+Landau damping is the wave-particle resonance at v = ω/k, with the rate set by
+∂f/∂v there. It requires a **velocity distribution**, which is why single-fluid
+theories — and MHD — miss it entirely.
+
+RealQM looks fluid-like but is not a single fluid. N electrons are N
+non-overlapping domains, each carrying its own density and, in the
+time-dependent form, its own current and drift velocity. **That is structurally
+a multi-beam plasma**: a set of cold streams with distributed velocities.
+
+And multi-beam models *do* reproduce Landau damping — it emerges as **phase
+mixing** among the beams (Dawson; the Van Kampen modes are the exact analogue).
+So RealQM has the machinery in principle, it would arise for the right reason
+rather than as an inserted damping term, and it would be **reversible** — which
+matches the physics, since the plasma-echo experiments show Landau damping is not
+true dissipation.
+
+The fault line reappears in where the velocity spread comes from:
+
+- **thermal plasma** — spread from thermal motion, which the framework can carry
+  (Brownian dynamics already exists in the solver). Should work.
+- **degenerate plasma** — the spread *is* the Fermi sea, a consequence of Pauli.
+  No Fermi sea here, so no spread and no damping where it should exist.
+
 ## The diagnosis, in one line
 
 Three independent observables, one root cause:
@@ -145,9 +170,12 @@ Three independent observables, one root cause:
 | plasma frequency ω_p | charge + inertia | **exact** |
 | Thomas–Fermi screening length | compressibility | zero — no screening |
 | plasmon dispersion | compressibility | zero — flat |
+| Landau damping, thermal | velocity spread from motion | should work — multi-beam phase mixing |
+| Landau damping, degenerate | velocity spread from Pauli | absent |
 
-**RealQM reproduces everything governed by charge and inertia, and misses
-everything governed by the compressibility of the electron gas.** That is a
+**RealQM reproduces what follows from charge, inertia and thermal motion, and
+misses what follows from Fermi statistics** — whether that appears as
+compressibility or as a Fermi sea. That is a
 sharper statement than "it lacks Fermi pressure", it is derivable on paper, and
 it says exactly where to look: not in the electrostatics, which is sound, but in
 what happens when a uniform density is compressed.
