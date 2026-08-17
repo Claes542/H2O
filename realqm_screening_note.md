@@ -101,6 +101,57 @@ RealQM's atomic and molecular results, where an attractor is always present.
 The honest statement is that non-overlap reproduces shell structure where
 something shapes the density and supplies nothing where nothing does.
 
+## The plasma frequency, which RealQM gets exactly
+
+Collective oscillation is the counter-case, and it is worth putting beside the
+failure because it isolates the defect.
+
+Displace the electron distribution rigidly by ξ against the ion background. The
+resulting surface charge gives a restoring field E = 4πnξ, so ξ̈ = −4πnξ and
+
+    ω_p² = 4πn
+
+— temperature-free, degeneracy-free, depending only on charge density and
+inertia.
+
+**RealQM gives this exactly.** Under a rigid displacement each ψ_i is translated
+unchanged, so ∇ψ_i is unchanged and the localisation energy is untouched. The
+kinetic term contributes nothing, and nothing is left but Coulomb and inertia —
+which is what the answer depends on. C = 0 does not bite here at all.
+
+## Where it returns: the dispersion
+
+The correction to the plasma frequency,
+
+    ω²(k) = ω_p² + (3/5)k²v_F²   (degenerate)
+    ω²(k) = ω_p² + 3k²v_th²      (classical)
+
+is a **compressibility** term: it costs kinetic energy to squeeze the gas. With
+C = 0 there is no such cost, so RealQM predicts
+
+    ω²(k) = ω_p² ,  flat — no dispersion at all.
+
+That is measurable. Plasmon dispersion in simple metals is a standard inelastic
+X-ray scattering and EELS observable, and sodium and aluminium have
+well-determined positive dispersion coefficients. A flat plasmon is not what is
+seen.
+
+## The diagnosis, in one line
+
+Three independent observables, one root cause:
+
+| observable | governed by | RealQM |
+|---|---|---|
+| plasma frequency ω_p | charge + inertia | **exact** |
+| Thomas–Fermi screening length | compressibility | zero — no screening |
+| plasmon dispersion | compressibility | zero — flat |
+
+**RealQM reproduces everything governed by charge and inertia, and misses
+everything governed by the compressibility of the electron gas.** That is a
+sharper statement than "it lacks Fermi pressure", it is derivable on paper, and
+it says exactly where to look: not in the electrostatics, which is sound, but in
+what happens when a uniform density is compressed.
+
 ## The thermal extension, for the Debye limit
 
 Both limits follow from k² = 4π dn/dμ. The degenerate case is above; the
