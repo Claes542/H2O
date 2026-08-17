@@ -56,27 +56,50 @@ the formula above reproduces k²_TF **exactly**, at every density:
 So the **form is exact** — Yukawa, with k² ∝ n^(1/3) — and everything rests on
 the single constant C.
 
-## What that makes the screening length: a measurement of C
+## But C = 0 for a uniform gas, and that is the real finding
 
-Taking the naive hard-wall cubic cell of side a, the ground state is
-E = 3π²/2a², so C_box = 3π²/2 = 14.804. That is 5.16× the Thomas–Fermi value and
-gives a screening length **2.27× too long**, at every density (the ratio is
-√(C/C_TF), independent of n).
+The step above assumed the cell has a nonzero localisation cost. Check it against
+the actual functional and it does not.
 
-The two boundary conditions bracket the answer:
+RealQM's kinetic term is ½∫_{Ω_i}|∇ψ_i|², integrated over each electron's **own**
+domain, subject to ∫_{Ω_i}ψ_i² = 1, with the interfaces free to move and **no
+node imposed** — the atom calibration found the free (Neumann) plane decisive
+against a Dirichlet node.
 
-| cell boundary condition | C | λ vs Thomas–Fermi |
-|---|---|---|
-| Neumann / free (constant ground state) | 0 | ∞ — no screening at all |
-| **Thomas–Fermi** | **2.871** | **1.00** |
-| Dirichlet / hard wall | 14.804 | 2.27× too long |
+Now take ψ_i constant = 1/√V on each cell. It satisfies the normalisation, the
+total density Σψ_i² is uniform, the Coulomb energy is minimal against the
+neutralising background, and **∇ψ_i = 0 everywhere, so the kinetic energy is
+exactly zero.** The discontinuity at the cell face costs nothing: the integral
+runs over Ω_i only, and no node is imposed there.
 
-**This is the useful outcome.** RealQM's true localisation constant lies strictly
-between the free and hard-wall extremes, and screening measures it directly
-against a known answer. The interface condition is exactly the question recorded
-as decisive in the atom calibration (Neumann free plane against Dirichlet node);
-here it becomes a *number* with an experimental-strength target, rather than a
-qualitative choice.
+The uniform state is therefore the global minimum, with **C = 0** at every
+density. No localisation energy, no degeneracy pressure, no quantum screening;
+λ → ∞.
+
+**This is confirmed in the implementation, not only in the formulation.** In
+`molecule_nucleus.js` the U-update carries the comment *"Neumann BC at domain
+boundaries; Dirichlet (ψ=0) at e-P boundaries if enabled"*, and the Dirichlet
+branch is guarded by `myC * atoms[l].charge < 0.0` — it fires only between
+*opposite* charges. Every electron–electron interface is Neumann. For a pure
+electron gas there are no other interfaces, so the code agrees with the analysis.
+
+### What this means
+
+In an atom RealQM's kinetic energy is nonzero because nuclear attraction
+**shapes** the density: the gradient comes from the profile, not from the
+partition. Non-overlap by itself never produces kinetic energy. In a uniform gas
+nothing shapes the density, so the mechanism that stands in for Pauli in atoms
+supplies nothing at all.
+
+Taken literally the model has **no Fermi pressure**: no degeneracy support for
+metals, dense plasmas, or white dwarfs, and no Thomas–Fermi screening at any
+density. Screening in a RealQM plasma would have to be entirely thermal.
+
+That is a definite, falsifiable difference from standard physics, and it is
+better found here than by a referee. It is also narrow: it says nothing against
+RealQM's atomic and molecular results, where an attractor is always present.
+The honest statement is that non-overlap reproduces shell structure where
+something shapes the density and supplies nothing where nothing does.
 
 ## The thermal extension, for the Debye limit
 
@@ -87,12 +110,25 @@ between them — which is the point of interest, because standard plasma physics
 *switches models* at the degeneracy boundary while this would be one functional
 throughout.
 
-## Status and next step
+## Status
 
-Analytic, checkable, and it required no computation beyond arithmetic. The next
-step is not a simulation: it is to derive C for RealQM's actual free-boundary
-cell — neither hard-wall nor free, but the interface where neighbouring densities
-meet with continuity — and see whether it lands on 2.871. If it does, RealQM
-reproduces Thomas–Fermi screening from first principles. If it does not, the
-discrepancy is a single number and it says something specific about the
-interface condition.
+Settled analytically and confirmed in the solver source, with no computation
+beyond arithmetic — a useful contrast with the nuclear ladder, where three days
+of machine time were spent on a harness.
+
+The result is in two parts. **The form is right:** partitioning into
+non-overlapping cells gives a kinetic energy density C·n^(5/3), the Thomas–Fermi
+form, and with C = C_TF the screening length is reproduced exactly at every
+density. **The coefficient is zero:** for a uniform gas with Neumann interfaces
+the minimising density is constant and C = 0, so the model has no degeneracy
+pressure and no quantum screening.
+
+So the plasma track's first question is not about plasmas. It is whether RealQM
+should have a mechanism supplying Fermi pressure in the absence of an attractor,
+and if so what it is. Candidates worth examining: whether the free-boundary
+condition at a *moving* interface differs from the static Neumann condition used
+here; and whether the constraint that each electron occupy a *connected* domain
+of prescribed charge does work that the energy integral alone does not capture.
+
+Until that is resolved, a RealQM plasma screens thermally (Debye) and not
+quantum-mechanically, which is itself a testable claim.
