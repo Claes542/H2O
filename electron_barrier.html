@@ -75,12 +75,18 @@
     console.log('  -> E = ' + Number(E).toFixed(5));
     render();
     scanIdx++;
-    if (scanIdx < SCAN.length) {
-      startPoint(scanIdx);
-      if (typeof restartSim === 'function') restartSim();
-      else location.hash = 'pt' + scanIdx;   // fallback: reload with the next point
+    if (scanIdx >= SCAN.length) { render(true); return; }
+    // advance the carrier: molNucPos is in grid units and activateAtoms re-inits from it
+    var xNext = xOfSite(1) + SCAN[scanIdx] * (xOfSite(2) - xOfSite(1));
+    window._scanX = xNext;
+    if (typeof molNucPos !== 'undefined' && molNucPos[nH]) {
+      molNucPos[nH][0] = N2 + xNext / h;
+      console.log('scan point ' + (scanIdx+1) + '/' + SCAN.length
+                  + '  frac=' + SCAN[scanIdx].toFixed(2) + '  x=' + xNext.toFixed(2));
+      window._prevE = undefined; window._convCount = 0;
+      if (typeof activateAtoms === 'function') activateAtoms(nH + 1);
     } else {
-      render(true);
+      console.warn('molNucPos unavailable; reload with the next SCAN entry by hand');
     }
   };
 
