@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html><head>
+  <meta charset="utf-8">
+  <title>Electron hopping barrier — energy vs carrier position</title>
+  <style>body { margin: 0; background: #000; color: #fff; font-family: monospace; }</style>
+</head><body>
+<div id="info" style="position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.85);padding:10px;border:1px solid #333;border-radius:6px;max-width:480px;font-size:12px;z-index:100">
+  <div style="color:#8cf;font-weight:bold">Hopping barrier for an electron</div>
+  Conduction by transfer is governed by a <b>barrier</b>, and a barrier is a static energy
+  difference &mdash; which this solver computes. No time evolution is needed.
+  <div style="margin-top:6px">
+  Four H atoms in a line. The carrier is an extra electron, seeded as a ghost domain
+  (Z=1, Z_nuc=0), placed at a succession of positions along the path from site&nbsp;1 to
+  site&nbsp;2. Each position is relaxed to convergence and its energy recorded, tracing the
+  potential-energy surface the carrier moves on.
+  </div>
+  <div style="margin-top:6px">
+  <b>Reading it.</b><br>
+  barrier &lesssim; k<sub>B</sub>T (0.001 Ha at 300 K) &rarr; facile hopping, the framework conducts<br>
+  barrier &Gg; k<sub>B</sub>T &rarr; the carrier is trapped, an insulator<br>
+  energy flat along the path &rarr; the domain is indifferent to which kernel it sits near,
+  which is delocalisation and the nearest thing to band behaviour a static solver can show
+  </div>
+  <div id="mon" style="margin-top:8px;color:#8cf">scan not started</div>
+  <div style="margin-top:6px;color:#9c9">Edit <code>SCAN</code> for the positions, <code>sepAU</code>
+  for the lattice spacing. Results also print to the console as they land.</div>
+</div>
+<script>
+(function() {
+  var gridN = 160, scr = 24, N2 = 80;
+  var h = scr / gridN;
+
+  var sepAU = 2.5;          // H-H spacing: near enough to interact, far enough to be a chain
+  var nH = 4;
+  // fractions along the site1 -> site2 path at which to place the carrier
+  var SCAN = [0.0, 0.15, 0.3, 0.5, 0.7, 0.85, 1.0];
+
+  var results = [];
+  var scanIdx = 0;
+
+  function xOfSite(w) { return (w - (nH - 1) / 2) * sepAU; }
+
+  function buildAtoms(frac) {
+    var atoms = [], Z = [], Znuc = [];
+    function add(x, z, zn) {
+      atoms.push({ i: Math.round(N2 + x / h), j: N2, k: N2, Z: z, el: 'H' });
+      Z.push(z); Znuc.push(zn);
+    }
+    for (var w = 0; w < nH; w++) add(xOfSite(w), 1, 1);
+    // the carrier: ghost domain interpolated between site 1 and site 2
+    var xc = xOfSite(1) + frac * (xOfSite(2) - xOfSite(1));
+    add(xc, 1, 0);
+    return { atoms: atoms, Z: Z, Znuc: Znuc, xc: xc };
+  }
+
+  function startPoint(i) {
+    var cfg = buildAtoms(SCAN[i]);
+    window.USER_ATOMS = cfg.atoms;
+    window.USER_Z = cfg.Z;
+    window.USER_Z_NUC = cfg.Znuc;
+    window.USER_NN = gridN;
+    window.USER_SCREEN = scr;
+    window.USER_STEPS = 1000000;
+    window.USER_DYNAMICS = false;      // geometry held: this is a constrained scan
+    window.INIT_ZEFF = 1;
+    window.CONVERGENCE_THRESHOLD = 0.002;
+    window._scanX = cfg.xc;
+    console.log('scan point ' + (i+1) + '/' + SCAN.length + '  frac=' + SCAN[i].toFixed(2)
+                + '  x=' + cfg.xc.toFixed(2));
+  }
+
+  // the solver calls this when a configuration has converged
+  window.onSweepDone = function (E) {
+    results.push({ frac: SCAN[scanIdx], x: window._scanX, E: Number(E) });
+    console.log('  -> E = ' + Number(E).toFixed(5));
+    render();
+    scanIdx++;
+    if (scanIdx < SCAN.length) {
+      startPoint(scanIdx);
+      if (typeof restartSim === 'function') restartSim();
+      else location.hash = 'pt' + scanIdx;   // fallback: reload with the next point
+    } else {
+      render(true);
+    }
+  };
+
+  function render(done) {
+    var el = document.getElementById('mon');
+    if (!el) return;
+    var lines = results.map(function (r) {
+      return 'frac ' + r.frac.toFixed(2) + '   x = ' + r.x.toFixed(2)
+           + '   E = ' + r.E.toFixed(5);
+    });
+    if (results.length > 1) {
+      var Es = results.map(function (r) { return r.E; });
+      var lo = Math.min.apply(null, Es), hi = Math.max.apply(null, Es);
+      lines.push('');
+      lines.push('barrier so far: ' + (hi - lo).toFixed(5) + ' Ha  ('
+                 + ((hi - lo) * 27.2114).toFixed(3) + ' eV)');
+      lines.push('k_B T at 300 K = 0.00095 Ha');
+      if (done) {
+        var b = hi - lo;
+        lines.push(b < 0.002 ? 'FLAT / LOW: facile hopping or delocalised'
+                             : 'HIGH: carrier trapped, insulating');
+      }
+    }
+    el.innerHTML = lines.join('<br>');
+  }
+
+  startPoint(0);
+})();
+
+var s = document.createElement('script');
+s.src = 'molecule.js?t=' + Date.now();
+s.onload = function() {
+  var p = document.createElement('script');
+  p.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+  document.body.appendChild(p);
+};
+document.body.appendChild(s);
+</script>
+</body></html>
