@@ -1,69 +1,55 @@
 <!DOCTYPE html>
 <html><head>
   <meta charset="utf-8">
-  <title>Hopping barrier, off-axis path — does the carrier go around the ion?</title>
+  <title>Hopping barrier, off-axis — one offset per load</title>
   <style>body { margin: 0; background: #000; color: #fff; font-family: monospace; }</style>
 </head><body>
 <div id="info" style="position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.85);padding:10px;border:1px solid #333;border-radius:6px;max-width:500px;font-size:12px;z-index:100">
-  <div style="color:#8cf;font-weight:bold">Passing an ion: on-axis against off-axis</div>
-  The axial scan gave the carrier a large interstitial preference &mdash; on-site double
-  occupancy costs <b>1.16 Ha (31.5 eV)</b>, the Hubbard <i>U</i> &mdash; with a channel flat to
-  half of k<sub>B</sub>T between sites. But a straight path drives the carrier <i>through</i>
-  the next ion, which is not what a carrier in three dimensions would do.
+  <div style="color:#8cf;font-weight:bold">Passing an ion: does the carrier go round?</div>
+  One configuration per page load. The previous version drove the scan with
+  <code>activateAtoms</code> and corrupted state between points &mdash; its y=0 row reported
+  17.19 Ha where the axial scan gives 1.16 Ha for the same configuration. A fresh load per
+  point removes that failure mode entirely.
   <div style="margin-top:6px">
-  Here the carrier moves from the interstitial region between sites&nbsp;1 and&nbsp;2 to the one
-  between sites&nbsp;2 and&nbsp;3, <b>detouring perpendicular to the chain</b> by an offset
-  <code>y</code>. Each offset is scanned along the path and the maximum energy recorded, so the
-  barrier is reported as a function of how far the carrier steps aside.
+  <b>URL parameters.</b> <code>?y=1.0&amp;s=0.5</code> &mdash; perpendicular offset in a<sub>0</sub>,
+  and position along the path from the interstitial region between sites 1&ndash;2 to the one
+  between sites 2&ndash;3. The sideways step is largest at s=0.5, exactly where site 2 is passed.
   </div>
   <div style="margin-top:6px">
-  <b>Reading it.</b> Barrier falling steeply with <code>y</code> and approaching
-  k<sub>B</sub>T (0.00095 Ha) &rarr; the carrier goes round the ion at little cost and the
-  framework conducts. Barrier staying of order an eV at every offset &rarr; the ion blocks the
-  channel however one goes about it, and transport is activated at best.
+  <b>The self-check.</b> <code>?y=0&amp;s=0.5</code> puts the carrier on site 2 and must return
+  E &asymp; &minus;3.53, the axial scan's endpoint. If it does not, believe nothing else.
   </div>
-  <div id="mon" style="margin-top:8px;color:#8cf">scan not started</div>
+  <div id="mon" style="margin-top:8px;color:#8cf">relaxing&hellip;</div>
+  <div id="tab" style="margin-top:8px;color:#9c9;font-size:11px"></div>
 </div>
 <script>
 (function() {
+  var q = new URLSearchParams(location.search);
+  var Y = parseFloat(q.get('y') || '0');
+  var S = parseFloat(q.get('s') || '0.5');
+
   var gridN = 160, scr = 24, N2 = 80;
   var h = scr / gridN;
-
-  var sepAU = 2.5;
-  var nH = 4;
-
-  // path: from the midpoint of sites 1-2, past site 2, to the midpoint of sites 2-3.
-  // at each perpendicular offset y, sample the path and keep the worst (highest) energy.
-  var YOFF = [0.0, 0.5, 1.0, 1.5];
-  var SFRAC = [0.0, 0.35, 0.5, 0.65, 1.0];   // along the path; 0.5 is level with site 2
+  var sepAU = 2.5, nH = 4;
 
   function xOfSite(w) { return (w - (nH - 1) / 2) * sepAU; }
-  var xStart = 0.5 * (xOfSite(1) + xOfSite(2));   // between sites 1 and 2
-  var xEnd   = 0.5 * (xOfSite(2) + xOfSite(3));   // between sites 2 and 3
+  var xStart = 0.5 * (xOfSite(1) + xOfSite(2));      // 0.00
+  var xEnd   = 0.5 * (xOfSite(2) + xOfSite(3));      // 2.50
 
-  var iy = 0, isf = 0;
-  var results = [];          // {y, s, x, yy, E}
+  var cx = xStart + S * (xEnd - xStart);
+  var cy = Y * Math.sin(Math.PI * S);                // aside most where the ion is passed
 
-  function carrierAt(y, s) {
-    // step aside by y, largest at the midpoint where the ion is passed
-    var lateral = y * Math.sin(Math.PI * s);
-    return { x: xStart + s * (xEnd - xStart), y: lateral };
+  var atoms = [], Z = [], Znuc = [];
+  function add(x, y, z, zn) {
+    atoms.push({ i: Math.round(N2 + x / h), j: Math.round(N2 + y / h), k: N2, Z: z, el: 'H' });
+    Z.push(z); Znuc.push(zn);
   }
+  for (var w = 0; w < nH; w++) add(xOfSite(w), 0, 1, 1);
+  add(cx, cy, 1, 0);                                  // the carrier: ghost domain
 
-  function place(y, s) {
-    var c = carrierAt(y, s);
-    var atoms = [], Z = [], Znuc = [];
-    function add(x, yy, z, zn) {
-      atoms.push({ i: Math.round(N2 + x / h), j: Math.round(N2 + yy / h), k: N2, Z: z, el: 'H' });
-      Z.push(z); Znuc.push(zn);
-    }
-    for (var w = 0; w < nH; w++) add(xOfSite(w), 0, 1, 1);
-    add(c.x, c.y, 1, 0);
-    window.USER_ATOMS = atoms; window.USER_Z = Z; window.USER_Z_NUC = Znuc;
-    window._cx = c.x; window._cy = c.y;
-    return c;
-  }
-
+  window.USER_ATOMS = atoms;
+  window.USER_Z = Z;
+  window.USER_Z_NUC = Znuc;
   window.USER_NN = gridN;
   window.USER_SCREEN = scr;
   window.USER_STEPS = 1000000;
@@ -71,48 +57,52 @@
   window.INIT_ZEFF = 1;
   window.CONVERGENCE_THRESHOLD = 0.002;
 
-  window.onSweepDone = function (E) {
-    results.push({ y: YOFF[iy], s: SFRAC[isf], x: window._cx, yy: window._cy, E: Number(E) });
-    console.log('y=' + YOFF[iy].toFixed(1) + ' s=' + SFRAC[isf].toFixed(2)
-                + '  E=' + Number(E).toFixed(5));
-    render();
-    isf++;
-    if (isf >= SFRAC.length) { isf = 0; iy++; }
-    if (iy >= YOFF.length) { render(true); return; }
-    var c = carrierAt(YOFF[iy], SFRAC[isf]);
-    if (typeof molNucPos !== 'undefined' && molNucPos[nH]) {
-      molNucPos[nH][0] = N2 + c.x / h;
-      molNucPos[nH][1] = N2 + c.y / h;
-      window._cx = c.x; window._cy = c.y;
-      window._prevE = undefined; window._convCount = 0;
-      if (typeof activateAtoms === 'function') activateAtoms(nH + 1);
-    }
-  };
+  // results accumulate across loads so the scan can be stepped through
+  var KEY = 'realqm_offaxis_v2';
+  function load() { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { return {}; } }
+  function save(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} }
+  if (q.get('reset') !== null) { save({}); }
 
-  function render(done) {
-    var el = document.getElementById('mon'); if (!el) return;
-    var byY = {};
-    results.forEach(function (r) {
-      (byY[r.y] = byY[r.y] || []).push(r);
+  function table() {
+    var d = load(), byY = {};
+    Object.keys(d).forEach(function (k) {
+      var p = k.split('|'); (byY[p[0]] = byY[p[0]] || []).push({ s: +p[1], E: d[k] });
     });
-    var lines = [];
-    Object.keys(byY).sort(function(a,b){return a-b;}).forEach(function (y) {
-      var Es = byY[y].map(function (r) { return r.E; });
-      var lo = Math.min.apply(null, Es), hi = Math.max.apply(null, Es);
-      var complete = byY[y].length === SFRAC.length;
-      lines.push('offset y = ' + Number(y).toFixed(1) + ' a0 : barrier '
-                 + (hi - lo).toFixed(5) + ' Ha = ' + ((hi - lo) * 27.2114).toFixed(2) + ' eV'
-                 + (complete ? '' : '  (partial)'));
+    var out = ['<b>accumulated</b> (localStorage; add &amp;reset to clear)'];
+    Object.keys(byY).sort(function (a, b) { return a - b; }).forEach(function (y) {
+      var rows = byY[y].sort(function (a, b) { return a.s - b.s; });
+      var Es = rows.map(function (r) { return r.E; });
+      var bar = Math.max.apply(null, Es) - Math.min.apply(null, Es);
+      out.push('y=' + (+y).toFixed(1) + '  ' +
+        rows.map(function (r) { return 's' + r.s.toFixed(2) + ':' + r.E.toFixed(4); }).join('  ') +
+        (rows.length > 1 ? '   <b>barrier ' + bar.toFixed(4) + ' Ha = '
+          + (bar * 27.2114).toFixed(2) + ' eV</b>' : '  (one point)'));
     });
-    lines.push('');
-    lines.push('k_B T at 300 K = 0.00095 Ha = 0.026 eV');
-    if (done) lines.push('scan complete');
-    el.innerHTML = lines.join('<br>');
+    out.push('k_B T at 300 K = 0.00095 Ha = 0.026 eV');
+    document.getElementById('tab').innerHTML = out.join('<br>');
   }
 
-  place(YOFF[0], SFRAC[0]);
-  console.log('off-axis barrier scan: path ' + xStart.toFixed(2) + ' -> ' + xEnd.toFixed(2)
-              + ' past site at ' + xOfSite(2).toFixed(2));
+  window.onSweepDone = function (E) {
+    var d = load();
+    d[Y.toFixed(1) + '|' + S.toFixed(2)] = Number(E);
+    save(d);
+    var check = (Math.abs(Y) < 1e-9 && Math.abs(S - 0.5) < 1e-9)
+      ? ('<br><b>self-check:</b> expected &asymp; &minus;3.53 &mdash; got ' + Number(E).toFixed(4)
+         + (Math.abs(Number(E) + 3.53) < 0.1 ? ' &check; harness sound' : ' &times; DO NOT TRUST'))
+      : '';
+    document.getElementById('mon').innerHTML =
+      'y = ' + Y.toFixed(2) + ' a0,  s = ' + S.toFixed(2) +
+      '<br>carrier at (x, y) = (' + cx.toFixed(2) + ', ' + cy.toFixed(2) + ') a0' +
+      '<br><b>E = ' + Number(E).toFixed(5) + ' Ha</b>' + check;
+    table();
+    console.log('RESULT y=' + Y + ' s=' + S + ' E=' + Number(E).toFixed(5));
+  };
+
+  document.getElementById('mon').innerHTML =
+    'y = ' + Y.toFixed(2) + ' a0,  s = ' + S.toFixed(2) +
+    '<br>carrier at (x, y) = (' + cx.toFixed(2) + ', ' + cy.toFixed(2) + ') a0<br>relaxing&hellip;';
+  table();
+  console.log('off-axis point: y=' + Y + ' s=' + S + ' carrier at ' + cx.toFixed(2) + ',' + cy.toFixed(2));
 })();
 
 var s = document.createElement('script');
