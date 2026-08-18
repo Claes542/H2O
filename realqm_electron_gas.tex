@@ -11,7 +11,7 @@
 \newcommand{\grad}{\nabla}
 \newcommand{\half}{\tfrac12}
 
-\title{RealQM and the Electron Gas:\\ a vanishing limit, and a metal that does not notice it}
+\title{RealQM and Two-Component Plasma:\\ why the electron gas is the wrong test, and what remains open}
 
 \author[1]{Claes Johnson}
 \affil[1]{KTH Royal Institute of Technology, SE-100 44 Stockholm, Sweden \\
@@ -48,7 +48,27 @@ occur, and no established result of the framework is affected.
 
 \setstretch{1.15}
 
-\section{Why the electron gas is a new domain}
+\section{Why plasma, and not the electron gas}
+
+The natural object here is a \textbf{two-component plasma}: ions and electrons, both charged, both
+free to move, interacting by Coulomb forces and nothing else. That is what a metal is, what a star
+is, and what the recombination era of a Coulomb cosmology is. It is also what RealQM is made of ---
+discrete unit charge densities on their own domains, with no smeared continuum anywhere in the
+construction.
+
+The \emph{uniform electron gas} is a different kind of object. It is electrons together with a
+smeared, inert, non-responding positive background whose only role is to enforce neutrality, and it
+earns its place in the literature because exchange--correlation energies can be fitted to it by
+quantum Monte Carlo. Nothing in nature is that system, and --- more to the point here --- nothing in
+RealQM is. Asking the framework to reproduce jellium asks it to reproduce a construction whose
+central ingredient it does not contain.
+
+We nevertheless begin there, in \S2--\S5, because the calculation is exact and instructive: it
+shows precisely which quantity the partition supplies and which it does not. The reader should treat
+the result as a diagnosis of a mismatch rather than as a test the framework failed, and the metal of
+\S7 as the case that matters.
+
+\section{The framework}
 
 RealQM \cite{realqm,realqmbook} represents an $N$-electron system by $N$ non-negative densities
 $\psi_i$ on non-overlapping domains $\Omega_i$, with energy
@@ -339,15 +359,32 @@ material realises --- which is why it was the wrong test, and why the result it 
 read as a verdict on the framework.
 \end{itemize}
 
-What remains open is narrower than it first appeared, and can be put in the framework's own terms
-without reference to exchange symmetry: \emph{is there a geometric property of a partition that
-costs energy when its cells shrink, in the absence of any attractor?} The answer is currently no. The consequence is not that the framework is defective but that its
-range is bounded on one side: it should not be applied where the electron density is genuinely
-structureless, and the clearest such case --- degenerate matter in which the ion lattice is a small
-perturbation, as in a white dwarf interior --- is untested and would be the informative next
-calculation, since there the measured mass--radius relation depends directly on the pressure that the
-uniform limit does not supply. Wherever structure exists, which is wherever ordinary matter is, the
-question does not arise at all.
+What remains open survives the reframing, and it is worth separating from what does not.
+
+\emph{Disposed of by asking the question properly.} Whether the framework supplies a
+zero-temperature pressure for a structureless electron gas is a question about a system that does not
+exist and that RealQM does not contain. The answer is no, exactly and demonstrably, and it appears to
+carry no consequence for any material: sodium comes out beside standard theory on both quantities a
+measurement gives.
+
+\emph{Not disposed of.} The Fermi surface is measured in real two-component metals, not in jellium.
+De Haas--van Alphen oscillations map it directly in copper and aluminium; the electronic specific
+heat is linear in temperature with a coefficient fixed by the density of states at $E_F$; and the
+plasmon dispersion is positive and measured. None of these depends on the smeared background, so
+none is reframed away, and a plasma formulation of RealQM owes an account of all three. Since the
+framework has no band structure and no $E_F$, that account is not currently available, and it is the
+substantial open problem this note ends on.
+
+\emph{Open in a third sense.} Degenerate matter in which the ion lattice is a small perturbation ---
+a white dwarf interior --- is the one physical system that approaches the uniform limit closely.
+Its measured mass--radius relation depends on precisely the pressure the uniform limit does not
+supply, so it is the informative test of whether the limit ever has consequences. It is untested
+here.
+
+The summary is therefore short. Posed as a question about plasma, which is what RealQM is made of and
+what matter is, the framework does well on the equation of state of a metal. Posed as a question
+about the electron gas, which is neither, it returns zero for a reason that is now understood. And
+the Fermi surface remains to be accounted for either way.
 
 \section*{A note on what was tested numerically}
 
