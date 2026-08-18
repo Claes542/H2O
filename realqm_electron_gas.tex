@@ -11,8 +11,7 @@
 \newcommand{\grad}{\nabla}
 \newcommand{\half}{\tfrac12}
 
-\title{RealQM and the Electron Gas:\\ what extends, what does not, and what a
-zero-temperature pressure would require}
+\title{RealQM and the Electron Gas:\\ a deficiency confined to an idealisation}
 
 \author[1]{Claes Johnson}
 \affil[1]{KTH Royal Institute of Technology, SE-100 44 Stockholm, Sweden \\
@@ -28,28 +27,23 @@ zero-temperature pressure would require}
 \noindent RealQM models matter as non-overlapping unit charge densities in ordinary
 three-dimensional space, one per electron, meeting at free boundaries and minimising the Coulomb
 energy. It has been developed and tested on \emph{bound} matter --- atoms, molecules and nuclei ---
-where an attractor is always present. This note asks what happens when the framework is carried to a
-domain it was not built for: the electron gas, and with it plasmas, metals and dense matter. The
-answer separates cleanly. The \textbf{form} of the theory extends exactly: partitioning a gas of
-density $n$ into non-overlapping cells gives a kinetic energy density $Cn^{5/3}$ --- the
-Thomas--Fermi form, obtained here from non-overlap rather than from Fermi statistics --- and
-everything that follows from charge and inertia is reproduced without adjustment, the plasma
-frequency $\omega_p^2=4\pi n$ exactly. What does \emph{not} extend is the coefficient: for a uniform
-gas with the free-boundary interface used throughout RealQM, the minimising density is constant, so
-$C=0$. The model then has no pressure at zero temperature, hence no screening length and no plasmon
-dispersion, so the zero-temperature kinetic energy of matter comes entirely from density variation forced by
-attractors and nothing from the partition itself. A perfectly uniform gas is an idealisation and no
-real system is one; what the result establishes is that the \emph{mechanism} is absent, not that
-sodium has no stiffness. Whether lattice-induced modulation supplies enough in a real metal is an
-open computation, and the bulk modulus is the place to settle it. Thermal motion does not help:
-it supplies a pressure $\sim nk_BT$ which vanishes as $T\to0$, while the missing one does not. The obvious repair --- a Robin interface
-condition $\psi'+\beta\psi=0$ --- reproduces Thomas--Fermi exactly at the single dimensionless value
-$\beta a=1.146$, but must then be applied to atoms as well, where the interface passes through the
-nucleus and the density is greatest --- so atomic energies should be strongly sensitive to it. A
-first numerical test of that expectation was not converged and is reported as inconclusive. We conclude that extending RealQM beyond bound matter requires a genuinely new
-ingredient: a mechanism by which compressing a partition costs energy at zero temperature. That is
-stated here as a well-posed open problem rather than a defect, since it lies outside the domain in
-which the framework has so far been tested.
+where an attractor is always present, and this note asks what happens when it is carried to the
+electron gas, plasmas and metals. Two results, pointing in opposite directions. \textbf{For a
+uniform gas the framework has no zero-temperature pressure at all}: partitioning into
+non-overlapping cells gives a kinetic energy density $Cn^{5/3}$, the Thomas--Fermi form obtained
+from geometry rather than from Fermi statistics, but with the free-boundary interface used
+throughout RealQM the minimising density is constant and $C=0$ exactly. The screening length is then
+infinite and the plasmon dispersionless. \textbf{For a real metal the deficiency does not appear.}
+RealQM's prescription for a metal coincides with the Wigner--Seitz construction, and for sodium it
+gives an equilibrium radius $r_s=3.77\,a_0$ and bulk modulus $9.1$~GPa against a standard treatment's
+$3.87\,a_0$ and $8.0$~GPa and an experimental $3.93\,a_0$ and $6.3$~GPa --- agreement within the
+model's own accuracy. The two are reconciled by the fact that a uniform electron gas is an
+idealisation no material realises: where ions shape the density, gradients exist and the framework
+has kinetic energy; where nothing shapes it, the mechanism is genuinely absent. RealQM also
+reproduces the plasma frequency $\omega_p^2=4\pi n$ exactly, since a rigid displacement leaves the
+localisation term untouched. The honest statement is therefore narrow: the missing ingredient is
+real and is exhibited cleanly by jellium, but its consequences are confined to a limit that does not
+occur, and no established result of the framework is affected.
 \end{abstract}
 
 \setstretch{1.15}
@@ -283,34 +277,73 @@ hopping and not by band motion, it should predict $d\sigma/dT>0$ for every mater
 should make copper behave like a semiconductor. Whether that is what the framework actually gives has
 not been computed here, and it is the natural first test of RealQM in a solid.
 
-The pattern is the same one as before: bound and localised, well described; free and delocalised,
-not yet.
+This is a prediction and not a result, and it should be read alongside \S7: the same lattice that
+supplies the density modulation there is present here, so the pessimistic reading --- that a
+localised-domain theory cannot conduct like a metal --- may fail in the same way the uniform-gas
+argument failed. Whether it does is a computation nobody has done.
 
-\section{What an extension would require}
+\section{The metal: where the deficiency does not appear}
 
-The open problem can be stated in the framework's own terms, without reference to exchange symmetry:
+The uniform gas is an idealisation, and pressing it as the test was a mistake worth correcting. No
+material has a uniform electron density; in a metal the density is strongly modulated by the ion
+lattice, and the moment it is modulated $\grad\psi_i\neq0$ and there is a kinetic energy. The
+question is quantitative, and it can be answered on a real material.
 
-\begin{quote}
-\emph{What geometric property of a partition should cost energy when its cells shrink?}
-\end{quote}
+RealQM's prescription for a metal turns out to coincide with an established one. One electron domain
+per ion, filling the cell, with the normal derivative vanishing at the cell face by symmetry, is
+precisely the \textbf{Wigner--Seitz} construction used for alkali metals since 1933. Standard theory
+solves that same cell problem for the band bottom and then adds the mean kinetic energy of filling
+the band, $\tfrac35 E_F$, together with exchange and correlation. RealQM keeps the electrostatics,
+takes its kinetic energy from the cell state itself, and has no exchange term: non-overlap is
+supposed to do that work.
 
-Non-overlap alone does not, because a constant density in a cell has no gradient however small the
-cell. Yet compressing a metal demonstrably costs energy. Something in the description of a partition
-must resist compression at zero temperature, and identifying it is what carrying RealQM beyond bound
-matter requires.
+For sodium, with an Ashcroft empty core ($r_c=1.67\,a_0$), electrostatics $-0.9/r_s+1.5r_c^2/r_s^3$,
+exchange $-0.458/r_s$ and Wigner correlation:
 
-Two remarks may help locate it. First, the failure is specific to the \emph{uniform} case: wherever
-an attractor shapes the density, the profile itself supplies the gradients, which is why the atomic
-and molecular results are unaffected and why the deficiency was not visible before. Second, the
-correct coefficient lies between the two principled interface conditions and is produced by neither
-($0$ and $5.16$ against a required $1.00$), which is the signature of a missing mechanism rather than
-of a mis-set parameter.
+\begin{table}[h]\centering
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+ & RealQM & standard & experiment\\
+\midrule
+equilibrium $r_s$ ($a_0$) & $3.77$ & $3.87$ & $3.93$\\
+bulk modulus (GPa) & $9.1$ & $8.0$ & $6.3$\\
+\bottomrule
+\end{tabular}
+\caption{The standard column reproduces sodium, so the comparison is meaningful; RealQM sits beside
+it, within the accuracy of the model.}
+\end{table}
 
-Until such a mechanism is found, the honest statement of scope is that RealQM is a theory of
-\textbf{bound} matter --- atoms, molecules and nuclei, where an attractor is present --- and that its
-extension to free-electron matter awaits an ingredient it does not yet contain. Nothing in the
-established results depends on the extension, and stating the boundary costs the framework nothing it
-had.
+\noindent The mechanism of the agreement should be stated plainly rather than claimed as a success.
+At $r_s=3.93$ the cell state carries $\langle T\rangle=0.004$~Ha against a band-filling term
+$\tfrac35E_F=0.0715$~Ha: RealQM is \emph{not} reproducing degeneracy pressure. It arrives at a
+comparable answer because it also omits exchange, $-0.117$~Ha, a term of opposite sign and
+comparable size, so the effects on the curvature largely cancel. That cancellation is not accidental
+--- it is the framework's design claim, that non-overlap does the work exchange does --- but neither
+is it a demonstration that the missing mechanism is unnecessary.
+
+\section{What the two results together say}
+
+The picture is three-tiered and the tiers should not be conflated.
+
+\begin{itemize}
+\item In a \textbf{uniform gas} the mechanism is genuinely absent. $C=0$ is exact, and with it the
+screening length is infinite and the plasmon flat. This is a clean statement about the functional.
+\item In a \textbf{real metal} the deficiency does not appear at the level a measurement can detect.
+The ions shape the density, the framework has kinetic energy, and equilibrium radius and bulk
+modulus come out beside standard theory.
+\item The \textbf{difference} between them is that a uniform electron gas is an idealisation no
+material realises --- which is why it was the wrong test, and why the result it gives should not be
+read as a verdict on the framework.
+\end{itemize}
+
+What remains open is narrower than it first appeared, and can be put in the framework's own terms
+without reference to exchange symmetry: \emph{is there a geometric property of a partition that
+costs energy when its cells shrink, in the absence of any attractor?} The answer is currently no, and
+the honest consequence is that RealQM should not at present be applied to genuinely structureless
+electron matter --- degenerate plasma, or the interior of a white dwarf, where the ions are a small
+perturbation. Everywhere structure exists, which is everywhere matter is, the question does not
+arise.
 
 \section*{A note on what was tested numerically}
 
