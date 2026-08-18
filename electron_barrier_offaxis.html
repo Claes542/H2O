@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html><head>
+  <meta charset="utf-8">
+  <title>Hopping barrier, off-axis path — does the carrier go around the ion?</title>
+  <style>body { margin: 0; background: #000; color: #fff; font-family: monospace; }</style>
+</head><body>
+<div id="info" style="position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.85);padding:10px;border:1px solid #333;border-radius:6px;max-width:500px;font-size:12px;z-index:100">
+  <div style="color:#8cf;font-weight:bold">Passing an ion: on-axis against off-axis</div>
+  The axial scan gave the carrier a large interstitial preference &mdash; on-site double
+  occupancy costs <b>1.16 Ha (31.5 eV)</b>, the Hubbard <i>U</i> &mdash; with a channel flat to
+  half of k<sub>B</sub>T between sites. But a straight path drives the carrier <i>through</i>
+  the next ion, which is not what a carrier in three dimensions would do.
+  <div style="margin-top:6px">
+  Here the carrier moves from the interstitial region between sites&nbsp;1 and&nbsp;2 to the one
+  between sites&nbsp;2 and&nbsp;3, <b>detouring perpendicular to the chain</b> by an offset
+  <code>y</code>. Each offset is scanned along the path and the maximum energy recorded, so the
+  barrier is reported as a function of how far the carrier steps aside.
+  </div>
+  <div style="margin-top:6px">
+  <b>Reading it.</b> Barrier falling steeply with <code>y</code> and approaching
+  k<sub>B</sub>T (0.00095 Ha) &rarr; the carrier goes round the ion at little cost and the
+  framework conducts. Barrier staying of order an eV at every offset &rarr; the ion blocks the
+  channel however one goes about it, and transport is activated at best.
+  </div>
+  <div id="mon" style="margin-top:8px;color:#8cf">scan not started</div>
+</div>
+<script>
+(function() {
+  var gridN = 160, scr = 24, N2 = 80;
+  var h = scr / gridN;
+
+  var sepAU = 2.5;
+  var nH = 4;
+
+  // path: from the midpoint of sites 1-2, past site 2, to the midpoint of sites 2-3.
+  // at each perpendicular offset y, sample the path and keep the worst (highest) energy.
+  var YOFF = [0.0, 0.5, 1.0, 1.5];
+  var SFRAC = [0.0, 0.35, 0.5, 0.65, 1.0];   // along the path; 0.5 is level with site 2
+
+  function xOfSite(w) { return (w - (nH - 1) / 2) * sepAU; }
+  var xStart = 0.5 * (xOfSite(1) + xOfSite(2));   // between sites 1 and 2
+  var xEnd   = 0.5 * (xOfSite(2) + xOfSite(3));   // between sites 2 and 3
+
+  var iy = 0, isf = 0;
+  var results = [];          // {y, s, x, yy, E}
+
+  function carrierAt(y, s) {
+    // step aside by y, largest at the midpoint where the ion is passed
+    var lateral = y * Math.sin(Math.PI * s);
+    return { x: xStart + s * (xEnd - xStart), y: lateral };
+  }
+
+  function place(y, s) {
+    var c = carrierAt(y, s);
+    var atoms = [], Z = [], Znuc = [];
+    function add(x, yy, z, zn) {
+      atoms.push({ i: Math.round(N2 + x / h), j: Math.round(N2 + yy / h), k: N2, Z: z, el: 'H' });
+      Z.push(z); Znuc.push(zn);
+    }
+    for (var w = 0; w < nH; w++) add(xOfSite(w), 0, 1, 1);
+    add(c.x, c.y, 1, 0);
+    window.USER_ATOMS = atoms; window.USER_Z = Z; window.USER_Z_NUC = Znuc;
+    window._cx = c.x; window._cy = c.y;
+    return c;
+  }
+
+  window.USER_NN = gridN;
+  window.USER_SCREEN = scr;
+  window.USER_STEPS = 1000000;
+  window.USER_DYNAMICS = false;
+  window.INIT_ZEFF = 1;
+  window.CONVERGENCE_THRESHOLD = 0.002;
+
+  window.onSweepDone = function (E) {
+    results.push({ y: YOFF[iy], s: SFRAC[isf], x: window._cx, yy: window._cy, E: Number(E) });
+    console.log('y=' + YOFF[iy].toFixed(1) + ' s=' + SFRAC[isf].toFixed(2)
+                + '  E=' + Number(E).toFixed(5));
+    render();
+    isf++;
+    if (isf >= SFRAC.length) { isf = 0; iy++; }
+    if (iy >= YOFF.length) { render(true); return; }
+    var c = carrierAt(YOFF[iy], SFRAC[isf]);
+    if (typeof molNucPos !== 'undefined' && molNucPos[nH]) {
+      molNucPos[nH][0] = N2 + c.x / h;
+      molNucPos[nH][1] = N2 + c.y / h;
+      window._cx = c.x; window._cy = c.y;
+      window._prevE = undefined; window._convCount = 0;
+      if (typeof activateAtoms === 'function') activateAtoms(nH + 1);
+    }
+  };
+
+  function render(done) {
+    var el = document.getElementById('mon'); if (!el) return;
+    var byY = {};
+    results.forEach(function (r) {
+      (byY[r.y] = byY[r.y] || []).push(r);
+    });
+    var lines = [];
+    Object.keys(byY).sort(function(a,b){return a-b;}).forEach(function (y) {
+      var Es = byY[y].map(function (r) { return r.E; });
+      var lo = Math.min.apply(null, Es), hi = Math.max.apply(null, Es);
+      var complete = byY[y].length === SFRAC.length;
+      lines.push('offset y = ' + Number(y).toFixed(1) + ' a0 : barrier '
+                 + (hi - lo).toFixed(5) + ' Ha = ' + ((hi - lo) * 27.2114).toFixed(2) + ' eV'
+                 + (complete ? '' : '  (partial)'));
+    });
+    lines.push('');
+    lines.push('k_B T at 300 K = 0.00095 Ha = 0.026 eV');
+    if (done) lines.push('scan complete');
+    el.innerHTML = lines.join('<br>');
+  }
+
+  place(YOFF[0], SFRAC[0]);
+  console.log('off-axis barrier scan: path ' + xStart.toFixed(2) + ' -> ' + xEnd.toFixed(2)
+              + ' past site at ' + xOfSite(2).toFixed(2));
+})();
+
+var s = document.createElement('script');
+s.src = 'molecule.js?t=' + Date.now();
+s.onload = function() {
+  var p = document.createElement('script');
+  p.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+  document.body.appendChild(p);
+};
+document.body.appendChild(s);
+</script>
+</body></html>
