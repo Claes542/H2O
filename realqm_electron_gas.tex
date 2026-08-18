@@ -36,8 +36,13 @@ vanishing at the cell face by symmetry. For sodium it gives an equilibrium radiu
 bulk modulus $9.1$~GPa, against a standard treatment's $3.87\,a_0$ and $8.0$~GPa and measured values
 $3.93\,a_0$ and $6.3$~GPa --- agreement within the accuracy of the model, from a framework carrying
 neither an exchange term nor a band-filling term. The plasma frequency $\omega_p^2=4\pi n$ comes out
-exactly, since a rigid displacement leaves the localisation energy untouched. What the framework does
-\emph{not} have is a Fermi surface, and that is the open question: de Haas--van Alphen oscillations,
+exactly, since a rigid displacement leaves the localisation energy untouched. Conduction is examined and found to be, at present, not testable: charge transport by transfer
+between localised sites is already demonstrated in the framework for \emph{protons}, in Grotthuss
+conduction along a water chain, but the electronic counterpart cannot be run, because domain
+ownership in the solver is assigned by kernel proximity, so an electron cannot change which kernel
+it belongs to. That is a limitation of the implementation rather than of the formulation, and it
+bears on more than metals, electron transfer being what oxidation and reduction are. What the
+framework does \emph{not} have at all is a Fermi surface, and that is the standing open question: de Haas--van Alphen oscillations,
 the linear electronic specific heat and positive plasmon dispersion are measured in real metals, not
 in any idealisation, and RealQM has neither bands nor $E_F$ to account for them. A closing remark
 treats the uniform electron gas, where the localisation term vanishes identically --- a result about
@@ -255,9 +260,14 @@ Equation \eqref{eq:wp}, the screening relation, the Thomas--Fermi comparison and
 are analytic. Table~\ref{tab:na} is a radial Wigner--Seitz calculation with the stated pseudopotential
 and correlation functional; the standard column reproducing sodium is what makes the comparison
 meaningful, and the residual $27\%$ error in its bulk modulus is the accuracy of that model rather
-than of the framework. An attempt to test the interface condition on helium is omitted: it was not
-converged, giving a sensitivity that reversed sign under mesh refinement, and no conclusion was drawn
-from it. Scripts accompany the source.
+than of the framework. Two attempts are reported as null rather than omitted. An interface-condition test on helium was
+not converged, giving a sensitivity that reversed sign under mesh refinement, and no conclusion is
+drawn from it. Two chain calculations --- five hydrogens with an excess electron, and five hydrogen
+kernels with one electron missing --- returned no transport, but for a reason established by reading
+the solver rather than by the runs: domains are labelled by kernel proximity and bare kernels receive
+none, so neither hopping nor band motion is representable and neither could have been observed. Both
+are recorded because the null result located an obstruction that no further running would have
+found. Scripts and pages accompany the source.
 
 \begin{thebibliography}{9}
 \bibitem{realqm} C.\ Johnson, \emph{RealQM: Quantum Mechanics as Multiphase 3D Continuum Mechanics},
