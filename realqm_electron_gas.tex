@@ -206,22 +206,37 @@ This matters for the argument rather than merely illustrating it. Charge transpo
 between localised domains is not a regime the framework must be stretched to reach --- it is one it
 already handles, in the case where the carrier is a proton.
 
-The electron case, however, cannot presently be tested in the same way, and the obstruction is
-instructive. Two chain calculations were attempted here: five hydrogens with an excess electron, and
-five hydrogen kernels with one electron missing, the electronic counterparts of the proton wire. Both
-returned null results, and inspection of the solver shows why. Domain ownership is assigned by kernel
-proximity --- each point of space is labelled by whichever kernel's trial density dominates it --- so
-a domain belongs to its own kernel by construction and an electron cannot change which kernel it
-belongs to. A bare kernel, moreover, is given no electron domain at all. A vacancy therefore cannot
-migrate, and an excess electron can only follow its own seed. Neither hopping nor band motion is
-representable, so neither was observed.
+The electron case cannot presently be tested in the same way, and the obstruction is instructive
+enough to be worth setting out. Two chain calculations were attempted here --- five hydrogens with an
+excess electron, and five hydrogen kernels with one electron missing, the electronic counterparts of
+the proton wire --- and both returned nothing. Neither result means what it appears to.
 
-This is a limitation of the implementation rather than of the formulation: \eqref{eq:E} has free
-boundaries that could in principle let a domain migrate between kernels, and it is the label
-assignment that fixes them. But it means the question of electronic conduction is not merely
-uncomputed here --- it is not yet computable, and making it so requires a solver in which domain
-ownership is determined by the energy rather than by proximity. Proton transport does not run into
-this, because there the carrier is a \emph{nucleus} and nuclei do move.
+The immediate cause is the partition. Domain ownership in the solver is assigned by kernel proximity:
+each point of space is labelled by whichever kernel's trial density dominates it, so a domain belongs
+to its own kernel by construction and an electron cannot change which kernel it belongs to. A bare
+kernel is given no domain at all. A vacancy therefore cannot migrate and an excess electron can only
+follow its own seed. This is a property of the implementation and not of \eqref{eq:E}, whose
+interfaces are free to move to wherever the energy is least, and which permits a domain to straddle
+two kernels --- as it must, since that is what $\mathrm{H_2^+}$ is.
+
+The deeper cause survives that repair. Conduction is charge in motion, and \eqref{eq:E} is an energy
+minimisation: it returns the equilibrium partition, not a current. Given complete freedom in the
+labels one would still obtain the ground state, and for a symmetric chain that state places one
+domain per site by symmetry, with nothing flowing. A minimisation has no time in it.
+
+What the framework does possess is an asymmetry of dynamics. Nuclei move, under classical equations
+of motion; electrons relax, to a static minimum. Charge carried by \emph{nuclei} is therefore
+representable --- which is precisely why the Grotthuss calculation works, the carrier there being a
+proton --- and charge carried by electrons is not, because in this scheme electrons have no equation
+of motion at all. The correct machinery exists elsewhere in the programme, in the time-dependent form
+where a real density carries a complex current, and a conduction calculation belongs there rather
+than here.
+
+The honest statement is therefore not that RealQM cannot conduct, but that conduction was put to a
+solver with no mechanism for electron motion of any kind. Whether electronic transport in a metal is
+of the hopping kind the framework's localised domains suggest, or of the band kind it has no evident
+means to represent, remains open --- and is now a well-posed calculation for the time-dependent
+formulation rather than a question about the one used here.
 
 \section{What remains open: the Fermi surface}
 
