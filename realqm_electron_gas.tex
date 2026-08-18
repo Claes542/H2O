@@ -32,10 +32,11 @@ A metal is such a system, as are a stellar interior and the recombination era of
 cosmology; and so, notably, is RealQM itself, which contains discrete charges and no smeared
 continuum anywhere. The central result is that RealQM's prescription for a metal \emph{coincides} with the
 Wigner--Seitz construction: one electron domain per ion, filling the cell, with the normal derivative
-vanishing at the cell face by symmetry. For sodium it gives an equilibrium radius $r_s=3.77\,a_0$ and
-bulk modulus $9.1$~GPa, against a standard treatment's $3.87\,a_0$ and $8.0$~GPa and measured values
-$3.93\,a_0$ and $6.3$~GPa --- agreement within the accuracy of the model, from a framework carrying
-neither an exchange term nor a band-filling term. The plasma frequency $\omega_p^2=4\pi n$ comes out
+vanishing at the cell face by symmetry. Across the alkali series Li--Cs, over which the equilibrium radius varies by
+$70\%$, it reproduces that radius to a mean error of $6.2\%$ against the standard treatment's
+$5.6\%$ --- and for K, Rb and Cs it is the closer of the two --- from a framework carrying neither an
+exchange term nor a band-filling term. The bulk modulus, a second derivative, is given badly by both
+columns and worse by RealQM, so what is demonstrated is the size of a metal and not its stiffness. The plasma frequency $\omega_p^2=4\pi n$ comes out
 exactly, since a rigid displacement leaves the localisation energy untouched. Conduction is examined and found to be, at present, not testable: charge transport by transfer
 between localised sites is already demonstrated in the framework for \emph{protons}, in Grotthuss
 conduction along a water chain, but the electronic counterpart cannot be run, because domain
@@ -82,7 +83,7 @@ matter, with an attractor always present. A plasma is the first case in which la
 charges of both signs are free to arrange themselves, and it is a fair question what the framework
 then gives.
 
-\section{A metal is a Wigner--Seitz problem, and RealQM already agrees with it}
+\section{Metals: a Wigner--Seitz problem the framework already agrees with}
 
 Take a metal: a lattice of ions, one valence electron each. RealQM assigns each electron its own
 domain; by translational symmetry those domains are the Wigner--Seitz cells, one ion at the centre of
@@ -97,36 +98,57 @@ with exchange and correlation, all consequences of the exclusion principle. Real
 electrostatics, takes its kinetic energy from the cell state itself, and adds nothing: non-overlap is
 supposed to do that work.
 
-For sodium, with an Ashcroft empty-core pseudopotential ($r_c=1.67\,a_0$), electrostatics
+For each alkali metal, with an Ashcroft empty-core pseudopotential of radius $r_c$, electrostatics
 $-0.9/r_s+1.5\,r_c^2/r_s^3$ for a point ion in a neutral sphere, exchange $-0.458/r_s$ and Wigner
-correlation, minimising the energy per electron over $r_s$ gives
+correlation, minimising the energy per electron over $r_s$ gives Table~\ref{tab:alkalis}. Each metal
+contributes one parameter, its core radius, and two measured numbers; across the series the
+equilibrium radius varies by $70\%$ and the bulk modulus by a factor of six, so tracking the trend is
+a stronger statement than matching any single case.
 
 \begin{table}[h]\centering
 \small
-\begin{tabular}{@{}lrrr@{}}
+\begin{tabular}{@{}lrrrrcrrr@{}}
 \toprule
- & RealQM & standard & measured\\
+ & & \multicolumn{3}{c}{$r_s$ ($a_0$)} & & \multicolumn{3}{c}{$B$ (GPa)}\\
+\cmidrule(lr){3-5}\cmidrule(lr){7-9}
+ & $r_c$ & RealQM & standard & measured & & RealQM & standard & measured\\
 \midrule
-equilibrium $r_s$ ($a_0$) & $3.77$ & $3.87$ & $3.93$\\
-bulk modulus (GPa) & $9.1$ & $8.0$ & $6.3$\\
+Li & $1.06$ & $2.40$ & $2.86$ & $3.25$ & & $49.6$ & $23.9$ & $11.6$\\
+Na & $1.67$ & $3.77$ & $3.87$ & $3.93$ & & $9.1$ & $8.0$ & $6.3$\\
+K  & $2.14$ & $4.82$ & $4.67$ & $4.86$ & & $3.6$ & $4.0$ & $3.1$\\
+Rb & $2.31$ & $5.20$ & $4.95$ & $5.20$ & & $2.7$ & $3.2$ & $2.5$\\
+Cs & $2.50$ & $5.62$ & $5.28$ & $5.62$ & & $2.0$ & $2.5$ & $2.0$\\
+\midrule
+\multicolumn{2}{@{}l}{mean abs.\ error} & $6.2\%$ & $5.6\%$ & & & $79\%$ & $44\%$ &\\
 \bottomrule
 \end{tabular}
-\caption{Sodium. The standard column reproduces the metal, which is what makes the comparison
-meaningful; RealQM sits beside it, within the accuracy of the model.}
-\label{tab:na}
+\caption{The alkali series. On the equilibrium radius RealQM tracks the whole trend and is
+comparable to the standard treatment; on the bulk modulus, a second derivative, both are poor and
+RealQM is the worse.}
+\label{tab:alkalis}
 \end{table}
 
-\noindent The framework thus gives the equation of state of a metal from Coulomb geometry alone, to
-within a few per cent on the lattice scale and within the model's own error on the stiffness, while
-carrying no exchange term and no band-filling term.
+\noindent Two things should be read from this, and they point differently.
 
-The mechanism of that agreement should be stated plainly rather than claimed as a triumph. At
-$r_s=3.93$ the cell state carries $\langle T\rangle=0.004$~Ha against a band-filling term
+On the \textbf{equilibrium radius} the framework tracks the series: a mean error of $6.2\%$ against
+the standard treatment's $5.6\%$, and for K, Rb and Cs it is the closer of the two, reproducing Rb and
+Cs essentially exactly where the standard column runs some $5\%$ low. Lithium is the outlier for both,
+as expected, the empty-core description being known to serve it badly. So a metal's lattice scale
+comes out of Coulomb geometry, across a $70\%$ range, with no exchange term and no band-filling term.
+
+On the \textbf{bulk modulus} neither column is good --- $79\%$ mean error against $44\%$ --- and RealQM
+is the worse. $B$ is a second derivative of the energy and far more demanding than the position of a
+minimum, and the honest reading is that this level of model, in either column, does not determine it.
+The framework is not shown to give the stiffness of a metal; it is shown to give the size.
+
+The mechanism of the agreement should be stated plainly rather than claimed as a triumph. At
+$r_s=3.93$ in sodium the cell state carries $\langle T\rangle=0.004$~Ha against a band-filling term
 $\tfrac35E_F=0.0715$~Ha, so RealQM is \emph{not} reproducing degeneracy pressure. It arrives at a
 comparable answer because it also omits exchange, $-0.117$~Ha, a term of opposite sign and comparable
-size, so that their effects on the curvature largely cancel. That cancellation is the framework's own
-design claim --- that non-overlap does the work exchange does --- and here it is borne out
-numerically. It is not a demonstration that the two omitted terms are individually unnecessary.
+size, so that their effects on the position of the minimum largely cancel. That cancellation is the
+framework's own design claim --- that non-overlap does the work exchange does --- and across five
+metals it holds for the radius and fails for the curvature, which is what one would expect of a
+cancellation that is close but not exact.
 
 \section{The plasma frequency, exactly}
 
@@ -169,7 +191,7 @@ This yields a prediction crude enough to be decisive, and it concerns only a sig
 conductivity \emph{falls} with temperature; hopping conductivity \emph{rises}. If RealQM transports
 charge by hopping rather than band motion it should give $d\sigma/dT>0$ for every material, making
 copper behave like a semiconductor. Whether it does has not been computed for electrons, and the
-pessimistic reading should be held loosely: the same lattice that carried the metal in \S2 is
+pessimistic reading should be held loosely: the same lattice that carried the metals in \S2 is
 present here too.
 
 For \emph{protons} the mechanism has already been demonstrated in this framework. Grotthuss
@@ -218,7 +240,7 @@ produces it, $\omega^2=\omega_p^2+\tfrac35k^2v_F^2$, is absent here.
 
 No account of these is currently available in the framework, and constructing one is the substantial
 open problem. It is a sharper problem than it would have appeared a section ago: not that RealQM
-lacks Fermi pressure --- Table~\ref{tab:na} shows a metal's equation of state coming out regardless
+lacks Fermi pressure --- Table~\ref{tab:alkalis} shows a metal's lattice scale coming out regardless
 --- but that a set of measured Fermi-surface phenomena have no representation in a theory built from
 localised domains.
 
@@ -246,7 +268,7 @@ This should not be read as a test the framework fails. The uniform electron gas 
 exchange--correlation energies are fitted to that very system. RealQM contains no inert backgrounds
 anywhere, so asking it to reproduce jellium asks it to reproduce a system whose central ingredient it
 does not have, and $C=0$ diagnoses that mismatch. Consistently with this, the pathology disappears as
-soon as real ions are present: Table~\ref{tab:na} is the same framework on the same physics, with the
+soon as real ions are present: Table~\ref{tab:alkalis} is the same framework on the same physics, with the
 background replaced by the charges matter is actually made of.
 
 One physical case does approach the uniform limit closely: degenerate matter in which the ion lattice
@@ -257,10 +279,10 @@ might have observable consequences, and it is untested here.
 \section*{A note on what was tested numerically}
 
 Equation \eqref{eq:wp}, the screening relation, the Thomas--Fermi comparison and the vanishing of $C$
-are analytic. Table~\ref{tab:na} is a radial Wigner--Seitz calculation with the stated pseudopotential
-and correlation functional; the standard column reproducing sodium is what makes the comparison
-meaningful, and the residual $27\%$ error in its bulk modulus is the accuracy of that model rather
-than of the framework. Two attempts are reported as null rather than omitted. An interface-condition test on helium was
+are analytic. Table~\ref{tab:alkalis} is a radial Wigner--Seitz calculation with the stated
+pseudopotential and correlation functional, run for five alkalis; the standard column reproducing the
+series is what makes the comparison meaningful, and its own $44\%$ mean error in the bulk modulus
+sets the accuracy available at this level of model. Two attempts are reported as null rather than omitted. An interface-condition test on helium was
 not converged, giving a sensitivity that reversed sign under mesh refinement, and no conclusion is
 drawn from it. Two chain calculations --- five hydrogens with an excess electron, and five hydrogen
 kernels with one electron missing --- returned no transport, but for a reason established by reading
