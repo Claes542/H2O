@@ -37,13 +37,16 @@ everything that follows from charge and inertia is reproduced without adjustment
 frequency $\omega_p^2=4\pi n$ exactly. What does \emph{not} extend is the coefficient: for a uniform
 gas with the free-boundary interface used throughout RealQM, the minimising density is constant, so
 $C=0$. The model then has no pressure at zero temperature, hence no screening length and no plasmon
-dispersion, and predicts that a cold dense electron gas exerts no pressure at all. Since a metal at
-room temperature is already degenerate ($T/T_F\approx10^{-2}$), this is a definite conflict with
-observation, and one that thermal motion cannot repair: temperature supplies a pressure $\sim nk_BT$
-which vanishes as $T\to0$, while the missing one does not. The obvious repair --- a Robin interface
+dispersion, so the zero-temperature kinetic energy of matter comes entirely from density variation forced by
+attractors and nothing from the partition itself. A perfectly uniform gas is an idealisation and no
+real system is one; what the result establishes is that the \emph{mechanism} is absent, not that
+sodium has no stiffness. Whether lattice-induced modulation supplies enough in a real metal is an
+open computation, and the bulk modulus is the place to settle it. Thermal motion does not help:
+it supplies a pressure $\sim nk_BT$ which vanishes as $T\to0$, while the missing one does not. The obvious repair --- a Robin interface
 condition $\psi'+\beta\psi=0$ --- reproduces Thomas--Fermi exactly at the single dimensionless value
-$\beta a=1.146$, but costs helium $0.19$~Ha, some $20\%$ of its ionisation energy, so it cannot be
-adopted consistently. We conclude that extending RealQM beyond bound matter requires a genuinely new
+$\beta a=1.146$, but must then be applied to atoms as well, where the interface passes through the
+nucleus and the density is greatest --- so atomic energies should be strongly sensitive to it. A
+first numerical test of that expectation was not converged and is reported as inconclusive. We conclude that extending RealQM beyond bound matter requires a genuinely new
 ingredient: a mechanism by which compressing a partition costs energy at zero temperature. That is
 stated here as a well-posed open problem rather than a defect, since it lies outside the domain in
 which the framework has so far been tested.
@@ -180,34 +183,25 @@ length, the plasmon dispersion and the zero-temperature pressure, since all thre
 \label{tab:robin}
 \end{table}
 
-This is not adopted here, for a reason established by direct test. Helium in RealQM is two electron
-domains meeting at a midplane through the nucleus. Solving that problem on a grid with the interface
-condition varied, at otherwise identical numerics, gives
+This is not adopted here, but the reason must be stated more carefully than a first calculation
+suggested. A Robin condition at $\beta a=1.146$ would have to be applied everywhere, including
+between the electron domains of an atom, and there is a geometric reason to expect atoms to object:
+in helium the two domains are half-spaces meeting at a midplane, and \emph{the nucleus lies in that
+plane}, where the density is greatest. Any departure from Neumann suppresses density exactly where
+binding is won, so atomic energies should be strongly sensitive to $\beta$ --- unlike a uniform gas,
+where the density is constant and the interface condition is the only place physics could enter.
 
-\begin{table}[h]\centering
-\small
-\begin{tabular}{@{}lrrr@{}}
-\toprule
-$\beta$ ($a_0^{-1}$) & $E$ (Ha) & $T$ per electron & shift\\
-\midrule
-$0$ (Neumann) & $-2.0224$ & $1.887$ & ---\\
-$0.25$ & $-2.0067$ & $1.726$ & $+0.016$\\
-$1.146$ & $-1.8358$ & $1.164$ & $\mathbf{+0.187}$\\
-$20$ (near Dirichlet) & $-0.9608$ & $0.350$ & $+1.062$\\
-\bottomrule
-\end{tabular}
-\caption{Helium is strongly sensitive to the interface condition. The absolute energies are from a
-coarse grid and are not converged; the comparison is between rows at identical numerics.}
-\label{tab:he}
-\end{table}
+That expectation has \emph{not} been confirmed numerically here, and the attempt is reported because
+its failure is instructive. Solving helium as two half-space domains on a uniform grid, with
+imaginary-time relaxation and the interface condition varied, gave a shift of $+0.19$~Ha at $N=64$
+and $-0.43$~Ha at $N=96$ --- reversing sign under refinement, with the total energy moving from
+$-2.02$ to $-0.94$~Ha against an exact $-2.9037$. The cause is that the relaxation step scales as
+$h^2$ while the iteration count was held fixed, so finer meshes received less relaxation and were
+further from the minimum. Neither the magnitude nor the sign of the sensitivity is therefore
+established, and no conclusion is drawn from it.
 
-\noindent The value the gas requires costs helium $0.19$~Ha, about $20\%$ of its ionisation energy.
-The reason is geometric and does not depend on the accuracy of the calculation: in helium the
-interface plane passes \emph{through the nucleus}, where the density is greatest, so any departure
-from Neumann suppresses density exactly where binding is won. The electron responds by spreading away
-from the plane, which is why the kinetic energy falls as the total energy rises.
-
-The situation is therefore symmetric and unfavourable. In a uniform gas the density is constant, so
+What remains is the structural asymmetry, which does not depend on that calculation.
+In a uniform gas the density is constant, so
 the interface condition is the only place physics could enter --- and Neumann makes it contribute
 nothing. In an atom the interface passes through the density maximum, so the condition is decisive
 --- and only Neumann leaves the atom alone. \emph{The interface is inconsequential exactly where the
