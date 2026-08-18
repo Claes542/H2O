@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html><head>
+  <meta charset="utf-8">
+  <title>Hole chain — does a vacancy migrate?</title>
+  <style>body { margin: 0; background: #000; color: #fff; font-family: monospace; }</style>
+</head><body>
+<div id="info" style="position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.8);padding:10px;border:1px solid #333;border-radius:6px;max-width:470px;font-size:12px;z-index:100">
+  <div style="color:#fc8;font-weight:bold">Hole on a hydrogen chain</div>
+  Five H kernels, but only <b>four</b> electrons: the leftmost proton is bare.
+  The chain carries charge +1 and the vacancy starts on the left.
+  <div style="margin-top:6px">
+  <b>Why a hole and not an extra electron.</b> An added electron has to be <i>bound</i>, and
+  H<sup>&minus;</sup> barely is &mdash; in <span style="color:#8cf">electron_chain</span> the excess was
+  simply expelled from the chain, which may say more about hydrogen's electron affinity than about
+  conduction. A hole needs no affinity: it is an absence, so nothing has to hold it.
+  </div>
+  <div style="margin-top:6px">
+  <b>The question.</b> Do the four electron domains rearrange so that the vacancy <i>moves</i> along
+  the chain &mdash; electronic charge transport by transfer, the counterpart of Grotthuss &mdash; or
+  do they simply expand into the gap and leave the vacancy where it was?
+  </div>
+  <div style="margin-top:6px;color:#9c9">
+  Migrating &rarr; the framework transports electronic charge. Static &rarr; carriers must make room
+  for themselves, which is not how a metal works. Spacing <code>sepAU</code> is the dial.
+  </div>
+  <div id="mon" style="margin-top:8px;color:#fc8"></div>
+</div>
+<script>
+(function() {
+  var gridN = 200, scr = 26, N2 = 100;
+  var h = scr / gridN;
+  var atoms = [];
+
+  function addAtom(x, y, z, Z, el) {
+    atoms.push({
+      i: Math.round(N2 + x / h),
+      j: Math.round(N2 + y / h),
+      k: Math.round(N2 + z / h),
+      Z: Z, el: el
+    });
+  }
+
+  // H-H spacing in atomic units. H2 bonds at 1.4; 3.0 is a stretched chain,
+  // the regime where a Mott insulator and a metal part company.
+  var sepAU = 3.0;
+  var nH = 5;
+
+  var Zlist = [], ZnucList = [];
+  for (var w = 0; w < nH; w++) {
+    var x = (w - (nH - 1) / 2) * sepAU;
+    // every site keeps its proton (Z_nuc = 1); the leftmost carries NO electron
+    var nElec = (w === 0) ? 0 : 1;
+    addAtom(x, 0, 0, nElec, 'H');
+    Zlist.push(nElec); ZnucList.push(1);
+  }
+  // 4 electrons, 5 protons -> net charge +1, vacancy seeded at site 0
+
+  window.USER_Z = Zlist;
+  window.USER_Z_NUC = ZnucList;
+
+  var bp = [];
+  for (var w = 0; w < nH - 1; w++) bp.push([w, w + 1, "H" + w + "-H" + (w+1) + ":"]);
+  window.USER_BOND_PAIRS = bp;
+  window.USER_BOND_MAX_AU = 8.0;
+
+  // Where is the missing charge? Report the per-site electron occupancy if the
+  // solver exposes it, and otherwise the chain geometry, which distorts around
+  // a vacancy that has moved.
+  setInterval(function() {
+    var el = document.getElementById('mon');
+    if (!el || typeof nucPos === 'undefined') return;
+    var txt = '';
+    if (typeof domainCharge !== 'undefined' && domainCharge.length >= nH) {
+      var occ = [];
+      for (var w = 0; w < nH; w++) occ.push(Math.abs(domainCharge[w]).toFixed(2));
+      txt += 'site occupancies: ' + occ.join('  ') + '<br>';
+    }
+    var d = [];
+    for (var w = 0; w < nH - 1; w++) {
+      var dx = (nucPos[w+1][0] - nucPos[w][0]) * h;
+      var dy = (nucPos[w+1][1] - nucPos[w][1]) * h;
+      var dz = (nucPos[w+1][2] - nucPos[w][2]) * h;
+      d.push(Math.sqrt(dx*dx + dy*dy + dz*dz).toFixed(2));
+    }
+    txt += 'H-H spacings (au): ' + d.join(', ') + '<br>';
+    txt += '<span style="color:#9c9">a vacancy that has moved shows as the short/long '
+         + 'pattern shifting rightward along the chain</span>';
+    el.innerHTML = txt;
+  }, 500);
+
+  window.USER_NN = gridN;
+  window.USER_ATOMS = atoms;
+  window.USER_SCREEN = scr;
+  window.USER_STEPS = 1000000;
+
+  window.USER_DYNAMICS = false;
+  setInterval(function() {
+    if (typeof phaseSteps !== 'undefined' && phaseSteps > 5000 &&
+        typeof dynamicsEnabled !== 'undefined' && !dynamicsEnabled) {
+      window.dynamicsEnabled = true;
+    }
+  }, 500);
+
+  window.USER_FORCE_SCALE = 1.0;
+  window.USER_ARROW_SCALE = 50.0;
+  window.USER_TEMPERATURE_K = 0;
+  window.USER_LANGEVIN_GAMMA = 0.2;
+  window.USER_NUC_SUBSTEPS = 10;
+  window.USER_N_MOVE = 30;
+  window.INIT_ZEFF = 1;
+  console.log('Hole chain: ' + nH + ' H kernels at ' + sepAU + ' au, 4 electrons, vacancy on site 0');
+})();
+
+var s = document.createElement('script');
+s.src = 'molecule.js?t=' + Date.now();
+s.onload = function() {
+  var p = document.createElement('script');
+  p.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+  document.body.appendChild(p);
+};
+document.body.appendChild(s);
+</script>
+</body></html>
