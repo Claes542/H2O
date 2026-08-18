@@ -11,7 +11,8 @@
 \newcommand{\grad}{\nabla}
 \newcommand{\half}{\tfrac12}
 
-\title{RealQM and Two-Component Plasma:\\ why the electron gas is the wrong test, and what remains open}
+\title{RealQM as Plasma Physics?\\
+\large A metal from Coulomb geometry, and the Fermi surface as the open question}
 
 \author[1]{Claes Johnson}
 \affil[1]{KTH Royal Institute of Technology, SE-100 44 Stockholm, Sweden \\
@@ -26,52 +27,36 @@
 \begin{abstract}
 \noindent RealQM models matter as non-overlapping unit charge densities in ordinary
 three-dimensional space, one per electron, meeting at free boundaries and minimising the Coulomb
-energy. It has been developed and tested on \emph{bound} matter --- atoms, molecules and nuclei ---
-where an attractor is always present, and this note asks what happens when it is carried to the
-electron gas, plasmas and metals. Two results, pointing in opposite directions. \textbf{For a
-uniform gas the framework has no zero-temperature pressure at all}: partitioning into
-non-overlapping cells gives a kinetic energy density $Cn^{5/3}$, the Thomas--Fermi form obtained
-from geometry rather than from Fermi statistics, but with the free-boundary interface used
-throughout RealQM the minimising density is constant and $C=0$ exactly. The screening length is then
-infinite and the plasmon dispersionless. \textbf{For a real metal it makes no detectable difference.}
-RealQM's prescription for a metal coincides with the Wigner--Seitz construction, and for sodium it
-gives an equilibrium radius $r_s=3.77\,a_0$ and bulk modulus $9.1$~GPa against a standard treatment's
-$3.87\,a_0$ and $8.0$~GPa and an experimental $3.93\,a_0$ and $6.3$~GPa --- agreement within the
-model's own accuracy. The two are reconciled by the fact that a uniform electron gas is an
-idealisation no material realises: where ions shape the density, gradients exist and the framework
-has kinetic energy; where nothing shapes it, the mechanism is genuinely absent. RealQM also
-reproduces the plasma frequency $\omega_p^2=4\pi n$ exactly, since a rigid displacement leaves the
-localisation term untouched. The honest statement is therefore narrow: the missing ingredient is
-real and is exhibited cleanly by jellium, but its consequences are confined to a limit that does not
-occur, and no established result of the framework is affected.
+energy. Developed and tested on atoms, molecules and nuclei, it is carried here to
+\textbf{two-component plasma} --- ions and electrons, both charged and both dynamical --- which is
+what a metal, a stellar interior and the recombination era all are, and what the framework is itself
+made of. The central result is that RealQM's prescription for a metal \emph{coincides} with the
+Wigner--Seitz construction: one electron domain per ion, filling the cell, with the normal derivative
+vanishing at the cell face by symmetry. For sodium it gives an equilibrium radius $r_s=3.77\,a_0$ and
+bulk modulus $9.1$~GPa, against a standard treatment's $3.87\,a_0$ and $8.0$~GPa and measured values
+$3.93\,a_0$ and $6.3$~GPa --- agreement within the accuracy of the model, from a framework carrying
+neither an exchange term nor a band-filling term. The plasma frequency $\omega_p^2=4\pi n$ comes out
+exactly, since a rigid displacement leaves the localisation energy untouched. What the framework does
+\emph{not} have is a Fermi surface, and that is the open question: de Haas--van Alphen oscillations,
+the linear electronic specific heat and positive plasmon dispersion are measured in real metals, not
+in any idealisation, and RealQM has neither bands nor $E_F$ to account for them. A closing remark
+treats the uniform electron gas, where the localisation term vanishes identically --- a result about
+a construction containing a smeared inert background, which RealQM does not contain, and so a
+diagnosis of mismatched ontology rather than a test the framework fails.
 \end{abstract}
 
 \setstretch{1.15}
 
-\section{Why plasma, and not the electron gas}
+\section{The object: two-component plasma}
 
-The natural object here is a \textbf{two-component plasma}: ions and electrons, both charged, both
-free to move, interacting by Coulomb forces and nothing else. That is what a metal is, what a star
-is, and what the recombination era of a Coulomb cosmology is. It is also what RealQM is made of ---
-discrete unit charge densities on their own domains, with no smeared continuum anywhere in the
+The natural object of study here is a \textbf{two-component plasma}: ions and electrons, both
+charged, both free to move, interacting by Coulomb forces and nothing else. A metal is one. A stellar
+interior is one. The recombination era of a Coulomb cosmology is one. And it is what RealQM is made
+of --- discrete unit charge densities on their own domains, with no smeared continuum anywhere in the
 construction.
 
-The \emph{uniform electron gas} is a different kind of object. It is electrons together with a
-smeared, inert, non-responding positive background whose only role is to enforce neutrality, and it
-earns its place in the literature because exchange--correlation energies can be fitted to it by
-quantum Monte Carlo. Nothing in nature is that system, and --- more to the point here --- nothing in
-RealQM is. Asking the framework to reproduce jellium asks it to reproduce a construction whose
-central ingredient it does not contain.
-
-We nevertheless begin there, in \S2--\S5, because the calculation is exact and instructive: it
-shows precisely which quantity the partition supplies and which it does not. The reader should treat
-the result as a diagnosis of a mismatch rather than as a test the framework failed, and the metal of
-\S7 as the case that matters.
-
-\section{The framework}
-
 RealQM \cite{realqm,realqmbook} represents an $N$-electron system by $N$ non-negative densities
-$\psi_i$ on non-overlapping domains $\Omega_i$, with energy
+$\psi_i$ on non-overlapping domains $\Omega_i$, with
 \begin{equation}\label{eq:E}
 E[\{\psi_i\},\{\Omega_i\}]=\sum_i\int_{\Omega_i}\Bigl(\half|\grad\psi_i|^2
 -\sum_a\frac{Z_a}{|x-x_a|}\psi_i^2\Bigr)dx
@@ -79,323 +64,165 @@ E[\{\psi_i\},\{\Omega_i\}]=\sum_i\int_{\Omega_i}\Bigl(\half|\grad\psi_i|^2
 \end{equation}
 subject to $\int_{\Omega_i}\psi_i^2=1$, the interfaces free to move to where the energy says. There
 is no wavefunction in $3N$ dimensions, no antisymmetry and no self-interaction; the role played by
-the exclusion principle is played instead by the requirement that the domains do not overlap.
+the exclusion principle is played by the requirement that domains do not overlap.
 
-Every test of this construction so far --- ionisation energies across the periodic table, molecular
-binding, nuclear binding by dual Coulomb confinement --- shares one feature: an \emph{attractor} is
-present. A nucleus is always there to shape the density. The question this note asks is what happens
-when it is not, which is the situation in an electron gas, a plasma, or a metal, and which is a
-domain RealQM was neither built for nor tested on. It should not be surprising if new ingredients
-are required, and the purpose here is to identify exactly which.
+Every previous test of this construction --- ionisation energies across the periodic table, molecular
+binding, nuclear binding by dual Coulomb confinement \cite{realnucleus} --- has been on \emph{bound}
+matter, with an attractor always present. A plasma is the first case in which large numbers of
+charges of both signs are free to arrange themselves, and it is a fair question what the framework
+then gives.
 
-\section{The form extends: non-overlap gives the Thomas--Fermi scaling}
+\section{A metal is a Wigner--Seitz problem, and RealQM already agrees with it}
 
-Partition a gas of density $n$ into non-overlapping cells, one per electron, of linear size
-$a=n^{-1/3}$. The localisation cost of a cell scales as $\hbar^2/2m\,a^{-2}\propto n^{2/3}$, so the
-kinetic energy density is
-\begin{equation}\label{eq:tf}
-t(n)=C\,n^{5/3},
-\end{equation}
-with $C$ fixed by the shape of the cell and the condition at its faces. This is precisely the
-Thomas--Fermi form, and it is worth pausing on where it came from: not from Fermi statistics, but
-from the geometry of a partition. The framework's central premise --- that exclusion is a statement
-about regions rather than about exchange symmetry --- delivers the correct \emph{scaling} of the
-degenerate electron gas immediately.
+Take a metal: a lattice of ions, one valence electron each. RealQM assigns each electron its own
+domain; by translational symmetry those domains are the Wigner--Seitz cells, one ion at the centre of
+each; and at a cell face, neighbouring cells being identical, the normal derivative of the density
+vanishes.
 
-Everything downstream then follows from $C$. Minimising \eqref{eq:E} at fixed chemical potential
-with a test charge $Q$ present, and linearising about the uniform state, gives
-$\delta n=(9n_0^{1/3}/10C)\varphi$ and hence, with Poisson's equation, a Helmholtz problem
-$\grad^2\varphi-k^2\varphi=-4\pi Q\delta(x)$ with
-\begin{equation}\label{eq:k2}
-k^2=\frac{18\pi\,n_0^{1/3}}{5C},
-\end{equation}
-so that $\varphi=Q\,e^{-kr}/r$: Yukawa screening, with $\lambda=1/k\propto n^{-1/6}$. Setting $C$ to
-the Thomas--Fermi coefficient $C_{\rm TF}=\tfrac{3}{10}(3\pi^2)^{2/3}=2.8712$ reproduces
-$k_{\rm TF}^2=(4/\pi)(3\pi^2n)^{1/3}$ \emph{exactly}, at every density (Table~\ref{tab:lambda}).
-
-\begin{table}[h]\centering
-\small
-\begin{tabular}{@{}lrr@{}}
-\toprule
-$n$ (a.u.) & $\lambda$ from \eqref{eq:k2} with $C_{\rm TF}$ & $\lambda_{\rm TF}$\\
-\midrule
-$0.01$ & $1.086\,a_0$ & $1.086\,a_0$\\
-$0.1$  & $0.740\,a_0$ & $0.740\,a_0$\\
-$1.0$  & $0.504\,a_0$ & $0.504\,a_0$\\
-\bottomrule
-\end{tabular}
-\caption{The form is exact. Everything rests on the single constant $C$.}
-\label{tab:lambda}
-\end{table}
-
-\section{What extends without adjustment: the plasma frequency}
-
-Displace the electron distribution rigidly by $\xi$ against the ion background. The resulting surface
-charge produces a restoring field $4\pi n\xi$, so $\ddot\xi=-4\pi n\xi$ and
-\begin{equation}
-\omega_p^2=4\pi n,
-\end{equation}
-free of temperature and of any statistical assumption. \textbf{RealQM reproduces this exactly}, and
-for a structural reason: under a rigid translation each $\psi_i$ is carried along unchanged, so
-$\grad\psi_i$ is unchanged, the localisation term contributes nothing, and what remains is Coulomb
-and inertia --- which is all the result depends on. No property of $C$ enters.
-
-The same argument identifies what RealQM should do about \textbf{Landau damping}. The framework is
-not a single fluid: $N$ electrons are $N$ domains, each carrying its own current and hence its own
-drift velocity, which is structurally a multi-beam plasma. Multi-beam models reproduce Landau damping
-as phase mixing among cold streams, and do so reversibly, in agreement with plasma-echo experiments.
-Where the velocity spread is thermal, the framework should therefore give collisionless damping for
-the right reason rather than by an inserted term.
-
-\section{What does not extend: the coefficient is zero}
-
-The step from \eqref{eq:tf} to a number requires the cell to have a nonzero localisation cost, and
-with RealQM's own interface condition it does not.
-
-The kinetic term in \eqref{eq:E} is integrated over each electron's \emph{own} domain, and no node is
-imposed where domains meet; the calibration of atomic RealQM found the free (Neumann) plane decisive
-against a Dirichlet node. Take then $\psi_i\equiv|\Omega_i|^{-1/2}$, constant on each cell. This
-satisfies the normalisation, makes the total density $\sum\psi_i^2$ uniform, minimises the
-electrostatic energy against a neutralising background, and has $\grad\psi_i=0$ identically. The
-kinetic energy is exactly zero, and the discontinuity at the cell face costs nothing because the
-integral runs over $\Omega_i$ alone.
-
-The uniform state is therefore the global minimum, with
-\begin{equation}
-C=0
-\end{equation}
-at every density. By \eqref{eq:k2} the screening length is infinite. The compressibility correction
-to the plasma frequency, $\omega^2=\omega_p^2+\tfrac35k^2v_F^2$, vanishes, so the predicted plasmon
-is dispersionless. And the pressure of a cold electron gas is zero.
-
-Two attempts to locate a missing term fail. Allowing the interfaces to move changes nothing: with
-constant $\psi_i$ the kinetic energy remains zero and the electrostatics merely fixes the cells to
-equal volume. Requiring each domain to be connected and to carry unit charge changes nothing either,
-since any equal-volume connected tiling admits the same constant solution. The result is a property
-of the functional, not an oversight in its evaluation.
-
-\section{The interface condition cannot repair it}
-
-Since the Neumann condition gives $C=0$ and a hard wall gives $C=3\pi^2/2=14.804$, the two bracket
-the target, which suggests a Robin condition $\psi'+\beta\psi=0$ at the interface. For a cubic cell
-of side $a$ the problem separates, with $\kappa=ka$ solving $\kappa\tan(\kappa/2)=\beta a$ and
-$C=\tfrac32\kappa^2$:
-
-\begin{table}[h]\centering
-\small
-\begin{tabular}{@{}lrrr@{}}
-\toprule
-interface condition & $\kappa$ & $C$ & $C/C_{\rm TF}$\\
-\midrule
-Neumann, $\beta a=0$ (present choice) & $0$ & $0$ & $0.00$\\
-Robin, $\beta a=1.146$ & $1.3835$ & $2.8712$ & $\mathbf{1.00}$\\
-Dirichlet, $\beta a\to\infty$ & $\pi$ & $14.804$ & $5.16$\\
-\bottomrule
-\end{tabular}
-\caption{One dimensionless number reproduces Thomas--Fermi exactly --- and with it the screening
-length, the plasmon dispersion and the zero-temperature pressure, since all three follow from $C$.}
-\label{tab:robin}
-\end{table}
-
-This is not adopted here, but the reason must be stated more carefully than a first calculation
-suggested. A Robin condition at $\beta a=1.146$ would have to be applied everywhere, including
-between the electron domains of an atom, and there is a geometric reason to expect atoms to object:
-in helium the two domains are half-spaces meeting at a midplane, and \emph{the nucleus lies in that
-plane}, where the density is greatest. Any departure from Neumann suppresses density exactly where
-binding is won, so atomic energies should be strongly sensitive to $\beta$ --- unlike a uniform gas,
-where the density is constant and the interface condition is the only place physics could enter.
-
-That expectation has \emph{not} been confirmed numerically here, and the attempt is reported because
-its failure is instructive. Solving helium as two half-space domains on a uniform grid, with
-imaginary-time relaxation and the interface condition varied, gave a shift of $+0.19$~Ha at $N=64$
-and $-0.43$~Ha at $N=96$ --- reversing sign under refinement, with the total energy moving from
-$-2.02$ to $-0.94$~Ha against an exact $-2.9037$. The cause is that the relaxation step scales as
-$h^2$ while the iteration count was held fixed, so finer meshes received less relaxation and were
-further from the minimum. Neither the magnitude nor the sign of the sensitivity is therefore
-established, and no conclusion is drawn from it.
-
-What remains is the structural asymmetry, which does not depend on that calculation.
-In a uniform gas the density is constant, so
-the interface condition is the only place physics could enter --- and Neumann makes it contribute
-nothing. In an atom the interface passes through the density maximum, so the condition is decisive
---- and only Neumann leaves the atom alone. \emph{The interface is inconsequential exactly where the
-gas needs it to matter, and decisive exactly where the atom needs it not to.} No single $\beta$
-serves both, and a value that switched between regimes could not be applied at all, since partially
-ionised plasmas and metals contain bound and free electrons in the same system with no surface
-between them.
-
-\section{The role of temperature, and why it does not close the gap}
-
-At finite temperature the domains move and fluctuate in shape, the density within a cell is no longer
-constant, and $\grad\psi_i\neq0$: there is a kinetic energy, and with it a pressure. RealQM should
-reproduce it, since it follows from charge, inertia and thermal motion, all of which the framework
-carries. But this pressure scales as $nk_BT$ and vanishes as $T\to0$.
-
-The missing pressure does not. Splitting the two contributions:
-
-\begin{table}[h]\centering
-\small
-\begin{tabular}{@{}lcc@{}}
-\toprule
-contribution & survives $T\to0$? & RealQM\\
-\midrule
-thermal, ${\sim}nk_BT$ & no & should be reproduced\\
-degenerate, ${\sim}nE_F$ & \textbf{yes} & \textbf{zero}\\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\noindent and the second is not an exotic regime. A metal at room temperature has
-$T_F\sim10^4$--$10^5$~K, so $T/T_F\approx10^{-2}$: sodium and aluminium are held up almost entirely
-by the pressure that survives at zero temperature. The conflict is therefore blunt and requires no
-appeal to any formalism: \emph{the model predicts that a cold dense electron gas exerts no pressure,
-and sodium exists}. The same statement applies to white dwarf support and to the interiors of dense
-stars.
-
-It is worth being clear about what is and is not being claimed. Antisymmetry of a many-body
-wavefunction is a formalism and is not itself observed; the framework is entitled to account for the
-phenomena by other means, and that is its programme. What is observed --- the mass--radius relation
-of white dwarfs, the linear electronic specific heat, de Haas--van Alphen oscillations, the bulk
-moduli of simple metals, positive plasmon dispersion --- is that a large pressure exists at
-temperatures far below $T_F$. A theory of matter must produce it somehow.
-
-\section{Electric conduction: the same boundary, seen a second time}
-
-Conduction in a metal is the interaction of an electron gas with a lattice of positive ions, and it is
-worth asking separately, because the lattice changes one thing in the framework's favour and leaves
-two others against it.
-
-In favour: a \emph{gitter} of ions supplies attractors throughout the material, so the density is
-shaped everywhere and the mechanism of \S5 does not apply --- $C=0$ was a statement about a
-\emph{uniform} gas. Whatever else is true, a metal is not the case where the localisation term
-vanishes identically.
-
-Against, first: metallic conduction is the paradigm of \emph{delocalisation}. The carriers are
-extended states spanning the crystal, whereas RealQM's electrons are localised by construction, each
-confined to its own domain, with non-overlap requiring $N$ carriers to occupy $N$ disjoint regions.
-Interpenetrating extended domains are not excluded in principle, but the natural minimiser of
-\eqref{eq:E} is a set of compact cells. A theory of that shape describes a Mott insulator more
-naturally than a conductor.
-
-Against, second, and more sharply: the distinction between a metal and an insulator is in standard
-theory a matter of \emph{band filling} --- two electrons per band per cell, and whether the count
-leaves a band partly filled. That counting is a consequence of the exclusion principle, and RealQM
-has no bands and no such count. Nor is there a Fermi surface, so the carrier density in
-$\sigma=ne^2\tau/m$ has no evident referent: standard theory counts only the electrons within
-${\sim}k_BT$ of $E_F$, and here there is no $E_F$ to be near.
-
-What the framework does look suited to is the opposite transport regime. Localised charges on sites,
-moving by thermally activated jumps between domains, is \emph{hopping} conduction --- the mechanism
-of semiconductors, disordered systems and small-polaron transport. That requires no Fermi surface,
-sits naturally with non-overlapping domains, and would emerge from the same thermal motion that
-supplies the pressure of \S6.
-
-This yields a prediction crude enough to be decisive, and it concerns only a sign. Metallic
-conductivity \emph{falls} with temperature, as thermal disorder scatters extended carriers; hopping
-conductivity \emph{rises} with temperature, as jumps are activated. If RealQM transports charge by
-hopping and not by band motion, it should predict $d\sigma/dT>0$ for every material --- that is, it
-should make copper behave like a semiconductor. Whether that is what the framework actually gives has
-not been computed here, and it is the natural first test of RealQM in a solid.
-
-This is a prediction and not a result, and it should be read alongside \S7: the same lattice that
-supplies the density modulation there is present here, so the pessimistic reading --- that a
-localised-domain theory cannot conduct like a metal --- may fail in the same way the uniform-gas
-argument failed. Whether it does is a computation nobody has done.
-
-\section{The metal: where the vanishing limit does not reach}
-
-The uniform gas is an idealisation, and pressing it as the test was a mistake worth correcting. No
-material has a uniform electron density; in a metal the density is strongly modulated by the ion
-lattice, and the moment it is modulated $\grad\psi_i\neq0$ and there is a kinetic energy. The
-question is quantitative, and it can be answered on a real material.
-
-RealQM's prescription for a metal turns out to coincide with an established one. One electron domain
-per ion, filling the cell, with the normal derivative vanishing at the cell face by symmetry, is
-precisely the \textbf{Wigner--Seitz} construction used for alkali metals since 1933. Standard theory
-solves that same cell problem for the band bottom and then adds the mean kinetic energy of filling
-the band, $\tfrac35 E_F$, together with exchange and correlation. RealQM keeps the electrostatics,
-takes its kinetic energy from the cell state itself, and has no exchange term: non-overlap is
+That is exactly the \textbf{Wigner--Seitz construction}, used for alkali metals since 1933. The
+framework does not improvise in condensed matter --- it arrives already agreeing with an established
+method, and differs from it in one term only. Standard theory solves the same cell problem for the
+band bottom and then \emph{adds} the mean kinetic energy of filling the band, $\tfrac35E_F$, together
+with exchange and correlation, all consequences of the exclusion principle. RealQM keeps the
+electrostatics, takes its kinetic energy from the cell state itself, and adds nothing: non-overlap is
 supposed to do that work.
 
-For sodium, with an Ashcroft empty core ($r_c=1.67\,a_0$), electrostatics $-0.9/r_s+1.5r_c^2/r_s^3$,
-exchange $-0.458/r_s$ and Wigner correlation:
+For sodium, with an Ashcroft empty-core pseudopotential ($r_c=1.67\,a_0$), electrostatics
+$-0.9/r_s+1.5\,r_c^2/r_s^3$ for a point ion in a neutral sphere, exchange $-0.458/r_s$ and Wigner
+correlation, minimising the energy per electron over $r_s$ gives
 
 \begin{table}[h]\centering
 \small
 \begin{tabular}{@{}lrrr@{}}
 \toprule
- & RealQM & standard & experiment\\
+ & RealQM & standard & measured\\
 \midrule
 equilibrium $r_s$ ($a_0$) & $3.77$ & $3.87$ & $3.93$\\
 bulk modulus (GPa) & $9.1$ & $8.0$ & $6.3$\\
 \bottomrule
 \end{tabular}
-\caption{The standard column reproduces sodium, so the comparison is meaningful; RealQM sits beside
-it, within the accuracy of the model.}
+\caption{Sodium. The standard column reproduces the metal, which is what makes the comparison
+meaningful; RealQM sits beside it, within the accuracy of the model.}
+\label{tab:na}
 \end{table}
 
-\noindent The mechanism of the agreement should be stated plainly rather than claimed as a success.
-At $r_s=3.93$ the cell state carries $\langle T\rangle=0.004$~Ha against a band-filling term
-$\tfrac35E_F=0.0715$~Ha: RealQM is \emph{not} reproducing degeneracy pressure. It arrives at a
-comparable answer because it also omits exchange, $-0.117$~Ha, a term of opposite sign and
-comparable size, so the effects on the curvature largely cancel. That cancellation is not accidental
---- it is the framework's design claim, that non-overlap does the work exchange does --- but neither
-is it a demonstration that the missing mechanism is unnecessary.
+\noindent The framework thus gives the equation of state of a metal from Coulomb geometry alone, to
+within a few per cent on the lattice scale and within the model's own error on the stiffness, while
+carrying no exchange term and no band-filling term.
 
-\section{What the two results together say}
+The mechanism of that agreement should be stated plainly rather than claimed as a triumph. At
+$r_s=3.93$ the cell state carries $\langle T\rangle=0.004$~Ha against a band-filling term
+$\tfrac35E_F=0.0715$~Ha, so RealQM is \emph{not} reproducing degeneracy pressure. It arrives at a
+comparable answer because it also omits exchange, $-0.117$~Ha, a term of opposite sign and comparable
+size, so that their effects on the curvature largely cancel. That cancellation is the framework's own
+design claim --- that non-overlap does the work exchange does --- and here it is borne out
+numerically. It is not a demonstration that the two omitted terms are individually unnecessary.
 
-The picture is three-tiered and the tiers should not be conflated.
+\section{The plasma frequency, exactly}
+
+Displace the electron distribution rigidly by $\xi$ against the ion background. The resulting surface
+charge produces a restoring field $4\pi n\xi$, so $\ddot\xi=-4\pi n\xi$ and
+\begin{equation}\label{eq:wp}
+\omega_p^2=4\pi n,
+\end{equation}
+free of temperature and of any statistical assumption. RealQM reproduces this exactly, for a
+structural reason: under a rigid translation each $\psi_i$ is carried along unchanged, so
+$\grad\psi_i$ is unchanged, the localisation term contributes nothing, and what remains is Coulomb
+and inertia --- which is all the result depends on.
+
+The same structure suggests what the framework should do about \textbf{Landau damping}. RealQM is not
+a single fluid: $N$ electrons are $N$ domains, each carrying its own current and drift velocity, which
+is a multi-beam plasma. Multi-beam models reproduce Landau damping as phase mixing among cold
+streams, and do so reversibly, in agreement with plasma-echo experiments. Where the velocity spread
+is thermal, collisionless damping should therefore emerge for the right reason rather than by an
+inserted term. This has not been computed.
+
+\section{Conduction, where the framework is least settled}
+
+Electric conduction is the interaction of the electrons with the ion lattice, and here the position
+is genuinely uncertain.
+
+Metallic conduction is the paradigm of \emph{delocalisation}: the carriers are extended states
+spanning the crystal, whereas RealQM's electrons are localised by construction, each in its own
+domain, with non-overlap requiring $N$ carriers to occupy $N$ disjoint regions. The natural minimiser
+of \eqref{eq:E} is a set of compact cells, which describes a Mott insulator more naturally than a
+conductor. Nor is there an evident mechanism for the metal--insulator distinction, which in standard
+theory is band filling --- two electrons per band per cell --- an exclusion-principle count the
+framework does not have; and with no Fermi surface, the carrier density in $\sigma=ne^2\tau/m$ has no
+referent.
+
+What does fit naturally is the opposite regime: localised charges hopping between domains by
+thermally activated jumps, as in semiconductors, disordered systems and small-polaron transport. That
+needs no Fermi surface and follows from the same thermal motion that supplies the pressure.
+
+This yields a prediction crude enough to be decisive, and it concerns only a sign. Metallic
+conductivity \emph{falls} with temperature; hopping conductivity \emph{rises}. If RealQM transports
+charge by hopping rather than band motion it should give $d\sigma/dT>0$ for every material, making
+copper behave like a semiconductor. Whether it does has not been computed, and the pessimistic
+reading should be held loosely: the same lattice that carried the metal in \S2 is present here too.
+
+\section{What remains open: the Fermi surface}
+
+The framework has no bands and no $E_F$, and there are measurements bearing on this directly. They
+are made on real two-component metals, not on any idealisation, so they cannot be set aside by
+choosing the object of study more carefully:
 
 \begin{itemize}
-\item In a \textbf{uniform gas} the localisation term vanishes identically. $C=0$ is exact, and with
-it the screening length is infinite and the plasmon flat. This is a statement about the functional in
-a limit, and no more than that: a strictly uniform electron density is a reference system, not a
-material.
-\item In a \textbf{real metal} the limit is not reached at any level a measurement detects.
-The ions shape the density, the framework has kinetic energy, and equilibrium radius and bulk
-modulus come out beside standard theory.
-\item The \textbf{difference} between them is that a uniform electron gas is an idealisation no
-material realises --- which is why it was the wrong test, and why the result it gives should not be
-read as a verdict on the framework.
+\item \textbf{de Haas--van Alphen oscillations} map the Fermi surface of copper and aluminium
+directly; its existence and shape are not in doubt;
+\item the \textbf{electronic specific heat} is linear in temperature, with a coefficient fixed by the
+density of states at $E_F$;
+\item the \textbf{plasmon dispersion} is positive and measured, while the compressibility term that
+produces it, $\omega^2=\omega_p^2+\tfrac35k^2v_F^2$, is absent here.
 \end{itemize}
 
-What remains open survives the reframing, and it is worth separating from what does not.
+No account of these is currently available in the framework, and constructing one is the substantial
+open problem. It is a sharper problem than it would have appeared a section ago: not that RealQM
+lacks Fermi pressure --- Table~\ref{tab:na} shows a metal's equation of state coming out regardless
+--- but that a set of measured Fermi-surface phenomena have no representation in a theory built from
+localised domains.
 
-\emph{Disposed of by asking the question properly.} Whether the framework supplies a
-zero-temperature pressure for a structureless electron gas is a question about a system that does not
-exist and that RealQM does not contain. The answer is no, exactly and demonstrably, and it appears to
-carry no consequence for any material: sodium comes out beside standard theory on both quantities a
-measurement gives.
+\section*{Remark: the uniform electron gas}
 
-\emph{Not disposed of.} The Fermi surface is measured in real two-component metals, not in jellium.
-De Haas--van Alphen oscillations map it directly in copper and aluminium; the electronic specific
-heat is linear in temperature with a coefficient fixed by the density of states at $E_F$; and the
-plasmon dispersion is positive and measured. None of these depends on the smeared background, so
-none is reframed away, and a plasma formulation of RealQM owes an account of all three. Since the
-framework has no band structure and no $E_F$, that account is not currently available, and it is the
-substantial open problem this note ends on.
+It is worth recording what happens if the framework is applied to the \emph{uniform electron gas},
+since the calculation is exact and that system is often taken as the reference problem.
 
-\emph{Open in a third sense.} Degenerate matter in which the ion lattice is a small perturbation ---
-a white dwarf interior --- is the one physical system that approaches the uniform limit closely.
-Its measured mass--radius relation depends on precisely the pressure the uniform limit does not
-supply, so it is the informative test of whether the limit ever has consequences. It is untested
-here.
+Partitioning a gas of density $n$ into non-overlapping cells of size $a=n^{-1/3}$ gives a
+localisation cost per cell scaling as $a^{-2}$, hence a kinetic energy density $t(n)=C\,n^{5/3}$ ---
+the Thomas--Fermi form, obtained from the geometry of a partition rather than from Fermi statistics.
+Linearising \eqref{eq:E} about the uniform state and substituting into Poisson's equation gives Yukawa
+screening with $k^2=18\pi n^{1/3}/5C$, and setting $C$ to the Thomas--Fermi coefficient
+$C_{\rm TF}=\tfrac{3}{10}(3\pi^2)^{2/3}=2.8712$ reproduces $k_{\rm TF}$ exactly at every density. The
+\emph{form} extends without adjustment.
 
-The summary is therefore short. Posed as a question about plasma, which is what RealQM is made of and
-what matter is, the framework does well on the equation of state of a metal. Posed as a question
-about the electron gas, which is neither, it returns zero for a reason that is now understood. And
-the Fermi surface remains to be accounted for either way.
+The coefficient does not. With the free interface used throughout RealQM, $\psi_i\equiv
+|\Omega_i|^{-1/2}$ is admissible: it satisfies the normalisation, makes the total density uniform,
+minimises the electrostatic energy against a neutralising background, and has $\grad\psi_i=0$. Hence
+$C=0$ exactly, the screening length is infinite and the plasmon dispersionless. Neither allowing the
+interfaces to move nor requiring domains to be connected and singly charged alters this.
+
+This should not be read as a test the framework fails. The uniform electron gas is electrons plus a
+\emph{smeared, inert, non-responding} positive background --- a construction of a tradition in which
+exchange--correlation energies are fitted to that very system. RealQM contains no inert backgrounds
+anywhere, so asking it to reproduce jellium asks it to reproduce a system whose central ingredient it
+does not have, and $C=0$ diagnoses that mismatch. Consistently with this, the pathology disappears as
+soon as real ions are present: Table~\ref{tab:na} is the same framework on the same physics, with the
+background replaced by the charges matter is actually made of.
+
+One physical case does approach the uniform limit closely: degenerate matter in which the ion lattice
+is a small perturbation, as in a white dwarf interior, where the measured mass--radius relation
+depends on precisely the pressure the uniform limit does not supply. That is the one place the result
+might have observable consequences, and it is untested here.
 
 \section*{A note on what was tested numerically}
 
-The screening relation \eqref{eq:k2}, the vanishing of $C$, the plasma frequency and the Robin table
-are analytic. Table~\ref{tab:he} is a direct grid solution of helium as two half-space domains with
-the interface condition varied, and its absolute energies ($-2.02$~Ha against the experimental
-$-2.9037$) reflect a coarse mesh; only the differences between rows are used. A separate calculation
-of ionisation potential depression in dense plasma reproduces Stewart--Pyatt in the dilute limit
-($3.61$ against $3.57$~eV at $n=10^{21}$~cm$^{-3}$) but becomes unphysical at high density, where a
-smeared neutralising background can no longer stand in for explicit neighbouring domains; no
-conclusion is drawn from it here. Scripts are available with the source.
+Equation \eqref{eq:wp}, the screening relation, the Thomas--Fermi comparison and the vanishing of $C$
+are analytic. Table~\ref{tab:na} is a radial Wigner--Seitz calculation with the stated pseudopotential
+and correlation functional; the standard column reproducing sodium is what makes the comparison
+meaningful, and the residual $27\%$ error in its bulk modulus is the accuracy of that model rather
+than of the framework. An attempt to test the interface condition on helium is omitted: it was not
+converged, giving a sensitivity that reversed sign under mesh refinement, and no conclusion was drawn
+from it. Scripts accompany the source.
 
 \begin{thebibliography}{9}
 \bibitem{realqm} C.\ Johnson, \emph{RealQM: Quantum Mechanics as Multiphase 3D Continuum Mechanics},
