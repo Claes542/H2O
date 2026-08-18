@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html><head>
+  <meta charset="utf-8">
+  <title>Electron chain — does an excess electron hop, or spread?</title>
+  <style>body { margin: 0; background: #000; color: #fff; font-family: monospace; }</style>
+</head><body>
+<div id="info" style="position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.8);padding:10px;border:1px solid #333;border-radius:6px;max-width:460px;font-size:12px;z-index:100">
+  <div style="color:#8cf;font-weight:bold">Excess electron on a hydrogen chain</div>
+  The electron counterpart of <span style="color:#ffa">proton_chain</span>. Five H atoms in a line;
+  one extra electron seeded on the leftmost as a ghost domain (Z=1, Z_nuc=0).
+  <div style="margin-top:6px">
+  <b>The question.</b> Grotthuss conduction shows this framework carries charge by
+  <i>transfer between localised sites</i> when the carrier is a proton. Does an <i>electron</i> do the
+  same &mdash; sit on one site and hop &mdash; or does its domain spread along the chain?
+  </div>
+  <div style="margin-top:6px">
+  Localised &rarr; hopping transport, semiconductor-like, d&sigma;/dT &gt; 0.<br>
+  Spread &rarr; band-like, which is what a metal needs and what a theory of
+  non-overlapping domains is not obviously able to give.
+  </div>
+  <div style="margin-top:6px;color:#9c9">
+  Chain spacing is the dial: wide should localise (Mott side), narrow should favour spreading
+  (metallic side). Edit <code>sepAU</code> and rerun to look for a transition.
+  </div>
+  <div id="mon" style="margin-top:8px;color:#8cf"></div>
+</div>
+<script>
+(function() {
+  var gridN = 200, scr = 26, N2 = 100;
+  var h = scr / gridN;
+  var atoms = [];
+
+  function addAtom(x, y, z, Z, el) {
+    atoms.push({
+      i: Math.round(N2 + x / h),
+      j: Math.round(N2 + y / h),
+      k: Math.round(N2 + z / h),
+      Z: Z, el: el
+    });
+  }
+
+  // ---- the dial: H-H spacing in atomic units.
+  // H2 bonds at 1.4 a0; 3.0 is a stretched chain, the regime where a Mott
+  // insulator and a metal part company.
+  var sepAU = 3.0;
+  var nH = 5;
+
+  var Zlist = [], ZnucList = [];
+  for (var w = 0; w < nH; w++) {
+    var x = (w - (nH - 1) / 2) * sepAU;
+    addAtom(x, 0, 0, 1, 'H');          // proton kernel with its own electron
+    Zlist.push(1); ZnucList.push(1);
+  }
+
+  // the excess electron: a ghost domain, no nucleus, seeded beside the leftmost H
+  var xGhost = (0 - (nH - 1) / 2) * sepAU - 0.9;
+  addAtom(xGhost, 0, 0, 1, 'H');
+  Zlist.push(1); ZnucList.push(0);
+  var ghostIdx = atoms.length - 1;
+
+  window.USER_Z = Zlist;
+  window.USER_Z_NUC = ZnucList;
+
+  // watch the chain: H-H separations, and where the excess density sits
+  var bp = [];
+  for (var w = 0; w < nH - 1; w++) bp.push([w, w + 1, "H" + w + "-H" + (w+1) + ":"]);
+  bp.push([ghostIdx, 0, "e*-H0:"]);
+  window.USER_BOND_PAIRS = bp;
+  window.USER_BOND_MAX_AU = 8.0;
+
+  setInterval(function() {
+    if (typeof nucPos === 'undefined' || !nucPos[ghostIdx]) return;
+    var xg = (nucPos[ghostIdx][0] - N2) * h;
+    var xL = (nucPos[0][0] - N2) * h;
+    var xR = (nucPos[nH - 1][0] - N2) * h;
+    var frac = (xg - xL) / Math.max(xR - xL, 1e-9);
+    var el = document.getElementById('mon');
+    if (el) el.innerHTML =
+      'excess-electron domain at x = ' + xg.toFixed(2) + ' au<br>' +
+      'position along chain: ' + (100 * frac).toFixed(0) + '%  ' +
+      (frac < 0.15 ? '(still on the left site &mdash; localised)' :
+       frac > 0.85 ? '(reached the far end &mdash; it hopped)' :
+                     '(between sites &mdash; spreading or in transit)');
+  }, 500);
+
+  window.USER_NN = gridN;
+  window.USER_ATOMS = atoms;
+  window.USER_SCREEN = scr;
+  window.USER_STEPS = 1000000;
+
+  // relax the electrons first, then let the nuclei move, as proton_chain does
+  window.USER_DYNAMICS = false;
+  setInterval(function() {
+    if (typeof phaseSteps !== 'undefined' && phaseSteps > 5000 &&
+        typeof dynamicsEnabled !== 'undefined' && !dynamicsEnabled) {
+      window.dynamicsEnabled = true;
+    }
+  }, 500);
+
+  window.USER_FORCE_SCALE = 1.0;
+  window.USER_ARROW_SCALE = 50.0;
+  window.USER_TEMPERATURE_K = 0;
+  window.USER_LANGEVIN_GAMMA = 0.2;
+  window.USER_NUC_SUBSTEPS = 10;
+  window.USER_N_MOVE = 30;
+  window.INIT_ZEFF = 1;
+  console.log('Electron chain: ' + nH + ' H at ' + sepAU + ' au + 1 excess electron ('
+              + atoms.length + ' domains)');
+})();
+
+var s = document.createElement('script');
+s.src = 'molecule.js?t=' + Date.now();
+s.onload = function() {
+  var p = document.createElement('script');
+  p.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+  document.body.appendChild(p);
+};
+document.body.appendChild(s);
+</script>
+</body></html>
