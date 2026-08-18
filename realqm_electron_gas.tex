@@ -1,0 +1,300 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{authblk}
+\usepackage[margin=1in]{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage{setspace}
+
+\newcommand{\grad}{\nabla}
+\newcommand{\half}{\tfrac12}
+
+\title{RealQM and the Electron Gas:\\ what extends, what does not, and what a
+zero-temperature pressure would require}
+
+\author[1]{Claes Johnson}
+\affil[1]{KTH Royal Institute of Technology, SE-100 44 Stockholm, Sweden \\
+\texttt{claesjohnson@gmail.com}}
+\date{\today \\[0.4em]
+\small\textit{Mathematical formulation by the author; analysis developed} \\
+\small\textit{with AI assistance (Claude, Anthropic).}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent RealQM models matter as non-overlapping unit charge densities in ordinary
+three-dimensional space, one per electron, meeting at free boundaries and minimising the Coulomb
+energy. It has been developed and tested on \emph{bound} matter --- atoms, molecules and nuclei ---
+where an attractor is always present. This note asks what happens when the framework is carried to a
+domain it was not built for: the electron gas, and with it plasmas, metals and dense matter. The
+answer separates cleanly. The \textbf{form} of the theory extends exactly: partitioning a gas of
+density $n$ into non-overlapping cells gives a kinetic energy density $Cn^{5/3}$ --- the
+Thomas--Fermi form, obtained here from non-overlap rather than from Fermi statistics --- and
+everything that follows from charge and inertia is reproduced without adjustment, the plasma
+frequency $\omega_p^2=4\pi n$ exactly. What does \emph{not} extend is the coefficient: for a uniform
+gas with the free-boundary interface used throughout RealQM, the minimising density is constant, so
+$C=0$. The model then has no pressure at zero temperature, hence no screening length and no plasmon
+dispersion, and predicts that a cold dense electron gas exerts no pressure at all. Since a metal at
+room temperature is already degenerate ($T/T_F\approx10^{-2}$), this is a definite conflict with
+observation, and one that thermal motion cannot repair: temperature supplies a pressure $\sim nk_BT$
+which vanishes as $T\to0$, while the missing one does not. The obvious repair --- a Robin interface
+condition $\psi'+\beta\psi=0$ --- reproduces Thomas--Fermi exactly at the single dimensionless value
+$\beta a=1.146$, but costs helium $0.19$~Ha, some $20\%$ of its ionisation energy, so it cannot be
+adopted consistently. We conclude that extending RealQM beyond bound matter requires a genuinely new
+ingredient: a mechanism by which compressing a partition costs energy at zero temperature. That is
+stated here as a well-posed open problem rather than a defect, since it lies outside the domain in
+which the framework has so far been tested.
+\end{abstract}
+
+\setstretch{1.15}
+
+\section{Why the electron gas is a new domain}
+
+RealQM \cite{realqm,realqmbook} represents an $N$-electron system by $N$ non-negative densities
+$\psi_i$ on non-overlapping domains $\Omega_i$, with energy
+\begin{equation}\label{eq:E}
+E[\{\psi_i\},\{\Omega_i\}]=\sum_i\int_{\Omega_i}\Bigl(\half|\grad\psi_i|^2
+-\sum_a\frac{Z_a}{|x-x_a|}\psi_i^2\Bigr)dx
++\half\sum_{i\neq j}\iint\frac{\psi_i^2(x)\psi_j^2(y)}{|x-y|}\,dx\,dy,
+\end{equation}
+subject to $\int_{\Omega_i}\psi_i^2=1$, the interfaces free to move to where the energy says. There
+is no wavefunction in $3N$ dimensions, no antisymmetry and no self-interaction; the role played by
+the exclusion principle is played instead by the requirement that the domains do not overlap.
+
+Every test of this construction so far --- ionisation energies across the periodic table, molecular
+binding, nuclear binding by dual Coulomb confinement --- shares one feature: an \emph{attractor} is
+present. A nucleus is always there to shape the density. The question this note asks is what happens
+when it is not, which is the situation in an electron gas, a plasma, or a metal, and which is a
+domain RealQM was neither built for nor tested on. It should not be surprising if new ingredients
+are required, and the purpose here is to identify exactly which.
+
+\section{The form extends: non-overlap gives the Thomas--Fermi scaling}
+
+Partition a gas of density $n$ into non-overlapping cells, one per electron, of linear size
+$a=n^{-1/3}$. The localisation cost of a cell scales as $\hbar^2/2m\,a^{-2}\propto n^{2/3}$, so the
+kinetic energy density is
+\begin{equation}\label{eq:tf}
+t(n)=C\,n^{5/3},
+\end{equation}
+with $C$ fixed by the shape of the cell and the condition at its faces. This is precisely the
+Thomas--Fermi form, and it is worth pausing on where it came from: not from Fermi statistics, but
+from the geometry of a partition. The framework's central premise --- that exclusion is a statement
+about regions rather than about exchange symmetry --- delivers the correct \emph{scaling} of the
+degenerate electron gas immediately.
+
+Everything downstream then follows from $C$. Minimising \eqref{eq:E} at fixed chemical potential
+with a test charge $Q$ present, and linearising about the uniform state, gives
+$\delta n=(9n_0^{1/3}/10C)\varphi$ and hence, with Poisson's equation, a Helmholtz problem
+$\grad^2\varphi-k^2\varphi=-4\pi Q\delta(x)$ with
+\begin{equation}\label{eq:k2}
+k^2=\frac{18\pi\,n_0^{1/3}}{5C},
+\end{equation}
+so that $\varphi=Q\,e^{-kr}/r$: Yukawa screening, with $\lambda=1/k\propto n^{-1/6}$. Setting $C$ to
+the Thomas--Fermi coefficient $C_{\rm TF}=\tfrac{3}{10}(3\pi^2)^{2/3}=2.8712$ reproduces
+$k_{\rm TF}^2=(4/\pi)(3\pi^2n)^{1/3}$ \emph{exactly}, at every density (Table~\ref{tab:lambda}).
+
+\begin{table}[h]\centering
+\small
+\begin{tabular}{@{}lrr@{}}
+\toprule
+$n$ (a.u.) & $\lambda$ from \eqref{eq:k2} with $C_{\rm TF}$ & $\lambda_{\rm TF}$\\
+\midrule
+$0.01$ & $1.086\,a_0$ & $1.086\,a_0$\\
+$0.1$  & $0.740\,a_0$ & $0.740\,a_0$\\
+$1.0$  & $0.504\,a_0$ & $0.504\,a_0$\\
+\bottomrule
+\end{tabular}
+\caption{The form is exact. Everything rests on the single constant $C$.}
+\label{tab:lambda}
+\end{table}
+
+\section{What extends without adjustment: the plasma frequency}
+
+Displace the electron distribution rigidly by $\xi$ against the ion background. The resulting surface
+charge produces a restoring field $4\pi n\xi$, so $\ddot\xi=-4\pi n\xi$ and
+\begin{equation}
+\omega_p^2=4\pi n,
+\end{equation}
+free of temperature and of any statistical assumption. \textbf{RealQM reproduces this exactly}, and
+for a structural reason: under a rigid translation each $\psi_i$ is carried along unchanged, so
+$\grad\psi_i$ is unchanged, the localisation term contributes nothing, and what remains is Coulomb
+and inertia --- which is all the result depends on. No property of $C$ enters.
+
+The same argument identifies what RealQM should do about \textbf{Landau damping}. The framework is
+not a single fluid: $N$ electrons are $N$ domains, each carrying its own current and hence its own
+drift velocity, which is structurally a multi-beam plasma. Multi-beam models reproduce Landau damping
+as phase mixing among cold streams, and do so reversibly, in agreement with plasma-echo experiments.
+Where the velocity spread is thermal, the framework should therefore give collisionless damping for
+the right reason rather than by an inserted term.
+
+\section{What does not extend: the coefficient is zero}
+
+The step from \eqref{eq:tf} to a number requires the cell to have a nonzero localisation cost, and
+with RealQM's own interface condition it does not.
+
+The kinetic term in \eqref{eq:E} is integrated over each electron's \emph{own} domain, and no node is
+imposed where domains meet; the calibration of atomic RealQM found the free (Neumann) plane decisive
+against a Dirichlet node. Take then $\psi_i\equiv|\Omega_i|^{-1/2}$, constant on each cell. This
+satisfies the normalisation, makes the total density $\sum\psi_i^2$ uniform, minimises the
+electrostatic energy against a neutralising background, and has $\grad\psi_i=0$ identically. The
+kinetic energy is exactly zero, and the discontinuity at the cell face costs nothing because the
+integral runs over $\Omega_i$ alone.
+
+The uniform state is therefore the global minimum, with
+\begin{equation}
+C=0
+\end{equation}
+at every density. By \eqref{eq:k2} the screening length is infinite. The compressibility correction
+to the plasma frequency, $\omega^2=\omega_p^2+\tfrac35k^2v_F^2$, vanishes, so the predicted plasmon
+is dispersionless. And the pressure of a cold electron gas is zero.
+
+Two attempts to locate a missing term fail. Allowing the interfaces to move changes nothing: with
+constant $\psi_i$ the kinetic energy remains zero and the electrostatics merely fixes the cells to
+equal volume. Requiring each domain to be connected and to carry unit charge changes nothing either,
+since any equal-volume connected tiling admits the same constant solution. The result is a property
+of the functional, not an oversight in its evaluation.
+
+\section{The interface condition cannot repair it}
+
+Since the Neumann condition gives $C=0$ and a hard wall gives $C=3\pi^2/2=14.804$, the two bracket
+the target, which suggests a Robin condition $\psi'+\beta\psi=0$ at the interface. For a cubic cell
+of side $a$ the problem separates, with $\kappa=ka$ solving $\kappa\tan(\kappa/2)=\beta a$ and
+$C=\tfrac32\kappa^2$:
+
+\begin{table}[h]\centering
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+interface condition & $\kappa$ & $C$ & $C/C_{\rm TF}$\\
+\midrule
+Neumann, $\beta a=0$ (present choice) & $0$ & $0$ & $0.00$\\
+Robin, $\beta a=1.146$ & $1.3835$ & $2.8712$ & $\mathbf{1.00}$\\
+Dirichlet, $\beta a\to\infty$ & $\pi$ & $14.804$ & $5.16$\\
+\bottomrule
+\end{tabular}
+\caption{One dimensionless number reproduces Thomas--Fermi exactly --- and with it the screening
+length, the plasmon dispersion and the zero-temperature pressure, since all three follow from $C$.}
+\label{tab:robin}
+\end{table}
+
+This is not adopted here, for a reason established by direct test. Helium in RealQM is two electron
+domains meeting at a midplane through the nucleus. Solving that problem on a grid with the interface
+condition varied, at otherwise identical numerics, gives
+
+\begin{table}[h]\centering
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+$\beta$ ($a_0^{-1}$) & $E$ (Ha) & $T$ per electron & shift\\
+\midrule
+$0$ (Neumann) & $-2.0224$ & $1.887$ & ---\\
+$0.25$ & $-2.0067$ & $1.726$ & $+0.016$\\
+$1.146$ & $-1.8358$ & $1.164$ & $\mathbf{+0.187}$\\
+$20$ (near Dirichlet) & $-0.9608$ & $0.350$ & $+1.062$\\
+\bottomrule
+\end{tabular}
+\caption{Helium is strongly sensitive to the interface condition. The absolute energies are from a
+coarse grid and are not converged; the comparison is between rows at identical numerics.}
+\label{tab:he}
+\end{table}
+
+\noindent The value the gas requires costs helium $0.19$~Ha, about $20\%$ of its ionisation energy.
+The reason is geometric and does not depend on the accuracy of the calculation: in helium the
+interface plane passes \emph{through the nucleus}, where the density is greatest, so any departure
+from Neumann suppresses density exactly where binding is won. The electron responds by spreading away
+from the plane, which is why the kinetic energy falls as the total energy rises.
+
+The situation is therefore symmetric and unfavourable. In a uniform gas the density is constant, so
+the interface condition is the only place physics could enter --- and Neumann makes it contribute
+nothing. In an atom the interface passes through the density maximum, so the condition is decisive
+--- and only Neumann leaves the atom alone. \emph{The interface is inconsequential exactly where the
+gas needs it to matter, and decisive exactly where the atom needs it not to.} No single $\beta$
+serves both, and a value that switched between regimes could not be applied at all, since partially
+ionised plasmas and metals contain bound and free electrons in the same system with no surface
+between them.
+
+\section{The role of temperature, and why it does not close the gap}
+
+At finite temperature the domains move and fluctuate in shape, the density within a cell is no longer
+constant, and $\grad\psi_i\neq0$: there is a kinetic energy, and with it a pressure. RealQM should
+reproduce it, since it follows from charge, inertia and thermal motion, all of which the framework
+carries. But this pressure scales as $nk_BT$ and vanishes as $T\to0$.
+
+The missing pressure does not. Splitting the two contributions:
+
+\begin{table}[h]\centering
+\small
+\begin{tabular}{@{}lcc@{}}
+\toprule
+contribution & survives $T\to0$? & RealQM\\
+\midrule
+thermal, ${\sim}nk_BT$ & no & should be reproduced\\
+degenerate, ${\sim}nE_F$ & \textbf{yes} & \textbf{zero}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent and the second is not an exotic regime. A metal at room temperature has
+$T_F\sim10^4$--$10^5$~K, so $T/T_F\approx10^{-2}$: sodium and aluminium are held up almost entirely
+by the pressure that survives at zero temperature. The conflict is therefore blunt and requires no
+appeal to any formalism: \emph{the model predicts that a cold dense electron gas exerts no pressure,
+and sodium exists}. The same statement applies to white dwarf support and to the interiors of dense
+stars.
+
+It is worth being clear about what is and is not being claimed. Antisymmetry of a many-body
+wavefunction is a formalism and is not itself observed; the framework is entitled to account for the
+phenomena by other means, and that is its programme. What is observed --- the mass--radius relation
+of white dwarfs, the linear electronic specific heat, de Haas--van Alphen oscillations, the bulk
+moduli of simple metals, positive plasmon dispersion --- is that a large pressure exists at
+temperatures far below $T_F$. A theory of matter must produce it somehow.
+
+\section{What an extension would require}
+
+The open problem can be stated in the framework's own terms, without reference to exchange symmetry:
+
+\begin{quote}
+\emph{What geometric property of a partition should cost energy when its cells shrink?}
+\end{quote}
+
+Non-overlap alone does not, because a constant density in a cell has no gradient however small the
+cell. Yet compressing a metal demonstrably costs energy. Something in the description of a partition
+must resist compression at zero temperature, and identifying it is what carrying RealQM beyond bound
+matter requires.
+
+Two remarks may help locate it. First, the failure is specific to the \emph{uniform} case: wherever
+an attractor shapes the density, the profile itself supplies the gradients, which is why the atomic
+and molecular results are unaffected and why the deficiency was not visible before. Second, the
+correct coefficient lies between the two principled interface conditions and is produced by neither
+($0$ and $5.16$ against a required $1.00$), which is the signature of a missing mechanism rather than
+of a mis-set parameter.
+
+Until such a mechanism is found, the honest statement of scope is that RealQM is a theory of
+\textbf{bound} matter --- atoms, molecules and nuclei, where an attractor is present --- and that its
+extension to free-electron matter awaits an ingredient it does not yet contain. Nothing in the
+established results depends on the extension, and stating the boundary costs the framework nothing it
+had.
+
+\section*{A note on what was tested numerically}
+
+The screening relation \eqref{eq:k2}, the vanishing of $C$, the plasma frequency and the Robin table
+are analytic. Table~\ref{tab:he} is a direct grid solution of helium as two half-space domains with
+the interface condition varied, and its absolute energies ($-2.02$~Ha against the experimental
+$-2.9037$) reflect a coarse mesh; only the differences between rows are used. A separate calculation
+of ionisation potential depression in dense plasma reproduces Stewart--Pyatt in the dilute limit
+($3.61$ against $3.57$~eV at $n=10^{21}$~cm$^{-3}$) but becomes unphysical at high density, where a
+smeared neutralising background can no longer stand in for explicit neighbouring domains; no
+conclusion is drawn from it here. Scripts are available with the source.
+
+\begin{thebibliography}{9}
+\bibitem{realqm} C.\ Johnson, \emph{RealQM: Quantum Mechanics as Multiphase 3D Continuum Mechanics},
+in~\cite{realqmbook}.
+\bibitem{realqmbook} C.\ Johnson, \emph{Real Quantum Mechanics} (Body\&Soul, Vol.\ VI),
+\url{https://claes542.github.io/RealMolecule/realquantum3.pdf}.
+\bibitem{realnucleus} C.\ Johnson, \emph{RealNucleus: Nuclear Binding as Dual Coulomb Confinement,
+without a Strong or Weak Force}, in~\cite{realqmbook}.
+\end{thebibliography}
+
+\end{document}
