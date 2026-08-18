@@ -54,22 +54,22 @@ In this article we extend RealQM, developed for atoms and molecules, to the plas
 Coulomb forces and nothing else. A metal is such a system. So is a stellar interior, and so is the
 recombination era of a Coulomb cosmology.
 
-The extension is natural in a way worth stating at the outset, because it is not true of every
-framework: a two-component plasma is what RealQM is already made of. The construction contains
-discrete unit charge densities on their own domains and no smeared continuum anywhere, so a system
-of ions and electrons is not an idealisation the theory must be adapted to describe --- it is the
-theory's own furniture, in a new arrangement.
-
 RealQM \cite{realqm,realqmbook} represents an $N$-electron system by $N$ non-negative densities
-$\psi_i$ on non-overlapping domains $\Omega_i$, with
+$\psi_i$, each carrying unit charge on its own domain $\Omega_i$, the domains non-overlapping and
+their interfaces free to move to where the energy is least. The energy minimised is Coulomb's:
 \begin{equation}\label{eq:E}
 E[\{\psi_i\},\{\Omega_i\}]=\sum_i\int_{\Omega_i}\Bigl(\half|\grad\psi_i|^2
 -\sum_a\frac{Z_a}{|x-x_a|}\psi_i^2\Bigr)dx
 +\half\sum_{i\neq j}\iint\frac{\psi_i^2(x)\psi_j^2(y)}{|x-y|}\,dx\,dy,
 \end{equation}
-subject to $\int_{\Omega_i}\psi_i^2=1$, the interfaces free to move to where the energy says. There
-is no wavefunction in $3N$ dimensions, no antisymmetry and no self-interaction; the role played by
-the exclusion principle is played by the requirement that domains do not overlap.
+subject to $\int_{\Omega_i}\psi_i^2=1$. There is no wavefunction in $3N$ dimensions, no
+antisymmetry and no self-interaction; the role played by the exclusion principle is played by the
+requirement that domains do not overlap. And --- of particular relevance here --- there is no smeared
+continuum anywhere in the construction: everything in it is a discrete unit charge occupying a region
+of ordinary space.
+
+A two-component plasma of ions and electrons is therefore not an idealisation the theory must be
+adapted to describe. It is what the theory is already made of, in a new arrangement.
 
 Every previous test of this construction --- ionisation energies across the periodic table, molecular
 binding, nuclear binding by dual Coulomb confinement \cite{realnucleus} --- has been on \emph{bound}
