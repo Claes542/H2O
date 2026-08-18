@@ -177,11 +177,24 @@ $\mathrm{HCl}+\mathrm{NH_3}\to\mathrm{Cl^-}+\mathrm{NH_4^+}$, are computed the s
 
 This matters for the argument rather than merely illustrating it. Charge transport by transfer
 between localised domains is not a regime the framework must be stretched to reach --- it is one it
-already handles, in the case where the carrier is a proton. What has not been shown is the same
-thing with an electron as carrier, and in a lattice rather than a molecular chain. The conduction
-question is therefore narrower than it first appears: not whether a theory of localised domains can
-transport charge at all, which is settled, but whether electronic conduction in a metal is of that
-kind or of the band kind that the framework has no evident means to represent.
+already handles, in the case where the carrier is a proton.
+
+The electron case, however, cannot presently be tested in the same way, and the obstruction is
+instructive. Two chain calculations were attempted here: five hydrogens with an excess electron, and
+five hydrogen kernels with one electron missing, the electronic counterparts of the proton wire. Both
+returned null results, and inspection of the solver shows why. Domain ownership is assigned by kernel
+proximity --- each point of space is labelled by whichever kernel's trial density dominates it --- so
+a domain belongs to its own kernel by construction and an electron cannot change which kernel it
+belongs to. A bare kernel, moreover, is given no electron domain at all. A vacancy therefore cannot
+migrate, and an excess electron can only follow its own seed. Neither hopping nor band motion is
+representable, so neither was observed.
+
+This is a limitation of the implementation rather than of the formulation: \eqref{eq:E} has free
+boundaries that could in principle let a domain migrate between kernels, and it is the label
+assignment that fixes them. But it means the question of electronic conduction is not merely
+uncomputed here --- it is not yet computable, and making it so requires a solver in which domain
+ownership is determined by the energy rather than by proximity. Proton transport does not run into
+this, because there the carrier is a \emph{nucleus} and nuclei do move.
 
 \section{What remains open: the Fermi surface}
 
