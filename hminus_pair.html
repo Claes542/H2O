@@ -23,6 +23,14 @@
   extra electron. With <code>bias &gt; 0</code> the right kernel is made slightly more attractive and
   the outer electron should shift toward it. The question is how little bias it takes.
   </div>
+  <div style="margin-top:6px;color:#fc8">
+  <b>Prior question: does the carrier exist?</b> The outer electron confines the inner one, since
+  domains cannot overlap &mdash; which is why the left atom looks compressed. That costs energy, and
+  real H&minus; is bound by only <b>0.75&nbsp;eV</b>. If the confinement costs more than the outer
+  electron gains, H&minus; does not bind and there is nothing to transport. Run
+  <code>&amp;noextra</code> for the H + H reference at the same separation and compare: binding
+  requires E(H&minus;+H) &lt; E(H+H).
+  </div>
   <div style="margin-top:6px">
   <b>URL:</b> <code>?d=3.0</code> separation, <code>&amp;zeff=0.35</code> outer-electron extent,
   <code>&amp;bias=0.0</code> added to the right kernel charge, <code>&amp;bs=0.8</code> boundary speed.
@@ -36,6 +44,7 @@
   var ZEFF = parseFloat(q.get('zeff') || '0.35');
   var BIAS = parseFloat(q.get('bias') || '0.0');
   var BS   = parseFloat(q.get('bs') || '0.8');
+  var NOEXTRA = q.get('noextra') !== null;   // omit the outer electron: the reference H + H
 
   var gridN = 140, scr = 24, N2 = 70;
   var h = scr / gridN;
@@ -50,9 +59,8 @@
   // 1: left kernel, diffuse OUTER electron      (the carrier)
   // 2: right kernel, its own electron           (the H)
   add(-d / 2, 1, 1.0,        1.0);
-  add(-d / 2, 1, 0.0,        ZEFF);
+  if (!NOEXTRA) add(-d / 2, 1, 0.0, ZEFF);       // the carrier, omitted for the reference
   add(+d / 2, 1, 1.0 + BIAS, 1.0);
-  var outer = 1;
 
   window.USER_ATOMS = atoms;
   window.USER_Z = Z;
@@ -69,9 +77,10 @@
   setInterval(function () {
     var el = document.getElementById('mon');
     if (!el) return;
-    var txt = 'separation ' + d.toFixed(1) + ' a0,  outer Zeff ' + ZEFF.toFixed(2)
-            + ',  bias ' + BIAS.toFixed(3) + ' on the right kernel<br>'
-            + 'left = H&minus; (1+1 shell), right = H,  3 unit domains, net charge &minus;1<br>';
+    var txt = 'separation ' + d.toFixed(1) + ' a0,  bias ' + BIAS.toFixed(3) + '<br>'
+            + (NOEXTRA ? '<b>REFERENCE: H + H</b>, 2 domains, neutral'
+                       : 'left = H&minus; (1+1 shell, outer Zeff ' + ZEFF.toFixed(2)
+                         + '), right = H,  3 domains, net &minus;1') + '<br>';
     if (typeof window._prevE !== 'undefined')
       txt += 'E = ' + Number(window._prevE).toFixed(5) + ' Ha<br>';
     txt += '<span style="color:#9c9">Watch the rendered domains. The outer electron starts as a '
