@@ -22,8 +22,9 @@
   lattice spacing, <code>&amp;reset</code> clears the table.
   </div>
   <div style="margin-top:6px">
-  <b>Self-check:</b> s=0 and s=1 are equivalent by symmetry and must agree. If they do not,
-  believe nothing else.
+  <b>Self-check:</b> s=&minus;0.5 mirrors s=+0.5 about the lattice centre and must agree exactly.
+  Note s=1 is an <i>edge</i> pocket (vacuum beyond the last column) and is NOT equivalent to
+  s=0, which is the central one: use s=0 for the pocket energy.
   </div>
   <div id="mon" style="margin-top:8px;color:#8cf">relaxing&hellip;</div>
   <div id="tab" style="margin-top:8px;color:#9c9;font-size:11px"></div>
@@ -31,7 +32,7 @@
 <script>
 (function() {
   var q = new URLSearchParams(location.search);
-  var S = parseFloat(q.get('s') || '0.5');
+  var S = parseFloat(q.get('s') || '0.5');   // may be negative: s=-0.5 mirrors s=+0.5
   var a = parseFloat(q.get('a') || '2.5');
 
   var gridN = 160, scr = 26, N2 = 80;
@@ -89,10 +90,15 @@
       else out.push('<span style="color:#f99">HIGH: the lattice blocks the carrier too '
         + '&mdash; not a wire artefact</span>');
     }
-    if (d['0.00'] !== undefined && d['1.00'] !== undefined) {
-      var sym = Math.abs(d['0.00'] - d['1.00']);
-      out.push('self-check |E(0) - E(1)| = ' + sym.toFixed(5)
-               + (sym < 0.01 ? ' &check; symmetric' : ' &times; DO NOT TRUST'));
+    if (d['-0.50'] !== undefined && d['0.50'] !== undefined) {
+      var sym = Math.abs(d['-0.50'] - d['0.50']);
+      out.push('mirror check |E(-0.5) - E(+0.5)| = ' + sym.toFixed(5)
+               + (sym < 0.01 ? ' &check; harness sound' : ' &times; DO NOT TRUST'));
+    }
+    if (d['0.00'] !== undefined && d['0.50'] !== undefined) {
+      var b2 = d['0.50'] - d['0.00'];
+      out.push('<b>pocket -> saddle: ' + b2.toFixed(5) + ' Ha = '
+               + (b2 * 27.2114).toFixed(3) + ' eV</b>  (negative => the saddle is preferred)');
     }
     document.getElementById('tab').innerHTML = out.join('<br>');
   }
