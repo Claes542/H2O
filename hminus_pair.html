@@ -16,6 +16,16 @@
   shell, so the radial split emerges from the initialisation rather than being imposed. No new
   machinery, and every domain still carries exactly one unit of charge.
   </div>
+  <div style="margin-top:6px;color:#9cf">
+  <b>The decisive comparison.</b> Run both and compare the converged energies:
+  <code>&amp;mode=left</code> seeds the outer electron on one atom &mdash; <b>H&minus; bound to H</b>,
+  the extra charge localised. <code>&amp;mode=both</code> seeds it centred and diffuse &mdash;
+  <b>H<sub>2</sub> surrounded by an electron</b>, the extra charge wrapping the molecule. Both are
+  legitimate three-domain states; the free boundary relaxes each to its own minimum. Whichever is
+  lower is what the framework says an extra electron does in a molecule &mdash; sit on one atom, or
+  spread over both. That is localisation against delocalisation in the smallest system that can show
+  it, and it is the conduction question in miniature.
+  </div>
   <div style="margin-top:6px">
   <b>What is being watched.</b> Free boundaries are on, so cells change hands wherever a neighbouring
   domain has the higher density &mdash; the solver's own mechanism, which does rearrange partitions.
@@ -45,6 +55,10 @@
   var BIAS = parseFloat(q.get('bias') || '0.0');
   var BS   = parseFloat(q.get('bs') || '0.8');
   var NOEXTRA = q.get('noextra') !== null;   // omit the outer electron: the reference H + H
+  // WHERE the outer electron is seeded decides which minimum is found:
+  //   'left'  -> H- bound to H          (the extra charge localised on one atom)
+  //   'both'  -> H2 surrounded by e     (the extra charge wrapping the molecule)
+  var MODE = q.get('mode') || 'left';
 
   var gridN = 140, scr = 24, N2 = 70;
   var h = scr / gridN;
@@ -59,7 +73,12 @@
   // 1: left kernel, diffuse OUTER electron      (the carrier)
   // 2: right kernel, its own electron           (the H)
   add(-d / 2, 1, 1.0,        1.0);
-  if (!NOEXTRA) add(-d / 2, 1, 0.0, ZEFF);       // the carrier, omitted for the reference
+  if (!NOEXTRA) {
+    // seeded on the left atom, or centred on the molecule and diffuse enough to wrap it
+    var xc = (MODE === 'both') ? 0.0 : -d / 2;
+    var ze = (MODE === 'both') ? Math.min(ZEFF, 0.30) : ZEFF;
+    add(xc, 1, 0.0, ze);                         // the carrier
+  }
   add(+d / 2, 1, 1.0 + BIAS, 1.0);
 
   window.USER_ATOMS = atoms;
@@ -79,8 +98,10 @@
     if (!el) return;
     var txt = 'separation ' + d.toFixed(1) + ' a0,  bias ' + BIAS.toFixed(3) + '<br>'
             + (NOEXTRA ? '<b>REFERENCE: H + H</b>, 2 domains, neutral'
-                       : 'left = H&minus; (1+1 shell, outer Zeff ' + ZEFF.toFixed(2)
-                         + '), right = H,  3 domains, net &minus;1') + '<br>';
+                       : MODE === 'both'
+                         ? '<b>H<sub>2</sub> + surrounding electron</b> (extra charge wrapping both)'
+                         : '<b>H&minus; bound to H</b> (extra charge on the left atom)')
+            + ',  3 domains, net &minus;1<br>';
     if (typeof window._prevE !== 'undefined')
       txt += 'E = ' + Number(window._prevE).toFixed(5) + ' Ha<br>';
     txt += '<span style="color:#9c9">Watch the rendered domains. The outer electron starts as a '
