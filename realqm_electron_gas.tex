@@ -54,8 +54,9 @@ demonstrated in the framework for \emph{protons}, in Grotthuss conduction along 
 the direct electronic analogue is not testable in the static solver: charge transport by transfer
 between localised sites is already demonstrated in the framework for \emph{protons}, in Grotthuss
 conduction along a water chain, but the electronic counterpart cannot be run, because domain
-ownership in the solver is assigned by kernel proximity, so an electron cannot change which kernel
-it belongs to. That is a limitation of the implementation rather than of the formulation, and it
+transfer requires a rearrangement of the partition, and the constructions
+attempted here did not achieve one for reasons traced to each construction rather than to the
+framework. That is a limitation of the implementation rather than of the formulation, and it
 bears on more than metals, electron transfer being what oxidation and reduction are. What the
 framework does \emph{not} have at all is a Fermi surface, and that is the standing open question: de Haas--van Alphen oscillations,
 the linear electronic specific heat and positive plasmon dispersion are measured in real metals, not
@@ -231,13 +232,14 @@ enough to be worth setting out. Two chain calculations were attempted here --- f
 excess electron, and five hydrogen kernels with one electron missing, the electronic counterparts of
 the proton wire --- and both returned nothing. Neither result means what it appears to.
 
-The immediate cause is the partition. Domain ownership in the solver is assigned by kernel proximity:
-each point of space is labelled by whichever kernel's trial density dominates it, so a domain belongs
-to its own kernel by construction and an electron cannot change which kernel it belongs to. A bare
-kernel is given no domain at all. A vacancy therefore cannot migrate and an excess electron can only
-follow its own seed. This is a property of the implementation and not of \eqref{eq:E}, whose
-interfaces are free to move to wherever the energy is least, and which permits a domain to straddle
-two kernels --- as it must, since that is what $\mathrm{H_2^+}$ is.
+The cause is not what it first appeared. Kernel proximity assigns the labels only \emph{initially};
+thereafter a free-boundary rule evolves each interface from the local density balance and transfers
+ownership of a cell when the neighbouring domain's density exceeds its own. Partitions therefore do
+rearrange, and electron transfer is representable in principle. What defeated the attempts here was
+specific to each: a carrier given no kernel feels no force from the lattice; a bare kernel is given no
+domain, so a vacancy has nothing to migrate into; and a carrier placed on an occupied site can seize
+the nuclear region outright, since with free interfaces no confinement cost opposes it. Each is a
+property of the construction, not of \eqref{eq:E}.
 
 The deeper cause survives that repair. Conduction is charge in motion, and \eqref{eq:E} is an energy
 minimisation: it returns the equilibrium partition, not a current. Given complete freedom in the
@@ -483,10 +485,13 @@ region. An interface-condition test on helium was
 not converged, giving a sensitivity that reversed sign under mesh refinement, and no conclusion is
 drawn from it. Two chain calculations --- five hydrogens with an excess electron, and five hydrogen
 kernels with one electron missing --- returned no transport, but for a reason established by reading
-the solver rather than by the runs: domains are labelled by kernel proximity and bare kernels receive
-none, so neither hopping nor band motion is representable and neither could have been observed. Both
-are recorded because the null result located an obstruction that no further running would have
-found. Scripts and pages accompany the source.
+the constructions rather than by the runs: a carrier without a kernel feels no lattice force, and a
+bare kernel receives no domain for a vacancy to occupy. Both are recorded because the null results
+located those obstructions. A further caution belongs with them: with free interfaces and no
+confinement cost, two domains competing for one nucleus have no stable equilibrium, and several
+attempts collapsed to energies below the physical floor for their particle content. Configurations in
+which the extra charge lies \emph{outside} all nuclei were by contrast stable and returned physical
+energies, which is a pattern worth pursuing rather than a result. Scripts and pages accompany the source.
 
 \begin{thebibliography}{9}
 \bibitem{realqm} C.\ Johnson, \emph{RealQM: Quantum Mechanics as Multiphase 3D Continuum Mechanics},
