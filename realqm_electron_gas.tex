@@ -42,10 +42,14 @@ exactly, since a rigid displacement leaves the localisation energy untouched. Co
 in a $4\times4$ hydrogen lattice the carrier is confined to interstitial pockets by $5.5$~eV at
 $a=2.5\,a_0$, and compressing to the $\mathrm{H_2}$ bond length \emph{doubles} that to $11.5$~eV
 where matter would instead become metallic --- non-overlap admitting no growth of overlap under
-compression, so there is no bandwidth to widen. Relaxing the constraint for the valence sector removes
-that barrier at a cost of about one per cent in the equilibrium radius, since the kinetic energy of a
-valence density is supplied by the shaping of the ion cores either way --- a cheap repair for
-conduction, though it supplies no Fermi surface. Transport by transfer is meanwhile already
+compression, so there is no bandwidth to widen. The obstruction is located exactly: not the interface condition and not
+the geometry, but the rule of one unit of charge per domain. Allowing a domain to hold two makes the
+excess mobile at once --- the energy is the same at every site by symmetry, and spreading it lowers
+the Coulomb energy monotonically --- at a formation cost of order $10$~eV, the Hubbard $U$, computed
+here rather than fitted. With that single relaxation the framework becomes a \textbf{Hubbard model}
+with derived geometry and derived $U$; as it stands it is that model in the $U\to\infty$ limit, which
+is a Mott insulator at every density. The tension this exposes is worth stating: the postulate that
+yields charge quantization as a consequence is the same one that forbids a metal. Transport by transfer is meanwhile already
 demonstrated in the framework for \emph{protons}, in Grotthuss conduction along a water chain, while
 the direct electronic analogue is not testable in the static solver: charge transport by transfer
 between localised sites is already demonstrated in the framework for \emph{protons}, in Grotthuss
@@ -349,18 +353,45 @@ It went unnoticed because every previous test had an attractor in it. Where a nu
 density, $\grad\psi\neq0$ for reasons having nothing to do with the interface, and $T$ comes out
 right; the faces are nearly irrelevant. Remove the attractor and the faces are all that is left.
 
-\paragraph{The consequence for conduction, and a repair that is not available.} An obvious response
-is to let valence electrons share a territory, which removes the barrier by construction. The table
-above rules it out: sharing destroys the $N$-scaling that the partition supplies, and a metal would
-lose its kinetic energy density by fifteen orders of magnitude. \emph{The partition must be kept.}
+\paragraph{A repair that is not available, and one that is.} An obvious response to the barrier is
+to let valence electrons share a territory, which removes it by construction. The scaling argument
+above rules that out: sharing destroys the extensivity the partition supplies, and a metal would lose
+its kinetic energy density by fifteen orders of magnitude. \emph{The partition must be kept.}
 
-What may be adjusted is the number. A soft interface at finite $\beta$ costs confinement energy,
-which means compression can raise it --- and a system whose energy responds to compression is one in
-which overlap can grow, bandwidth can widen, and the barrier of Table~\ref{tab:barrier} need not
-rise. Whether the single value $\beta a=1.146$ that the electron gas requires is also tolerable for
-atoms and molecules is not settled here; the attempt is reported in the numerical note. That one
-question decides whether the framework possesses a constant it has not yet identified, or two
-incompatible ones.
+What may be relaxed instead is the requirement that each domain carry \emph{exactly} one unit of
+charge. Suppose a domain may hold two --- the excess electron is then not a new region competing for
+space, but additional occupation of a region that already exists. Two things follow immediately, and
+neither depends on any coefficient. First, by translational symmetry the energy is the \emph{same}
+wherever the doubly-occupied site sits, so there is no barrier between sites at all. Second,
+electrostatics favours spreading the excess: with the interfaces free, the kinetic energy is
+unchanged at any occupation, so only the Coulomb terms act, and they are lowered monotonically as the
+excess is shared out. A localised double occupancy is therefore not merely mobile but unstable
+against delocalising.
+
+The cost of forming it is the on-site repulsion, of order $10$~eV for hydrogen-like sites --- the
+Hubbard $U$, here \emph{computed} from the geometry rather than fitted.
+
+\paragraph{What the framework then is.} Non-overlapping sites, occupation $0$, $1$ or $2$, an on-site
+repulsion $U$, and transfer between neighbours: that is the \textbf{Hubbard model}. Which locates
+RealQM exactly. As formulated --- one unit of charge per domain, always --- it is the Hubbard model in
+the limit $U\to\infty$, where double occupancy is forbidden outright and every site is singly
+occupied. That limit is a Mott insulator at every density, which is precisely what
+Table~\ref{tab:barrier} found by direct computation, and it explains the density trend as well: no
+finite $U$ can be beaten by a bandwidth that does not exist.
+
+The repair is correspondingly minimal. Keep the partition, keep the geometry, keep the Coulomb
+energetics, and allow occupation to take the value two at a computed cost. The framework then sits
+where the standard treatment of strongly correlated matter sits --- the Hubbard model is the working
+description of Mott insulators, of the cuprates, and of the materials for which band theory fails ---
+with the difference that its $U$ and its lattice are derived rather than supplied.
+
+We do not carry this out here. What is established is where the obstruction lies: not in the
+interface condition, not in the geometry, but in the rule of one unit of charge per domain. That rule
+is also the source of one of the framework's results, charge quantization as a consequence of
+indivisibility rather than an assumption. The tension is worth stating plainly: \emph{the postulate
+that explains why charge comes in units is the postulate that forbids a metal.} Matter has it both
+ways, quantizing the particles while leaving the amplitude on each site continuous, and a partition
+of real densities has no evident means to do the same.
 
 It is fair to ask whether all conduction might be hopping, band transport being a formalism rather
 than an observable. The idea is not idle: hopping is the correct description of amorphous and organic
