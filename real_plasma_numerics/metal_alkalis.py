@@ -88,8 +88,9 @@ def make_energy(rc):
         _, T = cell_state(rs, rc)
         es = -0.9 / rs + 1.5 * rc * rc / rs ** 3
         std = 0.6 * E_fermi(rs) + es - 0.458 / rs - 0.44 / (rs + 7.8)
-        rqm = T + es
-        cache[key] = (rqm, std)
+        rqm = T + es                 # strict non-overlap: cell state's own <T>
+        sea = es                     # shared territory: T = 0 for a uniform sea
+        cache[key] = (rqm, std, sea)
         return cache[key]
     return energies
 
@@ -116,24 +117,31 @@ def bulk_modulus(f, rs, d=0.03):
 
 def main():
     print("Alkali metals in the Wigner-Seitz cell (Ashcroft empty core)\n")
-    print(f"{'':4}{'r_c':>6}{'':3}{'r_s RealQM':>11}{'r_s std':>9}{'r_s exp':>9}"
-          f"{'':4}{'B RealQM':>10}{'B std':>8}{'B exp':>8}")
+    print(f"{'':4}{'r_c':>6}{'':3}{'r_s split':>10}{'r_s sea':>10}{'r_s std':>9}{'r_s exp':>9}"
+          f"{'':3}{'B split':>9}{'B sea':>9}{'B std':>8}{'B exp':>8}")
     rows = []
     for el, (rc, rs_exp, B_exp) in ALKALIS.items():
         f = make_energy(rc)
         r_r = minimise(lambda x: f(x)[0])
         r_s = minimise(lambda x: f(x)[1])
+        r_sea = minimise(lambda x: f(x)[2])
         B_r = bulk_modulus(lambda x: f(x)[0], r_r)
         B_s = bulk_modulus(lambda x: f(x)[1], r_s)
-        rows.append((el, r_r, r_s, rs_exp, B_r, B_s, B_exp))
-        print(f"{el:4}{rc:>6.2f}{'':3}{r_r:>11.2f}{r_s:>9.2f}{rs_exp:>9.2f}"
-              f"{'':4}{B_r:>10.1f}{B_s:>8.1f}{B_exp:>8.1f}")
+        B_sea = bulk_modulus(lambda x: f(x)[2], r_sea)
+        rows.append((el, r_r, r_s, rs_exp, B_r, B_s, B_exp, r_sea, B_sea))
+        print(f"{el:4}{rc:>6.2f}{'':3}{r_r:>10.2f}{r_sea:>10.2f}{r_s:>9.2f}{rs_exp:>9.2f}"
+              f"{'':3}{B_r:>9.1f}{B_sea:>9.1f}{B_s:>8.1f}{B_exp:>8.1f}")
 
     def mape(i, j):
         return 100 * sum(abs(r[i] - r[j]) / r[j] for r in rows) / len(rows)
 
-    print(f"\nmean absolute error in r_s:  RealQM {mape(1,3):.1f}%   standard {mape(2,3):.1f}%")
-    print(f"mean absolute error in B:    RealQM {mape(4,6):.1f}%   standard {mape(5,6):.1f}%")
+    print(f"\nmean abs error r_s:  split-domain {mape(1,3):.1f}%   shared-sea {mape(7,3):.1f}%"
+          f"   standard {mape(2,3):.1f}%")
+    print(f"mean abs error B:    split-domain {mape(4,6):.1f}%   shared-sea {mape(8,6):.1f}%"
+          f"   standard {mape(5,6):.1f}%")
+    print("\n'split' = strict non-overlap, each electron its own Wigner-Seitz cell.")
+    print("'sea'   = the relaxed constraint: valence electrons share one territory, so a")
+    print("          uniform density has grad psi = 0 and the kinetic term vanishes exactly.")
     print("\nAcross the series r_s varies by 70% and B by a factor of six, so tracking")
     print("the trend is a stronger statement than matching any single metal.")
 

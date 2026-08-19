@@ -32,11 +32,12 @@ A metal is such a system, as are a stellar interior and the recombination era of
 cosmology; and so, notably, is RealQM itself, which contains discrete charges and no smeared
 continuum anywhere. The central result is that RealQM's prescription for a metal \emph{coincides} with the
 Wigner--Seitz construction: one electron domain per ion, filling the cell, with the normal derivative
-vanishing at the cell face by symmetry. Across the alkali series Li--Cs, over which the equilibrium radius varies by
-$70\%$, it reproduces that radius to a mean error of $6.2\%$ against the standard treatment's
-$5.6\%$ --- and for K, Rb and Cs it is the closer of the two --- from a framework carrying neither an
-exchange term nor a band-filling term. The bulk modulus, a second derivative, is given badly by both
-columns and worse by RealQM, so what is demonstrated is the size of a metal and not its stiffness. The plasma frequency $\omega_p^2=4\pi n$ comes out
+vanishing at the cell face by symmetry. Across the alkali series Li--Cs it reproduces the equilibrium radius to a mean
+error of $6.2\%$ against the standard treatment's $5.6\%$, carrying neither an exchange term nor a
+band-filling term --- but that agreement is shown here \emph{not} to be a test of the quantum
+treatment, since setting the electronic kinetic energy to zero altogether changes the radii by about
+one per cent. The lattice scale of a simple metal is electrostatic. The bulk modulus does
+discriminate and is given worse by the framework ($79\%$ against $44\%$). The plasma frequency $\omega_p^2=4\pi n$ comes out
 exactly, since a rigid displacement leaves the localisation energy untouched. Conduction is examined by computing the hopping barrier, which is static and so within reach:
 in a $4\times4$ hydrogen lattice the carrier is confined to interstitial pockets by $5.5$~eV at
 $a=2.5\,a_0$, and compressing to the $\mathrm{H_2}$ bond length \emph{doubles} that to $11.5$~eV
@@ -134,18 +135,24 @@ RealQM is the worse.}
 \label{tab:alkalis}
 \end{table}
 
-\noindent Two things should be read from this, and they point differently.
+\noindent \textbf{The first thing to say about this table is that it does not discriminate.} Repeating
+the calculation with the electronic kinetic energy set to \emph{zero} --- valence electrons sharing one
+territory, for which a uniform density has $\grad\psi=0$ exactly --- moves the equilibrium radii by
+about one per cent (Na $3.73$ against $3.77$, Cs $5.59$ against $5.62$) and gives a mean error of
+$7.0\%$. Pure electrostatics, with no quantum treatment of the electrons at all, reproduces the
+alkali series about as well as either column above.
 
-On the \textbf{equilibrium radius} the framework tracks the series: a mean error of $6.2\%$ against
-the standard treatment's $5.6\%$, and for K, Rb and Cs it is the closer of the two, reproducing Rb and
-Cs essentially exactly where the standard column runs some $5\%$ low. Lithium is the outlier for both,
-as expected, the empty-core description being known to serve it badly. So a metal's lattice scale
-comes out of Coulomb geometry, across a $70\%$ range, with no exchange term and no band-filling term.
+That is a property of simple metals rather than a defect of the calculation: the equilibrium volume is
+set by core repulsion against the Madelung attraction, and the electronic terms are small or cancel.
+The standard column reaches it by cancelling $\tfrac35E_F$ against exchange; RealQM reaches it with
+both absent. \emph{The lattice scale of an alkali metal is therefore not a test of the quantum
+treatment}, and the agreement in Table~\ref{tab:alkalis} should not be read as one. What it does show
+is that nothing in the framework's treatment of the electrons \emph{spoils} a result electrostatics
+already gives --- a weaker claim, and the accurate one.
 
-On the \textbf{bulk modulus} neither column is good --- $79\%$ mean error against $44\%$ --- and RealQM
-is the worse. $B$ is a second derivative of the energy and far more demanding than the position of a
-minimum, and the honest reading is that this level of model, in either column, does not determine it.
-The framework is not shown to give the stiffness of a metal; it is shown to give the size.
+The bulk modulus does discriminate, being a second derivative, and there the framework is the worse of
+the two: $79\%$ mean error against $44\%$. Lithium is the outlier throughout, the empty-core
+description being known to serve it badly.
 
 The mechanism of the agreement should be stated plainly rather than claimed as a triumph. At
 $r_s=3.93$ in sodium the cell state carries $\langle T\rangle=0.004$~Ha against a band-filling term
@@ -290,6 +297,40 @@ localisation term for a uniform gas, and now a hopping barrier with the wrong de
 four follow from the same feature. Non-overlap is a constraint on \emph{regions}, and a partition of
 space cannot deliver what delocalisation delivers, at any density. RealQM as it stands describes an
 insulator, and predicts $d\sigma/dT>0$ for materials that are metals.
+
+\paragraph{Would relaxing the constraint help?} The natural repair is to let valence electrons share
+a territory rather than each hold its own --- delocalisation by construction, and no barrier at all.
+It fails for a reason that is one line. Take $N$ electrons in a common domain $\Omega$ of volume $V$
+with $\int_\Omega\psi^2=N$; a uniform density gives $\psi=\sqrt{N/V}$, constant, hence
+$\grad\psi=0$ and
+\begin{equation}
+T=\half\int|\grad\psi|^2=0 .
+\end{equation}
+The localisation energy vanishes exactly, which is the result of the closing remark returning in a new
+guise. The two options are therefore complementary rather than alternative:
+
+\begin{center}
+\small
+\begin{tabular}{@{}lcc@{}}
+\toprule
+ & localisation energy & delocalisation\\
+\midrule
+strict non-overlap & yes & \textbf{no} (barrier rises under compression)\\
+shared territory & \textbf{no} ($\grad\psi=0$) & yes\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent and no choice between them yields both. An intermediate --- overlap permitted but penalised
+--- would yield both, at the cost of a fitted parameter, which is the one thing the framework claims
+not to have.
+
+The diagnosis this suggests is worth stating in general terms. Both non-overlap and antisymmetry
+enforce that there are $N$ \emph{distinct} electrons; they differ in where the distinctness is
+imposed. Antisymmetry imposes it in the space of states, which costs kinetic energy and leaves the
+electrons free to be everywhere at once. Non-overlap imposes it in ordinary space, which costs kinetic
+energy only where something shapes the density, and confines each electron to a region. What is needed
+for a metal is distinctness without confinement, and a partition of space cannot supply it.
 
 It is fair to ask whether all conduction might be hopping, band transport being a formalism rather
 than an observable. The idea is not idle: hopping is the correct description of amorphous and organic
