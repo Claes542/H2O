@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html><head>
+  <meta charset="utf-8">
+  <title>Hopping barrier in a 2D lattice — the saddle a chain does not have</title>
+  <style>body { margin: 0; background: #000; color: #fff; font-family: monospace; }</style>
+</head><body>
+<div id="info" style="position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.85);padding:10px;border:1px solid #333;border-radius:6px;max-width:520px;font-size:12px;z-index:100">
+  <div style="color:#8cf;font-weight:bold">Hopping barrier: 4&times;4 square lattice</div>
+  The chain gave a barrier of <b>1.16 Ha (31.5 eV)</b>, and stepping aside did not help
+  (&minus;3.52 at one Bohr off-axis, against &minus;3.53 on the ion). That is a property of a
+  <i>wire</i>: a line of atoms has no route from one interstitial pocket to the next except
+  through an atom.
+  <div style="margin-top:6px">
+  A lattice does. Here the carrier travels from the centre of one square, through the
+  <b>midpoint of a bond</b>, to the centre of the next. That saddle is flanked by <i>two</i>
+  atoms at half a spacing each &mdash; never at zero distance from any of them. This is the
+  path a real metal offers and a chain cannot.
+  </div>
+  <div style="margin-top:6px">
+  <b>URL:</b> <code>?s=0.5</code> &mdash; position along the path, 0 = pocket centre,
+  0.5 = the bond-midpoint saddle, 1 = next pocket centre. <code>&amp;a=2.5</code> sets the
+  lattice spacing, <code>&amp;reset</code> clears the table.
+  </div>
+  <div style="margin-top:6px">
+  <b>Self-check:</b> s=0 and s=1 are equivalent by symmetry and must agree. If they do not,
+  believe nothing else.
+  </div>
+  <div id="mon" style="margin-top:8px;color:#8cf">relaxing&hellip;</div>
+  <div id="tab" style="margin-top:8px;color:#9c9;font-size:11px"></div>
+</div>
+<script>
+(function() {
+  var q = new URLSearchParams(location.search);
+  var S = parseFloat(q.get('s') || '0.5');
+  var a = parseFloat(q.get('a') || '2.5');
+
+  var gridN = 160, scr = 26, N2 = 80;
+  var h = scr / gridN;
+  var nSide = 4;
+
+  // atoms on a square lattice in the z = 0 plane, centred on the origin
+  var atoms = [], Z = [], Znuc = [];
+  function add(x, y, z, zc, zn) {
+    atoms.push({ i: Math.round(N2 + x / h), j: Math.round(N2 + y / h),
+                 k: Math.round(N2 + z / h), Z: zc, el: 'H' });
+    Z.push(zc); Znuc.push(zn);
+  }
+  for (var i = 0; i < nSide; i++)
+    for (var j = 0; j < nSide; j++)
+      add((i - (nSide - 1) / 2) * a, (j - (nSide - 1) / 2) * a, 0, 1, 1);
+
+  // Path: pocket centre (0,0) -> bond midpoint (a/2, 0) -> next pocket centre (a, 0).
+  // The atoms nearest the saddle sit at (a/2, +-a/2): the carrier passes BETWEEN them,
+  // at distance a/2 from each, never through one. In a chain no such route exists.
+  var cx = S * a, cy = 0.0;
+  add(cx, cy, 0, 1, 0);                       // the carrier: ghost domain, no kernel
+
+  window.USER_ATOMS = atoms;
+  window.USER_Z = Z;
+  window.USER_Z_NUC = Znuc;
+  window.USER_NN = gridN;
+  window.USER_SCREEN = scr;
+  window.USER_STEPS = 1000000;
+  window.USER_DYNAMICS = false;               // constrained scan: geometry held
+  window.INIT_ZEFF = 1;
+  window.CONVERGENCE_THRESHOLD = 0.002;
+
+  var KEY = 'realqm_2d_barrier';
+  function load() { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { return {}; } }
+  function save(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} }
+  if (q.get('reset') !== null) save({});
+
+  function table() {
+    var d = load();
+    var ks = Object.keys(d).sort(function (x, y) { return parseFloat(x) - parseFloat(y); });
+    var out = ['<b>accumulated</b> (a = ' + a.toFixed(2) + ' a0; add &amp;reset to clear)'];
+    ks.forEach(function (k) { out.push('s = ' + (+k).toFixed(2) + '   E = ' + d[k].toFixed(5)); });
+    if (ks.length > 1) {
+      var Es = ks.map(function (k) { return d[k]; });
+      var bar = Math.max.apply(null, Es) - Math.min.apply(null, Es);
+      out.push('');
+      out.push('<b>barrier ' + bar.toFixed(5) + ' Ha = ' + (bar * 27.2114).toFixed(3) + ' eV'
+               + '  =  ' + (bar / 0.00095).toFixed(0) + ' k_B T</b>');
+      out.push('chain, for comparison: 1.159 Ha = 31.5 eV');
+      if (bar < 0.01) out.push('<span style="color:#9f9">LOW: the lattice offers a cheap route '
+        + '&mdash; metallic-like transport</span>');
+      else if (bar < 0.05) out.push('<span style="color:#ff9">MODERATE: thermally activated '
+        + 'hopping, semiconductor-like</span>');
+      else out.push('<span style="color:#f99">HIGH: the lattice blocks the carrier too '
+        + '&mdash; not a wire artefact</span>');
+    }
+    if (d['0.00'] !== undefined && d['1.00'] !== undefined) {
+      var sym = Math.abs(d['0.00'] - d['1.00']);
+      out.push('self-check |E(0) - E(1)| = ' + sym.toFixed(5)
+               + (sym < 0.01 ? ' &check; symmetric' : ' &times; DO NOT TRUST'));
+    }
+    document.getElementById('tab').innerHTML = out.join('<br>');
+  }
+
+  window.onSweepDone = function (E) {
+    var d = load(); d[S.toFixed(2)] = Number(E); save(d);
+    document.getElementById('mon').innerHTML =
+      's = ' + S.toFixed(2) + '   carrier at (' + cx.toFixed(2) + ', ' + cy.toFixed(2) + ') a0'
+      + '<br>' + (Math.abs(S - 0.5) < 1e-9
+          ? 'at the bond midpoint, ' + (a / 2).toFixed(2) + ' a0 from each of two atoms'
+          : 'in an interstitial pocket')
+      + '<br><b>E = ' + Number(E).toFixed(5) + ' Ha</b>';
+    table();
+    console.log('RESULT s=' + S + ' E=' + Number(E).toFixed(5));
+  };
+
+  document.getElementById('mon').innerHTML =
+    's = ' + S.toFixed(2) + '   carrier at (' + cx.toFixed(2) + ', ' + cy.toFixed(2) + ') a0'
+    + '<br>16 lattice atoms + 1 carrier, relaxing&hellip;';
+  table();
+  console.log('2D barrier: s=' + S + ' a=' + a + ' carrier at ' + cx.toFixed(2) + ',' + cy.toFixed(2));
+})();
+
+var s = document.createElement('script');
+s.src = 'molecule.js?t=' + Date.now();
+s.onload = function() {
+  var p = document.createElement('script');
+  p.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+  document.body.appendChild(p);
+};
+document.body.appendChild(s);
+</script>
+</body></html>
