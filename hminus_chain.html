@@ -21,6 +21,12 @@
   little holding it in place, so the barrier should be of that order &mdash; not the several eV a
   ghost carrier in the interstitial region gave.
   </div>
+  <div style="margin-top:6px;color:#fc8">
+  <b>Caveat on the path.</b> At shift 0 the site is two hemispheres; at shift &gt; 0 both are full
+  domains assigned by proximity. That change of labelling makes the two ends of the path not strictly
+  comparable, so the reliable comparison is between <i>endpoints</i> &mdash; H&minus; on site 1
+  against site 3, which are mirror images and must be degenerate.
+  </div>
   <div style="margin-top:6px">
   <b>URL:</b> <code>?site=2</code> which site hosts the pair (0&hellip;n&minus;1),
   <code>&amp;shift=0.5</code> slides the second domain toward the next site (0 = on site, 1 = fully
@@ -56,8 +62,13 @@
       // H-: two domains on one kernel, split by a plane normal to the chain (hemi = type 2).
       // Domain A keeps the upstream half; domain B is the extra electron, and `shift` slides
       // its kernel toward the next site so the transfer path can be traced.
-      add(xOf(w), 1, 1, 2, 0, [1, 0, 0]);                       // A: dot < 0 half
-      add(xOf(w) + SHIFT * a, 1, 0, SHIFT > 0.001 ? 0 : 2, 1, [1, 0, 0]);  // B: the extra electron
+      // At shift 0 the two domains share the kernel as hemispheres -- that is H-.
+      // Once B departs, A must be released to a FULL domain: leaving it a hemisphere
+      // confines site 2's own electron to half its space for no reason, which costs
+      // several eV and was the whole of an earlier spurious 28 eV "barrier".
+      var split = SHIFT < 0.001;
+      add(xOf(w), 1, 1, split ? 2 : 0, 0, [1, 0, 0]);                    // A
+      add(xOf(w) + SHIFT * a, 1, 0, split ? 2 : 0, 1, [1, 0, 0]);        // B: the extra electron
     } else {
       add(xOf(w), 1, 1, 0, 0, [0, 0, 0]);
     }
