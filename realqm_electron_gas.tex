@@ -93,7 +93,7 @@ matter, with an attractor always present. A plasma is the first case in which la
 charges of both signs are free to arrange themselves, and it is a fair question what the framework
 then gives.
 
-\section{Metals: a Wigner--Seitz problem the framework already agrees with}
+\section{Metals: a Wigner--Seitz problem the framework already agrees with}\label{sec:metals}
 
 Take a metal: a lattice of ions, one valence electron each. RealQM assigns each electron its own
 domain; by translational symmetry those domains are the Wigner--Seitz cells, one ion at the centre of
@@ -294,12 +294,15 @@ because non-overlap is the postulate. It can only reduce the volume available to
 raises the localisation cost and drives the system further from conduction. \emph{The framework has
 no bandwidth to widen.}
 
-This is the sharpest statement available of where the construction stands in a solid, and it is
-consistent with everything else found here: no Fermi surface, no band filling, a vanishing
-localisation term for a uniform gas, and now a hopping barrier with the wrong density dependence. All
-four follow from the same feature. Non-overlap is a constraint on \emph{regions}, and a partition of
-space cannot deliver what delocalisation delivers, at any density. RealQM as it stands describes an
-insulator, and predicts $d\sigma/dT>0$ for materials that are metals.
+The statement to draw is precise about its scope. \emph{With the non-overlap constraint applied to
+every electron}, the framework describes an insulator at every density, and predicts
+$d\sigma/dT>0$ for materials that are metals. That is consistent with the rest of what is found here
+--- no band filling, a vanishing localisation term for a uniform gas, a hopping barrier with the wrong
+density dependence --- and all of it follows from one feature: non-overlap is a constraint on
+\emph{regions}, and a partition of space does not deliver what delocalisation delivers.
+
+The qualification matters, because the constraint need not be applied to every electron, and the next
+paragraph shows that relaxing it in the valence sector alone is nearly free.
 
 \paragraph{Relaxing the constraint: cheap, and it buys conduction.} The natural repair is to let
 valence electrons share a territory rather than each hold its own, which removes the barrier by
@@ -357,10 +360,13 @@ produces it, $\omega^2=\omega_p^2+\tfrac35k^2v_F^2$, is absent here.
 \end{itemize}
 
 No account of these is currently available in the framework, and constructing one is the substantial
-open problem. It is a sharper problem than it would have appeared a section ago: not that RealQM
-lacks Fermi pressure --- Table~\ref{tab:alkalis} shows a metal's lattice scale coming out regardless
---- but that a set of measured Fermi-surface phenomena have no representation in a theory built from
-localised domains.
+open problem --- the more so because it survives everything else in this paper. It is not disposed of
+by the equation of state, since the lattice scale of a simple metal turns out to be electrostatic and
+to test no quantum treatment at all (\S\ref{sec:metals}). It is not disposed of by the conduction
+repair, since a shared valence territory conducts while still having no band structure and no $E_F$.
+And it is not an artefact of any idealisation, being measured on ordinary metals. A set of
+Fermi-surface phenomena simply has no representation in a theory built from densities on domains,
+however those domains are constrained.
 
 \section*{Remark: the uniform electron gas}
 
