@@ -17,7 +17,17 @@
   machinery, and every domain still carries exactly one unit of charge.
   </div>
   <div style="margin-top:6px;color:#9cf">
-  <b>The decisive comparison.</b> Run both and compare the converged energies:
+  <b>What is actually being measured.</b> The symmetric state is not a rival ground state &mdash; it
+  is the <b>transition state</b> between "electron on the left atom" and "electron on the right",
+  which are degenerate by symmetry. So
+  <b>E(symmetric) &minus; E(localised) is the hopping barrier</b>. Small means facile transfer;
+  large means a trapped carrier. For hopping at room temperature the barrier is of order
+  k<sub>B</sub>T = 0.001&nbsp;Ha, so the tolerance is set a hundred times tighter (2&times;10<sup>&minus;5</sup>)
+  and both cases are run at identical settings so systematics cancel in the difference. If the two
+  agree within tolerance that is the answer, not a failure: no resolvable barrier.
+  </div>
+  <div style="margin-top:6px;color:#9cf">
+  <b>The two runs.</b> Run both and compare the converged energies:
   <code>&amp;mode=left</code> seeds the outer electron on one atom &mdash; <b>H&minus; bound to H</b>,
   the extra charge localised. <code>&amp;mode=both</code> seeds it centred and diffuse &mdash;
   <b>H<sub>2</sub> surrounded by an electron</b>, the extra charge wrapping the molecule. Both are
@@ -103,8 +113,21 @@
   window.USER_STEPS = 1000000;
   window.USER_DYNAMICS = false;          // kernels fixed: the question is the electrons
   window.USER_BOUNDARY_SPEED = BS;       // free boundary allowed to move
+  // record the converged energy of each mode so the difference can be formed
+  window.onSweepDone = function (E) {
+    if (NOEXTRA) return;
+    var st = JSON.parse(localStorage.getItem('realqm_pair') || '{}');
+    st[MODE] = Number(E);
+    st['d'] = d; st['tol'] = window.CONVERGENCE_THRESHOLD;
+    localStorage.setItem('realqm_pair', JSON.stringify(st));
+    console.log('CONVERGED ' + MODE + ' E=' + Number(E).toFixed(6));
+  };
   window.USER_CURV_REG = 0.10;
-  window.CONVERGENCE_THRESHOLD = 0.001;  // settle, and report a converged number
+  // The quantity wanted is E(symmetric) - E(localised), which IS the hopping barrier,
+  // and for facile hopping that is of order k_B T = 0.001 Ha. A tolerance of the same
+  // size would return noise, so converge a hundred times tighter and run both cases at
+  // identical settings so the systematic errors cancel in the difference.
+  window.CONVERGENCE_THRESHOLD = parseFloat(q.get('tol') || '0.00002');
 
   setInterval(function () {
     var el = document.getElementById('mon');
@@ -118,8 +141,18 @@
     if (typeof window._prevE !== 'undefined') {
       var E = Number(window._prevE);
       var floorE = NOEXTRA ? -1.20 : (-1.03 - 0.20);   // H-+H at wide d, with margin
-      txt += 'E = ' + E.toFixed(5) + ' Ha'
+      txt += 'E = ' + E.toFixed(6) + ' Ha'
            + (window._convCount ? '  (settling: ' + window._convCount + ')' : '  (running)');
+      var st = JSON.parse(localStorage.getItem('realqm_pair') || '{}');
+      var other = (MODE === 'both') ? st['left'] : st['both'];
+      if (!NOEXTRA && other !== undefined) {
+        var dE = (MODE === 'both') ? (E - other) : (other - E);
+        txt += '<br><b>barrier E(sym) &minus; E(loc) = ' + dE.toFixed(6) + ' Ha = '
+             + (dE * 27.2114 * 1000).toFixed(1) + ' meV = ' + (dE / 0.00095).toFixed(1) + ' k_BT</b>'
+             + (Math.abs(dE) < 0.002
+                ? '  <span style="color:#9f9">facile transfer</span>'
+                : '  <span style="color:#f99">trapped</span>');
+      }
       if (!NOEXTRA) txt += (E < floorE
         ? '<br><span style="color:#f99">BELOW THE PHYSICAL FLOOR for 2 protons + 3 electrons '
           + '(H&minus;+H = &minus;1.03 at wide separation). Not converged, or a domain has taken a '
