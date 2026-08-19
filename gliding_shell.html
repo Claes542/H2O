@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html><head>
+  <meta charset="utf-8">
+  <title>A gliding shell — does the surrounding electron slide along the chain?</title>
+  <style>body { margin: 0; background: #000; color: #fff; font-family: monospace; }</style>
+</head><body>
+<div id="info" style="position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.85);padding:10px;border:1px solid #333;border-radius:6px;max-width:540px;font-size:12px;z-index:100">
+  <div style="color:#9cf;font-weight:bold">The carrier as a shell, and whether it glides</div>
+  A chain of H atoms with one extra electron, seeded not on an atom but as a <b>shell surrounding
+  the leftmost two</b>. It is outside every nucleus and competes with none of them.
+  <div style="margin-top:6px">
+  <b>Why this configuration and not the others.</b> Every localised attempt today was unstable and
+  returned energies below the physical floor (&minus;2.0, &minus;1.67, &minus;1.42): a localised
+  H&minus; puts two domains in competition for <i>one nucleus</i>, and with free interfaces there is
+  no confinement cost to hold them apart, so one collapses onto it. Every delocalised attempt was
+  stable and physical (&minus;1.21, &minus;1.223, at the floor). A shell sits outside all the nuclei
+  and competes with none, so nothing collapses.
+  </div>
+  <div style="margin-top:6px">
+  <b>Why this transport mode evades the earlier objections.</b> The shell does not translate through
+  space, so nothing has to carve out room &mdash; that was the 31&nbsp;eV and the 5.5&nbsp;eV. And it
+  is not a change of partition topology: the domain stays <b>one connected region</b> throughout,
+  taking in the next atom at the front and releasing one at the back. Only its boundary moves, which
+  is exactly what the solver's free boundary does, flipping cells on density balance.
+  </div>
+  <div style="margin-top:6px">
+  <b>What to watch.</b> The shell starts around atoms 0 and 1. If its territory extends to take in
+  atom 2 &mdash; and further under a bias &mdash; the carrier is gliding, and that is conduction by a
+  mode the framework can actually represent.
+  </div>
+  <div style="margin-top:6px">
+  <b>URL:</b> <code>?n=5</code> atoms, <code>&amp;a=2.2</code> spacing,
+  <code>&amp;zeff=0.22</code> shell extent (small = wider shell),
+  <code>&amp;bias=0</code> extra charge on the far-right kernel to pull it along,
+  <code>&amp;bs=0.25</code> boundary speed.
+  </div>
+  <div id="mon" style="margin-top:8px;color:#9cf">relaxing&hellip;</div>
+</div>
+<script>
+(function() {
+  var q = new URLSearchParams(location.search);
+  var nH   = parseInt(q.get('n') || '5');
+  var a    = parseFloat(q.get('a') || '2.2');
+  var ZEFF = parseFloat(q.get('zeff') || '0.22');
+  var BIAS = parseFloat(q.get('bias') || '0');
+  var BS   = parseFloat(q.get('bs') || '0.25');
+
+  var gridN = 160, scr = 28, N2 = 80;
+  var h = scr / gridN;
+
+  var atoms = [], Z = [], Znuc = [], zeff = [];
+  function add(x, zc, zn, ze) {
+    atoms.push({ i: Math.round(N2 + x / h), j: N2, k: N2, Z: zc, el: 'H' });
+    Z.push(zc); Znuc.push(zn); zeff.push(ze);
+  }
+  function xOf(w) { return (w - (nH - 1) / 2) * a; }
+
+  for (var w = 0; w < nH; w++) {
+    var zn = 1.0 + ((w === nH - 1) ? BIAS : 0.0);   // optional pull from the far end
+    add(xOf(w), 1, zn, 1.0);
+  }
+  // the carrier: centred between atoms 0 and 1, seeded wide so it wraps them both
+  // rather than sitting on either -- outside both nuclei, competing with neither
+  var xShell = 0.5 * (xOf(0) + xOf(1));
+  add(xShell, 1, 0.0, ZEFF);
+  var shell = atoms.length - 1;
+
+  window.USER_ATOMS = atoms;
+  window.USER_Z = Z;
+  window.USER_Z_NUC = Znuc;
+  window.USER_INIT_ZEFF = zeff;
+  window.USER_NN = gridN;
+  window.USER_SCREEN = scr;
+  window.USER_STEPS = 1000000;
+  window.USER_DYNAMICS = false;          // nuclei fixed; the question is the electron
+  window.USER_BOUNDARY_SPEED = BS;       // the free boundary is the transport mechanism
+  window.USER_CURV_REG = 0.10;
+  window.CONVERGENCE_THRESHOLD = 0.0002;
+
+  var floorNote = 'floor for ' + nH + ' protons + ' + (nH + 1) + ' electrons: about '
+                + (-0.52 - 0.5 * (nH - 1)).toFixed(2) + ' Ha at wide spacing';
+
+  setInterval(function () {
+    var el = document.getElementById('mon');
+    if (!el) return;
+    var txt = nH + ' H at ' + a.toFixed(2) + ' a0,  shell Zeff ' + ZEFF.toFixed(2)
+            + ',  bias ' + BIAS.toFixed(2) + ',  bs ' + BS.toFixed(2) + '<br>'
+            + 'carrier seeded as a shell around atoms 0 and 1<br>';
+    if (typeof window._prevE !== 'undefined')
+      txt += 'E = ' + Number(window._prevE).toFixed(5) + ' Ha'
+           + (window._convCount ? '  (settling ' + window._convCount + ')' : '  (running)') + '<br>';
+    txt += '<span style="color:#9c9">' + floorNote + '. Watch the shell\'s territory: if it '
+         + 'extends rightward to take in atom 2 while releasing atom 0, it is gliding &mdash; the '
+         + 'boundary moving rather than the domain translating, which is the mode the framework '
+         + 'can represent.</span>';
+    el.innerHTML = txt;
+  }, 500);
+
+  console.log('gliding shell: n=' + nH + ' a=' + a + ' zeff=' + ZEFF + ' bias=' + BIAS);
+})();
+
+var s = document.createElement('script');
+s.src = 'molecule.js?t=' + Date.now();
+s.onload = function() {
+  var p = document.createElement('script');
+  p.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+  document.body.appendChild(p);
+};
+document.body.appendChild(s);
+</script>
+</body></html>
