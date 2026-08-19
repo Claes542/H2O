@@ -72,39 +72,41 @@
   if (q.get('reset') !== null) save({});
 
   function table() {
-    var d = load();
-    var ks = Object.keys(d).sort(function (x, y) { return parseFloat(x) - parseFloat(y); });
-    var out = ['<b>accumulated</b> (a = ' + a.toFixed(2) + ' a0; add &amp;reset to clear)'];
-    ks.forEach(function (k) { out.push('s = ' + (+k).toFixed(2) + '   E = ' + d[k].toFixed(5)); });
-    if (ks.length > 1) {
-      var Es = ks.map(function (k) { return d[k]; });
-      var bar = Math.max.apply(null, Es) - Math.min.apply(null, Es);
-      out.push('');
-      out.push('<b>barrier ' + bar.toFixed(5) + ' Ha = ' + (bar * 27.2114).toFixed(3) + ' eV'
-               + '  =  ' + (bar / 0.00095).toFixed(0) + ' k_B T</b>');
-      out.push('chain, for comparison: 1.159 Ha = 31.5 eV');
-      if (bar < 0.01) out.push('<span style="color:#9f9">LOW: the lattice offers a cheap route '
-        + '&mdash; metallic-like transport</span>');
-      else if (bar < 0.05) out.push('<span style="color:#ff9">MODERATE: thermally activated '
-        + 'hopping, semiconductor-like</span>');
-      else out.push('<span style="color:#f99">HIGH: the lattice blocks the carrier too '
-        + '&mdash; not a wire artefact</span>');
-    }
-    if (d['-0.50'] !== undefined && d['0.50'] !== undefined) {
-      var sym = Math.abs(d['-0.50'] - d['0.50']);
-      out.push('mirror check |E(-0.5) - E(+0.5)| = ' + sym.toFixed(5)
-               + (sym < 0.01 ? ' &check; harness sound' : ' &times; DO NOT TRUST'));
-    }
-    if (d['0.00'] !== undefined && d['0.50'] !== undefined) {
-      var b2 = d['0.50'] - d['0.00'];
-      out.push('<b>pocket -> saddle: ' + b2.toFixed(5) + ' Ha = '
-               + (b2 * 27.2114).toFixed(3) + ' eV</b>  (negative => the saddle is preferred)');
-    }
+    var d = load(), byA = {};
+    Object.keys(d).forEach(function (k) {
+      var p = k.split('|');
+      (byA[p[0]] = byA[p[0]] || {})[p[1]] = d[k];
+    });
+    var out = ['<b>barrier against lattice spacing</b> (add &amp;reset to clear)'];
+    Object.keys(byA).sort(function (x, y) { return parseFloat(y) - parseFloat(x); }).forEach(function (A) {
+      var e = byA[A];
+      var line = 'a = ' + (+A).toFixed(2) + ' a0 : '
+        + ['-0.50', '0.00', '0.50'].map(function (k) {
+            return e[k] !== undefined ? 's' + k + ' ' + e[k].toFixed(4) : '';
+          }).filter(Boolean).join('   ');
+      if (e['0.00'] !== undefined && e['0.50'] !== undefined) {
+        var b = e['0.50'] - e['0.00'];
+        line += '   <b>barrier ' + b.toFixed(4) + ' Ha = ' + (b * 27.2114).toFixed(2) + ' eV = '
+              + (b / 0.00095).toFixed(0) + ' k_B T</b>';
+        line += b < 0.005 ? ' <span style="color:#9f9">metallic-like</span>'
+              : b < 0.05  ? ' <span style="color:#ff9">activated hopping</span>'
+              :             ' <span style="color:#f99">insulating</span>';
+      }
+      if (e['-0.50'] !== undefined && e['0.50'] !== undefined) {
+        var sym = Math.abs(e['-0.50'] - e['0.50']);
+        line += '   [mirror ' + sym.toFixed(4) + (sym < 0.01 ? ' &check;]' : ' &times; DO NOT TRUST]');
+      }
+      out.push(line);
+    });
+    out.push('');
+    out.push('H2 bonds at 1.4 a0; stretched hydrogen is a Mott insulator, so a large barrier');
+    out.push('at wide spacing is expected. The question is whether it COLLAPSES on compression.');
+    out.push('chain (1D, through an ion): 1.159 Ha = 31.5 eV');
     document.getElementById('tab').innerHTML = out.join('<br>');
   }
 
   window.onSweepDone = function (E) {
-    var d = load(); d[S.toFixed(2)] = Number(E); save(d);
+    var d = load(); d[a.toFixed(2) + '|' + S.toFixed(2)] = Number(E); save(d);
     document.getElementById('mon').innerHTML =
       's = ' + S.toFixed(2) + '   carrier at (' + cx.toFixed(2) + ', ' + cy.toFixed(2) + ') a0'
       + '<br>' + (Math.abs(S - 0.5) < 1e-9
