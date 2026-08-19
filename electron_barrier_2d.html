@@ -104,7 +104,13 @@
       }
       if (e['-0.50'] !== undefined && e['0.50'] !== undefined) {
         var sym = Math.abs(e['-0.50'] - e['0.50']);
-        line += '   [mirror ' + sym.toFixed(4) + (sym < 0.01 ? ' &check;]' : ' &times; DO NOT TRUST]');
+        // judge the mirror discrepancy AGAINST THE BARRIER, not against a fixed number:
+        // it is the error bar on the result, and only matters relative to the signal
+        var b = (e['0.00'] !== undefined) ? Math.abs(e['0.50'] - e['0.00']) : 0;
+        var rel = b > 0 ? sym / b : 1;
+        line += '   [mirror ' + sym.toFixed(4)
+              + (b > 0 ? ' = ' + (100 * rel).toFixed(1) + '% of barrier' : '')
+              + (rel < 0.10 ? ' &check;]' : ' &times; too noisy]');
       }
       out.push(line);
     });
