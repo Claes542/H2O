@@ -24,9 +24,10 @@
   is exactly what the solver's free boundary does, flipping cells on density balance.
   </div>
   <div style="margin-top:6px">
-  <b>What to watch.</b> The shell starts around atoms 0 and 1. If its territory extends to take in
-  atom 2 &mdash; and further under a bias &mdash; the carrier is gliding, and that is conduction by a
-  mode the framework can actually represent.
+  <b>What to watch.</b> Started at the <b>centre</b> (<code>start=mid</code>), the shell has the same
+  distance to travel either way, so wherever it goes is its own preference rather than a consequence
+  of where it was placed. Symmetric and it stays centred; biased and it should drift toward the
+  stronger kernel. Either is informative, and drift under a small bias is the glide.
   </div>
   <div style="margin-top:6px">
   <b>Making the shell exist.</b> A diffuse seed carries a small prefactor
@@ -71,9 +72,13 @@
     // and owns only the far exterior -- which is why no shell was visible.
     add(xOf(w), 1, zn, 1.0, RCUT);
   }
-  // the carrier: centred between atoms 0 and 1, seeded wide so it wraps them both
-  // rather than sitting on either -- outside both nuclei, competing with neither
-  var xShell = 0.5 * (xOf(0) + xOf(1));
+  // Where the shell starts. 'mid' puts it at the centre of the chain, which is the
+  // unbiased place to begin: it then has the same distance to travel either way, and
+  // where it goes is its own preference rather than a consequence of where it was put.
+  var START = q.get('start') || 'mid';
+  var xShell = (START === 'left') ? 0.5 * (xOf(0) + xOf(1))
+             : (START === 'right') ? 0.5 * (xOf(nH - 2) + xOf(nH - 1))
+             : 0.0;
   add(xShell, 1, 0.0, ZEFF, 0.0);   // 0 = no cap: the shell takes whatever is left
   var shell = atoms.length - 1;
 
@@ -98,7 +103,8 @@
     if (!el) return;
     var txt = nH + ' H at ' + a.toFixed(2) + ' a0,  shell Zeff ' + ZEFF.toFixed(2)
             + ',  bias ' + BIAS.toFixed(2) + ',  bs ' + BS.toFixed(2) + '<br>'
-            + 'carrier seeded as a shell around atoms 0 and 1<br>';
+            + 'shell seeded at x = ' + xShell.toFixed(2) + ' a0 ('
+            + (START === 'mid' ? 'centre of the chain' : START) + ')<br>';
     if (typeof window._prevE !== 'undefined')
       txt += 'E = ' + Number(window._prevE).toFixed(5) + ' Ha'
            + (window._convCount ? '  (settling ' + window._convCount + ')' : '  (running)') + '<br>';
