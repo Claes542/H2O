@@ -41,8 +41,15 @@
   <code>&amp;noextra</code> for the H + H reference at the same separation and compare: binding
   requires E(H&minus;+H) &lt; E(H+H).
   </div>
+  <div style="margin-top:6px;color:#f99">
+  <b>Floor check.</b> For two protons and three electrons at this separation the lowest available
+  total energy is about &minus;1.21 Ha (H<sub>2</sub> at &minus;1.17 plus at most ~1 eV of electron
+  affinity). Anything appreciably below that is a spurious state, not a deep one &mdash; typically
+  the carrier having claimed the cells at a nucleus and sitting in the unscreened well.
+  </div>
   <div style="margin-top:6px">
-  <b>URL:</b> <code>?d=3.0</code> separation, <code>&amp;zeff=0.35</code> outer-electron extent,
+  <b>URL:</b> <code>?d=3.0</code> separation, <code>&amp;offs=1.6</code> how far outside the inner
+  electron the carrier is seeded (localised mode), <code>&amp;zeff=0.35</code> outer-electron extent,
   <code>&amp;bias=0.0</code> added to the right kernel charge, <code>&amp;bs=0.8</code> boundary speed.
   </div>
   <div id="mon" style="margin-top:8px;color:#8f8">relaxing&hellip;</div>
@@ -59,6 +66,7 @@
   //   'left'  -> H- bound to H          (the extra charge localised on one atom)
   //   'both'  -> H2 surrounded by e     (the extra charge wrapping the molecule)
   var MODE = q.get('mode') || 'left';
+  var OFFS = parseFloat(q.get('offs') || '1.6');   // how far outside the inner electron to seed
 
   var gridN = 140, scr = 24, N2 = 70;
   var h = scr / gridN;
@@ -74,8 +82,13 @@
   // 2: right kernel, its own electron           (the H)
   add(-d / 2, 1, 1.0,        1.0);
   if (!NOEXTRA) {
-    // seeded on the left atom, or centred on the molecule and diffuse enough to wrap it
-    var xc = (MODE === 'both') ? 0.0 : -d / 2;
+    // The carrier must be seeded so it can only ever be the OUTER electron. Placing it
+    // ON the left kernel lets it claim the innermost cells and sit in the unscreened
+    // -1/r well -- a relabelling of which domain owns the nucleus, not an H-, and
+    // spuriously deep (it produced -2.0, some 21 eV below the floor for 2p+3e).
+    // So displace it: a shell centred on the left atom but seeded OUTSIDE the inner
+    // electron, or centred on the molecule for the delocalised state.
+    var xc = (MODE === 'both') ? 0.0 : -d / 2 - OFFS;
     var ze = (MODE === 'both') ? Math.min(ZEFF, 0.30) : ZEFF;
     add(xc, 1, 0.0, ze);                         // the carrier
   }
@@ -102,8 +115,15 @@
                          ? '<b>H<sub>2</sub> + surrounding electron</b> (extra charge wrapping both)'
                          : '<b>H&minus; bound to H</b> (extra charge on the left atom)')
             + ',  3 domains, net &minus;1<br>';
-    if (typeof window._prevE !== 'undefined')
-      txt += 'E = ' + Number(window._prevE).toFixed(5) + ' Ha<br>';
+    if (typeof window._prevE !== 'undefined') {
+      var E = Number(window._prevE);
+      txt += 'E = ' + E.toFixed(5) + ' Ha';
+      if (!NOEXTRA) txt += (E < -1.35
+        ? '  <span style="color:#f99">&lt; floor &minus;1.21: SPURIOUS, the carrier has taken a '
+          + 'nucleus</span>'
+        : '  <span style="color:#9f9">physical range</span>');
+      txt += '<br>';
+    }
     txt += '<span style="color:#9c9">Watch the rendered domains. The outer electron starts as a '
          + 'diffuse shell on the LEFT. If its territory reaches across and takes cells around the '
          + 'right kernel, the free boundary has carried charge from one atom to the other &mdash; '
