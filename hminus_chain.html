@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html><head>
+  <meta charset="utf-8">
+  <title>H⁻ in a hydrogen chain — can the extra electron move?</title>
+  <style>body { margin: 0; background: #000; color: #fff; font-family: monospace; }</style>
+</head><body>
+<div id="info" style="position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.85);padding:10px;border:1px solid #333;border-radius:6px;max-width:520px;font-size:12px;z-index:100">
+  <div style="color:#8f8;font-weight:bold">H&minus; in a chain of H atoms</div>
+  A chain of hydrogen atoms with one site carrying <b>two electron domains</b>, split by a plane as
+  RealQM already treats helium. That site is <b>H&minus;</b>.
+  <div style="margin-top:6px">
+  <b>Why this is the right construction.</b> Every domain still carries exactly one unit of charge, so
+  nothing in the framework is relaxed &mdash; unlike a ghost carrier squeezing between atoms, or a
+  domain holding &minus;2. The chain is N protons and N+1 unit domains, all legitimate. And
+  H&minus; is a real species: electron affinity <b>0.75&nbsp;eV</b>, so the extra electron is bound,
+  but barely.
+  </div>
+  <div style="margin-top:6px">
+  <b>The question.</b> The H&minus; site is degenerate with every other site by symmetry, so the
+  endpoints cost the same. What does the path between them cost? A carrier bound by only 0.75 eV has
+  little holding it in place, so the barrier should be of that order &mdash; not the several eV a
+  ghost carrier in the interstitial region gave.
+  </div>
+  <div style="margin-top:6px">
+  <b>URL:</b> <code>?site=2</code> which site hosts the pair (0&hellip;n&minus;1),
+  <code>&amp;shift=0.5</code> slides the second domain toward the next site (0 = on site, 1 = fully
+  transferred), <code>&amp;a=3.0</code> spacing, <code>&amp;reset</code> clears.
+  </div>
+  <div id="mon" style="margin-top:8px;color:#8f8">relaxing&hellip;</div>
+  <div id="tab" style="margin-top:8px;color:#9c9;font-size:11px"></div>
+</div>
+<script>
+(function() {
+  var q = new URLSearchParams(location.search);
+  var SITE  = parseInt(q.get('site') || '2');
+  var SHIFT = parseFloat(q.get('shift') || '0');
+  var a     = parseFloat(q.get('a') || '3.0');
+
+  var gridN = 160, scr = 26, N2 = 80;
+  var h = scr / gridN;
+  var nH = 5;
+
+  var atoms = [], Z = [], Znuc = [];
+  var splitType = [], splitIdx = [], splitAxis = [];
+  function add(x, zc, zn, st, si, ax) {
+    atoms.push({ i: Math.round(N2 + x / h), j: N2, k: N2, Z: zc, el: 'H' });
+    Z.push(zc); Znuc.push(zn);
+    splitType.push(st || 0); splitIdx.push(si || 0);
+    splitAxis.push(ax || [0, 0, 0]);
+  }
+
+  function xOf(w) { return (w - (nH - 1) / 2) * a; }
+
+  for (var w = 0; w < nH; w++) {
+    if (w === SITE) {
+      // H-: two domains on one kernel, split by a plane normal to the chain (hemi = type 2).
+      // Domain A keeps the upstream half; domain B is the extra electron, and `shift` slides
+      // its kernel toward the next site so the transfer path can be traced.
+      add(xOf(w), 1, 1, 2, 0, [1, 0, 0]);                       // A: dot < 0 half
+      add(xOf(w) + SHIFT * a, 1, 0, SHIFT > 0.001 ? 0 : 2, 1, [1, 0, 0]);  // B: the extra electron
+    } else {
+      add(xOf(w), 1, 1, 0, 0, [0, 0, 0]);
+    }
+  }
+
+  window.USER_ATOMS = atoms;
+  window.USER_Z = Z;
+  window.USER_Z_NUC = Znuc;
+  window.USER_SPLIT_TYPE = splitType;
+  window.USER_SPLIT_IDX = splitIdx;
+  window.USER_SPLIT_AXIS = splitAxis;
+  window.USER_NN = gridN;
+  window.USER_SCREEN = scr;
+  window.USER_STEPS = 1000000;
+  window.USER_DYNAMICS = false;               // constrained scan: geometry held
+  window.INIT_ZEFF = 1;
+  window.CONVERGENCE_THRESHOLD = 0.002;
+
+  var KEY = 'realqm_hminus';
+  function load() { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { return {}; } }
+  function save(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} }
+  if (q.get('reset') !== null) save({});
+
+  function table() {
+    var d = load();
+    var ks = Object.keys(d).sort();
+    var out = ['<b>accumulated</b> (a = ' + a.toFixed(2) + ' a0; add &amp;reset to clear)'];
+    ks.forEach(function (k) { out.push(k + '   E = ' + d[k].toFixed(5)); });
+    var byShift = {};
+    ks.forEach(function (k) {
+      var m = k.match(/site(\d+) shift([\d.]+)/);
+      if (m) byShift[m[2]] = d[k];
+    });
+    var s0 = byShift['0.00'], s5 = byShift['0.50'], s1 = byShift['1.00'];
+    if (s0 !== undefined && s5 !== undefined) {
+      var b = s5 - s0;
+      out.push('');
+      out.push('<b>on-site &rarr; midpoint: ' + b.toFixed(5) + ' Ha = '
+               + (b * 27.2114).toFixed(3) + ' eV</b>');
+      out.push('H&minus; electron affinity for scale: 0.75 eV');
+      out.push(Math.abs(b * 27.2114) < 1.0
+        ? '<span style="color:#9f9">comparable to the binding itself &mdash; a mobile carrier</span>'
+        : '<span style="color:#f99">far above the binding &mdash; the extra electron is pinned</span>');
+    }
+    if (s0 !== undefined && s1 !== undefined) {
+      out.push('symmetry check |E(0) - E(1)| = ' + Math.abs(s1 - s0).toFixed(5)
+               + (Math.abs(s1 - s0) < 0.01 ? ' &check;' : ' &times; endpoints should be degenerate'));
+    }
+    document.getElementById('tab').innerHTML = out.join('<br>');
+  }
+
+  window.onSweepDone = function (E) {
+    var d = load();
+    d['site' + SITE + ' shift' + SHIFT.toFixed(2)] = Number(E);
+    save(d);
+    document.getElementById('mon').innerHTML =
+      'H&minus; on site ' + SITE + ' of ' + nH + ',  shift ' + SHIFT.toFixed(2)
+      + '<br>' + (SHIFT < 0.001 ? 'both domains on the kernel (a proper H&minus;)'
+                 : SHIFT > 0.999 ? 'the extra domain has reached the next site'
+                 : 'the extra domain is between sites')
+      + '<br><b>E = ' + Number(E).toFixed(5) + ' Ha</b>';
+    table();
+    console.log('RESULT site=' + SITE + ' shift=' + SHIFT + ' E=' + Number(E).toFixed(5));
+  };
+
+  document.getElementById('mon').innerHTML =
+    'H&minus; on site ' + SITE + ',  shift ' + SHIFT.toFixed(2)
+    + '<br>' + nH + ' protons, ' + (nH + 1) + ' unit domains, relaxing&hellip;';
+  table();
+  console.log('H- chain: ' + nH + ' H at a=' + a + ', pair on site ' + SITE + ', shift ' + SHIFT);
+})();
+
+var s = document.createElement('script');
+s.src = 'molecule.js?t=' + Date.now();
+s.onload = function() {
+  var p = document.createElement('script');
+  p.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+  document.body.appendChild(p);
+};
+document.body.appendChild(s);
+</script>
+</body></html>
