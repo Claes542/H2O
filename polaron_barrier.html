@@ -66,23 +66,15 @@
   // The scan coordinate is the CARRIER position, so the carrier must be held while the
   // lattice relaxes around it. USER_FROZEN_ATOMS does that -- note USER_N_MOVE is
   // electronic steps between nuclear moves, NOT which atoms may move.
-  window.USER_DYNAMICS = false;                 // electrons relax first, as always
+  // Dynamics must be ON FROM THE START: molecule.js declares dynamicsEnabled with `let`
+  // at top level, so it is not a window property and window.dynamicsEnabled = true is
+  // read by nothing. (The D key toggles the real one, if a run needs it by hand.)
+  window.USER_DYNAMICS = RELAX;
   window.USER_FROZEN_ATOMS = [carrier];         // the reaction coordinate is held
   window.USER_N_MOVE = 30;                      // electronic steps per nuclear move
   window.USER_LANGEVIN_GAMMA = 0.4;             // damped: seek the minimum, not dynamics
   window.USER_TEMPERATURE_K = 0;
   window.USER_NUC_SUBSTEPS = 10;
-
-  if (RELAX) {
-    // switch the ions on once the electron densities have settled
-    setInterval(function () {
-      if (typeof phaseSteps !== 'undefined' && phaseSteps > 4000 &&
-          typeof dynamicsEnabled !== 'undefined' && !dynamicsEnabled) {
-        window.dynamicsEnabled = true;
-        console.log('lattice released at step ' + phaseSteps);
-      }
-    }, 500);
-  }
 
   var KEY = 'realqm_polaron';
   function load() { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { return {}; } }
@@ -147,8 +139,11 @@
       (RELAX ? 'lattice RELAXED' : 'lattice FROZEN') + '   s = ' + S.toFixed(2)
       + '<br>carrier held at (' + cx.toFixed(2) + ', ' + cy.toFixed(2) + ') a0'
       + '<br><b>E = ' + Number(E).toFixed(5) + ' Ha</b>'
-      + (dist !== null ? '<br>largest ion displacement: ' + dist.toFixed(3)
-         + ' a0' + (dist > 0.05 ? '  (a polaron has formed)' : '  (lattice essentially undistorted)') : '');
+      + (dist !== null ? '<br>largest ion displacement: ' + dist.toFixed(3) + ' a0'
+         + (dist > 0.05 ? '  <span style="color:#9f9">(a polaron has formed)</span>'
+            : RELAX ? '  <span style="color:#f99">(NOTHING MOVED &mdash; press D to toggle '
+                      + 'dynamics, or the run is not a relaxed one)</span>'
+                    : '  (frozen, as intended)') : '');
     table();
     console.log('RESULT ' + (RELAX ? 'relaxed' : 'frozen') + ' s=' + S + ' E=' + Number(E).toFixed(5)
                 + ' dist=' + (dist === null ? '?' : dist.toFixed(3)));
