@@ -196,6 +196,11 @@ footer a { color: #4fc3f7; text-decoration: none; }
         the carriers are the valence electrons themselves, each in its own domain.
         </div>
         <div style="margin-top:8px">
+        <b>Method note.</b> Transport cannot be simulated directly here: in this solver what moves is
+        <i>kernels</i>, and a carrier is a domain with no kernel, so it feels no force from the lattice.
+        The valid route is the <b>static barrier</b>, which is an energy difference the solver does
+        compute.
+        <div style="margin-top:8px">
         <b>The finding.</b> The barrier to moving a carrier between interstitial sites is
         <b>5.5&nbsp;eV</b> at 2.5&nbsp;a<sub>0</sub> and <b>rises to 11.5&nbsp;eV</b> when the lattice is
         compressed to the H<sub>2</sub> bond length &mdash; where matter would instead turn metallic.
@@ -204,11 +209,11 @@ footer a { color: #4fc3f7; text-decoration: none; }
         sector removes the barrier at about 1% cost in the equilibrium radius, but supplies no Fermi
         surface &mdash; which stays the open problem, being measured on ordinary metals (de
         Haas&ndash;van Alphen, linear specific heat, plasmon dispersion).
-        </div>
+        </div></div>
         <div style="margin-top:10px">
           <a href="realqm_electron_gas.pdf" style="display:inline-block;padding:8px 18px;background:#9ccdf5;color:#000;text-decoration:none;font-weight:bold;border-radius:4px">article (PDF)</a>
           &middot; <a href="electron_barrier_2d.html" style="color:#9ccdf5">2D lattice barrier scan</a>
-          &middot; <a href="conduction_field.html" style="color:#9ccdf5">carrier drift under a field</a>
+          &middot; <a href="conduction_field.html" style="color:#777">carrier drift under a field (invalid &mdash; see page)</a>
           &middot; <a href="polaron_barrier.html" style="color:#9ccdf5">polaron barrier (lattice relaxes)</a>
           &middot; <a href="electron_barrier.html" style="color:#9ccdf5">1D chain (why a wire misleads)</a>
           &middot; <a href="proton_wire.html" style="color:#ffa726">proton conduction (Grotthuss) &mdash; the transport that works</a>

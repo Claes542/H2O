@@ -5,7 +5,18 @@
   <style>body { margin: 0; background: #000; color: #fff; font-family: monospace; }</style>
 </head><body>
 <div id="info" style="position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.85);padding:10px;border:1px solid #333;border-radius:6px;max-width:520px;font-size:12px;z-index:100">
-  <div style="color:#9cf;font-weight:bold">Conduction: a carrier in a field</div>
+  <div style="color:#f66;font-weight:bold">INVALID &mdash; this page does not measure conduction</div>
+  <div style="color:#f99;margin-top:4px">
+  The carrier is a domain with <code>Z_nuc = 0</code>: no kernel, hence no kernel potential, hence
+  <b>no force from the lattice</b>. The applied force therefore drags the marker through free space
+  with its domain trailing, and the observed drift is not barrier crossing. Measured: 0.89 lattice
+  spacings for 0.022 Ha of work against a barrier of 0.20 Ha &mdash; a factor of twenty, which is the
+  tell. In this solver what moves is <i>kernels</i>, and a carrier has none, so field-driven drift is
+  not available. The static barrier scan
+  (<a href="electron_barrier_2d.html" style="color:#9cf">electron_barrier_2d</a>) is the valid route.
+  Kept as the record of a method that does not work.
+  </div>
+  <div style="color:#9cf;font-weight:bold;margin-top:8px">Conduction: a carrier in a field</div>
   Conduction is charge moving <b>under an applied field</b>. Without one a carrier merely rolls into
   the nearest well, which tests equilibrium and not transport. Here a uniform force is applied to the
   carrier alone and its drift is measured.
