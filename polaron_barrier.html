@@ -63,11 +63,12 @@
   window.INIT_ZEFF = 1;
   window.CONVERGENCE_THRESHOLD = 0.002;
 
-  // The scan coordinate is the CARRIER position, so the carrier must stay where it is
-  // put while the lattice relaxes around it. USER_N_MOVE limits motion to the first
-  // n atoms, which are exactly the 16 lattice ions -- the carrier is last and is held.
+  // The scan coordinate is the CARRIER position, so the carrier must be held while the
+  // lattice relaxes around it. USER_FROZEN_ATOMS does that -- note USER_N_MOVE is
+  // electronic steps between nuclear moves, NOT which atoms may move.
   window.USER_DYNAMICS = false;                 // electrons relax first, as always
-  window.USER_N_MOVE = RELAX ? nSide * nSide : 0;
+  window.USER_FROZEN_ATOMS = [carrier];         // the reaction coordinate is held
+  window.USER_N_MOVE = 30;                      // electronic steps per nuclear move
   window.USER_LANGEVIN_GAMMA = 0.4;             // damped: seek the minimum, not dynamics
   window.USER_TEMPERATURE_K = 0;
   window.USER_NUC_SUBSTEPS = 10;
