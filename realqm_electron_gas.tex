@@ -37,7 +37,13 @@ $70\%$, it reproduces that radius to a mean error of $6.2\%$ against the standar
 $5.6\%$ --- and for K, Rb and Cs it is the closer of the two --- from a framework carrying neither an
 exchange term nor a band-filling term. The bulk modulus, a second derivative, is given badly by both
 columns and worse by RealQM, so what is demonstrated is the size of a metal and not its stiffness. The plasma frequency $\omega_p^2=4\pi n$ comes out
-exactly, since a rigid displacement leaves the localisation energy untouched. Conduction is examined and found to be, at present, not testable: charge transport by transfer
+exactly, since a rigid displacement leaves the localisation energy untouched. Conduction is examined by computing the hopping barrier, which is static and so within reach:
+in a $4\times4$ hydrogen lattice the carrier is confined to interstitial pockets by $5.5$~eV at
+$a=2.5\,a_0$, and compressing to the $\mathrm{H_2}$ bond length \emph{doubles} that to $11.5$~eV
+where matter would instead become metallic --- non-overlap admitting no growth of overlap under
+compression, so there is no bandwidth to widen. Transport by transfer is meanwhile already
+demonstrated in the framework for \emph{protons}, in Grotthuss conduction along a water chain, while
+the direct electronic analogue is not testable in the static solver: charge transport by transfer
 between localised sites is already demonstrated in the framework for \emph{protons}, in Grotthuss
 conduction along a water chain, but the electronic counterpart cannot be run, because domain
 ownership in the solver is assigned by kernel proximity, so an electron cannot change which kernel
@@ -232,11 +238,58 @@ of motion at all. The correct machinery exists elsewhere in the programme, in th
 where a real density carries a complex current, and a conduction calculation belongs there rather
 than here.
 
-The honest statement is therefore not that RealQM cannot conduct, but that conduction was put to a
-solver with no mechanism for electron motion of any kind. Whether electronic transport in a metal is
-of the hopping kind the framework's localised domains suggest, or of the band kind it has no evident
-means to represent, remains open --- and is now a well-posed calculation for the time-dependent
-formulation rather than a question about the one used here.
+\paragraph{The barrier, which is a static quantity.} Transport by hopping is governed by a barrier,
+and a barrier is an energy difference, which the static solver does compute. Placing an excess
+electron as a domain of its own at successive positions and relaxing each to convergence traces the
+surface the carrier moves on --- the standard route to a small-polaron barrier.
+
+A linear chain answers the wrong question: four hydrogens in a line give $1.16$~Ha $=31.5$~eV, but
+that is the cost of pushing the carrier \emph{through} an ion, and stepping $1\,a_0$ aside makes it
+marginally worse rather than better, because in a wire there is no route from one interstitial pocket
+to the next except through an atom. A lattice has one. In a $4\times4$ square lattice the carrier
+passes from the centre of one square through the \emph{midpoint of a bond} --- flanked by two atoms
+at half a spacing each, never at zero distance from any --- to the centre of the next.
+
+\begin{table}[h]\centering
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+lattice spacing & pocket (Ha) & saddle (Ha) & barrier\\
+\midrule
+$a=2.5\,a_0$ & $-16.254$ & $-16.053$ & $0.200\pm0.003$~Ha $=5.46$~eV\\
+$a=1.4\,a_0$ & $-11.824$ & $-11.402$ & $0.421\pm0.015$~Ha $=11.5$~eV\\
+\bottomrule
+\end{tabular}
+\caption{Barrier for a carrier moving between interstitial sites of a hydrogen lattice. Uncertainties
+are from the mirror-symmetry check, the two bond midpoints either side of a pocket being equivalent
+by construction.}
+\label{tab:barrier}
+\end{table}
+
+\noindent The lattice route is real: passing between two atoms costs $5.8$ times less than passing
+through one, so the chain's figure was an artefact of dimensionality. But the barrier that remains is
+$5.5$~eV, some $200\,k_BT$, and the carrier is confined to its pocket. At $a=2.5\,a_0$ that may be
+right --- nearly twice the $\mathrm{H_2}$ bond length, where stretched hydrogen is a Mott insulator
+in nature too.
+
+\paragraph{The density trend, which is the finding.} Compressing the lattice to the
+$\mathrm{H_2}$ bond length does not close the barrier. It \textbf{doubles} it, to $11.5$~eV. The
+value at $a=1.4$ is the softer of the two, its mirror check standing at $3.7\%$ of the barrier
+against $1.4\%$ at the wider spacing, but the difference between the two barriers is twelve times
+their combined uncertainty and the direction is not in doubt.
+
+Matter does the opposite. Compression is what drives the Mott transition: overlap grows, the band
+widens, $U/W$ falls, and an insulator becomes a metal. Here compression cannot increase overlap,
+because non-overlap is the postulate. It can only reduce the volume available to each domain, which
+raises the localisation cost and drives the system further from conduction. \emph{The framework has
+no bandwidth to widen.}
+
+This is the sharpest statement available of where the construction stands in a solid, and it is
+consistent with everything else found here: no Fermi surface, no band filling, a vanishing
+localisation term for a uniform gas, and now a hopping barrier with the wrong density dependence. All
+four follow from the same feature. Non-overlap is a constraint on \emph{regions}, and a partition of
+space cannot deliver what delocalisation delivers, at any density. RealQM as it stands describes an
+insulator, and predicts $d\sigma/dT>0$ for materials that are metals.
 
 \section{What remains open: the Fermi surface}
 
