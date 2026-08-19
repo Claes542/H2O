@@ -22,6 +22,10 @@
   route to that (see the article).
   </div>
   <div style="margin-top:6px">
+  <b>Direct version:</b> add <code>&amp;free</code> and the carrier is released too &mdash; nothing
+  is held, and one simply watches whether it stays in its pocket or migrates. That is the
+  illustration; the barrier scan below is the measurement.
+  <div style="margin-top:6px">
   <b>URL:</b> <code>?s=0.5</code> position along pocket&rarr;saddle&rarr;pocket,
   <code>&amp;a=2.5</code> spacing, <code>&amp;relax=1</code> lattice free (default) or
   <code>&amp;relax=0</code> to reproduce the frozen result, <code>&amp;reset</code> clears.
@@ -35,6 +39,7 @@
   var S = parseFloat(q.get('s') || '0.5');
   var a = parseFloat(q.get('a') || '2.5');
   var RELAX = q.get('relax') !== '0';          // default: lattice free to move
+  var FREE  = q.get('free') !== null;          // ?free : release the carrier as well
 
   var gridN = 160, scr = 26, N2 = 80;
   var h = scr / gridN;
@@ -69,8 +74,12 @@
   // Dynamics must be ON FROM THE START: molecule.js declares dynamicsEnabled with `let`
   // at top level, so it is not a window property and window.dynamicsEnabled = true is
   // read by nothing. (The D key toggles the real one, if a run needs it by hand.)
-  window.USER_DYNAMICS = RELAX;
-  window.USER_FROZEN_ATOMS = [carrier];         // the reaction coordinate is held
+  window.USER_DYNAMICS = RELAX || FREE;
+  // Held by default: for a barrier the carrier IS the reaction coordinate. With ?free
+  // it is released instead, which asks the direct question -- does it stay where it is
+  // put, or migrate through the lattice? Nothing is being constrained then, so what is
+  // seen is what the model does.
+  window.USER_FROZEN_ATOMS = FREE ? [] : [carrier];
   window.USER_N_MOVE = 30;                      // electronic steps per nuclear move
   window.USER_LANGEVIN_GAMMA = 0.4;             // damped: seek the minimum, not dynamics
   window.USER_TEMPERATURE_K = 0;
@@ -85,6 +94,11 @@
     // how far the ions moved from their lattice sites: the polaron's signature
     if (typeof nucPos === 'undefined') return null;
     var mx = 0;
+    if (FREE && nucPos[carrier]) {
+      var cdx = (nucPos[carrier][0] - atoms[carrier].i) * h;
+      var cdy = (nucPos[carrier][1] - atoms[carrier].j) * h;
+      window._carrierMoved = Math.sqrt(cdx * cdx + cdy * cdy);
+    }
     for (var n = 0; n < nSide * nSide; n++) {
       if (!nucPos[n]) continue;
       var dx = (nucPos[n][0] - atoms[n].i) * h, dy = (nucPos[n][1] - atoms[n].j) * h;
@@ -139,6 +153,13 @@
       (RELAX ? 'lattice RELAXED' : 'lattice FROZEN') + '   s = ' + S.toFixed(2)
       + '<br>carrier held at (' + cx.toFixed(2) + ', ' + cy.toFixed(2) + ') a0'
       + '<br><b>E = ' + Number(E).toFixed(5) + ' Ha</b>'
+      + (FREE && window._carrierMoved !== undefined
+         ? '<br><b>carrier travelled ' + window._carrierMoved.toFixed(3) + ' a0</b>'
+           + '  (lattice spacing ' + a.toFixed(2) + ')'
+           + (window._carrierMoved > 0.5 * a
+              ? ' <span style="color:#9f9">&mdash; it moved to another site: transport</span>'
+              : ' <span style="color:#f99">&mdash; it stayed in its pocket: localised</span>')
+         : '')
       + (dist !== null ? '<br>largest ion displacement: ' + dist.toFixed(3) + ' a0'
          + (dist > 0.05 ? '  <span style="color:#9f9">(a polaron has formed)</span>'
             : RELAX ? '  <span style="color:#f99">(NOTHING MOVED &mdash; press D to toggle '
