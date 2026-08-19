@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html><head>
+  <meta charset="utf-8">
+  <title>Polaron barrier — the lattice relaxes around the carrier</title>
+  <style>body { margin: 0; background: #000; color: #fff; font-family: monospace; }</style>
+</head><body>
+<div id="info" style="position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.85);padding:10px;border:1px solid #333;border-radius:6px;max-width:520px;font-size:12px;z-index:100">
+  <div style="color:#fc8;font-weight:bold">Small-polaron barrier: lattice free to relax</div>
+  <code>electron_barrier_2d</code> held the lattice frozen and found <b>5.46 eV</b> to move a carrier
+  between interstitial sites. That is the <i>vertical</i> barrier &mdash; the cost of moving the
+  charge while the ions stand still &mdash; and it is not the quantity that governs transport.
+  <div style="margin-top:6px">
+  Real hopping is a <b>polaron</b> hop: the carrier sits in a well it has dug itself, the lattice
+  distorting around it, and it moves together with that distortion. The relevant barrier is the
+  <i>relaxed</i> one, which is smaller, often by a great deal. This page computes it by letting the
+  ions move (<code>USER_DYNAMICS</code>) at every point of the scan.
+  </div>
+  <div style="margin-top:6px">
+  <b>Why this is the semiconductor case.</b> With a relaxed barrier E<sub>a</sub> the conductivity is
+  activated, &sigma; &prop; exp(&minus;E<sub>a</sub>/k<sub>B</sub>T), which is how semiconductors,
+  oxides and disordered solids conduct. It is not how a metal conducts, and the framework has no
+  route to that (see the article).
+  </div>
+  <div style="margin-top:6px">
+  <b>URL:</b> <code>?s=0.5</code> position along pocket&rarr;saddle&rarr;pocket,
+  <code>&amp;a=2.5</code> spacing, <code>&amp;relax=1</code> lattice free (default) or
+  <code>&amp;relax=0</code> to reproduce the frozen result, <code>&amp;reset</code> clears.
+  </div>
+  <div id="mon" style="margin-top:8px;color:#fc8">relaxing&hellip;</div>
+  <div id="tab" style="margin-top:8px;color:#9c9;font-size:11px"></div>
+</div>
+<script>
+(function() {
+  var q = new URLSearchParams(location.search);
+  var S = parseFloat(q.get('s') || '0.5');
+  var a = parseFloat(q.get('a') || '2.5');
+  var RELAX = q.get('relax') !== '0';          // default: lattice free to move
+
+  var gridN = 160, scr = 26, N2 = 80;
+  var h = scr / gridN;
+  var nSide = 4;
+
+  var atoms = [], Z = [], Znuc = [];
+  function add(x, y, z, zc, zn) {
+    atoms.push({ i: Math.round(N2 + x / h), j: Math.round(N2 + y / h),
+                 k: Math.round(N2 + z / h), Z: zc, el: 'H' });
+    Z.push(zc); Znuc.push(zn);
+  }
+  for (var i = 0; i < nSide; i++)
+    for (var j = 0; j < nSide; j++)
+      add((i - (nSide - 1) / 2) * a, (j - (nSide - 1) / 2) * a, 0, 1, 1);
+
+  var cx = S * a, cy = 0.0;
+  add(cx, cy, 0, 1, 0);                         // the carrier
+  var carrier = atoms.length - 1;
+
+  window.USER_ATOMS = atoms;
+  window.USER_Z = Z;
+  window.USER_Z_NUC = Znuc;
+  window.USER_NN = gridN;
+  window.USER_SCREEN = scr;
+  window.USER_STEPS = 1000000;
+  window.INIT_ZEFF = 1;
+  window.CONVERGENCE_THRESHOLD = 0.002;
+
+  // The scan coordinate is the CARRIER position, so the carrier must stay where it is
+  // put while the lattice relaxes around it. USER_N_MOVE limits motion to the first
+  // n atoms, which are exactly the 16 lattice ions -- the carrier is last and is held.
+  window.USER_DYNAMICS = false;                 // electrons relax first, as always
+  window.USER_N_MOVE = RELAX ? nSide * nSide : 0;
+  window.USER_LANGEVIN_GAMMA = 0.4;             // damped: seek the minimum, not dynamics
+  window.USER_TEMPERATURE_K = 0;
+  window.USER_NUC_SUBSTEPS = 10;
+
+  if (RELAX) {
+    // switch the ions on once the electron densities have settled
+    setInterval(function () {
+      if (typeof phaseSteps !== 'undefined' && phaseSteps > 4000 &&
+          typeof dynamicsEnabled !== 'undefined' && !dynamicsEnabled) {
+        window.dynamicsEnabled = true;
+        console.log('lattice released at step ' + phaseSteps);
+      }
+    }, 500);
+  }
+
+  var KEY = 'realqm_polaron';
+  function load() { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { return {}; } }
+  function save(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} }
+  if (q.get('reset') !== null) save({});
+
+  function distortion() {
+    // how far the ions moved from their lattice sites: the polaron's signature
+    if (typeof nucPos === 'undefined') return null;
+    var mx = 0;
+    for (var n = 0; n < nSide * nSide; n++) {
+      if (!nucPos[n]) continue;
+      var dx = (nucPos[n][0] - atoms[n].i) * h, dy = (nucPos[n][1] - atoms[n].j) * h;
+      var d = Math.sqrt(dx * dx + dy * dy);
+      if (d > mx) mx = d;
+    }
+    return mx;
+  }
+
+  function table() {
+    var d = load();
+    var out = ['<b>accumulated</b> (a = ' + a.toFixed(2) + ' a0; add &amp;reset to clear)'];
+    ['frozen', 'relaxed'].forEach(function (mode) {
+      var e = {};
+      Object.keys(d).forEach(function (k) {
+        var p = k.split('|');
+        if (p[0] === mode) e[p[1]] = d[k];
+      });
+      var ks = Object.keys(e).sort(function (x, y) { return x - y; });
+      if (!ks.length) return;
+      var line = mode + ': ' + ks.map(function (k) {
+        return 's' + (+k).toFixed(2) + ' ' + e[k].E.toFixed(4);
+      }).join('   ');
+      if (e['0.00'] !== undefined && e['0.50'] !== undefined) {
+        var b = e['0.50'].E - e['0.00'].E;
+        line += '   <b>barrier ' + b.toFixed(4) + ' Ha = ' + (b * 27.2114).toFixed(2) + ' eV</b>';
+      }
+      out.push(line);
+    });
+    var fr = d['frozen|0.50'], rx = d['relaxed|0.50'],
+        f0 = d['frozen|0.00'], r0 = d['relaxed|0.00'];
+    if (fr && rx && f0 && r0) {
+      var bf = fr.E - f0.E, br = rx.E - r0.E;
+      out.push('');
+      out.push('<b>relaxation lowers the barrier by ' + ((bf - br) * 27.2114).toFixed(2)
+               + ' eV, from ' + (bf * 27.2114).toFixed(2) + ' to ' + (br * 27.2114).toFixed(2) + ' eV</b>');
+      var Ea = br * 27.2114;
+      out.push('activated conductivity at 300 K: exp(-Ea/kT) = '
+               + Math.exp(-Ea / 0.02585).toExponential(2)
+               + (Ea < 0.5 ? '  <span style="color:#9f9">semiconductor range</span>'
+                           : '  <span style="color:#f99">still far too high to conduct</span>'));
+    }
+    document.getElementById('tab').innerHTML = out.join('<br>');
+  }
+
+  window.onSweepDone = function (E) {
+    var dist = distortion();
+    var d = load();
+    d[(RELAX ? 'relaxed' : 'frozen') + '|' + S.toFixed(2)] = { E: Number(E), dist: dist };
+    save(d);
+    document.getElementById('mon').innerHTML =
+      (RELAX ? 'lattice RELAXED' : 'lattice FROZEN') + '   s = ' + S.toFixed(2)
+      + '<br>carrier held at (' + cx.toFixed(2) + ', ' + cy.toFixed(2) + ') a0'
+      + '<br><b>E = ' + Number(E).toFixed(5) + ' Ha</b>'
+      + (dist !== null ? '<br>largest ion displacement: ' + dist.toFixed(3)
+         + ' a0' + (dist > 0.05 ? '  (a polaron has formed)' : '  (lattice essentially undistorted)') : '');
+    table();
+    console.log('RESULT ' + (RELAX ? 'relaxed' : 'frozen') + ' s=' + S + ' E=' + Number(E).toFixed(5)
+                + ' dist=' + (dist === null ? '?' : dist.toFixed(3)));
+  };
+
+  document.getElementById('mon').innerHTML =
+    (RELAX ? 'lattice RELAXED (ions free)' : 'lattice FROZEN') + '   s = ' + S.toFixed(2)
+    + '<br>carrier at (' + cx.toFixed(2) + ', ' + cy.toFixed(2) + ') a0<br>relaxing&hellip;';
+  table();
+  console.log('polaron scan: s=' + S + ' a=' + a + ' relax=' + RELAX);
+})();
+
+var s = document.createElement('script');
+s.src = 'molecule.js?t=' + Date.now();
+s.onload = function() {
+  var p = document.createElement('script');
+  p.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+  document.body.appendChild(p);
+};
+document.body.appendChild(s);
+</script>
+</body></html>
