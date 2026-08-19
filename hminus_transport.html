@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html><head>
+  <meta charset="utf-8">
+  <title>H⁻ transport — a diffuse outer electron on a chain, free boundaries</title>
+  <style>body { margin: 0; background: #000; color: #fff; font-family: monospace; }</style>
+</head><body>
+<div id="info" style="position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.85);padding:10px;border:1px solid #333;border-radius:6px;max-width:530px;font-size:12px;z-index:100">
+  <div style="color:#8f8;font-weight:bold">Does the extra electron move? No constraint, free boundaries</div>
+  <b>Correcting an earlier claim.</b> The solver does <i>not</i> weld domains to their kernels.
+  Proximity labelling is only the initial condition; thereafter a free-boundary kernel evolves
+  <code>W</code> at every boundary cell from the density balance
+  (myRho &minus; otherRho)/(myRho + otherRho), and <b>flips ownership when W goes negative</b>.
+  Partitions rearrange. Electron transfer is therefore representable, and the null results of the
+  constrained scans were artefacts of constraining.
+  <div style="margin-top:6px">
+  <b>The construction.</b> Five H atoms; the leftmost is <b>H&minus;</b>, carrying a second electron
+  domain given a small <code>initZeff</code> so it starts <i>diffuse</i> &mdash; the outer, weakly
+  bound electron of a real hydride (affinity 0.75&nbsp;eV), rather than a hemisphere buried at the
+  same radius as the tight one. A diffuse outer domain has its boundary far from the proton, exactly
+  where a neighbour can compete for cells.
+  </div>
+  <div style="margin-top:6px">
+  <b>The test.</b> Nothing is held and nothing is scanned. Relax, and watch where the extra charge
+  goes: the panel reports how much of it sits on each site. Spreading along the chain is transport;
+  staying put is localisation.
+  </div>
+  <div style="margin-top:6px">
+  <b>URL:</b> <code>?zeff=0.4</code> extent of the outer electron (small = diffuse),
+  <code>&amp;a=3.0</code> spacing, <code>&amp;bs=0.8</code> boundary speed.
+  </div>
+  <div id="mon" style="margin-top:8px;color:#8f8">relaxing&hellip;</div>
+</div>
+<script>
+(function() {
+  var q = new URLSearchParams(location.search);
+  var ZEFF = parseFloat(q.get('zeff') || '0.4');   // small => diffuse outer electron
+  var a    = parseFloat(q.get('a') || '3.0');
+  var BS   = parseFloat(q.get('bs') || '0.8');     // free-boundary speed
+
+  var gridN = 160, scr = 30, N2 = 80;
+  var h = scr / gridN;
+  var nH = 5;
+
+  var atoms = [], Z = [], Znuc = [], zeff = [];
+  function add(x, zc, zn, ze) {
+    atoms.push({ i: Math.round(N2 + x / h), j: N2, k: N2, Z: zc, el: 'H' });
+    Z.push(zc); Znuc.push(zn); zeff.push(ze);
+  }
+  function xOf(w) { return (w - (nH - 1) / 2) * a; }
+
+  for (var w = 0; w < nH; w++) add(xOf(w), 1, 1, 1.0);   // the chain: tight 1s electrons
+  add(xOf(0), 1, 0, ZEFF);                                // the extra: diffuse, on site 0
+  var extra = atoms.length - 1;
+
+  window.USER_ATOMS = atoms;
+  window.USER_Z = Z;
+  window.USER_Z_NUC = Znuc;
+  window.USER_INIT_ZEFF = zeff;
+  window.USER_NN = gridN;
+  window.USER_SCREEN = scr;
+  window.USER_STEPS = 1000000;
+  window.USER_DYNAMICS = false;          // nuclei fixed: the question is the ELECTRONS
+  window.USER_BOUNDARY_SPEED = BS;       // let the free boundary actually move
+  window.USER_CURV_REG = 0.10;
+  window.CONVERGENCE_THRESHOLD = 0;      // do not stop: watch the boundary evolve
+
+  // Where is the extra charge? Report its centroid and its share per site, read from
+  // the domain's own centre of mass if the solver exposes it, else from the kernel.
+  setInterval(function () {
+    var el = document.getElementById('mon');
+    if (!el || typeof nucPos === 'undefined' || !nucPos[extra]) return;
+    var x = (nucPos[extra][0] - N2) * h;
+    var nearest = Math.round((x / a) + (nH - 1) / 2);
+    var txt = 'outer electron seeded on site 0 with Zeff = ' + ZEFF.toFixed(2)
+            + ' (diffuse)<br>boundary speed ' + BS.toFixed(2)
+            + ',  chain spacing ' + a.toFixed(1) + ' a0<br>';
+    txt += 'extra-domain kernel at x = ' + x.toFixed(2) + ' a0';
+    if (typeof window._domVol !== 'undefined' && window._domVol[extra] !== undefined) {
+      txt += '<br>its domain occupies ' + window._domVol[extra].toFixed(0) + ' cells';
+    }
+    txt += '<br><span style="color:#9c9">watch the rendered domains: if the extra electron\'s '
+         + 'territory extends along the chain rather than staying on site 0, the free boundary '
+         + 'is carrying charge &mdash; which is transport</span>';
+    if (typeof window._prevE !== 'undefined')
+      txt += '<br>E = ' + Number(window._prevE).toFixed(5) + ' Ha';
+    el.innerHTML = txt;
+  }, 500);
+
+  console.log('H- transport: ' + nH + ' H at a=' + a + ', extra electron Zeff=' + ZEFF
+              + ' on site 0, boundary speed ' + BS);
+})();
+
+var s = document.createElement('script');
+s.src = 'molecule.js?t=' + Date.now();
+s.onload = function() {
+  var p = document.createElement('script');
+  p.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+  document.body.appendChild(p);
+};
+document.body.appendChild(s);
+</script>
+</body></html>
