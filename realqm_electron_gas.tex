@@ -304,28 +304,63 @@ density dependence --- and all of it follows from one feature: non-overlap is a 
 The qualification matters, because the constraint need not be applied to every electron, and the next
 paragraph shows that relaxing it in the valence sector alone is nearly free.
 
-\paragraph{Relaxing the constraint: cheap, and it buys conduction.} The natural repair is to let
-valence electrons share a territory rather than each hold its own, which removes the barrier by
-construction. The objection that such a sea would have no kinetic energy holds only in the strictly
-uniform limit: $N$ electrons in a common domain with $\int\psi^2=N$ and uniform density give
-$\psi=\sqrt{N/V}$ constant and hence $T=0$. But a valence density in a metal is not uniform. It is
-shaped by the ion cores, and where domains meet with continuity of charge rather than a free jump,
-contact with neighbouring electrons forces gradients directly. A shared territory therefore carries
-kinetic energy in any real material, and its magnitude is already in the calculation above: the cell
-state's $\langle T\rangle=0.004$~Ha at $r_s=3.93$, which is shaped-density energy and not
-band-filling energy.
+\paragraph{What the partition does supply, and what it does not.} It is worth separating two things
+the vanishing of $C$ has been made to carry, because only one of them is a defect.
 
-The consequence is favourable. If the shaping is what supplies $\langle T\rangle$, it supplies much
-the same whether the valence electrons are partitioned or share, so the two differ little in energy
---- as Table~\ref{tab:alkalis} and the zero-kinetic-energy variant of it show, about one per cent in
-the equilibrium radius. \emph{Relaxing the constraint for the valence sector is therefore nearly free,
-and it removes the $5.5$~eV barrier altogether.} That is a real repair rather than a trade, and it is
-the extension already proposed on general grounds in the treatise's materials chapter.
+The partition into $N$ non-overlapping cells is what makes the kinetic energy \emph{extensive}. Each
+cell contributes its own localisation cost, so $T\propto N$ and the energy density goes as
+$n^{5/3}$ --- the Thomas--Fermi scaling, and the geometric counterpart of occupying $N$ distinct
+states. Give the same $N$ electrons a single shared domain instead, with the exterior held at zero,
+and one obtains the energy of \emph{one} state occupied $N$ times:
+\begin{equation}
+\frac{T}{V}=\frac{3\pi^2}{2}\,n^{5/3}N^{-2/3},
+\end{equation}
+which per unit volume dies as $N^{-2/3}$ --- fifteen orders of magnitude too small at
+$N=10^{23}$. Non-overlap therefore earns its place: it is not merely bookkeeping, it is what makes
+the localisation energy scale correctly with density and particle number.
 
-What it does \emph{not} supply is the Fermi surface. A shared sea conducts, but it has no band
-structure, no $E_F$, and no mechanism for the metal--insulator distinction, so the observations of
-Section~\ref{sec:fermi} stand untouched by it. The accurate summary is that the framework's
-conduction problem has a cheap fix and its Fermi-surface problem does not.
+What the partition does not fix is the \emph{coefficient}, and that is set entirely by the condition
+at the shared faces:
+
+\begin{center}
+\small
+\begin{tabular}{@{}lcc@{}}
+\toprule
+ & $C$ & $C/C_{\rm TF}$\\
+\midrule
+Neumann, $\beta a=0$ (the present choice) & $0$ & $0$\\
+Robin, $\beta a=1.146$ & $2.871$ & $\mathbf{1.00}$\\
+Dirichlet, $\beta a\to\infty$ & $14.804$ & $5.16$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent All three have the same, correct, $n^{5/3}$ scaling; they differ by a pure number. The
+framework has been using the one value of that number for which confinement is free.
+
+\paragraph{Why Neumann is free, and why it went unnoticed.} A constant satisfies Neumann conditions
+on every face, so the ground state of $-\half\grad^2$ in a Neumann cell has energy \emph{exactly}
+zero at any cell size. Confinement costs nothing: halve the cell and the energy is unchanged. That is
+a failure of the uncertainty principle at precisely the place where electron meets electron --- and
+degeneracy pressure is nothing other than the energy cost of confining fermions. The substitute for
+exclusion reproduces its bookkeeping and none of its energy.
+
+It went unnoticed because every previous test had an attractor in it. Where a nucleus shapes the
+density, $\grad\psi\neq0$ for reasons having nothing to do with the interface, and $T$ comes out
+right; the faces are nearly irrelevant. Remove the attractor and the faces are all that is left.
+
+\paragraph{The consequence for conduction, and a repair that is not available.} An obvious response
+is to let valence electrons share a territory, which removes the barrier by construction. The table
+above rules it out: sharing destroys the $N$-scaling that the partition supplies, and a metal would
+lose its kinetic energy density by fifteen orders of magnitude. \emph{The partition must be kept.}
+
+What may be adjusted is the number. A soft interface at finite $\beta$ costs confinement energy,
+which means compression can raise it --- and a system whose energy responds to compression is one in
+which overlap can grow, bandwidth can widen, and the barrier of Table~\ref{tab:barrier} need not
+rise. Whether the single value $\beta a=1.146$ that the electron gas requires is also tolerable for
+atoms and molecules is not settled here; the attempt is reported in the numerical note. That one
+question decides whether the framework possesses a constant it has not yet identified, or two
+incompatible ones.
 
 It is fair to ask whether all conduction might be hopping, band transport being a formalism rather
 than an observable. The idea is not idle: hopping is the correct description of amorphous and organic
@@ -406,7 +441,14 @@ Equation \eqref{eq:wp}, the screening relation, the Thomas--Fermi comparison and
 are analytic. Table~\ref{tab:alkalis} is a radial Wigner--Seitz calculation with the stated
 pseudopotential and correlation functional, run for five alkalis; the standard column reproducing the
 series is what makes the comparison meaningful, and its own $44\%$ mean error in the bulk modulus
-sets the accuracy available at this level of model. Two attempts are reported as null rather than omitted. An interface-condition test on helium was
+sets the accuracy available at this level of model. Three attempts are reported as null rather than omitted. The interface parameter
+$\beta$ was tested on helium at three meshes at fixed imaginary time, giving shifts of $+0.151$,
+$-0.018$ and $-0.184$~Ha as the mesh refined --- swinging through zero and growing, with absolute
+energies moving away from the exact $-2.9037$. The cause is the geometry rather than the arithmetic:
+in helium the two domains meet at a plane \emph{through the nucleus}, so interface error and
+Coulomb-cusp error are superimposed and cannot be separated on a uniform grid. The measurement wants
+$\mathrm{H_2}$, where the domains meet at the midplane \emph{between} the nuclei in a smooth
+region. An interface-condition test on helium was
 not converged, giving a sensitivity that reversed sign under mesh refinement, and no conclusion is
 drawn from it. Two chain calculations --- five hydrogens with an excess electron, and five hydrogen
 kernels with one electron missing --- returned no transport, but for a reason established by reading
