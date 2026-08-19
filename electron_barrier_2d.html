@@ -71,7 +71,17 @@
   function save(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} }
   if (q.get('reset') !== null) save({});
 
+  function migrate() {
+    // early runs were keyed on s alone; they were all at a = 2.50
+    var d = load(), changed = false;
+    Object.keys(d).forEach(function (k) {
+      if (k.indexOf('|') === -1) { d['2.50|' + k] = d[k]; delete d[k]; changed = true; }
+    });
+    if (changed) save(d);
+  }
+
   function table() {
+    migrate();
     var d = load(), byA = {};
     Object.keys(d).forEach(function (k) {
       var p = k.split('|');
