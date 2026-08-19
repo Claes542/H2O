@@ -60,7 +60,7 @@
   var d    = parseFloat(q.get('d') || '3.0');
   var ZEFF = parseFloat(q.get('zeff') || '0.35');
   var BIAS = parseFloat(q.get('bias') || '0.0');
-  var BS   = parseFloat(q.get('bs') || '0.8');
+  var BS   = parseFloat(q.get('bs') || '0.25');   // SLOW: 0.8 overshot and gave sub-floor energies
   var NOEXTRA = q.get('noextra') !== null;   // omit the outer electron: the reference H + H
   // WHERE the outer electron is seeded decides which minimum is found:
   //   'left'  -> H- bound to H          (the extra charge localised on one atom)
@@ -104,7 +104,7 @@
   window.USER_DYNAMICS = false;          // kernels fixed: the question is the electrons
   window.USER_BOUNDARY_SPEED = BS;       // free boundary allowed to move
   window.USER_CURV_REG = 0.10;
-  window.CONVERGENCE_THRESHOLD = 0;      // keep evolving; this is not a scan
+  window.CONVERGENCE_THRESHOLD = 0.001;  // settle, and report a converged number
 
   setInterval(function () {
     var el = document.getElementById('mon');
@@ -117,11 +117,14 @@
             + ',  3 domains, net &minus;1<br>';
     if (typeof window._prevE !== 'undefined') {
       var E = Number(window._prevE);
-      txt += 'E = ' + E.toFixed(5) + ' Ha';
-      if (!NOEXTRA) txt += (E < -1.35
-        ? '  <span style="color:#f99">&lt; floor &minus;1.21: SPURIOUS, the carrier has taken a '
-          + 'nucleus</span>'
-        : '  <span style="color:#9f9">physical range</span>');
+      var floorE = NOEXTRA ? -1.20 : (-1.03 - 0.20);   // H-+H at wide d, with margin
+      txt += 'E = ' + E.toFixed(5) + ' Ha'
+           + (window._convCount ? '  (settling: ' + window._convCount + ')' : '  (running)');
+      if (!NOEXTRA) txt += (E < floorE
+        ? '<br><span style="color:#f99">BELOW THE PHYSICAL FLOOR for 2 protons + 3 electrons '
+          + '(H&minus;+H = &minus;1.03 at wide separation). Not converged, or a domain has taken a '
+          + 'nucleus. Lower <code>bs</code> further.</span>'
+        : '<br><span style="color:#9f9">physical range</span>');
       txt += '<br>';
     }
     txt += '<span style="color:#9c9">Watch the rendered domains. The outer electron starts as a '
