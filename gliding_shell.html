@@ -29,7 +29,14 @@
   mode the framework can actually represent.
   </div>
   <div style="margin-top:6px">
-  <b>URL:</b> <code>?n=5</code> atoms, <code>&amp;a=2.2</code> spacing,
+  <b>Making the shell exist.</b> A diffuse seed carries a small prefactor
+  (Z<sub>eff</sub><sup>2</sup>), so at Z<sub>eff</sub>=0.22 it only outweighs an atom's electron
+  beyond ~3.9&nbsp;a<sub>0</sub> &mdash; outside the whole chain, which is why no shell appeared.
+  Instead each atom's electron is capped at <code>rcut</code>, and everything beyond belongs to the
+  shell. That is a shell by construction.
+  </div>
+  <div style="margin-top:6px">
+  <b>URL:</b> <code>?n=5</code> atoms, <code>&amp;rcut=1.3</code> each atom's initial reach, <code>&amp;a=2.2</code> spacing,
   <code>&amp;zeff=0.22</code> shell extent (small = wider shell),
   <code>&amp;bias=0</code> extra charge on the far-right kernel to pull it along,
   <code>&amp;bs=0.25</code> boundary speed.
@@ -48,27 +55,33 @@
   var gridN = 160, scr = 28, N2 = 80;
   var h = scr / gridN;
 
-  var atoms = [], Z = [], Znuc = [], zeff = [];
-  function add(x, zc, zn, ze) {
+  var RCUT = parseFloat(q.get('rcut') || '1.3');   // how far each atom's electron reaches at init
+  var atoms = [], Z = [], Znuc = [], zeff = [], rcut = [];
+  function add(x, zc, zn, ze, rc) {
     atoms.push({ i: Math.round(N2 + x / h), j: N2, k: N2, Z: zc, el: 'H' });
-    Z.push(zc); Znuc.push(zn); zeff.push(ze);
+    Z.push(zc); Znuc.push(zn); zeff.push(ze); rcut.push(rc);
   }
   function xOf(w) { return (w - (nH - 1) / 2) * a; }
 
   for (var w = 0; w < nH; w++) {
     var zn = 1.0 + ((w === nH - 1) ? BIAS : 0.0);   // optional pull from the far end
-    add(xOf(w), 1, zn, 1.0);
+    // cap each atom's electron at RCUT so it claims only its own neighbourhood;
+    // everything beyond belongs to the shell, which is what makes a shell exist at all.
+    // Without this the diffuse seed (prefactor Zeff^2) loses everywhere inside r ~ 3.9 a0
+    // and owns only the far exterior -- which is why no shell was visible.
+    add(xOf(w), 1, zn, 1.0, RCUT);
   }
   // the carrier: centred between atoms 0 and 1, seeded wide so it wraps them both
   // rather than sitting on either -- outside both nuclei, competing with neither
   var xShell = 0.5 * (xOf(0) + xOf(1));
-  add(xShell, 1, 0.0, ZEFF);
+  add(xShell, 1, 0.0, ZEFF, 0.0);   // 0 = no cap: the shell takes whatever is left
   var shell = atoms.length - 1;
 
   window.USER_ATOMS = atoms;
   window.USER_Z = Z;
   window.USER_Z_NUC = Znuc;
   window.USER_INIT_ZEFF = zeff;
+  window.USER_INIT_RCUT = rcut;
   window.USER_NN = gridN;
   window.USER_SCREEN = scr;
   window.USER_STEPS = 1000000;
