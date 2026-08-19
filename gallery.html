@@ -128,6 +128,9 @@ footer a { color: #4fc3f7; text-decoration: none; }
     <b style="color:#ffca28">Material</b> ·
     <a href="#mat" style="color:#80cbc4">Materials (NaCl, ice, dispersion, melting)</a><br>
 
+    <b style="color:#9ccdf5">Conduction</b> ·
+    <a href="#conduction" style="color:#9ccdf5">RealQM as Plasma Physics &mdash; metals, carriers, hopping barrier (article &amp; sims)</a><br>
+
     <b style="color:#9fa8da">Cosmology</b> ·
     <a href="#news-web" style="color:#ffa726">A Coulomb&ndash;Newton Cosmology (RealUniv) &mdash; sim, article, essay &amp; PDF</a> ·
     <a href="#pe-cosmology" style="color:#ffa726">Cosmic-web morphology (2D sim)</a> ·
@@ -171,6 +174,48 @@ footer a { color: #4fc3f7; text-decoration: none; }
 <div class="section">
   <h2 id="news">News</h2>
   <div class="grid">
+    <div id="conduction" class="card" style="border-color:#9ccdf5;background:#0a1016;grid-column:1/-1;padding:18px">
+      <h3 style="color:#9ccdf5">Conduction &middot; RealQM as Plasma Physics &mdash; metals, carriers and the hopping barrier</h3>
+      <div class="desc" style="margin-top:6px">
+        RealQM extended from atoms and molecules to <b>two-component plasma</b> &mdash; ions and electrons,
+        both charged and both free to move, which is what a metal, a stellar interior and the
+        recombination era all are, and what the framework is itself made of.
+        <div style="margin-top:8px">
+        <b>What comes out.</b> RealQM's prescription for a metal <i>coincides</i> with the
+        <b>Wigner&ndash;Seitz</b> construction &mdash; one electron domain per ion, filling the cell,
+        normal derivative vanishing at the face by symmetry. Across the alkalis Li&ndash;Cs the
+        equilibrium radius comes out to <b>6.2%</b> against a standard treatment's 5.6%. But the paper
+        shows this is <i>not</i> a test of the quantum treatment: setting the electronic kinetic energy
+        to zero changes the radii by about one per cent, because the lattice scale of a simple metal is
+        electrostatic. The plasma frequency &omega;<sub>p</sub><sup>2</sup> = 4&pi;n is exact.
+        </div>
+        <div style="margin-top:8px">
+        <b>The carrier, and what it is.</b> In these simulations a carrier is a <b>surplus electron</b>
+        &mdash; one extra charge domain (Z=1, no kernel) added to a neutral lattice, so the system
+        carries charge &minus;1. That is the <b>n-doped semiconductor</b> case, not a metal: in a metal
+        the carriers are the valence electrons themselves, each in its own domain.
+        </div>
+        <div style="margin-top:8px">
+        <b>The finding.</b> The barrier to moving a carrier between interstitial sites is
+        <b>5.5&nbsp;eV</b> at 2.5&nbsp;a<sub>0</sub> and <b>rises to 11.5&nbsp;eV</b> when the lattice is
+        compressed to the H<sub>2</sub> bond length &mdash; where matter would instead turn metallic.
+        Compression cannot increase overlap when non-overlap is the postulate; it only shrinks each
+        domain. <b>The framework has no bandwidth to widen.</b> Relaxing the constraint for the valence
+        sector removes the barrier at about 1% cost in the equilibrium radius, but supplies no Fermi
+        surface &mdash; which stays the open problem, being measured on ordinary metals (de
+        Haas&ndash;van Alphen, linear specific heat, plasmon dispersion).
+        </div>
+        <div style="margin-top:10px">
+          <a href="realqm_electron_gas.pdf" style="display:inline-block;padding:8px 18px;background:#9ccdf5;color:#000;text-decoration:none;font-weight:bold;border-radius:4px">article (PDF)</a>
+          &middot; <a href="electron_barrier_2d.html" style="color:#9ccdf5">2D lattice barrier scan</a>
+          &middot; <a href="conduction_field.html" style="color:#9ccdf5">carrier drift under a field</a>
+          &middot; <a href="polaron_barrier.html" style="color:#9ccdf5">polaron barrier (lattice relaxes)</a>
+          &middot; <a href="electron_barrier.html" style="color:#9ccdf5">1D chain (why a wire misleads)</a>
+          &middot; <a href="proton_wire.html" style="color:#ffa726">proton conduction (Grotthuss) &mdash; the transport that works</a>
+        </div>
+      </div>
+    </div>
+
     <div id="news-web" class="card" style="border-color:#ffa726;background:#140f0a;grid-column:1/-1;padding:18px">
       <h3 style="color:#ffa726">Cosmology &middot; A Coulomb&ndash;Newton Cosmology (RealUniv) &mdash; cosmic-web sim, article, essay &amp; PDF</h3>
       <div class="desc" style="margin-top:6px">

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html><head>
+  <meta charset="utf-8">
+  <title>Conduction under a field — does the carrier drift?</title>
+  <style>body { margin: 0; background: #000; color: #fff; font-family: monospace; }</style>
+</head><body>
+<div id="info" style="position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.85);padding:10px;border:1px solid #333;border-radius:6px;max-width:520px;font-size:12px;z-index:100">
+  <div style="color:#9cf;font-weight:bold">Conduction: a carrier in a field</div>
+  Conduction is charge moving <b>under an applied field</b>. Without one a carrier merely rolls into
+  the nearest well, which tests equilibrium and not transport. Here a uniform force is applied to the
+  carrier alone and its drift is measured.
+  <div style="margin-top:6px">
+  <b>What is moving.</b> The carrier is a charge domain carried by its own kernel, so what drifts is
+  a localised packet &mdash; the right picture for hopping or a polaron, and <i>not</i> density
+  transferring between neighbouring domains, which the solver's proximity labelling forbids.
+  </div>
+  <div style="margin-top:6px">
+  <b>Reading it.</b> Drift many lattice spacings &rarr; the carrier is mobile.
+  One site and stuck &rarr; activated hopping, needing thermal help.
+  No motion &rarr; trapped. Raise <code>T</code> and repeat: drift rising with temperature is the
+  semiconductor signature and the opposite of a metal.
+  </div>
+  <div style="margin-top:6px">
+  <b>URL:</b> <code>?F=0.01</code> force in Ha/Bohr, <code>&amp;T=300</code> kelvin,
+  <code>&amp;a=2.5</code> spacing, <code>&amp;ions=1</code> to let the lattice relax too.
+  </div>
+  <div id="mon" style="margin-top:8px;color:#9cf">starting&hellip;</div>
+</div>
+<script>
+(function() {
+  var q = new URLSearchParams(location.search);
+  var F = parseFloat(q.get('F') || '0.01');     // Ha/Bohr on the carrier
+  var T = parseFloat(q.get('T') || '0');        // kelvin
+  var a = parseFloat(q.get('a') || '2.5');
+  var IONS = q.get('ions') !== null;            // let the lattice move as well
+
+  var gridN = 160, scr = 30, N2 = 80;
+  var h = scr / gridN;
+  var nSide = 5;                                // longer runway along x for drift
+
+  var atoms = [], Z = [], Znuc = [];
+  function add(x, y, z, zc, zn) {
+    atoms.push({ i: Math.round(N2 + x / h), j: Math.round(N2 + y / h),
+                 k: Math.round(N2 + z / h), Z: zc, el: 'H' });
+    Z.push(zc); Znuc.push(zn);
+  }
+  for (var i = 0; i < nSide; i++)
+    for (var j = 0; j < nSide; j++)
+      add((i - (nSide - 1) / 2) * a, (j - (nSide - 1) / 2) * a, 0, 1, 1);
+
+  // start the carrier in a pocket at the upstream end, so it has room to drift
+  var x0 = -(nSide - 1) / 2 * a + 0.5 * a, y0 = 0.5 * a;
+  add(x0, y0, 0, 1, 0);
+  var carrier = atoms.length - 1;
+
+  // uniform force on the carrier only: the field acts on charge, and the lattice ions
+  // are held (or relaxed) but not driven, which is the drift experiment
+  var ext = [];
+  for (var n = 0; n < atoms.length; n++) ext.push([0, 0, 0]);
+  ext[carrier] = [F, 0, 0];
+  window.USER_EXTERNAL_FORCE = ext;
+
+  window.USER_ATOMS = atoms;
+  window.USER_Z = Z;
+  window.USER_Z_NUC = Znuc;
+  window.USER_NN = gridN;
+  window.USER_SCREEN = scr;
+  window.USER_STEPS = 1000000;
+  window.INIT_ZEFF = 1;
+  window.USER_DYNAMICS = true;                  // must be set here: see molecule.js `let`
+  window.USER_FROZEN_ATOMS = IONS ? [] : Array.from({length: nSide * nSide}, function (_, n) { return n; });
+  window.USER_N_MOVE = 30;
+  window.USER_TEMPERATURE_K = T;
+  window.USER_LANGEVIN_GAMMA = 0.2;
+  window.USER_NUC_SUBSTEPS = 10;
+  window.CONVERGENCE_THRESHOLD = 0;             // never stop: this is a drift run
+
+  var t0 = null;
+  setInterval(function () {
+    if (typeof nucPos === 'undefined' || !nucPos[carrier]) return;
+    var x = (nucPos[carrier][0] - N2) * h, y = (nucPos[carrier][1] - N2) * h;
+    var trav = x - x0;
+    if (t0 === null) t0 = nucStepCount || 0;
+    var steps = (nucStepCount || 0) - t0;
+    var sites = trav / a;
+    var el = document.getElementById('mon');
+    if (!el) return;
+    el.innerHTML =
+      'field F = ' + F.toFixed(4) + ' Ha/Bohr   T = ' + T + ' K   '
+      + (IONS ? 'lattice free' : 'lattice fixed')
+      + '<br>carrier at (' + x.toFixed(2) + ', ' + y.toFixed(2) + ') a0'
+      + '<br><b>drifted ' + trav.toFixed(2) + ' a0 = ' + sites.toFixed(2)
+      + ' lattice spacings</b>  over ' + steps + ' nuclear steps'
+      + '<br>' + (Math.abs(sites) > 1.5
+          ? '<span style="color:#9f9">MOBILE &mdash; the carrier is crossing sites</span>'
+          : Math.abs(sites) > 0.5
+          ? '<span style="color:#ff9">moved about one site &mdash; activated hopping</span>'
+          : '<span style="color:#f99">TRAPPED &mdash; no transport at this field</span>')
+      + '<br><span style="color:#9c9">raise T and repeat: drift rising with temperature is the'
+      + ' semiconductor signature</span>';
+  }, 500);
+
+  console.log('conduction: F=' + F + ' Ha/Bohr, T=' + T + ' K, a=' + a
+              + ', carrier starts at ' + x0.toFixed(2) + ',' + y0.toFixed(2));
+})();
+
+var s = document.createElement('script');
+s.src = 'molecule.js?t=' + Date.now();
+s.onload = function() {
+  var p = document.createElement('script');
+  p.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+  document.body.appendChild(p);
+};
+document.body.appendChild(s);
+</script>
+</body></html>
