@@ -24,6 +24,29 @@ The interface condition at z = 0, outward normal -z:
     dpsi/dz = beta * psi      beta = 0 : Neumann, the present choice
                               beta -> inf : Dirichlet, a node
 
+STATUS (2026-08-19): HELIUM IS THE WRONG TEST SYSTEM. Result inconclusive.
+
+Mesh check at fixed imaginary time, betas 0 and 1.146:
+
+    N=48  h=0.250   -1.8595   -1.7084   shift +0.151
+    N=56  h=0.214   -1.5650   -1.5831   shift -0.018
+    N=64  h=0.188   -1.2838   -1.4681   shift -0.184
+
+The shift swings through zero and grows; the absolute energies move AWAY from the
+exact -2.9037 as the mesh refines, so the coarse meshes were over-bound and the
+discretisation is not behaving variationally.
+
+The cause is the geometry, not the arithmetic. In RealQM's helium the two domains
+meet at a plane THROUGH THE NUCLEUS -- exactly where the Coulomb cusp is, and
+exactly what a uniform grid cannot resolve. Interface error and cusp error are
+superimposed and cannot be separated. Every attempt at this measurement has
+failed the same way.
+
+USE H2 INSTEAD. There the domains meet at the midplane BETWEEN the nuclei, in a
+smooth region a modest grid resolves, so the interface effect is isolated from
+the cusp; and the binding energy is a known target (4.75 eV). That is also the
+geometry of the existing essence demo.
+
 usage: python3 robin_test.py [--N 80] [--L 12] [--time 40] [--betas 0,0.5,1.146,2]
 """
 import argparse
