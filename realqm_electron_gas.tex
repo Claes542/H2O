@@ -42,7 +42,10 @@ exactly, since a rigid displacement leaves the localisation energy untouched. Co
 in a $4\times4$ hydrogen lattice the carrier is confined to interstitial pockets by $5.5$~eV at
 $a=2.5\,a_0$, and compressing to the $\mathrm{H_2}$ bond length \emph{doubles} that to $11.5$~eV
 where matter would instead become metallic --- non-overlap admitting no growth of overlap under
-compression, so there is no bandwidth to widen. Transport by transfer is meanwhile already
+compression, so there is no bandwidth to widen. Relaxing the constraint for the valence sector removes
+that barrier at a cost of about one per cent in the equilibrium radius, since the kinetic energy of a
+valence density is supplied by the shaping of the ion cores either way --- a cheap repair for
+conduction, though it supplies no Fermi surface. Transport by transfer is meanwhile already
 demonstrated in the framework for \emph{protons}, in Grotthuss conduction along a water chain, while
 the direct electronic analogue is not testable in the static solver: charge transport by transfer
 between localised sites is already demonstrated in the framework for \emph{protons}, in Grotthuss
@@ -298,39 +301,28 @@ four follow from the same feature. Non-overlap is a constraint on \emph{regions}
 space cannot deliver what delocalisation delivers, at any density. RealQM as it stands describes an
 insulator, and predicts $d\sigma/dT>0$ for materials that are metals.
 
-\paragraph{Would relaxing the constraint help?} The natural repair is to let valence electrons share
-a territory rather than each hold its own --- delocalisation by construction, and no barrier at all.
-It fails for a reason that is one line. Take $N$ electrons in a common domain $\Omega$ of volume $V$
-with $\int_\Omega\psi^2=N$; a uniform density gives $\psi=\sqrt{N/V}$, constant, hence
-$\grad\psi=0$ and
-\begin{equation}
-T=\half\int|\grad\psi|^2=0 .
-\end{equation}
-The localisation energy vanishes exactly, which is the result of the closing remark returning in a new
-guise. The two options are therefore complementary rather than alternative:
+\paragraph{Relaxing the constraint: cheap, and it buys conduction.} The natural repair is to let
+valence electrons share a territory rather than each hold its own, which removes the barrier by
+construction. The objection that such a sea would have no kinetic energy holds only in the strictly
+uniform limit: $N$ electrons in a common domain with $\int\psi^2=N$ and uniform density give
+$\psi=\sqrt{N/V}$ constant and hence $T=0$. But a valence density in a metal is not uniform. It is
+shaped by the ion cores, and where domains meet with continuity of charge rather than a free jump,
+contact with neighbouring electrons forces gradients directly. A shared territory therefore carries
+kinetic energy in any real material, and its magnitude is already in the calculation above: the cell
+state's $\langle T\rangle=0.004$~Ha at $r_s=3.93$, which is shaped-density energy and not
+band-filling energy.
 
-\begin{center}
-\small
-\begin{tabular}{@{}lcc@{}}
-\toprule
- & localisation energy & delocalisation\\
-\midrule
-strict non-overlap & yes & \textbf{no} (barrier rises under compression)\\
-shared territory & \textbf{no} ($\grad\psi=0$) & yes\\
-\bottomrule
-\end{tabular}
-\end{center}
+The consequence is favourable. If the shaping is what supplies $\langle T\rangle$, it supplies much
+the same whether the valence electrons are partitioned or share, so the two differ little in energy
+--- as Table~\ref{tab:alkalis} and the zero-kinetic-energy variant of it show, about one per cent in
+the equilibrium radius. \emph{Relaxing the constraint for the valence sector is therefore nearly free,
+and it removes the $5.5$~eV barrier altogether.} That is a real repair rather than a trade, and it is
+the extension already proposed on general grounds in the treatise's materials chapter.
 
-\noindent and no choice between them yields both. An intermediate --- overlap permitted but penalised
---- would yield both, at the cost of a fitted parameter, which is the one thing the framework claims
-not to have.
-
-The diagnosis this suggests is worth stating in general terms. Both non-overlap and antisymmetry
-enforce that there are $N$ \emph{distinct} electrons; they differ in where the distinctness is
-imposed. Antisymmetry imposes it in the space of states, which costs kinetic energy and leaves the
-electrons free to be everywhere at once. Non-overlap imposes it in ordinary space, which costs kinetic
-energy only where something shapes the density, and confines each electron to a region. What is needed
-for a metal is distinctness without confinement, and a partition of space cannot supply it.
+What it does \emph{not} supply is the Fermi surface. A shared sea conducts, but it has no band
+structure, no $E_F$, and no mechanism for the metal--insulator distinction, so the observations of
+Section~\ref{sec:fermi} stand untouched by it. The accurate summary is that the framework's
+conduction problem has a cheap fix and its Fermi-surface problem does not.
 
 It is fair to ask whether all conduction might be hopping, band transport being a formalism rather
 than an observable. The idea is not idle: hopping is the correct description of amorphous and organic
@@ -349,7 +341,7 @@ The regimes are also the wrong way round for the framework: hopping describes ma
 temperature, and it is at low temperature, where band behaviour is cleanest, that RealQM would need
 it to hold.
 
-\section{What remains open: the Fermi surface}
+\section{What remains open: the Fermi surface}\label{sec:fermi}
 
 The framework has no bands and no $E_F$, and there are measurements bearing on this directly. They
 are made on real two-component metals, not on any idealisation, so they cannot be set aside by
