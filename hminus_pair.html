@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html><head>
+  <meta charset="utf-8">
+  <title>H⁻ + H — does the outer electron shift from left to right?</title>
+  <style>body { margin: 0; background: #000; color: #fff; font-family: monospace; }</style>
+</head><body>
+<div id="info" style="position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.85);padding:10px;border:1px solid #333;border-radius:6px;max-width:530px;font-size:12px;z-index:100">
+  <div style="color:#8f8;font-weight:bold">H&minus; + H : the smallest transfer there is</div>
+  Two protons, three electrons. The left kernel carries <b>two</b> domains in a
+  <b>1+1 shell</b> arrangement &mdash; a tight inner electron and a diffuse outer one, which is what
+  H&minus; actually is (affinity 0.75&nbsp;eV, the outer electron barely held). The right kernel
+  carries one. Net charge &minus;1.
+  <div style="margin-top:6px">
+  <b>How the shell split is made.</b> Two domains on the same kernel with different
+  <code>initZeff</code>: the tight trial density wins the inner cells, the diffuse one wins the outer
+  shell, so the radial split emerges from the initialisation rather than being imposed. No new
+  machinery, and every domain still carries exactly one unit of charge.
+  </div>
+  <div style="margin-top:6px">
+  <b>What is being watched.</b> Free boundaries are on, so cells change hands wherever a neighbouring
+  domain has the higher density &mdash; the solver's own mechanism, which does rearrange partitions.
+  With <code>bias = 0</code> the two kernels are identical and the ground state should share the
+  extra electron. With <code>bias &gt; 0</code> the right kernel is made slightly more attractive and
+  the outer electron should shift toward it. The question is how little bias it takes.
+  </div>
+  <div style="margin-top:6px">
+  <b>URL:</b> <code>?d=3.0</code> separation, <code>&amp;zeff=0.35</code> outer-electron extent,
+  <code>&amp;bias=0.0</code> added to the right kernel charge, <code>&amp;bs=0.8</code> boundary speed.
+  </div>
+  <div id="mon" style="margin-top:8px;color:#8f8">relaxing&hellip;</div>
+</div>
+<script>
+(function() {
+  var q = new URLSearchParams(location.search);
+  var d    = parseFloat(q.get('d') || '3.0');
+  var ZEFF = parseFloat(q.get('zeff') || '0.35');
+  var BIAS = parseFloat(q.get('bias') || '0.0');
+  var BS   = parseFloat(q.get('bs') || '0.8');
+
+  var gridN = 140, scr = 24, N2 = 70;
+  var h = scr / gridN;
+
+  var atoms = [], Z = [], Znuc = [], zeff = [];
+  function add(x, zc, zn, ze) {
+    atoms.push({ i: Math.round(N2 + x / h), j: N2, k: N2, Z: zc, el: 'H' });
+    Z.push(zc); Znuc.push(zn); zeff.push(ze);
+  }
+
+  // 0: left kernel, tight inner electron        (the H- core)
+  // 1: left kernel, diffuse OUTER electron      (the carrier)
+  // 2: right kernel, its own electron           (the H)
+  add(-d / 2, 1, 1.0,        1.0);
+  add(-d / 2, 1, 0.0,        ZEFF);
+  add(+d / 2, 1, 1.0 + BIAS, 1.0);
+  var outer = 1;
+
+  window.USER_ATOMS = atoms;
+  window.USER_Z = Z;
+  window.USER_Z_NUC = Znuc;
+  window.USER_INIT_ZEFF = zeff;
+  window.USER_NN = gridN;
+  window.USER_SCREEN = scr;
+  window.USER_STEPS = 1000000;
+  window.USER_DYNAMICS = false;          // kernels fixed: the question is the electrons
+  window.USER_BOUNDARY_SPEED = BS;       // free boundary allowed to move
+  window.USER_CURV_REG = 0.10;
+  window.CONVERGENCE_THRESHOLD = 0;      // keep evolving; this is not a scan
+
+  setInterval(function () {
+    var el = document.getElementById('mon');
+    if (!el) return;
+    var txt = 'separation ' + d.toFixed(1) + ' a0,  outer Zeff ' + ZEFF.toFixed(2)
+            + ',  bias ' + BIAS.toFixed(3) + ' on the right kernel<br>'
+            + 'left = H&minus; (1+1 shell), right = H,  3 unit domains, net charge &minus;1<br>';
+    if (typeof window._prevE !== 'undefined')
+      txt += 'E = ' + Number(window._prevE).toFixed(5) + ' Ha<br>';
+    txt += '<span style="color:#9c9">Watch the rendered domains. The outer electron starts as a '
+         + 'diffuse shell on the LEFT. If its territory reaches across and takes cells around the '
+         + 'right kernel, the free boundary has carried charge from one atom to the other &mdash; '
+         + 'which is the elementary transfer step, and is what Grotthuss does for protons.</span>';
+    el.innerHTML = txt;
+  }, 500);
+
+  console.log('H- + H: d=' + d + ', outer Zeff=' + ZEFF + ', bias=' + BIAS + ', bs=' + BS);
+})();
+
+var s = document.createElement('script');
+s.src = 'molecule.js?t=' + Date.now();
+s.onload = function() {
+  var p = document.createElement('script');
+  p.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+  document.body.appendChild(p);
+};
+document.body.appendChild(s);
+</script>
+</body></html>
