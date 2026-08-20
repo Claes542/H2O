@@ -487,11 +487,15 @@ drawn from it. Two chain calculations --- five hydrogens with an excess electron
 kernels with one electron missing --- returned no transport, but for a reason established by reading
 the constructions rather than by the runs: a carrier without a kernel feels no lattice force, and a
 bare kernel receives no domain for a vacancy to occupy. Both are recorded because the null results
-located those obstructions. A further caution belongs with them: with free interfaces and no
-confinement cost, two domains competing for one nucleus have no stable equilibrium, and several
-attempts collapsed to energies below the physical floor for their particle content. Configurations in
-which the extra charge lies \emph{outside} all nuclei were by contrast stable and returned physical
-energies, which is a pattern worth pursuing rather than a result. Scripts and pages accompany the source.
+located those obstructions. A caution on the numerics belongs with them. Several attempts returned
+energies below the physical floor for their particle content, but these track the boundary speed and
+the seeding rather than the configuration: with the interface driven faster than the densities can
+follow, or with a carrier seeded directly onto an occupied kernel, the relaxation runs away, while the
+same configurations at a quarter of that speed settled to physical values. A two-domain shell on one
+nucleus is in fact stable under the density-balance rule --- compressing the inner domain raises its
+density at the interface and lowers the outer's, which pushes the boundary back out --- and both
+domains carry real kinetic energy there, since the nucleus shapes their profiles. The vanishing of
+$C$ is a statement about a \emph{uniform} density and does not transfer to a shaped one. Scripts and pages accompany the source.
 
 \begin{thebibliography}{9}
 \bibitem{realqm} C.\ Johnson, \emph{RealQM: Quantum Mechanics as Multiphase 3D Continuum Mechanics},
