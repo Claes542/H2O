@@ -27,31 +27,18 @@
 \begin{abstract}
 \noindent RealQM models matter as non-overlapping unit charge densities in ordinary three-dimensional
 space, one per electron, meeting at free boundaries and minimising the Coulomb energy. This article
-asks what such a construction does with \textbf{electric conduction} --- the elementary,
-ordinary-temperature case of a two-component system of ions and electrons --- and finds the question
-turning on a single quantity: what it costs to move a free boundary.
+asks whether such a construction \textbf{conducts}, and finds the answer to turn on what is carried.
 
-That cost is computed, and it vanishes. Partitioning a gas of density $n$ into cells of size
-$n^{-1/3}$ gives a kinetic energy density $t(n)=C\,n^{5/3}$, the Thomas--Fermi \emph{form} obtained
-from the geometry of a partition rather than from Fermi statistics, and with $C=C_{\rm TF}$ it
-reproduces $k_{\rm TF}$ exactly at every density; but with the free interface used throughout,
-$\psi_i\equiv|\Omega_i|^{-1/2}$ is admissible and has $\grad\psi_i=0$, so $C=0$ exactly. The
-coefficient is however a boundary condition rather than a structural feature: a Robin interface at
-$\beta a=1.146$ gives $C=2.871=C_{\rm TF}$ exactly, Dirichlet gives $14.804$, and all three carry
-the correct $n^{5/3}$ scaling, so what is wrong is one pure number and not the construction. That
-number carries opposite signs on the two sides of this paper. Against: no degeneracy pressure, a
-\emph{vanishing} screening length --- the framework over-screens rather than failing to screen,
-since $k^2\propto1/C$ --- a dispersionless plasmon, no bandwidth and no metal--insulator mechanism. For: the
-boundary is the only object this framework moves, so a vanishing interface cost is a vanishing cost
-of transport.
-
-Following the second consequence gives the central claim, which is about \emph{what} is transported.
-Not an electron: an electron here is a unit of charge density on a domain, what exists is the
-partition of space, and transport is the partition pattern travelling --- the relation a dislocation
-bears to the slip it produces, in which charge genuinely arrives at the far end while no constituent
-moves more than one lattice spacing. That diagnosis accounts for a series of null results reported
-here, each of which imposed a carrier obliged to translate bodily through occupied space and so
-measured the price of forbidding the only mechanism available.
+Not an electron. An electron here is a unit of charge density on a domain; what exists is the
+\emph{partition} of space, and transport is the partition pattern travelling. What moves is the
+\textbf{free boundary} --- a locus where two densities balance --- in the relation a dislocation
+bears to the slip it produces: as a kink passes, each electron advances one lattice spacing and
+stops while the kink crosses the whole chain, so charge genuinely arrives at the far end while no
+constituent moves far. Nothing material traverses the sample. That diagnosis also accounts for a
+series of null results reported here, each of which imposed a carrier obliged to translate bodily
+through occupied space, and so measured the price of forbidding the only mechanism available: with
+the free interface, a uniform density is admissible on any partition, redrawing a boundary costs
+nothing, and the boundary is the only object the framework moves.
 
 Numerically, an extra electron on a ring of hydrogens does not sit anywhere: it relaxes to a uniform
 corona, at $a=2.2\,a_0$ and still at $a=4.0\,a_0$ where a real electron would occupy one atom as
@@ -60,21 +47,33 @@ against bare kernels is by contrast \textbf{pinned}, rotating against the ion ri
 $0.01186$~Ha $=323$~meV for six electrons --- $54$~meV each, a threshold field of
 $9\times10^{8}$~V/m, or $0.11$~V per lattice site against the $4\times10^{-12}$~V per site of copper
 carrying an ampere. Rigid sliding is therefore excluded as a conduction mechanism by ten orders of
-magnitude. It is however an upper bound, since it makes every electron crest its barrier at once;
-the cheap path is a kink, whose cost is independent of chain length, and that measurement is
+magnitude. It is however an upper bound, since it obliges every electron to crest its barrier at
+once; the cheap path is a kink, whose cost is independent of chain length, and that measurement is
 identified but not reported here. Whether the two ring results additionally constitute a
 semiconductor --- filled complement pinned, added carrier free --- is left as a conjecture, the two
 runs differing in screening as well as in filling.
+
+The same free interface that supplies the mechanism damages the equation of state, and the two cannot
+be repaired independently. Partitioning a gas of density $n$ gives a kinetic energy density
+$t(n)=C\,n^{5/3}$ --- the Thomas--Fermi form from partition geometry rather than Fermi statistics ---
+but the flat trial function is admissible, so $C=0$ exactly: no degeneracy pressure, a
+\emph{vanishing} screening length since $k^2\propto1/C$ (the framework over-screens rather than
+failing to screen), a dispersionless plasmon, no bandwidth. The defect is nonetheless one number and
+not the construction, $C$ being fixed by the interface condition: Robin at $\beta a=1.146$ gives
+$C=2.871=C_{\rm TF}$ exactly against Dirichlet's $14.804$, all three carrying the correct $n^{5/3}$
+scaling. Whether that value is tolerable for atoms and molecules is the open question, and it is
+sharper than a parameter check --- Thomas--Fermi binds no molecule at all, by Teller's theorem, so
+the far end of the dial is hostile to exactly what this framework does best.
 
 Two further results are recorded. The alkali series Li--Cs is reproduced to a mean error of $6.2\%$
 against the standard treatment's $5.6\%$, carrying neither exchange nor band filling, but this is
 shown \emph{not} to test the quantum treatment, since setting the electronic kinetic energy to zero
 altogether moves the radii by one per cent: the lattice scale of a simple metal is electrostatic.
-And the high-temperature limit, treated separately, is the \emph{easier} case for this framework
-rather than the harder one, degeneracy not being required there --- $\omega_p^2=4\pi n$ comes out
-exactly, for the structural reason that a rigid translation leaves the localisation term untouched.
-What remains genuinely open is the Fermi surface, which no arrangement of densities on domains
-appears able to supply.
+And the high-temperature limit is the \emph{easier} case for this framework rather than the harder
+one, degeneracy not being required there --- $\omega_p^2=4\pi n$ comes out exactly, for the
+structural reason that a rigid translation leaves the localisation term untouched. What remains
+genuinely open is the Fermi surface, which no arrangement of densities on domains appears able to
+supply.
 \end{abstract}
 
 \setstretch{1.15}
@@ -111,177 +110,26 @@ matter, with an attractor always present. A plasma is the first case in which la
 charges of both signs are free to arrange themselves, and it is a fair question what the framework
 then gives.
 
-\section{The free boundary, and what it costs}\label{sec:boundary}
-
-The object that separates this framework from the standard theory is the \textbf{free boundary}: the
-surface at which two domains meet, its position not prescribed but settled by the energy. Everything
-that follows turns on what that boundary costs, so it is established first.
-
-Partitioning a gas of density $n$ into non-overlapping cells of size $a=n^{-1/3}$ gives a
-localisation cost per cell scaling as $a^{-2}$, hence a kinetic energy density $t(n)=C\,n^{5/3}$ ---
-the Thomas--Fermi form, obtained from the geometry of a partition rather than from Fermi statistics.
-Linearising \eqref{eq:E} about the uniform state and substituting into Poisson's equation gives
-Yukawa screening with $k^2=18\pi n^{1/3}/5C$, and setting $C$ to the Thomas--Fermi coefficient
-$C_{\rm TF}=\tfrac{3}{10}(3\pi^2)^{2/3}=2.8712$ reproduces $k_{\rm TF}$ exactly at every density.
-\emph{The form extends without adjustment.}
-
-That last statement should be read for exactly what it is worth, which is less than it sounds.
-Thomas--Fermi screening is itself derived from the Thomas--Fermi kinetic energy by precisely these
-steps --- $\mu=\partial t/\partial n$, then $\partial n/\partial\mu$, then Poisson --- so
-recovering $k_{\rm TF}$ from $C_{\rm TF}$ is an algebraic identity and not a second, independent
-agreement. What it establishes is that the framework's linear response is the correct derivative of
-its own kinetic energy, and what it \emph{provides} is a translation of the abstract coefficient $C$
-into an observable length. That translation is the reason the screening relation is worth carrying:
-it is how the value of $C$ becomes a statement about matter.
-
-The coefficient does not. With the free interface used throughout RealQM,
-$\psi_i\equiv|\Omega_i|^{-1/2}$ is admissible: it satisfies the normalisation, makes the total
-density uniform, minimises the electrostatic energy against a neutralising background, and has
-$\grad\psi_i=0$. Hence
-\begin{equation}\label{eq:Czero}
-C=0 \quad\text{exactly.}
-\end{equation}
-Neither allowing the interfaces to move nor requiring domains to be connected and singly charged
-alters this.
-
-\paragraph{The coefficient is a boundary condition, and its value is known.} What sets $C$ is the
-condition imposed where one domain meets the next. Solving the cell problem under a Robin condition
-$\partial_n\psi+\beta\psi=0$ at the face, and fitting $\beta$ to the electron gas, gives:
-
-\begin{center}
-\small
-\begin{tabular}{@{}lcc@{}}
-\toprule
- & $C$ & $C/C_{\rm TF}$\\
-\midrule
-Neumann, $\beta a=0$ (the present choice) & $0$ & $0$\\
-Robin, $\beta a=1.146$ & $2.871$ & $\mathbf{1.00}$\\
-Dirichlet, $\beta a\to\infty$ & $14.804$ & $5.16$\\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\noindent All three carry the same, correct, $n^{5/3}$ scaling; \emph{they differ by a pure number},
-and the framework has been using the one value of that number for which confinement is free. This is
-why the Thomas--Fermi comparison is made first and not last: it converts the finding from ``the
-construction has no degeneracy pressure'' into ``the construction has one interface parameter set to
-zero,'' and supplies the value it would need. The structure is not in question. One number is.
-
-\paragraph{Why Neumann is free, and why it went unnoticed.} A constant satisfies Neumann conditions
-on every face, so the ground state of $-\half\grad^2$ in a Neumann cell has energy \emph{exactly}
-zero at any cell size. Confinement costs nothing: halve the cell and the energy is unchanged. That is
-a failure of the uncertainty principle at precisely the place where electron meets electron --- and
-degeneracy pressure is nothing other than the energy cost of confining fermions. The substitute for
-exclusion reproduces its bookkeeping and none of its energy.
-
-It went unnoticed because every previous test of the framework had an attractor in it. Where a
-nucleus shapes the density, $\grad\psi\neq0$ for reasons having nothing to do with the interface, and
-$T$ comes out right; the faces are nearly irrelevant. Remove the attractor and the faces are all that
-is left.
-
-\paragraph{The same fact, with opposite signs.} Equation \eqref{eq:Czero} says that a free interface
-between two domains of equal density carries no confinement energy: the partition may be redrawn at
-any scale for nothing. Read as a statement about \emph{structure}, that is destructive. There is no
-degeneracy pressure; the screening length \emph{vanishes}, since $k^2=18\pi n^{1/3}/5C$ diverges as
-$C\to0$, so the framework does not fail to screen but screens perfectly at zero range, charge piling
-wherever the potential is low at no cost in kinetic energy; the plasmon is dispersionless; there is
-no bandwidth; and no mechanism remains by which a metal could differ from an insulator. Over-screening
-and the over-delocalisation measured in \S\ref{sec:conduction} are the same phenomenon.
-
-Read as a statement about \emph{motion}, it is the opposite. Moving a boundary is free --- and the
-boundary is the only object this framework moves. Its solver evolves each interface by the local
-density balance $(\rho_i-\rho_j)/(\rho_i+\rho_j)$, transferring ownership of a cell when the
-neighbour's density exceeds its own; domains do not translate, they are redrawn. A vanishing
-interface cost is therefore a vanishing cost of \emph{transport}. The defect that empties out
-degeneracy is the same one that should let charge flow.
-
-This paper follows the second reading, which is why conduction comes before the equation of state
-below rather than after it.
-
-\paragraph{What is being matched, and what is not.} Thomas--Fermi is a poor theory and no weight is
-placed on it here. It overbinds helium by about a third, has no shell structure and therefore no
-periodic table, and by Teller's theorem it binds \emph{no molecule at all}: in Thomas--Fermi theory
-separated atoms are always lower in energy than any molecule. What is exact is narrower and is the
-only part used. The coefficient $C_{\rm TF}=\tfrac{3}{10}(3\pi^2)^{2/3}$ is the exact kinetic energy
-density of a \emph{uniform} degenerate electron gas --- a theorem about free fermions rather than a
-model, Thomas--Fermi theory being what results from applying that exact local statement to
-inhomogeneous atoms, which is where it fails. The comparison above uses the one rigorous number in
-it, in the one limit where it is rigorous.
-
-That said, the two constructions stand in a suggestive relation, and it bears on how freely $\beta$
-may be chosen:
-
-\begin{center}
-\small
-\begin{tabular}{@{}lcc@{}}
-\toprule
- & uniform gas & molecular binding\\
-\midrule
-Thomas--Fermi & exact & none at all (Teller)\\
-RealQM as formulated & $C=0$ & its entire record of results\\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\noindent They are mirror images: each is empty exactly where the other is exact. And $\beta a$ is a
-dial running between them, $0$ at the RealQM end and $1.146$ at the Thomas--Fermi end. The question
-of whether the electron gas's value is tolerable for atoms and molecules is therefore not a technical
-check but the substantive one --- \emph{does moving towards the Thomas--Fermi coefficient destroy
-binding, as it does in Thomas--Fermi theory?} Teller's theorem is a standing warning that the far end
-of the dial is hostile to molecules.
-
-\paragraph{One dial, pulling both ways.} It should be said at once that $\beta$ cannot be tuned to
-satisfy both readings independently, because a single parameter governs them. Raising $\beta a$ from
-zero towards $1.146$ buys degeneracy pressure, a finite rather than vanishing screening length, and a
-dispersive plasmon ---
-and in the same movement makes the interface cost energy to move, which is resistance. The value
-that repairs the structure is the value that impedes the transport. Whether some intermediate setting
-serves both, or whether the two demands are simply in conflict, is not settled here, and it is the
-sharpest form of the question this paper leaves open. Whether the single value the electron gas
-requires is even tolerable for atoms and molecules is a second such question; the attempt is reported
-in the numerical note.
-
-\paragraph{What the partition supplies, and why it cannot be given up.} Since \eqref{eq:Czero}
-arises from the freedom of the interface, an obvious thought is to drop the partition and let the
-electrons share one territory. The cost of that is fixed by a scaling argument, and it is
-prohibitive. Confining $N$ unit charges to one shared region of volume $V=N/n$ gives a kinetic energy
-density
-\begin{equation}\label{eq:scaling}
-\frac{T}{V}=\frac{3\pi^2}{2}\,n^{5/3}N^{-2/3},
-\end{equation}
-against the $n^{5/3}$ of the partition with no $N$ in it at all. The partition is what makes the
-kinetic energy \emph{extensive}: each electron is localised to a cell whose size is set by the
-density, not by the size of the sample. Sharing makes it depend on how large a piece of metal one
-happens to be considering, and at $N\sim10^{23}$ the density falls by $N^{-2/3}\sim10^{-15}$ ---
-fifteen orders of magnitude. \emph{The partition must be kept}, whatever else is relaxed.
-
-\paragraph{What \eqref{eq:Czero} is, and is not, a statement about.} It concerns a \emph{uniform}
-density and does not transfer to a shaped one. Where a nucleus shapes the profiles --- a two-domain
-shell on one kernel, for instance --- both domains carry real kinetic energy, and the shell is stable
-under the density-balance rule, since compressing the inner domain raises its density at the
-interface and lowers the outer's, pushing the boundary back out. The vanishing is a property of the
-flat case alone.
-
-That also settles how much weight the uniform electron gas should carry. It is electrons plus a
-\emph{smeared, inert, non-responding} positive background --- a construction belonging to a tradition
-in which exchange--correlation energies are fitted to that very system. RealQM contains no inert
-backgrounds anywhere, so asking it to reproduce jellium asks for a system whose central ingredient it
-does not have, and $C=0$ diagnoses that mismatch rather than recording a failed test. Consistently,
-the pathology disappears as soon as real ions are present: Table~\ref{tab:alkalis} is the same
-framework on the same physics, with the background replaced by the charges matter is actually made
-of.
-
-One physical case does approach the uniform limit closely: degenerate matter in which the ion lattice
-is a small perturbation, as in a white dwarf interior, where the measured mass--radius relation
-depends on precisely the pressure the uniform limit does not supply. That is the one place the result
-might have observable consequences, and it is untested here.
-
 \section{Conduction}\label{sec:conduction}
 
 Electric conduction is the interaction of the electrons with the ion lattice. It is the elementary
 case --- ordinary matter at ordinary temperature --- and it is for that reason the \emph{demanding}
-one here, since ordinary-temperature conduction is degenerate matter, and degeneracy is exactly what
-\eqref{eq:Czero} empties out. The familiar case and the easy case are not the same case.
+one here, since ordinary-temperature conduction is degenerate matter, and degeneracy is what this
+framework has least of.
+
+One property of the construction is needed before anything else, and it is the property that makes
+conduction a live question rather than a hopeless one. With the free interface used throughout, a
+uniform density is admissible on any partition: $\psi_i\equiv|\Omega_i|^{-1/2}$ satisfies the
+normalisation, minimises the electrostatic energy against a neutralising background, and has
+$\grad\psi_i=0$. Redrawing the boundary therefore costs nothing,
+\begin{equation}\label{eq:Czero}
+\text{a free interface between domains of equal density carries no confinement energy,}
+\end{equation}
+and the boundary is the only object this framework moves --- its solver evolves each interface by the
+local density balance $(\rho_i-\rho_j)/(\rho_i+\rho_j)$, transferring ownership of a cell when the
+neighbour's density exceeds its own. Domains do not translate; they are redrawn. \emph{A vanishing
+interface cost is a vanishing cost of transport.} What that same fact does to the equation of state
+is a separate matter and is taken up in \S\ref{sec:coefficient}, where it is much less welcome.
 
 Metallic conduction is the paradigm of \emph{delocalisation}: the carriers are extended states
 spanning the crystal, whereas RealQM's electrons are localised by construction, each in its own
@@ -682,6 +530,159 @@ size, so that their effects on the position of the minimum largely cancel. That 
 framework's own design claim --- that non-overlap does the work exchange does --- and across five
 metals it holds for the radius and fails for the curvature, which is what one would expect of a
 cancellation that is close but not exact.
+
+\section{The interface coefficient, and the one number that is wrong}\label{sec:coefficient}
+
+Equation \eqref{eq:Czero} was introduced above for what it gives conduction. It has a second face,
+and this section is that face: the same vanishing interface cost, read as a statement about the
+\emph{equation of state}, where it is a defect rather than a mechanism, and where --- this being the
+useful part --- it turns out to be a single misvalued number rather than a structural incapacity.
+
+Partitioning a gas of density $n$ into non-overlapping cells of size $a=n^{-1/3}$ gives a
+localisation cost per cell scaling as $a^{-2}$, hence a kinetic energy density $t(n)=C\,n^{5/3}$ ---
+the Thomas--Fermi form, obtained from the geometry of a partition rather than from Fermi statistics.
+Linearising \eqref{eq:E} about the uniform state and substituting into Poisson's equation gives
+Yukawa screening with $k^2=18\pi n^{1/3}/5C$, and setting $C$ to the Thomas--Fermi coefficient
+$C_{\rm TF}=\tfrac{3}{10}(3\pi^2)^{2/3}=2.8712$ reproduces $k_{\rm TF}$ exactly at every density.
+\emph{The form extends without adjustment.}
+
+That last statement should be read for exactly what it is worth, which is less than it sounds.
+Thomas--Fermi screening is itself derived from the Thomas--Fermi kinetic energy by precisely these
+steps --- $\mu=\partial t/\partial n$, then $\partial n/\partial\mu$, then Poisson --- so
+recovering $k_{\rm TF}$ from $C_{\rm TF}$ is an algebraic identity and not a second, independent
+agreement. What it establishes is that the framework's linear response is the correct derivative of
+its own kinetic energy, and what it \emph{provides} is a translation of the abstract coefficient $C$
+into an observable length. That translation is the reason the screening relation is worth carrying:
+it is how the value of $C$ becomes a statement about matter.
+
+The coefficient does not. By \eqref{eq:Czero} the flat trial function is admissible, so $C=0$
+exactly, and neither allowing the interfaces to move nor requiring domains to be connected and singly
+charged alters it.
+
+\paragraph{The coefficient is a boundary condition, and its value is known.} What sets $C$ is the
+condition imposed where one domain meets the next. Solving the cell problem under a Robin condition
+$\partial_n\psi+\beta\psi=0$ at the face, and fitting $\beta$ to the electron gas, gives:
+
+\begin{center}
+\small
+\begin{tabular}{@{}lcc@{}}
+\toprule
+ & $C$ & $C/C_{\rm TF}$\\
+\midrule
+Neumann, $\beta a=0$ (the present choice) & $0$ & $0$\\
+Robin, $\beta a=1.146$ & $2.871$ & $\mathbf{1.00}$\\
+Dirichlet, $\beta a\to\infty$ & $14.804$ & $5.16$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent All three carry the same, correct, $n^{5/3}$ scaling; \emph{they differ by a pure number},
+and the framework has been using the one value of that number for which confinement is free. This is
+why the Thomas--Fermi comparison is made first and not last: it converts the finding from ``the
+construction has no degeneracy pressure'' into ``the construction has one interface parameter set to
+zero,'' and supplies the value it would need. The structure is not in question. One number is.
+
+\paragraph{Why Neumann is free, and why it went unnoticed.} A constant satisfies Neumann conditions
+on every face, so the ground state of $-\half\grad^2$ in a Neumann cell has energy \emph{exactly}
+zero at any cell size. Confinement costs nothing: halve the cell and the energy is unchanged. That is
+a failure of the uncertainty principle at precisely the place where electron meets electron --- and
+degeneracy pressure is nothing other than the energy cost of confining fermions. The substitute for
+exclusion reproduces its bookkeeping and none of its energy.
+
+It went unnoticed because every previous test of the framework had an attractor in it. Where a
+nucleus shapes the density, $\grad\psi\neq0$ for reasons having nothing to do with the interface, and
+$T$ comes out right; the faces are nearly irrelevant. Remove the attractor and the faces are all that
+is left.
+
+\paragraph{The cost of the mechanism.} Read as a statement about \emph{structure}, the free
+interface is destructive. There is no
+degeneracy pressure; the screening length \emph{vanishes}, since $k^2=18\pi n^{1/3}/5C$ diverges as
+$C\to0$, so the framework does not fail to screen but screens perfectly at zero range, charge piling
+wherever the potential is low at no cost in kinetic energy; the plasmon is dispersionless; there is
+no bandwidth; and no mechanism remains by which a metal could differ from an insulator. Over-screening
+and the over-delocalisation measured in \S\ref{sec:conduction} are the same phenomenon.
+
+Every one of those is the price of the mechanism \S\ref{sec:conduction} runs on. The defect that
+empties out degeneracy is the same one that lets charge flow, which is why the two halves of this
+paper cannot be repaired independently.
+
+\paragraph{What is being matched, and what is not.} Thomas--Fermi is a poor theory and no weight is
+placed on it here. It overbinds helium by about a third, has no shell structure and therefore no
+periodic table, and by Teller's theorem it binds \emph{no molecule at all}: in Thomas--Fermi theory
+separated atoms are always lower in energy than any molecule. What is exact is narrower and is the
+only part used. The coefficient $C_{\rm TF}=\tfrac{3}{10}(3\pi^2)^{2/3}$ is the exact kinetic energy
+density of a \emph{uniform} degenerate electron gas --- a theorem about free fermions rather than a
+model, Thomas--Fermi theory being what results from applying that exact local statement to
+inhomogeneous atoms, which is where it fails. The comparison above uses the one rigorous number in
+it, in the one limit where it is rigorous.
+
+That said, the two constructions stand in a suggestive relation, and it bears on how freely $\beta$
+may be chosen:
+
+\begin{center}
+\small
+\begin{tabular}{@{}lcc@{}}
+\toprule
+ & uniform gas & molecular binding\\
+\midrule
+Thomas--Fermi & exact & none at all (Teller)\\
+RealQM as formulated & $C=0$ & its entire record of results\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent They are mirror images: each is empty exactly where the other is exact. And $\beta a$ is a
+dial running between them, $0$ at the RealQM end and $1.146$ at the Thomas--Fermi end. The question
+of whether the electron gas's value is tolerable for atoms and molecules is therefore not a technical
+check but the substantive one --- \emph{does moving towards the Thomas--Fermi coefficient destroy
+binding, as it does in Thomas--Fermi theory?} Teller's theorem is a standing warning that the far end
+of the dial is hostile to molecules.
+
+\paragraph{One dial, pulling both ways.} It should be said at once that $\beta$ cannot be tuned to
+satisfy both readings independently, because a single parameter governs them. Raising $\beta a$ from
+zero towards $1.146$ buys degeneracy pressure, a finite rather than vanishing screening length, and a
+dispersive plasmon ---
+and in the same movement makes the interface cost energy to move, which is resistance. The value
+that repairs the structure is the value that impedes the transport. Whether some intermediate setting
+serves both, or whether the two demands are simply in conflict, is not settled here, and it is the
+sharpest form of the question this paper leaves open. Whether the single value the electron gas
+requires is even tolerable for atoms and molecules is a second such question; the attempt is reported
+in the numerical note.
+
+\paragraph{What the partition supplies, and why it cannot be given up.} Since \eqref{eq:Czero}
+arises from the freedom of the interface, an obvious thought is to drop the partition and let the
+electrons share one territory. The cost of that is fixed by a scaling argument, and it is
+prohibitive. Confining $N$ unit charges to one shared region of volume $V=N/n$ gives a kinetic energy
+density
+\begin{equation}\label{eq:scaling}
+\frac{T}{V}=\frac{3\pi^2}{2}\,n^{5/3}N^{-2/3},
+\end{equation}
+against the $n^{5/3}$ of the partition with no $N$ in it at all. The partition is what makes the
+kinetic energy \emph{extensive}: each electron is localised to a cell whose size is set by the
+density, not by the size of the sample. Sharing makes it depend on how large a piece of metal one
+happens to be considering, and at $N\sim10^{23}$ the density falls by $N^{-2/3}\sim10^{-15}$ ---
+fifteen orders of magnitude. \emph{The partition must be kept}, whatever else is relaxed.
+
+\paragraph{What \eqref{eq:Czero} is, and is not, a statement about.} It concerns a \emph{uniform}
+density and does not transfer to a shaped one. Where a nucleus shapes the profiles --- a two-domain
+shell on one kernel, for instance --- both domains carry real kinetic energy, and the shell is stable
+under the density-balance rule, since compressing the inner domain raises its density at the
+interface and lowers the outer's, pushing the boundary back out. The vanishing is a property of the
+flat case alone.
+
+That also settles how much weight the uniform electron gas should carry. It is electrons plus a
+\emph{smeared, inert, non-responding} positive background --- a construction belonging to a tradition
+in which exchange--correlation energies are fitted to that very system. RealQM contains no inert
+backgrounds anywhere, so asking it to reproduce jellium asks for a system whose central ingredient it
+does not have, and $C=0$ diagnoses that mismatch rather than recording a failed test. Consistently,
+the pathology disappears as soon as real ions are present: Table~\ref{tab:alkalis} is the same
+framework on the same physics, with the background replaced by the charges matter is actually made
+of.
+
+One physical case does approach the uniform limit closely: degenerate matter in which the ion lattice
+is a small perturbation, as in a white dwarf interior, where the measured mass--radius relation
+depends on precisely the pressure the uniform limit does not supply. That is the one place the result
+might have observable consequences, and it is untested here.
 
 \section{The high-temperature limit}\label{sec:plasma}
 
