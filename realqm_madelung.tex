@@ -87,6 +87,57 @@ which is \textbf{Bohm's quantum potential}. RealQM therefore carries the quantum
 not by resemblance but as the variation of a term it writes down for an entirely different reason ---
 as the localisation cost of confining a charge to a region.
 
+\subsection*{The two steps, in full}
+
+\paragraph{Step one, \eqref{eq:vW}.} With $\rho=\psi^2$ and $\psi\ge0$, so that $\psi=\sqrt\rho$, the
+chain rule gives $\grad\rho=2\psi\grad\psi$, hence
+\[
+|\grad\rho|^2=4\psi^2|\grad\psi|^2,\qquad
+\frac{|\grad\rho|^2}{\rho}=\frac{4\psi^2|\grad\psi|^2}{\psi^2}=4|\grad\psi|^2,\qquad
+\frac18\frac{|\grad\rho|^2}{\rho}=\half|\grad\psi|^2 ,
+\]
+and integrating gives \eqref{eq:vW}. There is no approximation and no limit in this; it is the chain
+rule.
+
+\paragraph{Step two, \eqref{eq:Q}.} Write $u=\sqrt\rho$, so $T_{\rm vW}=\half\int|\grad u|^2$, and
+perturb $\rho\to\rho+\varepsilon\eta$. Since
+$\sqrt{\rho+\varepsilon\eta}=u\bigl(1+\varepsilon\eta/\rho\bigr)^{1/2}
+=u+\varepsilon\eta/(2u)+O(\varepsilon^2)$, the induced variation of $u$ is
+\begin{equation}\label{eq:du}
+\delta u=\frac{\eta}{2u}.
+\end{equation}
+Then
+\begin{equation}\label{eq:vary}
+\delta T_{\rm vW}=\int\grad u\cdot\grad(\delta u)\,dx
+=-\int(\grad^2u)\,\delta u\,dx+\oint_{\partial\Omega}(\partial_nu)\,\delta u\,dS ,
+\end{equation}
+by parts, and substituting \eqref{eq:du},
+\[
+\delta T_{\rm vW}=\int\Bigl[-\frac{\grad^2u}{2u}\Bigr]\eta\,dx
++\oint_{\partial\Omega}(\partial_nu)\frac{\eta}{2u}\,dS .
+\]
+The coefficient of $\eta$ in the interior is the functional derivative, giving \eqref{eq:Q}.
+
+\paragraph{The boundary term is the other half of the story.} The surface integral left over in
+\eqref{eq:vary} is not a technicality to be discarded --- it is what fixes the interface condition,
+and it is \S\ref{sec:surface} below. Requiring it to vanish for arbitrary $\eta$ gives
+$\partial_nu=0$, the Neumann condition the framework presently uses. Adding a surface energy
+$\tfrac{\beta}{2}\oint u^2\,dS$ contributes $\beta\oint u\,\delta u\,dS$, so the two boundary terms
+combine to $\oint(\partial_nu+\beta u)\delta u\,dS$ and the natural condition becomes
+$\partial_nu+\beta u=0$, Robin. \emph{The quantum potential and the surface tension emerge from the
+same integration by parts}, one from the interior and one from the boundary.
+
+\paragraph{A check by the other route.} Varying the $\tfrac18\int|\grad\rho|^2/\rho$ form directly,
+\[
+\delta T_{\rm vW}=\frac14\int\frac{\grad\rho\cdot\grad\eta}{\rho}
+-\frac18\int\frac{|\grad\rho|^2}{\rho^2}\eta
+=\int\Bigl[-\frac14\frac{\grad^2\rho}{\rho}+\frac18\frac{|\grad\rho|^2}{\rho^2}\Bigr]\eta\,dx,
+\]
+using $\grad\!\cdot(\grad\rho/\rho)=\grad^2\rho/\rho-|\grad\rho|^2/\rho^2$. Substituting $\rho=u^2$,
+for which $\grad^2\rho=2|\grad u|^2+2u\grad^2u$ and $|\grad\rho|^2=4u^2|\grad u|^2$, the
+$|\grad u|^2/u^2$ terms cancel exactly and what remains is $-\tfrac12\grad^2u/u$. The same answer by
+a different path.
+
 \section{What the static theory is}
 
 Minimising \eqref{eq:E} in $\psi_i$ subject to $\int\psi_i^2=1$ gives the Euler--Lagrange equation
@@ -109,7 +160,7 @@ why it returns equilibrium partitions and no currents, and why the conduction st
 sentence: it is not that a dynamics is missing in some unspecified way, but that exactly one half of
 a known pair is present.
 
-\section{The interface is a surface tension}
+\section{The interface is a surface tension}\label{sec:surface}
 
 The same view settles what the free interface is, and thereby what the framework's one
 underdetermined number means.
