@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html><head>
+  <meta charset="utf-8">
+  <title>A kink on a linear chain — the cheap path for transport</title>
+  <style>body { margin: 0; background: #000; color: #fff; font-family: monospace; }</style>
+</head><body>
+<div id="info" style="position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.85);padding:10px;border:1px solid #333;border-radius:6px;max-width:565px;font-size:12px;z-index:100">
+  <div style="color:#9f9;font-weight:bold">Linear chain: rigid sliding vs a kink</div>
+  A row of n bare kernels with a row of n electrons alongside, offset above them so they sit outside
+  every nucleus. Two ways for charge to move, and the question is which is cheaper.
+  <div style="margin-top:6px">
+  <b>Why a chain and not the ring.</b> The ring gave the pinning barrier cleanly &mdash; no ends, every
+  site equivalent &mdash; but no electrostatic bias can drive a sea around a closed loop, since a
+  conservative field has zero circulation. A chain has ends, so a potential drop along it is an
+  ordinary thing to apply, and a single kink can enter at one end and leave at the other. On a ring
+  kinks must come in pairs.
+  </div>
+  <div style="margin-top:6px">
+  <b>What the ring already settled.</b> Rigid sliding of the whole sea costs <b>0.01186 Ha</b> for six
+  electrons &mdash; 54 meV each, a threshold field of 9&times;10<sup>8</sup> V/m, about
+  <b>0.11 V per lattice site</b>. Ten orders of magnitude too stiff to be conduction. But that path
+  makes every electron crest its barrier at once, and its cost grows with the number of participants.
+  </div>
+  <div style="margin-top:6px">
+  <b>The kink.</b> Electrons left of j<sub>0</sub> keep their registry; those to the right are advanced
+  by one full site spacing, over a width w. That leaves one ion unpartnered &mdash; a vacancy in the
+  electron row, carrying one unit of charge. <b>Only the kink region pays</b>, so the cost is
+  independent of chain length, and one kink crossing the chain transports exactly one electron.
+  </div>
+  <div style="margin-top:6px;color:#9cf">
+  <b>The two numbers wanted.</b> <i>Creation</i> = E(kink) &minus; E(uniform), whether a kink can exist
+  at all. <i>Migration</i> = the variation of E with j<sub>0</sub> as the kink is stepped along, which
+  is the Peierls&ndash;Nabarro barrier and sets the threshold field for kink motion. If migration is far
+  below the rigid 54 meV per electron, the chain conducts by kinks at fields the rigid mode could
+  never reach.
+  </div>
+  <div style="margin-top:6px">
+  <b>URL:</b> <code>?n=9</code> ions, <code>&amp;a=2.2</code> spacing, <code>&amp;dy=1.2</code> how far
+  the electron row sits above the ion row, <code>&amp;kink=0</code> uniform reference or
+  <code>1</code> with a kink, <code>&amp;j0=4</code> kink centre, <code>&amp;w=1.0</code> kink width in
+  sites, <code>&amp;phi=0</code> rigid registry offset, <code>&amp;bs=0.25</code>,
+  <code>&amp;reset</code> clears.
+  </div>
+  <div id="mon" style="margin-top:8px;color:#9f9">relaxing&hellip;</div>
+  <div id="tab" style="margin-top:8px;color:#9c9;font-size:11px"></div>
+</div>
+<script>
+(function() {
+  var q = new URLSearchParams(location.search);
+  var N    = parseInt(q.get('n') || '9');
+  var a    = parseFloat(q.get('a') || '2.2');
+  var dy   = parseFloat(q.get('dy') || '1.2');
+  var KINK = (q.get('kink') || '0') === '1';
+  var J0   = parseFloat(q.get('j0') || '4');
+  var W    = parseFloat(q.get('w') || '1.0');
+  var PHI  = parseFloat(q.get('phi') || '0');
+  var BS   = parseFloat(q.get('bs') || '0.25');
+
+  var gridN = 160, scr = 30, N2 = 80;
+  var h = scr / gridN;
+
+  var atoms = [], Z = [], Znuc = [];
+  function add(x, y, zc, zn) {
+    atoms.push({ i: Math.round(N2 + x / h), j: Math.round(N2 + y / h), k: N2, Z: zc, el: 'H' });
+    Z.push(zc); Znuc.push(zn);
+  }
+  function xIon(j) { return (j - (N - 1) / 2) * a; }
+
+  // the ions: bare kernels, no electrons of their own -- the row alongside carries all the charge
+  for (var j = 0; j < N; j++) add(xIon(j), 0, 0, 1);
+
+  // the electrons. Uniform: each sits above its ion, offset by PHI site spacings.
+  // Kink: those right of J0 are advanced by one full spacing, over width W. The step is
+  // smooth (tanh), which is the Frenkel-Kontorova kink profile -- a sharp step would be a
+  // different, more expensive object.
+  // Z_nuc = 1e-9 rather than 0, since (Z_nuc || Z) treats a falsy zero as the electron count.
+  function step(j) { return KINK ? 0.5 * (1 + Math.tanh((j - J0) / W)) : 0; }
+  for (var j = 0; j < N; j++) add(xIon(j) + (PHI + step(j)) * a, dy, 1, 1e-9);
+
+  window.USER_ATOMS = atoms;
+  window.USER_Z = Z;
+  window.USER_Z_NUC = Znuc;
+  window.USER_NN = gridN;
+  window.USER_SCREEN = scr;
+  window.USER_STEPS = 1000000;
+  window.USER_DYNAMICS = false;                  // ions fixed: the electron row is what moves
+  window.USER_BOUNDARY_SPEED = BS;
+  window.USER_CURV_REG = 0.10;
+  window.INIT_ZEFF = 1;
+  window.CONVERGENCE_THRESHOLD = 0.0002;
+
+  var KEY = 'realqm_kink';
+  if (q.get('reset') !== null) localStorage.setItem(KEY, '{}');
+
+  window.onSweepDone = function (E) {
+    var st = JSON.parse(localStorage.getItem(KEY) || '{}');
+    var k = 'n' + N + '_a' + a.toFixed(1) + '_' +
+            (KINK ? 'kink_w' + W.toFixed(1) + '_j' + J0.toFixed(2)
+                  : 'unif_phi' + PHI.toFixed(2));
+    if (!Array.isArray(st[k])) st[k] = [];
+    st[k].push(Number(E));
+    localStorage.setItem(KEY, JSON.stringify(st));
+    console.log('CONVERGED ' + k + ' E=' + Number(E).toFixed(5));
+  };
+
+  function best(v) { return Math.min.apply(null, v); }
+
+  function table() {
+    var st = JSON.parse(localStorage.getItem(KEY) || '{}');
+    var ks = Object.keys(st);
+    if (!ks.length) { document.getElementById('tab').innerHTML = ''; return; }
+    var out = [], unif = {}, kinks = {};
+    ks.sort().forEach(function (k) {
+      var v = st[k], b = best(v);
+      var sp = Math.max.apply(null, v) - Math.min.apply(null, v);
+      out.push('&nbsp; ' + k + ':  ' + b.toFixed(5)
+               + (v.length > 1 ? '  (' + v.length + ' runs, spread ' + sp.toFixed(5) + ')' : ''));
+      var mu = k.match(/unif_phi([\d.]+)$/), mk = k.match(/kink_w([\d.]+)_j([\d.]+)$/);
+      if (mu) unif[mu[1]] = b;
+      if (mk) (kinks[mk[1]] = kinks[mk[1]] || {})[mk[2]] = b;
+    });
+    // creation energy, against the lowest uniform reference available
+    var uvals = Object.keys(unif).map(function (p) { return unif[p]; });
+    if (uvals.length) {
+      var u0 = Math.min.apply(null, uvals);
+      Object.keys(kinks).forEach(function (w) {
+        var js = Object.keys(kinks[w]);
+        var lo = Math.min.apply(null, js.map(function (j) { return kinks[w][j]; }));
+        var hi = Math.max.apply(null, js.map(function (j) { return kinks[w][j]; }));
+        var cre = lo - u0;
+        out.push('<b>w = ' + w + ':  creation = ' + cre.toFixed(5) + ' Ha = '
+                 + (cre * 27214).toFixed(0) + ' meV</b>'
+                 + (cre < 0 ? '  <span style="color:#fc8">negative: the kink is the ground state, '
+                              + 'the uniform row is not stable</span>' : ''));
+        if (js.length > 1) {
+          var mig = hi - lo;
+          // one kink stepping one site transports one electron one spacing: eEa = mig
+          var ET = (mig / a) * 5.14220675e11;
+          out.push('<b>&nbsp; migration over ' + js.length + ' positions = ' + mig.toFixed(5)
+                   + ' Ha = ' + (mig * 27214).toFixed(0) + ' meV</b>');
+          out.push('&nbsp; threshold field for kink motion = ' + ET.toExponential(1)
+                   + ' V/m = ' + (mig * 27.214).toFixed(3) + ' V per site');
+          out.push('&nbsp; <span style="color:#fc8">rigid sliding was 54 meV per electron, '
+                   + '0.11 V per site &mdash; the kink is a factor '
+                   + (0.0019767 / Math.max(mig, 1e-9)).toFixed(1) + ' cheaper</span>');
+        } else {
+          out.push('&nbsp; <span style="color:#999">migration needs a second j0</span>');
+        }
+      });
+    } else {
+      out.push('<span style="color:#999">run &amp;kink=0 for the uniform reference</span>');
+    }
+    document.getElementById('tab').innerHTML = out.join('<br>');
+  }
+
+  setInterval(function () {
+    var el = document.getElementById('mon');
+    if (!el) return;
+    var txt = N + ' bare kernels at spacing ' + a.toFixed(2) + ' a0,  ' + N
+            + ' electrons ' + dy.toFixed(2) + ' a0 above,  net charge 0<br>'
+            + (KINK ? '<span style="color:#fc8">kink at j0 = ' + J0.toFixed(2) + ', width '
+                      + W.toFixed(2) + ' sites</span>'
+                    : '<span style="color:#9cf">uniform reference, registry phi = '
+                      + PHI.toFixed(2) + '</span>') + '<br>';
+    if (typeof window._prevE !== 'undefined')
+      txt += 'E = ' + Number(window._prevE).toFixed(5) + ' Ha'
+           + (window._convCount ? '  (settling)' : '  (running)') + '<br>';
+    el.innerHTML = txt;
+    table();
+  }, 500);
+
+  console.log('chain kink: n=' + N + ' a=' + a + ' dy=' + dy
+              + ' kink=' + KINK + ' j0=' + J0 + ' w=' + W + ' phi=' + PHI);
+})();
+
+var s = document.createElement('script');
+s.src = 'molecule.js?t=' + Date.now();
+s.onload = function() {
+  var p = document.createElement('script');
+  p.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+  document.body.appendChild(p);
+};
+document.body.appendChild(s);
+</script>
+</body></html>
