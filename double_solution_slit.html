@@ -90,6 +90,55 @@
     </div>
 
     <div class="box">
+      <h2>Which equations are solved</h2>
+      <b>1. The guiding field</b> &mdash; the linear time-dependent Schr&ouml;dinger equation,
+      &hbar;=m=1:
+      <div style="margin:4px 0 4px 10px;color:#9cf">
+      i &part;&psi;/&part;t = H&psi;,&nbsp;&nbsp; H = &minus;&frac12;&nabla;<sup>2</sup> + V
+      </div>
+      Split as &psi;=R+iI, so &part;R/&part;t = HI and &part;I/&part;t = &minus;HR, integrated by
+      <b>Visscher's staggered leapfrog</b> (R and I offset by half a step, which conserves
+      |&psi;|<sup>2</sup>):
+      <div style="margin:4px 0 4px 10px;color:#9cf">
+      R<sup>n+1</sup> = R<sup>n</sup> + &Delta;t&middot;H I<sup>n+&frac12;</sup><br>
+      I<sup>n+3/2</sup> = I<sup>n+&frac12;</sup> &minus; &Delta;t&middot;H R<sup>n+1</sup>
+      </div>
+      with H the 5-point Laplacian at dx=1. V is zero everywhere; the wall is imposed as
+      <b>&psi;=0</b> in its cells (V=&infin;), which avoids the timestep limit a large finite V
+      would bring.
+      <div style="margin-top:6px">
+      <b>2. The guidance law</b> &mdash; de Broglie's, by explicit Euler on the same &Delta;t:
+      <div style="margin:4px 0 4px 10px;color:#9cf">
+      dx/dt = Im(&psi;*&nabla;&psi;)/|&psi;|<sup>2</sup>
+      = (R&nabla;I &minus; I&nabla;R)/(R<sup>2</sup>+I<sup>2</sup>)
+      </div>
+      <b>3. Initial condition</b> &mdash; Gaussian packet &times; e<sup>ik&#8320;x</sup>, lumps drawn
+      from |&psi;|<sup>2</sup> by rejection.
+      <b>4. The grey curve</b> &mdash; time-integrated positive flux at the screen,
+      &int;max(j<sub>x</sub>,0)dt with j<sub>x</sub> = R&part;<sub>x</sub>I &minus;
+      I&part;<sub>x</sub>R, the correct quantum arrival distribution.
+      </div>
+      <div style="margin-top:6px;color:#888">
+      440&times;300 cells, &Delta;t=0.2, k&#8320;=0.8, &sigma;<sub>x</sub>=16, &sigma;<sub>y</sub>=55,
+      wall at x=160&ndash;162, slits half-width 5 at y=150&plusmn;22, screen at x=420, 3200 steps,
+      4000 lumps, damping sponge at the edges so nothing reflects back.
+      </div>
+      <div style="margin-top:6px;color:#e8a">
+      <b>What is not solved: anything from RealQM.</b> No free boundary, no partition into domains,
+      no Coulomb energy minimisation, no non-overlap. The lump is a <i>point</i> advected by v &mdash;
+      its sharp boundary is drawn, not computed. The RealQM content here is interpretive: it says what
+      kind of object the particle is, and none of it enters the mathematics.
+      <div style="margin-top:6px">
+      The reason is a gap the conduction work already names. RealQM in its static form has <b>no
+      equation of motion for electrons at all</b> &mdash; nuclei move classically, electrons relax to
+      a minimum. A genuine RealQM double slit needs a <i>propagating free-boundary domain</i>, which
+      exists only in the complex time-dependent branch of the programme. The same obstruction, met
+      from a different direction.
+      </div>
+      </div>
+    </div>
+
+    <div class="box">
       <h2>Readings</h2>
       <table>
         <tr><td>phase</td><td class="r" id="s-phase">&mdash;</td></tr>
