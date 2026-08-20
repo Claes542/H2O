@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html><head>
+  <meta charset="utf-8">
+  <title>A one-electron wrap over two H atoms — does a bias shift it?</title>
+  <style>body { margin: 0; background: #000; color: #fff; font-family: monospace; }</style>
+</head><body>
+<div id="info" style="position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.85);padding:10px;border:1px solid #333;border-radius:6px;max-width:545px;font-size:12px;z-index:100">
+  <div style="color:#9cf;font-weight:bold">A wrap over two atoms, and whether a bias moves it</div>
+  A chain of H atoms with one extra electron as a <b>wrap enclosing the middle two</b>. A bias on the
+  far kernel then asks whether the wrap shifts along the chain.
+  <div style="margin-top:6px">
+  <b>How the wrap is made.</b> Not by seeding a diffuse domain and hoping &mdash; that failed, because
+  a diffuse trial carries a small prefactor and wins only the far exterior. Here the
+  <b>shell machinery</b> builds it: the two atoms to be wrapped are listed <i>inner</i> (r &lt; R
+  about the box centre), and the wrap electron together with the remaining chain atoms are listed
+  <i>outer</i>, so the region beyond R divides by proximity. The wrap gets a shell around the middle
+  pair; the outer atoms keep their own territory.
+  </div>
+  <div style="margin-top:6px">
+  <b>Why this configuration should hold.</b> The wrap lies <i>outside</i> every nucleus and competes
+  with none. Across two days that is the arrangement that stayed stable and physical
+  (&minus;1.223 to &minus;1.228 over three runs), while every carrier placed near a nucleus either
+  collapsed or needed its interface locked. And the wrap moves by its boundary flowing &mdash; taking
+  in the next atom at the front, releasing one at the back &mdash; not by a domain translating through
+  occupied space, which is the mode this solver actually has.
+  </div>
+  <div style="margin-top:6px">
+  <b>URL:</b> <code>?n=4</code> atoms, <code>&amp;a=2.2</code> spacing, <code>&amp;R=1.8</code> wrap
+  inner radius, <code>&amp;bias=0.1</code> extra charge on the far kernel,
+  <code>&amp;bs=0.25</code> boundary speed. Run <code>&amp;bias=0</code> first as the control.
+  </div>
+  <div id="mon" style="margin-top:8px;color:#9cf">relaxing&hellip;</div>
+</div>
+<script>
+(function() {
+  var q = new URLSearchParams(location.search);
+  var nH   = parseInt(q.get('n') || '4');
+  var a    = parseFloat(q.get('a') || '2.2');
+  var R    = parseFloat(q.get('R') || '1.8');
+  var BIAS = parseFloat(q.get('bias') || '0');
+  var BS   = parseFloat(q.get('bs') || '0.25');
+
+  var gridN = 150, scr = 26, N2 = 75;
+  var h = scr / gridN;
+
+  // chain centred on the box, so the middle pair straddles the shell origin
+  function xOf(w) { return (w - (nH - 1) / 2) * a; }
+  var mid1 = Math.floor((nH - 1) / 2), mid2 = mid1 + 1;   // the pair to be wrapped
+
+  var atoms = [], Z = [], Znuc = [];
+  function add(x, zc, zn) {
+    atoms.push({ i: Math.round(N2 + x / h), j: N2, k: N2, Z: zc, el: 'H' });
+    Z.push(zc); Znuc.push(zn);
+  }
+  for (var w = 0; w < nH; w++) {
+    // bias on the far (rightmost) kernel pulls a mobile carrier toward it
+    add(xOf(w), 1, 1 + ((w === nH - 1) ? BIAS : 0));
+  }
+  // the wrap: one unit of electron charge, no kernel of its own, seeded at the pair's centre.
+  // 1e-9 not 0 -- molecule_nucleus.js accumulates charge as (Z_nuc || Z), and 0 is falsy,
+  // which would give this domain a spurious +1 kernel.
+  add(0.5 * (xOf(mid1) + xOf(mid2)), 1, 1e-9);
+  var wrap = atoms.length - 1;
+
+  var outer = [wrap];
+  for (var w = 0; w < nH; w++) if (w !== mid1 && w !== mid2) outer.push(w);
+
+  window.USER_ATOMS = atoms;
+  window.USER_Z = Z;
+  window.USER_Z_NUC = Znuc;
+  window.USER_SHELL_RADIUS = R;
+  window.USER_SHELL_INNER  = [mid1, mid2];   // the wrapped pair holds the interior
+  window.USER_SHELL_OUTER  = outer;          // wrap + the remaining atoms, split by proximity
+
+  window.USER_NN = gridN;
+  window.USER_SCREEN = scr;
+  window.USER_STEPS = 1000000;
+  window.USER_DYNAMICS = false;              // nuclei fixed; the question is the electron
+  window.USER_BOUNDARY_SPEED = BS;           // the free boundary IS the transport mechanism
+  window.USER_CURV_REG = 0.10;
+  window.INIT_ZEFF = 1;
+  window.CONVERGENCE_THRESHOLD = 0.0002;
+
+  var floor = -0.5 * nH - 0.05;              // n H atoms plus a weakly bound extra electron
+
+  setInterval(function () {
+    var el = document.getElementById('mon');
+    if (!el) return;
+    var txt = nH + ' H at ' + a.toFixed(2) + ' a0,  wrap radius ' + R.toFixed(2)
+            + ',  bias ' + BIAS.toFixed(2) + ' on the far kernel<br>'
+            + 'wrap encloses atoms ' + mid1 + ' and ' + mid2 + ' at start;  '
+            + (nH + 1) + ' unit domains, net charge &minus;1<br>';
+    if (typeof window._prevE !== 'undefined') {
+      var E = Number(window._prevE);
+      txt += 'E = ' + E.toFixed(5) + ' Ha'
+           + (E < floor - 0.15 ? '  <span style="color:#f99">below floor ' + floor.toFixed(2)
+                                 + ': collapsed</span>'
+                               : '  <span style="color:#9f9">physical</span>') + '<br>';
+    }
+    txt += '<span style="color:#9c9">Watch the wrap\'s territory. Unbiased it should sit centred on '
+         + 'its pair. Under bias, if it extends to enclose the next atom while releasing the one '
+         + 'behind, the wrap is gliding &mdash; charge carried by a boundary flowing rather than a '
+         + 'domain moving.</span>';
+    el.innerHTML = txt;
+  }, 500);
+
+  console.log('wrap glide: n=' + nH + ' a=' + a + ' R=' + R + ' bias=' + BIAS
+              + ' wrap over atoms ' + mid1 + ',' + mid2);
+})();
+
+var s = document.createElement('script');
+s.src = 'molecule_nucleus.js?t=' + Date.now();
+s.onload = function() {
+  var p = document.createElement('script');
+  p.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+  document.body.appendChild(p);
+};
+document.body.appendChild(s);
+</script>
+</body></html>
