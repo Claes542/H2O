@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8">
+<title>The double slit as a double solution — one lump, one slit, one dot</title>
+<style>
+  body { margin:0; background:#000; color:#ddd; font-family:monospace; font-size:13px; }
+  #wrap { display:flex; gap:14px; padding:12px; align-items:flex-start; }
+  #side { width:430px; }
+  .box { background:#0a0d12; border:1px solid #26303a; border-radius:6px; padding:10px; margin-bottom:10px; }
+  h1 { font-size:15px; margin:0 0 6px; color:#9f9; }
+  h2 { font-size:13px; margin:0 0 5px; color:#9cf; }
+  b { color:#fff; }
+  .num { color:#ffd479; }
+  button { font-family:monospace; font-size:12px; padding:5px 12px; background:#1b2530;
+           color:#9cf; border:1px solid #3a4a5a; border-radius:4px; cursor:pointer; }
+  button:hover { background:#26313e; }
+  table { border-collapse:collapse; width:100%; }
+  td { padding:2px 4px; }
+  td.r { text-align:right; color:#ffd479; }
+</style>
+</head><body>
+<div id="wrap">
+  <canvas id="cv" width="1020" height="470"></canvas>
+  <div id="side">
+
+    <div class="box">
+      <h1>The double slit as a double solution</h1>
+      Two objects, not one. An <b>indivisible lump</b> with a sharp boundary &mdash; what a RealQM
+      domain is &mdash; and a <b>complex guiding field</b>. The lump passes through
+      <b>one</b> slit and makes <b>one</b> dot. The field passes through <b>both</b>, interferes, and
+      steers where the dots land. The fringes are statistical: they belong to the ensemble, never to
+      a single electron.
+    </div>
+
+    <div class="box">
+      <h2>Why not simply let the density split and interfere</h2>
+      Two reasons, and they are independent. RealQM's densities are <b>real and non-negative</b>, and
+      interference requires cancellation &mdash; two lobes give
+      &psi;<sub>1</sub><sup>2</sup>+&psi;<sub>2</sub><sup>2</sup>, no cross term, no fringes. And a
+      sharp free boundary carrying <b>one indivisible unit of charge</b> cannot break in two without
+      violating the postulate that gives charge quantisation.
+      <div style="margin-top:6px">
+      The deeper obstacle is the one that settled this historically. Schr&ouml;dinger proposed &psi;
+      as a literal charge density in 1926 and gave it up: if one electron <i>is</i> a spread density,
+      it arrives smeared over every bright fringe and deposits a fraction of its charge in each.
+      Experiment gives <b>one dot per electron</b>, the pattern accumulating over thousands
+      (Merli&ndash;Missiroli&ndash;Pozzi 1976, Tonomura 1989). This page is the arrangement that
+      keeps the realist lump and still gets the fringes.
+      </div>
+    </div>
+
+    <div class="box">
+      <h2>What is computed, and what is assumed</h2>
+      The field is the time-dependent Schr&ouml;dinger equation solved on a grid
+      (&hbar;=m=1, Visscher's staggered scheme, hard-wall slits, damped edges). The lumps follow
+      the de&nbsp;Broglie guidance law <b>v = Im(&psi;*&nabla;&psi;)/|&psi;|<sup>2</sup></b>, sampled
+      from |&psi;|<sup>2</sup> at t=0.
+      <div style="margin-top:6px;color:#e8a">
+      <b>The field is computed independently and the lumps follow it. There is no back-reaction</b> ---
+      the honest version, as chosen. Coupling the lump back into its own guiding field is a research
+      problem, not a simulation setting. The lump's internal structure plays no role here either:
+      only its centre is advected, so this demonstrates the <i>ontology and the statistics</i>, not a
+      RealQM computation of the lump itself.
+      </div>
+    </div>
+
+    <div class="box">
+      <h2>Readings</h2>
+      <table>
+        <tr><td>phase</td><td class="r" id="s-phase">&mdash;</td></tr>
+        <tr><td>electrons arrived</td><td class="r" id="s-n">0</td></tr>
+        <tr><td>through <b>upper</b> slit</td><td class="r" id="s-up">0</td></tr>
+        <tr><td>through <b>lower</b> slit</td><td class="r" id="s-lo">0</td></tr>
+        <tr><td>midline crossings</td><td class="r" id="s-x">0</td></tr>
+        <tr><td>arrival vs |&psi;|<sup>2</sup></td><td class="r" id="s-fit">&mdash;</td></tr>
+      </table>
+      <div style="margin-top:6px;color:#9c9">
+      <b>Two checks worth watching.</b> The dot histogram must converge on the flux-weighted
+      |&psi;|<sup>2</sup> at the screen (grey curve): the ensemble reproduces standard quantum
+      mechanics exactly, so this model adds a definite trajectory without changing a single
+      prediction. And <b>midline crossings must stay at zero</b> &mdash; in a symmetric setup the
+      guidance law forbids a lump from crossing the axis, so a lump that took the upper slit lands in
+      the upper half. That is where the model says something standard quantum mechanics declines to
+      say: which slit, with a definite answer.
+      </div>
+    </div>
+
+    <div class="box">
+      <button id="go">run again</button>
+      <button id="fast">replay fast</button>
+      <span style="color:#666"> &nbsp;&lambda; = 7.85 cells &middot; slit separation 44 &middot; 4000 electrons</span>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+// ---------------------------------------------------------------- parameters
+var NX=440, NY=300, DT=0.2, NSTEP=3200;
+var X0=70, SX=16, SY=55, K0=0.8;                 // initial packet
+var WALL=160, WTH=3, SLITH=5, SLITD=22;          // wall at x=160..162; slits at NY/2 +/- 22, half-width 5
+var SCREEN=420, NPART=4000;
+var SCALE=1.45, OX=6, OY=6;                      // field drawing
+var PX=660, PW=70, HX=740, HW=270;               // detector strip and histogram
+
+var cv=document.getElementById('cv'), g=cv.getContext('2d');
+var R,I,Inew,tmp, wall, damp, flux, img;
+var px,py,alive,startUp,slitOf, arrivals, nArr;
+var step, phase, replayI, replaySpeed;
+
+function idx(i,j){ return j*NX+i; }
+
+function build(){
+  var n=NX*NY;
+  R=new Float64Array(n); I=new Float64Array(n); Inew=new Float64Array(n); tmp=new Float64Array(n);
+  wall=new Uint8Array(n); damp=new Float64Array(n); flux=new Float64Array(NY);
+
+  // the wall: solid except at the two slits
+  var cy=NY>>1;
+  for(var i=WALL;i<WALL+WTH;i++) for(var j=0;j<NY;j++){
+    var up = Math.abs(j-(cy+SLITD))<=SLITH, lo = Math.abs(j-(cy-SLITD))<=SLITH;
+    if(!up && !lo) wall[idx(i,j)]=1;
+  }
+  // damped border, so nothing reflects back off the box
+  var B=22;
+  for(var i=0;i<NX;i++) for(var j=0;j<NY;j++){
+    var d=Math.min(i,j,NX-1-i,NY-1-j), f=1.0;
+    if(d<B){ var t=(B-d)/B; f=1.0-0.06*t*t; }
+    damp[idx(i,j)]=f;
+  }
+  // the initial packet: a Gaussian broad enough in y to illuminate both slits
+  for(var i=0;i<NX;i++) for(var j=0;j<NY;j++){
+    var dx=(i-X0)/SX, dy=(j-cy)/SY;
+    var a=Math.exp(-0.5*(dx*dx+dy*dy));
+    var k=idx(i,j);
+    if(wall[k]) { R[k]=0; I[k]=0; continue; }
+    R[k]=a*Math.cos(K0*i); I[k]=a*Math.sin(K0*i);
+  }
+  // stagger I by half a step: I(dt/2) = I(0) - (dt/2) H R(0)
+  applyH(R,tmp);
+  for(var k2=0;k2<n;k2++) I[k2]-=0.5*DT*tmp[k2];
+
+  // particles sampled from |psi(0)|^2, by rejection
+  px=new Float64Array(NPART); py=new Float64Array(NPART);
+  alive=new Uint8Array(NPART); startUp=new Uint8Array(NPART); slitOf=new Int8Array(NPART);
+  var p=0, guard=0;
+  while(p<NPART && guard<4e6){
+    guard++;
+    var xr=X0+(Math.random()*6-3)*SX, yr=cy+(Math.random()*6-3)*SY;
+    if(xr<1||xr>NX-2||yr<1||yr>NY-2) continue;
+    var dxr=(xr-X0)/SX, dyr=(yr-cy)/SY;
+    if(Math.random() < Math.exp(-(dxr*dxr+dyr*dyr))){
+      px[p]=xr; py[p]=yr; alive[p]=1; startUp[p]=(yr>cy)?1:0; slitOf[p]=-1; p++;
+    }
+  }
+  arrivals=[]; nArr=0; step=0; replayI=0;
+  for(var j2=0;j2<NY;j2++) flux[j2]=0;
+  img=g.createImageData(NX,NY);
+}
+
+// H psi = -(1/2) laplacian psi   (hard walls handled by zeroing)
+function applyH(src,dst){
+  for(var j=1;j<NY-1;j++){
+    var row=j*NX;
+    for(var i=1;i<NX-1;i++){
+      var k=row+i;
+      if(wall[k]){ dst[k]=0; continue; }
+      dst[k] = -0.5*(src[k+1]+src[k-1]+src[k+NX]+src[k-NX]-4*src[k]);
+    }
+  }
+}
+
+function evolve(){
+  var n=NX*NY, k;
+  applyH(I,tmp);
+  for(k=0;k<n;k++){ R[k]=(R[k]+DT*tmp[k])*damp[k]; if(wall[k])R[k]=0; }
+  applyH(R,tmp);
+  for(k=0;k<n;k++){ Inew[k]=(I[k]-DT*tmp[k])*damp[k]; if(wall[k])Inew[k]=0; }
+
+  // arrival flux at the screen column: the correct quantum arrival distribution
+  var i0=SCREEN;
+  for(var j=1;j<NY-1;j++){
+    var kk=idx(i0,j);
+    var jx = R[kk]*(Inew[kk+1]-Inew[kk-1])*0.5 - Inew[kk]*(R[kk+1]-R[kk-1])*0.5;
+    if(jx>0) flux[j]+=jx*DT;
+  }
+  var t2=I; I=Inew; Inew=t2;
+  advect();
+  step++;
+}
+
+// bilinear guidance velocity, with guards where the field is empty
+function velocity(x,y,out){
+  var i=Math.floor(x), j=Math.floor(y);
+  if(i<1||i>=NX-2||j<1||j>=NY-2){ out[0]=0; out[1]=0; return; }
+  var fx=x-i, fy=y-j, vx=0, vy=0, wsum=0;
+  for(var a=0;a<2;a++) for(var b=0;b<2;b++){
+    var w=(a?fx:1-fx)*(b?fy:1-fy); if(w<=0) continue;
+    var k=idx(i+a,j+b);
+    if(wall[k]) continue;
+    var rho=R[k]*R[k]+I[k]*I[k];
+    if(rho<1e-12) continue;
+    var gIx=(I[k+1]-I[k-1])*0.5, gRx=(R[k+1]-R[k-1])*0.5;
+    var gIy=(I[k+NX]-I[k-NX])*0.5, gRy=(R[k+NX]-R[k-NX])*0.5;
+    vx += w*(R[k]*gIx - I[k]*gRx)/rho;
+    vy += w*(R[k]*gIy - I[k]*gRy)/rho;
+    wsum += w;
+  }
+  if(wsum<1e-9){ out[0]=0; out[1]=0; return; }
+  vx/=wsum; vy/=wsum;
+  var VM=4*K0, sp=Math.hypot(vx,vy);             // clamp: |psi|^2 -> 0 makes v blow up numerically
+  if(sp>VM){ vx*=VM/sp; vy*=VM/sp; }
+  out[0]=vx; out[1]=vy;
+}
+
+var vbuf=[0,0];
+function advect(){
+  var cy=NY>>1;
+  for(var p=0;p<NPART;p++){
+    if(!alive[p]) continue;
+    var xb=px[p];
+    velocity(px[p],py[p],vbuf);
+    px[p]+=vbuf[0]*DT; py[p]+=vbuf[1]*DT;
+    if(px[p]<1||px[p]>NX-2||py[p]<1||py[p]>NY-2){ alive[p]=0; continue; }
+    // which slit: recorded as it crosses the wall plane
+    if(slitOf[p]<0 && xb<WALL+WTH && px[p]>=WALL+WTH) slitOf[p]=(py[p]>cy)?1:0;
+    if(px[p]>=SCREEN){
+      alive[p]=0;
+      arrivals.push({y:py[p], slit:slitOf[p], up:startUp[p]});
+    }
+  }
+}
+
+// ---------------------------------------------------------------- rendering
+function drawField(){
+  var d=img.data, n=NX*NY, mx=0;
+  for(var k=0;k<n;k++){ var r=R[k]*R[k]+I[k]*I[k]; if(r>mx)mx=r; }
+  if(mx<=0) mx=1;
+  var inv=1/Math.sqrt(mx);
+  for(var k2=0;k2<n;k2++){
+    var q=Math.sqrt(R[k2]*R[k2]+I[k2]*I[k2])*inv, o=k2*4;
+    if(wall[k2]){ d[o]=64; d[o+1]=72; d[o+2]=84; d[o+3]=255; continue; }
+    var v=Math.pow(q,0.62);
+    d[o]=Math.min(255,v*90); d[o+1]=Math.min(255,v*190); d[o+2]=Math.min(255,v*255); d[o+3]=255;
+  }
+  var off=document.createElement('canvas'); off.width=NX; off.height=NY;
+  off.getContext('2d').putImageData(img,0,0);
+  g.imageSmoothingEnabled=false;
+  g.drawImage(off,OX,OY,NX*SCALE,NY*SCALE);
+
+  // the lumps: sharp-boundary discs, not wave packets
+  g.fillStyle='#ffd479';
+  var shown=0;
+  for(var p=0;p<NPART && shown<420;p+=7){
+    if(!alive[p]) continue;
+    shown++;
+    g.beginPath();
+    g.arc(OX+px[p]*SCALE, OY+py[p]*SCALE, 1.7, 0, 6.2832);
+    g.fill();
+  }
+  g.strokeStyle='#5a6b7a'; g.setLineDash([4,4]); g.lineWidth=1;
+  g.beginPath(); g.moveTo(OX+SCREEN*SCALE,OY); g.lineTo(OX+SCREEN*SCALE,OY+NY*SCALE); g.stroke();
+  g.setLineDash([]);
+}
+
+function drawDetector(){
+  var H=NY*SCALE;
+  g.fillStyle='#05080c'; g.fillRect(PX,OY,PW,H);
+  g.strokeStyle='#26303a'; g.strokeRect(PX,OY,PW,H);
+
+  var nbin=90, bins=new Float64Array(nbin), shownN=Math.min(replayI,arrivals.length);
+  for(var a=0;a<shownN;a++){
+    var yy=arrivals[a].y;
+    bins[Math.min(nbin-1,Math.max(0,Math.floor(yy/NY*nbin)))]++;
+    g.fillStyle = arrivals[a].slit===1 ? 'rgba(255,212,121,0.95)' : 'rgba(130,220,255,0.95)';
+    g.fillRect(PX+6+((a*37)%(PW-14)), OY+yy*SCALE, 1.6, 1.6);
+  }
+  // the quantum arrival distribution, from the time-integrated flux
+  var fmax=0; for(var j=0;j<NY;j++) if(flux[j]>fmax) fmax=flux[j];
+  var bmax=0; for(var b=0;b<nbin;b++) if(bins[b]>bmax) bmax=bins[b];
+  g.fillStyle='#111820'; g.fillRect(HX,OY,HW,H);
+  g.strokeStyle='#26303a'; g.strokeRect(HX,OY,HW,H);
+  if(bmax>0){
+    g.fillStyle='rgba(120,200,255,0.55)';
+    for(var b2=0;b2<nbin;b2++){
+      var h=H/nbin;
+      g.fillRect(HX, OY+b2*h, bins[b2]/bmax*(HW-8), h-0.6);
+    }
+  }
+  if(fmax>0){
+    g.strokeStyle='#c9c9c9'; g.lineWidth=1.4; g.beginPath();
+    for(var j2=0;j2<NY;j2++){
+      var X=HX+flux[j2]/fmax*(HW-8), Y=OY+j2*SCALE;
+      if(j2===0) g.moveTo(X,Y); else g.lineTo(X,Y);
+    }
+    g.stroke();
+  }
+  g.fillStyle='#7c8894'; g.font='11px monospace';
+  g.fillText('detector', PX, OY+H+14);
+  g.fillText('dots (blue = lower slit, amber = upper)  vs  flux-weighted |psi|^2 (grey)', HX, OY+H+14);
+}
+
+function stats(){
+  var shownN=Math.min(replayI,arrivals.length), up=0, lo=0, cross=0, cy=NY>>1;
+  for(var a=0;a<shownN;a++){
+    var A=arrivals[a];
+    if(A.slit===1) up++; else if(A.slit===0) lo++;
+    if(A.slit>=0 && ((A.slit===1)!==(A.y>cy))) cross++;
+  }
+  document.getElementById('s-phase').textContent=phase;
+  document.getElementById('s-n').textContent=shownN;
+  document.getElementById('s-up').textContent=up;
+  document.getElementById('s-lo').textContent=lo;
+  var xe=document.getElementById('s-x');
+  xe.textContent=cross; xe.style.color = cross? '#f88':'#8f8';
+
+  // chi-like agreement between dots and the flux curve
+  var nbin=60, bins=new Float64Array(nbin), fb=new Float64Array(nbin);
+  for(var a2=0;a2<shownN;a2++) bins[Math.min(nbin-1,Math.floor(arrivals[a2].y/NY*nbin))]++;
+  for(var j=0;j<NY;j++) fb[Math.min(nbin-1,Math.floor(j/NY*nbin))]+=flux[j];
+  var sb=0,sf=0; for(var b=0;b<nbin;b++){ sb+=bins[b]; sf+=fb[b]; }
+  var el=document.getElementById('s-fit');
+  if(sb>200 && sf>0){
+    var dev=0; for(var b2=0;b2<nbin;b2++) dev+=Math.abs(bins[b2]/sb - fb[b2]/sf);
+    el.textContent=(100*(1-dev/2)).toFixed(1)+'% overlap';
+    el.style.color = dev/2<0.12 ? '#8f8':'#ffd479';
+  } else el.textContent='—';
+}
+
+function frame(){
+  g.fillStyle='#000'; g.fillRect(0,0,cv.width,cv.height);
+  if(step<NSTEP){
+    phase='computing field + 4000 trajectories  ('+Math.round(100*step/NSTEP)+'%)';
+    for(var s=0;s<6 && step<NSTEP;s++) evolve();
+    replayI=0;
+  } else {
+    if(replayI<arrivals.length){
+      phase='electrons arriving, one at a time  ('+replayI+'/'+arrivals.length+')';
+      replayI=Math.min(arrivals.length, replayI+replaySpeed);
+    } else phase='done — '+arrivals.length+' electrons, each one dot';
+  }
+  drawField(); drawDetector(); stats();
+  requestAnimationFrame(frame);
+}
+
+function start(){ replaySpeed=3; build(); phase='starting'; }
+document.getElementById('go').onclick=start;
+document.getElementById('fast').onclick=function(){ replaySpeed = replaySpeed>=3? 40 : 3; };
+start(); frame();
+})();
+</script>
+</body></html>
