@@ -38,26 +38,15 @@ band-filling term --- but that agreement is shown here \emph{not} to be a test o
 treatment, since setting the electronic kinetic energy to zero altogether changes the radii by about
 one per cent. The lattice scale of a simple metal is electrostatic. The bulk modulus does
 discriminate and is given worse by the framework ($79\%$ against $44\%$). The plasma frequency $\omega_p^2=4\pi n$ comes out
-exactly, since a rigid displacement leaves the localisation energy untouched. Conduction is examined by computing the hopping barrier, which is static and so within reach:
-in a $4\times4$ hydrogen lattice the carrier is confined to interstitial pockets by $5.5$~eV at
-$a=2.5\,a_0$, and compressing to the $\mathrm{H_2}$ bond length \emph{doubles} that to $11.5$~eV
-where matter would instead become metallic --- non-overlap admitting no growth of overlap under
-compression, so there is no bandwidth to widen. The obstruction is located exactly: not the interface condition and not
-the geometry, but the rule of one unit of charge per domain. Allowing a domain to hold two makes the
-excess mobile at once --- the energy is the same at every site by symmetry, and spreading it lowers
-the Coulomb energy monotonically --- at a formation cost of order $10$~eV, the Hubbard $U$, computed
-here rather than fitted. With that single relaxation the framework becomes a \textbf{Hubbard model}
-with derived geometry and derived $U$; as it stands it is that model in the $U\to\infty$ limit, which
-is a Mott insulator at every density. The tension this exposes is worth stating: the postulate that
-yields charge quantization as a consequence is the same one that forbids a metal. Transport by transfer is meanwhile already
-demonstrated in the framework for \emph{protons}, in Grotthuss conduction along a water chain, while
-the direct electronic analogue is not testable in the static solver: charge transport by transfer
-between localised sites is already demonstrated in the framework for \emph{protons}, in Grotthuss
-conduction along a water chain, but the electronic counterpart cannot be run, because domain
-transfer requires a rearrangement of the partition, and the constructions
-attempted here did not achieve one for reasons traced to each construction rather than to the
-framework. That is a limitation of the implementation rather than of the formulation, and it
-bears on more than metals, electron transfer being what oxidation and reduction are. What the
+exactly, since a rigid displacement leaves the localisation energy untouched. Conduction is examined and the framework's answer is the opposite of what a
+constrained barrier scan suggests. Placed on a ring of hydrogens, an extra electron does not sit
+anywhere: it relaxes to a uniform corona around the whole ring, at $a=2.2\,a_0$ and still at
+$a=4.0\,a_0$ where a real electron would occupy one atom as $\mathrm{H^-}$. The energy is then flat
+as the charge is slid round, so there is no corrugation and no resistance --- but equally no localised
+carrier, and the framework never localises charge at any separation. That over-delocalisation is the
+vanishing interface cost seen from the conducting side: spreading a domain is free, so nothing opposes
+it and no metal--insulator transition can occur. Barrier scans that impose a localised carrier measure
+the price of that constraint rather than of transport, which is why they report the opposite. What the
 framework does \emph{not} have at all is a Fermi surface, and that is the standing open question: de Haas--van Alphen oscillations,
 the linear electronic specific heat and positive plasmon dispersion are measured in real metals, not
 in any idealisation, and RealQM has neither bands nor $E_F$ to account for them. A closing remark
@@ -288,72 +277,50 @@ $5.5$~eV, some $200\,k_BT$, and the carrier is confined to its pocket. At $a=2.5
 right --- nearly twice the $\mathrm{H_2}$ bond length, where stretched hydrogen is a Mott insulator
 in nature too.
 
-\paragraph{The density trend, which is the finding.} Compressing the lattice to the
-$\mathrm{H_2}$ bond length does not close the barrier. It \textbf{doubles} it, to $11.5$~eV. The
-value at $a=1.4$ is the softer of the two, its mirror check standing at $3.7\%$ of the barrier
-against $1.4\%$ at the wider spacing, but the difference between the two barriers is twelve times
-their combined uncertainty and the direction is not in doubt.
+\paragraph{The density trend, and why the barrier scans mislead.} Compressing the lattice did not
+close the barrier in those scans; it doubled it. But the scans share a defect that only became clear
+when the question was posed differently: they impose a \emph{localised} carrier and measure what it
+costs to move. If the framework has no localised carrier, that cost is the price of maintaining an
+artificial constraint, not of transport.
 
-Matter does the opposite. Compression is what drives the Mott transition: overlap grows, the band
-widens, $U/W$ falls, and an insulator becomes a metal. Here compression cannot increase overlap,
-because non-overlap is the postulate. It can only reduce the volume available to each domain, which
-raises the localisation cost and drives the system further from conduction. \emph{The framework has
-no bandwidth to widen.}
-
-The statement to draw is precise about its scope. \emph{With the non-overlap constraint applied to
-every electron}, the framework describes an insulator at every density, and predicts
-$d\sigma/dT>0$ for materials that are metals. That is consistent with the rest of what is found here
---- no band filling, a vanishing localisation term for a uniform gas, a hopping barrier with the wrong
-density dependence --- and all of it follows from one feature: non-overlap is a constraint on
-\emph{regions}, and a partition of space does not deliver what delocalisation delivers.
-
-The qualification matters, because the constraint need not be applied to every electron, and the next
-paragraph shows that relaxing it in the valence sector alone is nearly free.
-
-\paragraph{What the partition does supply, and what it does not.} It is worth separating two things
-the vanishing of $C$ has been made to carry, because only one of them is a defect.
-
-The partition into $N$ non-overlapping cells is what makes the kinetic energy \emph{extensive}. Each
-cell contributes its own localisation cost, so $T\propto N$ and the energy density goes as
-$n^{5/3}$ --- the Thomas--Fermi scaling, and the geometric counterpart of occupying $N$ distinct
-states. Give the same $N$ electrons a single shared domain instead, with the exterior held at zero,
-and one obtains the energy of \emph{one} state occupied $N$ times:
-\begin{equation}
-\frac{T}{V}=\frac{3\pi^2}{2}\,n^{5/3}N^{-2/3},
-\end{equation}
-which per unit volume dies as $N^{-2/3}$ --- fifteen orders of magnitude too small at
-$N=10^{23}$. Non-overlap therefore earns its place: it is not merely bookkeeping, it is what makes
-the localisation energy scale correctly with density and particle number.
-
-What the partition does not fix is the \emph{coefficient}, and that is set entirely by the condition
-at the shared faces:
+\paragraph{What the framework actually does with an extra electron.} The clean test is a ring, which
+has no ends and in which every site is equivalent by construction, so the energy must repeat with the
+lattice period --- a validity check the open-chain scans lacked. Six hydrogens on a ring, one extra
+unit of charge in the corona outside them, slid round by angle:
 
 \begin{center}
 \small
-\begin{tabular}{@{}lcc@{}}
+\begin{tabular}{@{}lccc@{}}
 \toprule
- & $C$ & $C/C_{\rm TF}$\\
+arc spacing & over an atom & quarter way & between two atoms\\
 \midrule
-Neumann, $\beta a=0$ (the present choice) & $0$ & $0$\\
-Robin, $\beta a=1.146$ & $2.871$ & $\mathbf{1.00}$\\
-Dirichlet, $\beta a\to\infty$ & $14.804$ & $5.16$\\
+$a=2.2\,a_0$ & $-3.51$ & $-3.51$ & $-3.51$\\
+$a=4.0\,a_0$ & $-3.30$ & --- & $-3.30$\\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\noindent All three have the same, correct, $n^{5/3}$ scaling; they differ by a pure number. The
-framework has been using the one value of that number for which confinement is free.
+\noindent The energy is flat to the resolution available, and the reason is visible in the solution
+rather than inferred: the extra charge does not sit anywhere. It relaxes to a \textbf{uniform corona
+around the whole ring}, indifferent to where it was placed. There is no localised carrier to move, so
+there is nothing to corrugate the path and no resistance to measure.
 
-\paragraph{Why Neumann is free, and why it went unnoticed.} A constant satisfies Neumann conditions
-on every face, so the ground state of $-\half\grad^2$ in a Neumann cell has energy \emph{exactly}
-zero at any cell size. Confinement costs nothing: halve the cell and the energy is unchanged. That is
-a failure of the uncertainty principle at precisely the place where electron meets electron --- and
-degeneracy pressure is nothing other than the energy cost of confining fermions. The substitute for
-exclusion reproduces its bookkeeping and none of its energy.
+That holds at $a=4.0\,a_0$, nearly three times the $\mathrm{H_2}$ bond length, where a real extra
+electron would occupy a single atom as $\mathrm{H^-}$. \emph{The framework therefore
+over-delocalises: it spreads charge at every separation tested and never localises it.}
 
-It went unnoticed because every previous test had an attractor in it. Where a nucleus shapes the
-density, $\grad\psi\neq0$ for reasons having nothing to do with the interface, and $T$ comes out
-right; the faces are nearly irrelevant. Remove the attractor and the faces are all that is left.
+\paragraph{One defect, seen from both sides.} This is the same missing confinement cost as before,
+approached from the conducting side. With free interfaces, spreading a domain is free
+--- that is $C=0$ --- so nothing opposes delocalisation, nothing produces a Mott transition, and the
+framework conducts at all densities. The barrier scans reported the opposite conclusion because they
+forced the carrier into a configuration the theory does not adopt; the ring reports what it does.
+
+The consequences line up under one statement. A vanishing localisation term at the interface means:
+no Fermi pressure in a uniform gas; no screening; a dispersionless plasmon; no bandwidth in the sense
+that would allow a metal--insulator transition; and charge that delocalises at any spacing. Restoring
+a finite cost at the interface --- the Robin condition of \S\ref{sec:remark}, with $\beta a=1.146$
+reproducing Thomas--Fermi --- would supply all of them at once, and in particular would let a carrier
+localise when the atoms are far enough apart, which is what matter does.
 
 \paragraph{A repair that is not available, and one that is.} An obvious response to the barrier is
 to let valence electrons share a territory, which removes it by construction. The scaling argument
@@ -436,7 +403,7 @@ And it is not an artefact of any idealisation, being measured on ordinary metals
 Fermi-surface phenomena simply has no representation in a theory built from densities on domains,
 however those domains are constrained.
 
-\section*{Remark: the uniform electron gas}
+\section*{Remark: the uniform electron gas}\label{sec:remark}
 
 It is worth recording what happens if the framework is applied to the \emph{uniform electron gas},
 since the calculation is exact and that system is often taken as the reference problem.
