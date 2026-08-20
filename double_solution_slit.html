@@ -50,6 +50,30 @@
     </div>
 
     <div class="box">
+      <h2>Is this one electron, many times?</h2>
+      <b>Yes, and exactly so.</b> There is no particle&ndash;particle term anywhere: the field does not
+      depend on the lumps, and each lump is moved by the field alone. Running 4000 concurrently is
+      mathematically identical to running one electron 4000 times &mdash; they are batched only for
+      speed. That is the case Tonomura ran, with at most one electron in the apparatus at a time, and
+      it is the one that makes ``the electron interferes with itself'' the standard puzzle.
+      <div style="margin-top:6px">
+      <b>The answer here is that the electron does not interfere with itself &mdash; its field does,
+      and the field is a separate object.</b> Every single electron carries its own guiding field;
+      that field passes both slits and interferes on <i>every</i> run. The lump passes through one.
+      So the interference is already complete for one electron, and what accumulates over thousands is
+      only the <i>sampling</i> of where lumps land. The red trajectory is one such electron: watch it
+      take one slit while the field behind it goes through both.
+      </div>
+      <div style="margin-top:6px;color:#e8a">
+      <b>What this does not explain.</b> The field is identical on every run; the only thing that
+      varies is where the lump starts, drawn from |&psi;|<sup>2</sup> at t=0. So the Born rule is
+      <i>assumed as an initial condition</i> and then preserved by the dynamics &mdash; not derived.
+      The model accounts for the pattern and takes the statistics as given, which is the standing
+      weakness of every pilot-wave account and is not repaired here.
+      </div>
+    </div>
+
+    <div class="box">
       <h2>What is computed, and what is assumed</h2>
       The field is the time-dependent Schr&ouml;dinger equation solved on a grid
       (&hbar;=m=1, Visscher's staggered scheme, hard-wall slits, damped edges). The lumps follow
@@ -73,6 +97,7 @@
         <tr><td>through <b>lower</b> slit</td><td class="r" id="s-lo">0</td></tr>
         <tr><td>midline crossings</td><td class="r" id="s-x">0</td></tr>
         <tr><td>arrival vs |&psi;|<sup>2</sup></td><td class="r" id="s-fit">&mdash;</td></tr>
+        <tr><td>tracked electron (red)</td><td class="r" id="s-tr">&mdash;</td></tr>
       </table>
       <div style="margin-top:6px;color:#9c9">
       <b>Two checks worth watching.</b> The dot histogram must converge on the flux-weighted
@@ -105,6 +130,7 @@ var PX=660, PW=70, HX=740, HW=270;               // detector strip and histogram
 var cv=document.getElementById('cv'), g=cv.getContext('2d');
 var R,I,Inew,tmp, wall, damp, flux, img;
 var px,py,alive,startUp,slitOf, arrivals, nArr;
+var TRACK, trail;
 var step, phase, replayI, replaySpeed;
 
 function idx(i,j){ return j*NX+i; }
@@ -152,6 +178,7 @@ function build(){
       px[p]=xr; py[p]=yr; alive[p]=1; startUp[p]=(yr>cy)?1:0; slitOf[p]=-1; p++;
     }
   }
+  TRACK=0; trail=[];
   arrivals=[]; nArr=0; step=0; replayI=0;
   for(var j2=0;j2<NY;j2++) flux[j2]=0;
   img=g.createImageData(NX,NY);
@@ -220,9 +247,14 @@ function advect(){
     var xb=px[p];
     velocity(px[p],py[p],vbuf);
     px[p]+=vbuf[0]*DT; py[p]+=vbuf[1]*DT;
-    if(px[p]<1||px[p]>NX-2||py[p]<1||py[p]>NY-2){ alive[p]=0; continue; }
+    if(px[p]<1||px[p]>NX-2||py[p]<1||py[p]>NY-2){
+      alive[p]=0;
+      if(p===TRACK){ for(var q=0;q<NPART;q++) if(alive[q]&&px[q]<SCREEN){ TRACK=q; trail=[]; break; } }
+      continue;
+    }
     // which slit: recorded as it crosses the wall plane
     if(slitOf[p]<0 && xb<WALL+WTH && px[p]>=WALL+WTH) slitOf[p]=(py[p]>cy)?1:0;
+    if(p===TRACK) trail.push(px[p],py[p]);
     if(px[p]>=SCREEN){
       alive[p]=0;
       arrivals.push({y:py[p], slit:slitOf[p], up:startUp[p]});
@@ -256,6 +288,16 @@ function drawField(){
     g.beginPath();
     g.arc(OX+px[p]*SCALE, OY+py[p]*SCALE, 1.7, 0, 6.2832);
     g.fill();
+  }
+  if(trail.length>=4){
+    g.strokeStyle='#ff6b6b'; g.lineWidth=1.6; g.beginPath();
+    g.moveTo(OX+trail[0]*SCALE, OY+trail[1]*SCALE);
+    for(var t=2;t<trail.length;t+=2) g.lineTo(OX+trail[t]*SCALE, OY+trail[t+1]*SCALE);
+    g.stroke();
+    var lx=trail[trail.length-2], ly=trail[trail.length-1];
+    g.fillStyle='#ff6b6b'; g.beginPath(); g.arc(OX+lx*SCALE, OY+ly*SCALE, 3.4, 0, 6.2832); g.fill();
+    g.fillStyle='#ff9b9b'; g.font='11px monospace';
+    g.fillText('one electron', OX+8, OY+14);
   }
   g.strokeStyle='#5a6b7a'; g.setLineDash([4,4]); g.lineWidth=1;
   g.beginPath(); g.moveTo(OX+SCREEN*SCALE,OY); g.lineTo(OX+SCREEN*SCALE,OY+NY*SCALE); g.stroke();
@@ -306,6 +348,9 @@ function stats(){
     if(A.slit===1) up++; else if(A.slit===0) lo++;
     if(A.slit>=0 && ((A.slit===1)!==(A.y>cy))) cross++;
   }
+  var te=document.getElementById('s-tr');
+  te.textContent = (slitOf&&TRACK<NPART&&slitOf[TRACK]>=0) ? (slitOf[TRACK]===1?'upper slit':'lower slit')
+                 : 'approaching';
   document.getElementById('s-phase').textContent=phase;
   document.getElementById('s-n').textContent=shownN;
   document.getElementById('s-up').textContent=up;
