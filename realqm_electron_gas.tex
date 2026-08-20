@@ -309,18 +309,59 @@ That holds at $a=4.0\,a_0$, nearly three times the $\mathrm{H_2}$ bond length, w
 electron would occupy a single atom as $\mathrm{H^-}$. \emph{The framework therefore
 over-delocalises: it spreads charge at every separation tested and never localises it.}
 
-\paragraph{One defect, seen from both sides.} This is the same missing confinement cost as before,
-approached from the conducting side. With free interfaces, spreading a domain is free
---- that is $C=0$ --- so nothing opposes delocalisation, nothing produces a Mott transition, and the
-framework conducts at all densities. The barrier scans reported the opposite conclusion because they
-forced the carrier into a configuration the theory does not adopt; the ring reports what it does.
+\paragraph{The collective mode, which is how a metal actually conducts.} A single carrier is the
+wrong object. Conduction is not one electron moving past stationary others but the whole distribution
+shifting while the ions stay, and the corresponding energy is the \textbf{pinning} of that
+distribution to the lattice --- the quantity that decides whether a charge-density wave slides or
+sticks, and the Frenkel--Kontorova barrier for friction. On a ring it is directly computable: put $n$
+bare ions on an inner ring and $n$ electron domains on an outer one, rotate the electron ring by
+$\phi$ site spacings, and record the energy.
 
-The consequences line up under one statement. A vanishing localisation term at the interface means:
-no Fermi pressure in a uniform gas; no screening; a dispersionless plasmon; no bandwidth in the sense
-that would allow a metal--insulator transition; and charge that delocalises at any spacing. Restoring
-a finite cost at the interface --- the Robin condition of \S\ref{sec:remark}, with $\beta a=1.146$
-reproducing Thomas--Fermi --- would supply all of them at once, and in particular would let a carrier
-localise when the atoms are far enough apart, which is what matter does.
+The construction carries its own check, and passes it exactly: a rotation by one full spacing maps
+each electron onto its neighbour's place, so $E(1)$ must equal $E(0)$, and it does to five decimals.
+That also establishes that the solver is \emph{deterministic}, so differences between configurations
+are real rather than scatter.
+
+\begin{center}
+\small
+\begin{tabular}{@{}lr@{}}
+\toprule
+$\phi=0$, electrons over ions & $-3.36796$\\
+$\phi=0.5$, electrons between ions & $-3.35610$\\
+\midrule
+pinning & $0.01186$~Ha $=323$~meV $=12.5\,k_BT$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The sea is \textbf{pinned}, with the electrons preferring to sit over the ions. Six
+electrons give $12.5\,k_BT$, so about $2\,k_BT$ each, and a collective barrier scales with the number
+of participants.
+
+\paragraph{Two results that together give a semiconductor.} Set that beside the corona result: an
+\emph{extra} electron, beyond a filled complement, delocalises and slides freely, while the filled
+complement itself is pinned.
+
+\begin{center}
+\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+the filled electron ring ($n$ electrons, $n$ ions) & pinned, $323$~meV --- does not slide\\
+one extra electron beyond it & delocalised, flat --- no resistance\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent That is the behaviour of a semiconductor rather than a metal, and it is arrived at
+computationally rather than argued: a filled complement does not conduct, an added carrier does. It
+also settles what the framework's difficulty with metals is. Not that it cannot transport charge ---
+it transports surplus charge without any resistance at all --- but that it can transport
+\emph{only} surplus charge, while a metal conducts by the sea itself moving.
+
+Two qualifications belong with the number. Commensurate registry, $n$ electrons on $n$ ions, is the
+most strongly pinned case; a metal's sea is incommensurate with its lattice, which is part of why it
+slides, and whether the framework reproduces that distinction is not tested here. And the pinning
+reported is a static barrier, with no thermal or quantum reduction applied.
 
 \paragraph{A repair that is not available, and one that is.} An obvious response to the barrier is
 to let valence electrons share a territory, which removes it by construction. The scaling argument
