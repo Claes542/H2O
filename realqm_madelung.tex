@@ -1,0 +1,276 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{authblk}
+\usepackage[margin=1in]{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage{setspace}
+
+\newcommand{\grad}{\nabla}
+\newcommand{\half}{\tfrac12}
+
+\title{The Hydrodynamic Form of RealQM:\\
+\large Madelung Hydrostatics, a Surface Tension, and the Missing Half}
+
+\author[1]{Claes Johnson}
+\affil[1]{KTH Royal Institute of Technology, SE-100 44 Stockholm, Sweden \\
+\texttt{claesjohnson@gmail.com}}
+\date{\today \\[0.4em]
+\small\textit{Mathematical formulation by the author; analysis developed} \\
+\small\textit{with AI assistance (Claude, Anthropic).}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent RealQM models matter as non-overlapping unit charge densities in ordinary three-dimensional
+space, one per electron, meeting at free boundaries and minimising the Coulomb energy. This note
+records an exact structural fact about that construction which does not appear to have been stated:
+\textbf{its kinetic term is the von Weizs\"acker functional}, and the functional derivative of the
+von Weizs\"acker functional is \textbf{Bohm's quantum potential}. RealQM therefore already contains
+the quantum potential, not as an analogy but as the variation of a term it writes down for other
+reasons. Three consequences follow. First, the static theory is identified: minimising subject to
+$\int\psi_i^2=1$ gives $Q+V=\mu$, quantum potential plus classical potential constant, which is the
+\emph{hydrostatic equilibrium of a Madelung fluid} --- one fluid per electron, with free boundaries
+where they meet. Second, the interface parameter that the electron-gas analysis leaves
+underdetermined is identified physically: a Robin condition $\partial_n\psi+\beta\psi=0$ is the
+natural boundary condition of a surface energy $\tfrac{\beta}{2}\oint\psi^2\,dS$, so $\beta$ is a
+\textbf{surface tension of the electron--electron interface}, and the defect $C=0$ is the statement
+that this surface tension is zero. That single identification explains why one parameter governs both
+of the framework's outstanding difficulties: a surface tension simultaneously supplies confinement
+energy and resists boundary motion, so it cannot be raised to obtain degeneracy pressure without
+introducing resistance to transport. Third, the missing dynamics is named. What RealQM lacks is the
+other half of the Madelung pair, continuity together with an Euler equation driven by
+$-\grad(V+Q)$; supplying it per domain would furnish propagation, a velocity field carrying a
+wavelength, and a boundary that travels, which are the three things separately blocked in the
+conduction and interference problems. We also state what this is \emph{not}. It is not Bohmian
+mechanics: there is no wavefunction on $3N$-dimensional configuration space and no point particle
+besides the density, and configuration space is exactly where Bohm locates Bell-violating
+correlations, so the entanglement question is not answered here and is not answered by adding
+Madelung dynamics. It is closer to Schr\"odinger's own charge-density interpretation of 1926, from
+which it differs by the free boundary and the rule of one domain per electron --- the two features
+that meet the objections which caused Schr\"odinger to abandon it.
+\end{abstract}
+
+\setstretch{1.15}
+
+\section{The identity}
+
+RealQM \cite{realqm,realqmbook} represents an $N$-electron system by $N$ non-negative densities
+$\psi_i$, each carrying unit charge on its own domain $\Omega_i$, the domains non-overlapping and
+their interfaces free to move to where the energy is least. The energy is Coulomb's,
+\begin{equation}\label{eq:E}
+E[\{\psi_i\},\{\Omega_i\}]=\sum_i\int_{\Omega_i}\Bigl(\half|\grad\psi_i|^2
+-\sum_a\frac{Z_a}{|x-x_a|}\psi_i^2\Bigr)dx
++\half\sum_{i\neq j}\iint\frac{\psi_i^2(x)\psi_j^2(y)}{|x-y|}\,dx\,dy,
+\end{equation}
+subject to $\int_{\Omega_i}\psi_i^2=1$, and the first term is the one of interest here. Write the
+charge density of the $i$th electron as $\rho_i=\psi_i^2$. Then $\grad\rho_i=2\psi_i\grad\psi_i$, so
+$|\grad\rho_i|^2/\rho_i=4|\grad\psi_i|^2$ and
+\begin{equation}\label{eq:vW}
+\half\int|\grad\psi_i|^2\,dx \;=\; \frac18\int\frac{|\grad\rho_i|^2}{\rho_i}\,dx
+\;=\; T_{\rm vW}[\rho_i],
+\end{equation}
+in units $\hbar=m=1$. The right-hand side is the \textbf{von Weizs\"acker functional}. The
+identification is elementary and exact; no approximation has been made and no limit taken.
+
+Its consequence is not elementary. The functional derivative of $T_{\rm vW}$ is, with
+$u=\sqrt{\rho}$,
+\begin{equation}\label{eq:Q}
+\frac{\delta T_{\rm vW}}{\delta\rho}
+=\frac{1}{2u}\Bigl(-\grad^2u\Bigr)
+=-\half\frac{\grad^2\sqrt{\rho}}{\sqrt{\rho}}
+\;=\;Q,
+\end{equation}
+which is \textbf{Bohm's quantum potential}. RealQM therefore carries the quantum potential already,
+not by resemblance but as the variation of a term it writes down for an entirely different reason ---
+as the localisation cost of confining a charge to a region.
+
+\section{What the static theory is}
+
+Minimising \eqref{eq:E} in $\psi_i$ subject to $\int\psi_i^2=1$ gives the Euler--Lagrange equation
+\begin{equation}\label{eq:EL}
+-\half\grad^2\psi_i+V_i\psi_i=\mu_i\psi_i,
+\end{equation}
+where $V_i$ collects the nuclear attraction and the Hartree potential of the other domains, and
+$\mu_i$ is the multiplier. Divide by $\psi_i$ and use \eqref{eq:Q}:
+\begin{equation}\label{eq:hydrostatic}
+\boxed{\;Q_i+V_i=\mu_i\;}
+\end{equation}
+Quantum potential plus classical potential constant on each domain. That is the condition of
+\textbf{hydrostatic equilibrium} for a fluid whose internal energy is $T_{\rm vW}$: the chemical
+potential is uniform, so nothing flows.
+
+So RealQM in its present form is \emph{Madelung hydrostatics} --- one Madelung fluid per electron, in
+ordinary three-dimensional space, the fluids meeting at free boundaries. It is a statics, which is
+why it returns equilibrium partitions and no currents, and why the conduction study found that
+``electrons have no equation of motion at all'' in it. The diagnosis is now sharper than that
+sentence: it is not that a dynamics is missing in some unspecified way, but that exactly one half of
+a known pair is present.
+
+\section{The interface is a surface tension}
+
+The same view settles what the free interface is, and thereby what the framework's one
+underdetermined number means.
+
+Take a single domain and add to its energy a term proportional to the boundary integral of the
+density,
+\begin{equation}\label{eq:surf}
+E_\sigma=\half\int_\Omega|\grad\psi|^2\,dx+\frac{\beta}{2}\oint_{\partial\Omega}\psi^2\,dS .
+\end{equation}
+Varying gives $\delta E_\sigma=\int(-\grad^2\psi)\delta\psi
++\oint(\partial_n\psi)\delta\psi+\beta\oint\psi\,\delta\psi$, so the natural boundary condition is
+\begin{equation}\label{eq:robin}
+\partial_n\psi+\beta\psi=0,
+\end{equation}
+the Robin condition exactly. Hence:
+
+\begin{center}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+boundary condition & surface energy & fluid reading\\
+\midrule
+Neumann, $\beta=0$ (the present choice) & none & free surface, no surface tension\\
+Robin, $\beta$ finite & $\tfrac{\beta}{2}\oint\psi^2dS$ & finite surface tension\\
+Dirichlet, $\beta\to\infty$ & infinite & the density is pinned to zero at the face\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent \textbf{$\beta$ is a surface tension of the electron--electron interface}, and the
+framework has been running at zero surface tension. The electron-gas analysis, where the
+localisation coefficient in $t(n)=C\,n^{5/3}$ comes out as $C=0$ under Neumann and
+$C=C_{\rm TF}=2.871$ under Robin at $\beta a=1.146$, is then a measurement of that surface tension
+against the degenerate electron gas.
+
+\paragraph{Why one number governs two difficulties.} This identification explains something that was
+otherwise a coincidence. A surface tension does two things at once, and they are the two things the
+framework respectively lacks and enjoys:
+
+\begin{center}
+\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+it costs energy to \emph{have} interface area & confinement energy, hence degeneracy pressure\\
+it costs energy to \emph{move} the interface & resistance to transport\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent At $\beta=0$ the first is absent, which removes degeneracy pressure, screening and
+bandwidth; and the second is absent, which is precisely why charge transport by boundary motion costs
+nothing. These are not two independent defects to be repaired separately. They are one physical
+quantity, read on its two faces, and no value of $\beta$ can supply the first without incurring the
+second. Whether some intermediate value serves both is a quantitative question, and it is the
+sharpest form of the open problem.
+
+\section{The missing half}
+
+The other half of the Madelung pair is the dynamics. For a Madelung fluid of density $\rho$ and
+velocity $v$,
+\begin{align}
+\frac{\partial\rho}{\partial t}+\grad\!\cdot(\rho v)&=0,\label{eq:cont}\\
+\frac{\partial v}{\partial t}+(v\cdot\grad)v&=-\grad\bigl(V+Q\bigr),\label{eq:euler}
+\end{align}
+with $Q$ from \eqref{eq:Q}. Setting $v=0$ in \eqref{eq:euler} returns \eqref{eq:hydrostatic}, so the
+present theory is the equilibrium of this pair and nothing has to be given up to adopt it.
+
+Supplying \eqref{eq:cont}--\eqref{eq:euler} per domain, with the interfaces evolving as free surfaces
+between two such fluids --- the kinematic condition that the interface moves with the normal velocity,
+and continuity of the chemical potential across it --- would furnish, in one step, the three things
+found separately missing elsewhere in this programme:
+
+\begin{itemize}
+\item \textbf{Propagation.} A density that moves rather than relaxes, which is what a scattering or
+interference problem requires and what an energy minimisation cannot supply.
+\item \textbf{A wavelength.} The velocity field carries a phase, and with it the de Broglie relation;
+a minimisation has no oscillation in it, its ground state having no nodes, so no repetition of static
+calculations under perturbation can produce a fringe spacing.
+\item \textbf{A boundary that travels.} Conduction in this framework is boundary motion, and
+\eqref{eq:cont} is the equation that moves it.
+\end{itemize}
+
+\paragraph{What this costs, honestly.} Two qualifications belong with the proposal. Madelung
+hydrodynamics is equivalent to the Schr\"odinger equation only for irrotational $v$ with quantised
+circulation, $\oint v\cdot dl=2\pi n$; the vorticity-free condition and the quantisation are extra
+requirements, not consequences, and they are where the ``quantum'' re-enters a formulation that
+otherwise looks like fluid mechanics. And the free-surface problem for two Madelung fluids in contact
+is a genuine free-boundary problem, whose well-posedness is not established here.
+
+\section{What this is not: Bohmian mechanics}
+
+The quantum potential is Bohm's, but the theory is not. Bohmian mechanics requires two objects that
+RealQM does not have: a wavefunction on $3N$-dimensional configuration space, and a point particle in
+addition to $\psi$, guided by it. RealQM has $N$ separate densities in ordinary three-dimensional
+space and nothing besides them; the density \emph{is} the electron, and there is no hidden variable
+riding it.
+
+The difference is not cosmetic, and the cost is specific. Configuration space is exactly where
+Bohmian mechanics locates entanglement: the guiding field of two particles is a function on
+$\mathbb{R}^6$, and its non-factorisability is what produces correlations violating Bell's
+inequality. A construction committed to three dimensions has no such object, and the Madelung
+dynamics proposed above does not supply one --- each electron has its own velocity field in its own
+$\mathbb{R}^3$. \emph{The entanglement question is therefore not answered here, and is not answered
+by this proposal.} It remains the standing cost of the framework's central design choice, alongside
+the Fermi surface.
+
+\section{What this is not: Schr\"odinger 1926}
+
+The nearest relative is not Bohm but Schr\"odinger's own interpretation of $\psi$ as a literal charge
+density, proposed in 1926 and abandoned by him. It was abandoned for two reasons, and the framework's
+two additional ingredients bear directly on them.
+
+The first was \emph{spreading}: a free wave packet disperses without limit, so an electron would not
+remain an electron. RealQM's answer is the free boundary together with non-overlap --- the domain is
+bounded by its neighbours, and a partition of space does not disperse.
+
+The second was \emph{localisation on measurement}: a spread density should deposit spread charge,
+whereas an electron arrives at a screen as a single flash. Here the framework has a mechanism that
+linear quantum mechanics does not, and it is worth stating precisely because it is the one place this
+picture might do better rather than worse. Schr\"odinger's $\psi$ evolved linearly and could never
+localise. RealQM's boundary moves so as to \emph{minimise the energy}, which is nonlinear and breaks
+symmetry: a density arriving spread across a row of detector atoms is not at a minimum, and the
+minimising partition is plausibly the one with the charge on a single atom, an attractive centre
+being where the energy is. That would be a dynamical localisation rather than a postulated collapse.
+
+This is a candidate mechanism and not a result, and the evidence available cuts both ways. In the
+conduction study the behaviour that repeatedly disrupted the calculations was a domain seizing a
+nuclear region outright, since with free interfaces no confinement cost opposes it --- which is the
+wanted behaviour here, appearing as a pathology there. But the same study found the framework
+\emph{over}-delocalises around neutral atoms, an added electron relaxing to a uniform corona at
+$2.2\,a_0$ and still at $4.0\,a_0$. Whether an attractive site with a vacancy localises it is a
+static calculation, entirely within what the solver already does, and it has not been performed.
+
+\section{What would settle it}
+
+Three computations, in increasing order of difficulty, and none of them requires new physics:
+
+\begin{enumerate}
+\item \textbf{The surface tension.} Test $\beta a=1.146$ on $\mathrm{H_2}$, where the domains meet at
+the midplane \emph{between} the nuclei in a smooth region --- unlike helium, where the interface
+passes through the nuclear cusp and interface error cannot be separated from cusp error. If binding
+survives at the value the electron gas requires, the framework has a surface tension it has not yet
+identified; if it does not, it has two incompatible ones.
+\item \textbf{Localisation on a screen.} A spread density over a row of atoms, with and without an
+attractive site carrying a vacancy. Does the minimising partition leave the charge spread, or collect
+it on one atom? This decides whether the framework has a detection mechanism.
+\item \textbf{The dynamics.} Implement \eqref{eq:cont}--\eqref{eq:euler} on a single domain and check
+the free-particle case against a known wave packet, before attempting two domains with a moving free
+surface between them.
+\end{enumerate}
+
+\noindent The first two are static and use machinery that exists. The third is the substantial one,
+and it is what the rest of the programme is waiting on.
+
+\begin{thebibliography}{9}
+\bibitem{realqm} C.\ Johnson, \emph{RealQM: Quantum Mechanics as Multiphase 3D Continuum Mechanics},
+in~\cite{realqmbook}.
+\bibitem{realqmbook} C.\ Johnson, \emph{Real Quantum Mechanics} (Body\&Soul, Vol.\ VI),
+\url{https://claes542.github.io/RealMolecule/realquantum3.pdf}.
+\bibitem{gas} C.\ Johnson, \emph{Conduction in RealQM: the Free Boundary as Charge Carrier},
+in~\cite{realqmbook}.
+\end{thebibliography}
+
+\end{document}
