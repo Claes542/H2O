@@ -39,8 +39,9 @@ $\psi_i\equiv|\Omega_i|^{-1/2}$ is admissible and has $\grad\psi_i=0$, so $C=0$ 
 coefficient is however a boundary condition rather than a structural feature: a Robin interface at
 $\beta a=1.146$ gives $C=2.871=C_{\rm TF}$ exactly, Dirichlet gives $14.804$, and all three carry
 the correct $n^{5/3}$ scaling, so what is wrong is one pure number and not the construction. That
-number carries opposite signs on the two sides of this paper. Against: no degeneracy pressure, infinite
-screening length, dispersionless plasmon, no bandwidth, no metal--insulator mechanism. For: the
+number carries opposite signs on the two sides of this paper. Against: no degeneracy pressure, a
+\emph{vanishing} screening length --- the framework over-screens rather than failing to screen,
+since $k^2\propto1/C$ --- a dispersionless plasmon, no bandwidth and no metal--insulator mechanism. For: the
 boundary is the only object this framework moves, so a vanishing interface cost is a vanishing cost
 of transport.
 
@@ -124,6 +125,15 @@ Yukawa screening with $k^2=18\pi n^{1/3}/5C$, and setting $C$ to the Thomas--Fer
 $C_{\rm TF}=\tfrac{3}{10}(3\pi^2)^{2/3}=2.8712$ reproduces $k_{\rm TF}$ exactly at every density.
 \emph{The form extends without adjustment.}
 
+That last statement should be read for exactly what it is worth, which is less than it sounds.
+Thomas--Fermi screening is itself derived from the Thomas--Fermi kinetic energy by precisely these
+steps --- $\mu=\partial t/\partial n$, then $\partial n/\partial\mu$, then Poisson --- so
+recovering $k_{\rm TF}$ from $C_{\rm TF}$ is an algebraic identity and not a second, independent
+agreement. What it establishes is that the framework's linear response is the correct derivative of
+its own kinetic energy, and what it \emph{provides} is a translation of the abstract coefficient $C$
+into an observable length. That translation is the reason the screening relation is worth carrying:
+it is how the value of $C$ becomes a statement about matter.
+
 The coefficient does not. With the free interface used throughout RealQM,
 $\psi_i\equiv|\Omega_i|^{-1/2}$ is admissible: it satisfies the normalisation, makes the total
 density uniform, minimises the electrostatic energy against a neutralising background, and has
@@ -172,8 +182,11 @@ is left.
 \paragraph{The same fact, with opposite signs.} Equation \eqref{eq:Czero} says that a free interface
 between two domains of equal density carries no confinement energy: the partition may be redrawn at
 any scale for nothing. Read as a statement about \emph{structure}, that is destructive. There is no
-degeneracy pressure, the screening length is infinite, the plasmon is dispersionless, there is no
-bandwidth, and no mechanism remains by which a metal could differ from an insulator.
+degeneracy pressure; the screening length \emph{vanishes}, since $k^2=18\pi n^{1/3}/5C$ diverges as
+$C\to0$, so the framework does not fail to screen but screens perfectly at zero range, charge piling
+wherever the potential is low at no cost in kinetic energy; the plasmon is dispersionless; there is
+no bandwidth; and no mechanism remains by which a metal could differ from an insulator. Over-screening
+and the over-delocalisation measured in \S\ref{sec:conduction} are the same phenomenon.
 
 Read as a statement about \emph{motion}, it is the opposite. Moving a boundary is free --- and the
 boundary is the only object this framework moves. Its solver evolves each interface by the local
@@ -219,7 +232,8 @@ of the dial is hostile to molecules.
 
 \paragraph{One dial, pulling both ways.} It should be said at once that $\beta$ cannot be tuned to
 satisfy both readings independently, because a single parameter governs them. Raising $\beta a$ from
-zero towards $1.146$ buys degeneracy pressure, a finite screening length and a dispersive plasmon ---
+zero towards $1.146$ buys degeneracy pressure, a finite rather than vanishing screening length, and a
+dispersive plasmon ---
 and in the same movement makes the interface cost energy to move, which is resistance. The value
 that repairs the structure is the value that impedes the transport. Whether some intermediate setting
 serves both, or whether the two demands are simply in conflict, is not settled here, and it is the
@@ -379,7 +393,13 @@ pinning & $0.01186$~Ha $=323$~meV $=12.5\,k_BT$\\
 \end{tabular}
 \end{center}
 
-\noindent The sea is \textbf{pinned}, with the electrons preferring to sit over the ions. Six
+\noindent The sea is \textbf{pinned}, with the electrons preferring to sit over the ions. That it is
+pinned at all is worth pausing on, because \S\ref{sec:boundary} predicts perfect screening: a sea
+that redistributes at no kinetic cost should flatten the ion potential and pin to nothing. What
+prevents it is that the charge here cannot redistribute continuously --- it is quantised into six
+indivisible units, one to a domain. The framework's own signature postulate is therefore what blocks
+the screening its kinetic functional would otherwise supply, which is once more the tension recorded
+below: the rule that explains why charge comes in units is the rule that forbids a metal. Six
 electrons give $12.5\,k_BT$, so about $2\,k_BT$ each, and a collective barrier scales with the number
 of participants.
 
