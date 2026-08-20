@@ -11,7 +11,8 @@
 \newcommand{\grad}{\nabla}
 \newcommand{\half}{\tfrac12}
 
-\title{RealQM as Plasma Physics}
+
+\title{Conduction in RealQM: the Free Boundary as Charge Carrier}
 
 \author[1]{Claes Johnson}
 \affil[1]{KTH Royal Institute of Technology, SE-100 44 Stockholm, Sweden \\
@@ -24,45 +25,64 @@
 \maketitle
 
 \begin{abstract}
-\noindent In this article we extend RealQM --- developed for atoms, molecules and nuclei, where
-matter is modelled as non-overlapping unit charge densities in ordinary three-dimensional space,
-one per electron, meeting at free boundaries and minimising the Coulomb energy --- to the plasma
-physics of \textbf{two-component systems}: ions and electrons, both charged and both free to move.
-A metal is such a system, as are a stellar interior and the recombination era of a Coulomb
-cosmology; and so, notably, is RealQM itself, which contains discrete charges and no smeared
-continuum anywhere. The central result is that RealQM's prescription for a metal \emph{coincides} with the
-Wigner--Seitz construction: one electron domain per ion, filling the cell, with the normal derivative
-vanishing at the cell face by symmetry. Across the alkali series Li--Cs it reproduces the equilibrium radius to a mean
-error of $6.2\%$ against the standard treatment's $5.6\%$, carrying neither an exchange term nor a
-band-filling term --- but that agreement is shown here \emph{not} to be a test of the quantum
-treatment, since setting the electronic kinetic energy to zero altogether changes the radii by about
-one per cent. The lattice scale of a simple metal is electrostatic. The bulk modulus does
-discriminate and is given worse by the framework ($79\%$ against $44\%$). The plasma frequency $\omega_p^2=4\pi n$ comes out
-exactly, since a rigid displacement leaves the localisation energy untouched. Conduction is examined and the framework's answer is the opposite of what a
-constrained barrier scan suggests. Placed on a ring of hydrogens, an extra electron does not sit
-anywhere: it relaxes to a uniform corona around the whole ring, at $a=2.2\,a_0$ and still at
-$a=4.0\,a_0$ where a real electron would occupy one atom as $\mathrm{H^-}$. The energy is then flat
-as the charge is slid round, so there is no corrugation and no resistance --- but equally no localised
-carrier, and the framework never localises charge at any separation. That over-delocalisation is the
-vanishing interface cost seen from the conducting side: spreading a domain is free, so nothing opposes
-it and no metal--insulator transition can occur. Barrier scans that impose a localised carrier measure
-the price of that constraint rather than of transport, which is why they report the opposite. What the
-framework does \emph{not} have at all is a Fermi surface, and that is the standing open question: de Haas--van Alphen oscillations,
-the linear electronic specific heat and positive plasmon dispersion are measured in real metals, not
-in any idealisation, and RealQM has neither bands nor $E_F$ to account for them. A closing remark
-treats the uniform electron gas, where the localisation term vanishes identically --- a result about
-a construction containing a smeared inert background, which RealQM does not contain, and so a
-diagnosis of mismatched ontology rather than a test the framework fails.
+\noindent RealQM models matter as non-overlapping unit charge densities in ordinary three-dimensional
+space, one per electron, meeting at free boundaries and minimising the Coulomb energy. This article
+asks what such a construction does with \textbf{electric conduction} --- the elementary,
+ordinary-temperature case of a two-component system of ions and electrons --- and finds the question
+turning on a single quantity: what it costs to move a free boundary.
+
+That cost is computed, and it vanishes. Partitioning a gas of density $n$ into cells of size
+$n^{-1/3}$ gives a kinetic energy density $t(n)=C\,n^{5/3}$, the Thomas--Fermi \emph{form} obtained
+from the geometry of a partition rather than from Fermi statistics, and with $C=C_{\rm TF}$ it
+reproduces $k_{\rm TF}$ exactly at every density; but with the free interface used throughout,
+$\psi_i\equiv|\Omega_i|^{-1/2}$ is admissible and has $\grad\psi_i=0$, so $C=0$ exactly. The same
+fact carries opposite signs on the two sides of this paper. Against: no degeneracy pressure, infinite
+screening length, dispersionless plasmon, no bandwidth, no metal--insulator mechanism. For: the
+boundary is the only object this framework moves, so a vanishing interface cost is a vanishing cost
+of transport.
+
+Following the second consequence gives the central claim, which is about \emph{what} is transported.
+Not an electron: an electron here is a unit of charge density on a domain, what exists is the
+partition of space, and transport is the partition pattern travelling --- the relation a dislocation
+bears to the slip it produces, in which charge genuinely arrives at the far end while no constituent
+moves more than one lattice spacing. That diagnosis accounts for a series of null results reported
+here, each of which imposed a carrier obliged to translate bodily through occupied space and so
+measured the price of forbidding the only mechanism available.
+
+Numerically, an extra electron on a ring of hydrogens does not sit anywhere: it relaxes to a uniform
+corona, at $a=2.2\,a_0$ and still at $a=4.0\,a_0$ where a real electron would occupy one atom as
+$\mathrm{H^-}$, so the framework over-delocalises and never localises charge. A full electron ring
+against bare kernels is by contrast \textbf{pinned}, rotating against the ion ring at a cost of
+$0.01186$~Ha $=323$~meV for six electrons --- $54$~meV each, a threshold field of
+$9\times10^{8}$~V/m, or $0.11$~V per lattice site against the $4\times10^{-12}$~V per site of copper
+carrying an ampere. Rigid sliding is therefore excluded as a conduction mechanism by ten orders of
+magnitude. It is however an upper bound, since it makes every electron crest its barrier at once;
+the cheap path is a kink, whose cost is independent of chain length, and that measurement is
+identified but not reported here. Whether the two ring results additionally constitute a
+semiconductor --- filled complement pinned, added carrier free --- is left as a conjecture, the two
+runs differing in screening as well as in filling.
+
+Two further results are recorded. The alkali series Li--Cs is reproduced to a mean error of $6.2\%$
+against the standard treatment's $5.6\%$, carrying neither exchange nor band filling, but this is
+shown \emph{not} to test the quantum treatment, since setting the electronic kinetic energy to zero
+altogether moves the radii by one per cent: the lattice scale of a simple metal is electrostatic.
+And the high-temperature limit, treated separately, is the \emph{easier} case for this framework
+rather than the harder one, degeneracy not being required there --- $\omega_p^2=4\pi n$ comes out
+exactly, for the structural reason that a rigid translation leaves the localisation term untouched.
+What remains genuinely open is the Fermi surface, which no arrangement of densities on domains
+appears able to supply.
 \end{abstract}
 
 \setstretch{1.15}
 
 \section{The extension, and the object it is made for}
 
-In this article we extend RealQM, developed for atoms and molecules, to the plasma physics of
-\textbf{two-component systems}: ions and electrons, both charged, both free to move, interacting by
-Coulomb forces and nothing else. A metal is such a system. So is a stellar interior, and so is the
-recombination era of a Coulomb cosmology.
+In this article we extend RealQM, developed for atoms and molecules, to \textbf{two-component
+systems}: ions and electrons, both charged, both free to move, interacting by Coulomb forces and
+nothing else. A metal is such a system, and the question pursued here is the elementary one such a
+system poses --- whether it \emph{conducts}, and if so what carries the charge. The same
+construction covers a stellar interior and the recombination era of a Coulomb cosmology, which are
+treated as the high-temperature limit in \S\ref{sec:plasma}.
 
 RealQM \cite{realqm,realqmbook} represents an $N$-electron system by $N$ non-negative densities
 $\psi_i$, each carrying unit charge on its own domain $\Omega_i$, the domains non-overlapping and
@@ -78,7 +98,7 @@ requirement that domains do not overlap. And --- of particular relevance here --
 continuum anywhere in the construction: everything in it is a discrete unit charge occupying a region
 of ordinary space.
 
-A two-component plasma of ions and electrons is therefore not an idealisation the theory must be
+A two-component system of ions and electrons is therefore not an idealisation the theory must be
 adapted to describe. It is what the theory is already made of, in a new arrangement.
 
 Every previous test of this construction --- ionisation energies across the periodic table, molecular
@@ -86,6 +106,409 @@ binding, nuclear binding by dual Coulomb confinement \cite{realnucleus} --- has 
 matter, with an attractor always present. A plasma is the first case in which large numbers of
 charges of both signs are free to arrange themselves, and it is a fair question what the framework
 then gives.
+
+\section{The free boundary, and what it costs}\label{sec:boundary}
+
+The object that separates this framework from the standard theory is the \textbf{free boundary}: the
+surface at which two domains meet, its position not prescribed but settled by the energy. Everything
+that follows turns on what that boundary costs, so it is established first.
+
+Partitioning a gas of density $n$ into non-overlapping cells of size $a=n^{-1/3}$ gives a
+localisation cost per cell scaling as $a^{-2}$, hence a kinetic energy density $t(n)=C\,n^{5/3}$ ---
+the Thomas--Fermi form, obtained from the geometry of a partition rather than from Fermi statistics.
+Linearising \eqref{eq:E} about the uniform state and substituting into Poisson's equation gives
+Yukawa screening with $k^2=18\pi n^{1/3}/5C$, and setting $C$ to the Thomas--Fermi coefficient
+$C_{\rm TF}=\tfrac{3}{10}(3\pi^2)^{2/3}=2.8712$ reproduces $k_{\rm TF}$ exactly at every density.
+\emph{The form extends without adjustment.}
+
+The coefficient does not. With the free interface used throughout RealQM,
+$\psi_i\equiv|\Omega_i|^{-1/2}$ is admissible: it satisfies the normalisation, makes the total
+density uniform, minimises the electrostatic energy against a neutralising background, and has
+$\grad\psi_i=0$. Hence
+\begin{equation}\label{eq:Czero}
+C=0 \quad\text{exactly.}
+\end{equation}
+Neither allowing the interfaces to move nor requiring domains to be connected and singly charged
+alters this.
+
+\paragraph{The same fact, with opposite signs.} Equation \eqref{eq:Czero} says that a free interface
+between two domains of equal density carries no confinement energy: the partition may be redrawn at
+any scale for nothing. Read as a statement about \emph{structure}, that is destructive. There is no
+degeneracy pressure, the screening length is infinite, the plasmon is dispersionless, there is no
+bandwidth, and no mechanism remains by which a metal could differ from an insulator.
+
+Read as a statement about \emph{motion}, it is the opposite. Moving a boundary is free --- and the
+boundary is the only object this framework moves. Its solver evolves each interface by the local
+density balance $(\rho_i-\rho_j)/(\rho_i+\rho_j)$, transferring ownership of a cell when the
+neighbour's density exceeds its own; domains do not translate, they are redrawn. A vanishing
+interface cost is therefore a vanishing cost of \emph{transport}. The defect that empties out
+degeneracy is the same one that should let charge flow.
+
+This paper follows the second reading, which is why conduction comes before the equation of state
+below rather than after it.
+
+\paragraph{What the partition supplies, and why it cannot be given up.} Since \eqref{eq:Czero}
+arises from the freedom of the interface, an obvious thought is to drop the partition and let the
+electrons share one territory. The cost of that is fixed by a scaling argument, and it is
+prohibitive. Confining $N$ unit charges to one shared region of volume $V=N/n$ gives a kinetic energy
+density
+\begin{equation}\label{eq:scaling}
+\frac{T}{V}=\frac{3\pi^2}{2}\,n^{5/3}N^{-2/3},
+\end{equation}
+against the $n^{5/3}$ of the partition with no $N$ in it at all. The partition is what makes the
+kinetic energy \emph{extensive}: each electron is localised to a cell whose size is set by the
+density, not by the size of the sample. Sharing makes it depend on how large a piece of metal one
+happens to be considering, and at $N\sim10^{23}$ the density falls by $N^{-2/3}\sim10^{-15}$ ---
+fifteen orders of magnitude. \emph{The partition must be kept}, whatever else is relaxed.
+
+\paragraph{What \eqref{eq:Czero} is, and is not, a statement about.} It concerns a \emph{uniform}
+density and does not transfer to a shaped one. Where a nucleus shapes the profiles --- a two-domain
+shell on one kernel, for instance --- both domains carry real kinetic energy, and the shell is stable
+under the density-balance rule, since compressing the inner domain raises its density at the
+interface and lowers the outer's, pushing the boundary back out. The vanishing is a property of the
+flat case alone.
+
+That also settles how much weight the uniform electron gas should carry. It is electrons plus a
+\emph{smeared, inert, non-responding} positive background --- a construction belonging to a tradition
+in which exchange--correlation energies are fitted to that very system. RealQM contains no inert
+backgrounds anywhere, so asking it to reproduce jellium asks for a system whose central ingredient it
+does not have, and $C=0$ diagnoses that mismatch rather than recording a failed test. Consistently,
+the pathology disappears as soon as real ions are present: Table~\ref{tab:alkalis} is the same
+framework on the same physics, with the background replaced by the charges matter is actually made
+of.
+
+One physical case does approach the uniform limit closely: degenerate matter in which the ion lattice
+is a small perturbation, as in a white dwarf interior, where the measured mass--radius relation
+depends on precisely the pressure the uniform limit does not supply. That is the one place the result
+might have observable consequences, and it is untested here.
+
+\section{Conduction}\label{sec:conduction}
+
+Electric conduction is the interaction of the electrons with the ion lattice. It is the elementary
+case --- ordinary matter at ordinary temperature --- and it is for that reason the \emph{demanding}
+one here, since ordinary-temperature conduction is degenerate matter, and degeneracy is exactly what
+\eqref{eq:Czero} empties out. The familiar case and the easy case are not the same case.
+
+Metallic conduction is the paradigm of \emph{delocalisation}: the carriers are extended states
+spanning the crystal, whereas RealQM's electrons are localised by construction, each in its own
+domain, with non-overlap requiring $N$ carriers to occupy $N$ disjoint regions. The natural minimiser
+of \eqref{eq:E} is a set of compact cells, which describes a Mott insulator more naturally than a
+conductor. Nor is there an evident mechanism for the metal--insulator distinction, which in standard
+theory is band filling --- two electrons per band per cell --- an exclusion-principle count the
+framework does not have; and with no Fermi surface, the carrier density in $\sigma=ne^2\tau/m$ has no
+referent.
+
+What does fit naturally is the opposite regime: localised charges hopping between domains by
+thermally activated jumps, as in semiconductors, disordered systems and small-polaron transport. That
+needs no Fermi surface and follows from the same thermal motion that supplies the pressure.
+
+This yields a prediction crude enough to be decisive, and it concerns only a sign. Metallic
+conductivity \emph{falls} with temperature; hopping conductivity \emph{rises}. If RealQM transports
+charge by hopping rather than band motion it should give $d\sigma/dT>0$ for every material, making
+copper behave like a semiconductor. Whether it does has not been computed for electrons, and the
+pessimistic reading should be held loosely: the same lattice that carried the metals in \S\ref{sec:metals} is
+present here too.
+
+For \emph{protons} the mechanism has already been demonstrated in this framework. Grotthuss
+conduction --- an excess proton migrating along a hydrogen-bonded chain of water molecules by
+successive transfers, rather than by bodily motion of any one particle --- is hopping transport in
+its purest form, and it is a standard RealQM calculation: a chain of waters with $\mathrm{O}$--$\mathrm{O}$
+spacing near $2.65$~\AA{}, an excess proton, and the question whether it hops from one molecule to
+the next. Related transfers, $\mathrm{HF}+\mathrm{H_2O}\to\mathrm{F^-}+\mathrm{H_3O^+}$ and
+$\mathrm{HCl}+\mathrm{NH_3}\to\mathrm{Cl^-}+\mathrm{NH_4^+}$, are computed the same way.
+
+This matters for the argument rather than merely illustrating it. Charge transport by transfer
+between localised domains is not a regime the framework must be stretched to reach --- it is one it
+already handles, in the case where the carrier is a proton.
+
+The electron case cannot presently be tested in the same way, and the obstruction is instructive
+enough to be worth setting out. Two chain calculations were attempted here --- five hydrogens with an
+excess electron, and five hydrogen kernels with one electron missing, the electronic counterparts of
+the proton wire --- and both returned nothing. Neither result means what it appears to.
+
+The cause is not what it first appeared. Kernel proximity assigns the labels only \emph{initially};
+thereafter a free-boundary rule evolves each interface from the local density balance and transfers
+ownership of a cell when the neighbouring domain's density exceeds its own. Partitions therefore do
+rearrange, and electron transfer is representable in principle. What defeated the attempts here was
+specific to each: a carrier given no kernel feels no force from the lattice; a bare kernel is given no
+domain, so a vacancy has nothing to migrate into; and a carrier placed on an occupied site can seize
+the nuclear region outright, since with free interfaces no confinement cost opposes it. Each is a
+property of the construction, not of \eqref{eq:E}.
+
+The deeper cause survives that repair. Conduction is charge in motion, and \eqref{eq:E} is an energy
+minimisation: it returns the equilibrium partition, not a current. Given complete freedom in the
+labels one would still obtain the ground state, and for a symmetric chain that state places one
+domain per site by symmetry, with nothing flowing. A minimisation has no time in it.
+
+What the framework does possess is an asymmetry of dynamics. Nuclei move, under classical equations
+of motion; electrons relax, to a static minimum. Charge carried by \emph{nuclei} is therefore
+representable --- which is precisely why the Grotthuss calculation works, the carrier there being a
+proton --- and charge carried by electrons is not, because in this scheme electrons have no equation
+of motion at all. The correct machinery exists elsewhere in the programme, in the time-dependent form
+where a real density carries a complex current, and a conduction calculation belongs there rather
+than here.
+
+\paragraph{What the framework actually does with an extra electron.} The clean test is a ring, which
+has no ends and in which every site is equivalent by construction, so the energy must repeat with the
+lattice period --- a validity check the open-chain scans lacked. Six hydrogens on a ring, one extra
+unit of charge in the corona outside them, slid round by angle:
+
+\begin{center}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+arc spacing & over an atom & quarter way & between two atoms\\
+\midrule
+$a=2.2\,a_0$ & $-3.51$ & $-3.51$ & $-3.51$\\
+$a=4.0\,a_0$ & $-3.30$ & --- & $-3.30$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The energy is flat to the resolution available, and the reason is visible in the solution
+rather than inferred: the extra charge does not sit anywhere. It relaxes to a \textbf{uniform corona
+around the whole ring}, indifferent to where it was placed. There is no localised carrier to move, so
+there is nothing to corrugate the path and no resistance to measure.
+
+That holds at $a=4.0\,a_0$, nearly three times the $\mathrm{H_2}$ bond length, where a real extra
+electron would occupy a single atom as $\mathrm{H^-}$. \emph{The framework therefore
+over-delocalises: it spreads charge at every separation tested and never localises it.}
+
+\paragraph{The collective mode, which is how a metal actually conducts.} A single carrier is the
+wrong object. Conduction is not one electron moving past stationary others but the whole distribution
+shifting while the ions stay, and the corresponding energy is the \textbf{pinning} of that
+distribution to the lattice --- the quantity that decides whether a charge-density wave slides or
+sticks, and the Frenkel--Kontorova barrier for friction. On a ring it is directly computable: put $n$
+bare ions on an inner ring and $n$ electron domains on an outer one, rotate the electron ring by
+$\phi$ site spacings, and record the energy.
+
+The construction carries its own check, and passes it exactly: a rotation by one full spacing maps
+each electron onto its neighbour's place, so $E(1)$ must equal $E(0)$, and it does to five decimals.
+That also establishes that the solver is \emph{deterministic}, so differences between configurations
+are real rather than scatter.
+
+\begin{center}
+\small
+\begin{tabular}{@{}lr@{}}
+\toprule
+$\phi=0$, electrons over ions & $-3.36796$\\
+$\phi=0.5$, electrons between ions & $-3.35610$\\
+\midrule
+pinning & $0.01186$~Ha $=323$~meV $=12.5\,k_BT$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The sea is \textbf{pinned}, with the electrons preferring to sit over the ions. Six
+electrons give $12.5\,k_BT$, so about $2\,k_BT$ each, and a collective barrier scales with the number
+of participants.
+
+\paragraph{What the pinning means as a field.} Six electrons give $12.5\,k_BT$, so $54$~meV each,
+peak to peak, across half a site spacing. Barrier and field-work both scale with the number of
+participants, so the \emph{threshold field} for depinning is intensive, and therefore transferable
+off this small ring: taking the corrugation as sinusoidal, $E_T=\pi\,\Delta E/(NeL)=9\times10^{8}$~V/m.
+
+\begin{center}
+\small
+\begin{tabular}{@{}lr@{}}
+\toprule
+threshold field, rigid sliding & $9\times10^{8}$~V/m\\
+potential drop per lattice site & $0.11$~V\\
+across a centimetre of wire & ${\approx}10^{7}$~V\\
+\midrule
+copper carrying $1$~A, per site & $4\times10^{-12}$~V\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Ten orders of magnitude. \emph{Rigid sliding is not conduction}, and that is now a
+quantitative exclusion rather than an impression.
+
+\paragraph{The kink, and why a chain rather than a ring.} Rigid sliding is nevertheless an
+\emph{upper bound} on the cost of transport, since it obliges every electron to crest its barrier at
+once and its cost grows with the number of participants. The cheap path is a \textbf{kink}: advance
+the electrons on one side of a point by one full spacing over some width, leaving one ion
+unpartnered. Only the kink region pays, so the cost is independent of the chain's length, and one
+kink crossing the chain transports exactly one electron. This is how a charge-density wave actually
+depins, and it is the soliton form of hopping.
+
+A kink is native to a chain rather than to a ring, for a reason that also bounds the ring result. No
+electrostatic bias can drive a sea around a closed loop: a conservative field has zero circulation.
+The ring supplies a clean \emph{barrier} --- no ends, every site equivalent, the energy obliged to
+repeat with the lattice period --- but it cannot host the \emph{drive}. A chain has ends, a potential
+drop along it is an ordinary thing to apply, and a single kink may enter at one end and leave at the
+other, which is the transport event itself. On a ring kinks must come in pairs.
+
+Two numbers settle it: the creation energy $E(\mathrm{kink})-E(\mathrm{uniform})$, whether a kink
+exists at all; and the migration barrier, the variation of the energy as the kink is stepped along,
+which is the Peierls--Nabarro barrier and fixes the threshold field for kink motion. If migration
+falls far below the $54$~meV of the rigid mode, the chain conducts at fields the rigid mode could
+never reach. These are being computed and are not reported here.
+
+\paragraph{What is actually transported.} The carrier in this framework is not an electron. An
+electron here is not a particle but a unit of charge density on a domain, and what exists is the
+\emph{partition} of space; dynamics is the evolution of that partition, and transport is the
+partition pattern travelling. What moves along the chain is the \textbf{free boundary} --- a locus
+where two densities balance --- and nothing material traverses it at all.
+
+The quantitative form of this is the useful one. As a kink passes, each electron advances by exactly
+one site spacing and then stops, while the kink advances the entire length of the chain. The
+carrier's displacement and its constituents' displacement are decoupled, and their ratio is the
+chain length. This is the relation between a dislocation and the slip it produces: the dislocation
+crosses the crystal, no atom moves far. Charge is genuinely transported and real charge arrives at
+the far end; it is the \emph{carrier} that is immaterial, in the sense that a wave is immaterial
+while the water is not.
+
+That diagnosis also accounts for the failures recorded earlier in this study rather than excusing
+them. Each of the unsuccessful constructions imposed a carrier that had to \emph{translate}, moving
+bodily through occupied space, and returned costs of tens of electron-volts or else collapsed. Those
+were the price of forbidding the only mechanism the framework has. The solver states as much
+directly: its free boundary evolves by the density balance $(\rho_i - \rho_j)/(\rho_i + \rho_j)$,
+flipping ownership cell by cell. Boundary motion is the only motion it performs. The corona result
+is the same statement seen from the favourable side --- an added electron spread into a uniform
+shell at no cost, which is a boundary redistributing freely.
+
+This raises the stake of the kink measurement. If transport works here it works \emph{because} of
+the free boundary, which is the single feature separating this framework from the standard theory;
+and if the boundary cannot carry charge cheaply, the difficulty is not in a detail of the
+construction but in the framework's defining object.
+
+\paragraph{Two results that may fit together as a semiconductor.} Set that beside the corona result:
+a \emph{single} extra electron, beyond a neutral complement of six atoms, delocalises and slides
+freely, while a full complement of six against bare kernels is pinned.
+
+\begin{center}
+\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+the filled electron ring ($n$ electrons, $n$ ions) & pinned, $323$~meV --- does not slide\\
+one extra electron beyond it & delocalised, flat --- no resistance\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent That reads as a semiconductor rather than a metal --- a filled complement that does not
+conduct, an added carrier that does --- and it would settle what the framework's difficulty with
+metals is: not that it cannot transport charge, since it transports surplus charge without any
+resistance at all, but that it may transport \emph{only} surplus charge, while a metal conducts by
+the sea itself moving.
+
+\paragraph{Why that reading is not yet established.} The two runs differ in more than the filling,
+and the difference is not incidental. In the corona run the inner ring carries \emph{neutral atoms},
+each already holding its own electron, and the extra charge floats outside a screened, nearly
+field-free ring. In the sliding run the inner ring carries \emph{bare} kernels, and the electrons
+under test are themselves the screening, sitting in the unscreened ion field. Flat in one case and
+corrugated in the other is therefore as well explained by screening as by filling.
+
+In a real solid the two are the same statement: the filled valence electrons screen the cores, which
+is precisely why an added carrier moves in a flat potential. But that identification is imported
+rather than demonstrated here, and separating the two requires runs that differ in one respect at a
+time --- the same bare-kernel ring at fixed geometry, with the electron count changed at fixed total
+charge (registry only, via fractional kernels) and with it changed at fixed kernel charge (filling
+as well). Until then the pinning number stands and the semiconductor reading is a conjecture about
+what produces it.
+
+Two further qualifications belong with the number. Commensurate registry, $n$ electrons on $n$ ions,
+is the most strongly pinned case; a metal's sea is incommensurate with its lattice, which is part of
+why it slides, and whether the framework reproduces that distinction is not tested here. And the
+pinning reported is a static barrier, with no thermal or quantum reduction applied.
+
+\paragraph{The barrier, which is a static quantity.} Transport by hopping is governed by a barrier,
+and a barrier is an energy difference, which the static solver does compute. Placing an excess
+electron as a domain of its own at successive positions and relaxing each to convergence traces the
+surface the carrier moves on --- the standard route to a small-polaron barrier.
+
+A linear chain answers the wrong question: four hydrogens in a line give $1.16$~Ha $=31.5$~eV, but
+that is the cost of pushing the carrier \emph{through} an ion, and stepping $1\,a_0$ aside makes it
+marginally worse rather than better, because in a wire there is no route from one interstitial pocket
+to the next except through an atom. A lattice has one. In a $4\times4$ square lattice the carrier
+passes from the centre of one square through the \emph{midpoint of a bond} --- flanked by two atoms
+at half a spacing each, never at zero distance from any --- to the centre of the next.
+
+\begin{table}[h]\centering
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+lattice spacing & pocket (Ha) & saddle (Ha) & barrier\\
+\midrule
+$a=2.5\,a_0$ & $-16.254$ & $-16.053$ & $0.200\pm0.003$~Ha $=5.46$~eV\\
+$a=1.4\,a_0$ & $-11.824$ & $-11.402$ & $0.421\pm0.015$~Ha $=11.5$~eV\\
+\bottomrule
+\end{tabular}
+\caption{Barrier for a carrier moving between interstitial sites of a hydrogen lattice. Uncertainties
+are from the mirror-symmetry check, the two bond midpoints either side of a pocket being equivalent
+by construction.}
+\label{tab:barrier}
+\end{table}
+
+\noindent The lattice route is real: passing between two atoms costs $5.8$ times less than passing
+through one, so the chain's figure was an artefact of dimensionality. But the barrier that remains is
+$5.5$~eV, some $200\,k_BT$, and the carrier is confined to its pocket. At $a=2.5\,a_0$ that may be
+right --- nearly twice the $\mathrm{H_2}$ bond length, where stretched hydrogen is a Mott insulator
+in nature too.
+
+\paragraph{The density trend, and why the barrier scans mislead.} Compressing the lattice did not
+close the barrier in those scans; it doubled it. But the scans share a defect that only became clear
+when the question was posed differently: they impose a \emph{localised} carrier and measure what it
+costs to move. If the framework has no localised carrier, that cost is the price of maintaining an
+artificial constraint, not of transport.
+
+\paragraph{A repair that is not available, and one that is.} An obvious response to the barrier is
+to let valence electrons share a territory, which removes it by construction. Equation
+\eqref{eq:scaling} rules that out: sharing destroys the extensivity the partition supplies, and a
+metal would lose its kinetic energy density by fifteen orders of magnitude.
+
+What may be relaxed instead is the requirement that each domain carry \emph{exactly} one unit of
+charge. Suppose a domain may hold two --- the excess electron is then not a new region competing for
+space, but additional occupation of a region that already exists. Two things follow immediately, and
+neither depends on any coefficient. First, by translational symmetry the energy is the \emph{same}
+wherever the doubly-occupied site sits, so there is no barrier between sites at all. Second,
+electrostatics favours spreading the excess: with the interfaces free, the kinetic energy is
+unchanged at any occupation, so only the Coulomb terms act, and they are lowered monotonically as the
+excess is shared out. A localised double occupancy is therefore not merely mobile but unstable
+against delocalising.
+
+The cost of forming it is the on-site repulsion, of order $10$~eV for hydrogen-like sites --- the
+Hubbard $U$, here \emph{computed} from the geometry rather than fitted.
+
+\paragraph{What the framework then is.} Non-overlapping sites, occupation $0$, $1$ or $2$, an on-site
+repulsion $U$, and transfer between neighbours: that is the \textbf{Hubbard model}. Which locates
+RealQM exactly. As formulated --- one unit of charge per domain, always --- it is the Hubbard model in
+the limit $U\to\infty$, where double occupancy is forbidden outright and every site is singly
+occupied. That limit is a Mott insulator at every density, which is precisely what
+Table~\ref{tab:barrier} found by direct computation, and it explains the density trend as well: no
+finite $U$ can be beaten by a bandwidth that does not exist.
+
+The repair is correspondingly minimal. Keep the partition, keep the geometry, keep the Coulomb
+energetics, and allow occupation to take the value two at a computed cost. The framework then sits
+where the standard treatment of strongly correlated matter sits --- the Hubbard model is the working
+description of Mott insulators, of the cuprates, and of the materials for which band theory fails ---
+with the difference that its $U$ and its lattice are derived rather than supplied.
+
+We do not carry this out here. What is established is where the obstruction lies: not in the
+interface condition, not in the geometry, but in the rule of one unit of charge per domain. That rule
+is also the source of one of the framework's results, charge quantization as a consequence of
+indivisibility rather than an assumption. The tension is worth stating plainly: \emph{the postulate
+that explains why charge comes in units is the postulate that forbids a metal.} Matter has it both
+ways, quantizing the particles while leaving the amplitude on each site continuous, and a partition
+of real densities has no evident means to do the same.
+
+It is fair to ask whether all conduction might be hopping, band transport being a formalism rather
+than an observable. The idea is not idle: hopping is the correct description of amorphous and organic
+semiconductors, of doped semiconductors and polaronic oxides, and in ``bad metals'' at high
+temperature the mean free path falls to the lattice spacing and the band picture fails there too.
+What settles it is the \emph{low}-temperature behaviour of a pure metal. Hopping is thermally
+activated, so its conductivity vanishes as $T\to0$; the resistivity of pure copper instead falls from
+${\approx}1.7\,\mu\Omega$\,cm at $300$~K to below $0.002\,\mu\Omega$\,cm at $4$~K, a ratio above
+$10^3$ in good samples, with a mean free path reaching millimetres --- $10^7$ lattice spacings, which
+is not a sequence of jumps between neighbours. A hopping framework predicts that copper becomes an
+insulator on cooling, and the measurement runs the other way by three orders of magnitude. The
+Wiedemann--Franz ratio, fixed at $L_0=\pi^2k_B^2/3e^2$ by carriers that convey heat and charge alike,
+is a second such constraint.
+
+The regimes are also the wrong way round for the framework: hopping describes matter best at high
+temperature, and it is at low temperature, where band behaviour is cleanest, that RealQM would need
+it to hold.
 
 \section{Metals: a Wigner--Seitz problem the framework already agrees with}\label{sec:metals}
 
@@ -160,7 +583,13 @@ framework's own design claim --- that non-overlap does the work exchange does --
 metals it holds for the radius and fails for the curvature, which is what one would expect of a
 cancellation that is close but not exact.
 
-\section{The plasma frequency, exactly}
+\section{The high-temperature limit}\label{sec:plasma}
+
+Conduction above is the elementary case and the hard one. A hot classical plasma is the extreme case
+and the \emph{easier} one, because degeneracy is not required of it: the physics there is Coulomb
+interaction and kinetics, which is what this framework is made of, and nothing in it leans on the
+pressure that \eqref{eq:Czero} removes. The order of difficulty is the reverse of the order of
+familiarity.
 
 Displace the electron distribution rigidly by $\xi$ against the ion background. The resulting surface
 charge produces a restoring field $4\pi n\xi$, so $\ddot\xi=-4\pi n\xi$ and
@@ -178,290 +607,6 @@ is a multi-beam plasma. Multi-beam models reproduce Landau damping as phase mixi
 streams, and do so reversibly, in agreement with plasma-echo experiments. Where the velocity spread
 is thermal, collisionless damping should therefore emerge for the right reason rather than by an
 inserted term. This has not been computed.
-
-\section{Conduction, where the framework is least settled}
-
-Electric conduction is the interaction of the electrons with the ion lattice, and here the position
-is genuinely uncertain.
-
-Metallic conduction is the paradigm of \emph{delocalisation}: the carriers are extended states
-spanning the crystal, whereas RealQM's electrons are localised by construction, each in its own
-domain, with non-overlap requiring $N$ carriers to occupy $N$ disjoint regions. The natural minimiser
-of \eqref{eq:E} is a set of compact cells, which describes a Mott insulator more naturally than a
-conductor. Nor is there an evident mechanism for the metal--insulator distinction, which in standard
-theory is band filling --- two electrons per band per cell --- an exclusion-principle count the
-framework does not have; and with no Fermi surface, the carrier density in $\sigma=ne^2\tau/m$ has no
-referent.
-
-What does fit naturally is the opposite regime: localised charges hopping between domains by
-thermally activated jumps, as in semiconductors, disordered systems and small-polaron transport. That
-needs no Fermi surface and follows from the same thermal motion that supplies the pressure.
-
-This yields a prediction crude enough to be decisive, and it concerns only a sign. Metallic
-conductivity \emph{falls} with temperature; hopping conductivity \emph{rises}. If RealQM transports
-charge by hopping rather than band motion it should give $d\sigma/dT>0$ for every material, making
-copper behave like a semiconductor. Whether it does has not been computed for electrons, and the
-pessimistic reading should be held loosely: the same lattice that carried the metals in \S2 is
-present here too.
-
-For \emph{protons} the mechanism has already been demonstrated in this framework. Grotthuss
-conduction --- an excess proton migrating along a hydrogen-bonded chain of water molecules by
-successive transfers, rather than by bodily motion of any one particle --- is hopping transport in
-its purest form, and it is a standard RealQM calculation: a chain of waters with $\mathrm{O}$--$\mathrm{O}$
-spacing near $2.65$~\AA{}, an excess proton, and the question whether it hops from one molecule to
-the next. Related transfers, $\mathrm{HF}+\mathrm{H_2O}\to\mathrm{F^-}+\mathrm{H_3O^+}$ and
-$\mathrm{HCl}+\mathrm{NH_3}\to\mathrm{Cl^-}+\mathrm{NH_4^+}$, are computed the same way.
-
-This matters for the argument rather than merely illustrating it. Charge transport by transfer
-between localised domains is not a regime the framework must be stretched to reach --- it is one it
-already handles, in the case where the carrier is a proton.
-
-The electron case cannot presently be tested in the same way, and the obstruction is instructive
-enough to be worth setting out. Two chain calculations were attempted here --- five hydrogens with an
-excess electron, and five hydrogen kernels with one electron missing, the electronic counterparts of
-the proton wire --- and both returned nothing. Neither result means what it appears to.
-
-The cause is not what it first appeared. Kernel proximity assigns the labels only \emph{initially};
-thereafter a free-boundary rule evolves each interface from the local density balance and transfers
-ownership of a cell when the neighbouring domain's density exceeds its own. Partitions therefore do
-rearrange, and electron transfer is representable in principle. What defeated the attempts here was
-specific to each: a carrier given no kernel feels no force from the lattice; a bare kernel is given no
-domain, so a vacancy has nothing to migrate into; and a carrier placed on an occupied site can seize
-the nuclear region outright, since with free interfaces no confinement cost opposes it. Each is a
-property of the construction, not of \eqref{eq:E}.
-
-The deeper cause survives that repair. Conduction is charge in motion, and \eqref{eq:E} is an energy
-minimisation: it returns the equilibrium partition, not a current. Given complete freedom in the
-labels one would still obtain the ground state, and for a symmetric chain that state places one
-domain per site by symmetry, with nothing flowing. A minimisation has no time in it.
-
-What the framework does possess is an asymmetry of dynamics. Nuclei move, under classical equations
-of motion; electrons relax, to a static minimum. Charge carried by \emph{nuclei} is therefore
-representable --- which is precisely why the Grotthuss calculation works, the carrier there being a
-proton --- and charge carried by electrons is not, because in this scheme electrons have no equation
-of motion at all. The correct machinery exists elsewhere in the programme, in the time-dependent form
-where a real density carries a complex current, and a conduction calculation belongs there rather
-than here.
-
-\paragraph{The barrier, which is a static quantity.} Transport by hopping is governed by a barrier,
-and a barrier is an energy difference, which the static solver does compute. Placing an excess
-electron as a domain of its own at successive positions and relaxing each to convergence traces the
-surface the carrier moves on --- the standard route to a small-polaron barrier.
-
-A linear chain answers the wrong question: four hydrogens in a line give $1.16$~Ha $=31.5$~eV, but
-that is the cost of pushing the carrier \emph{through} an ion, and stepping $1\,a_0$ aside makes it
-marginally worse rather than better, because in a wire there is no route from one interstitial pocket
-to the next except through an atom. A lattice has one. In a $4\times4$ square lattice the carrier
-passes from the centre of one square through the \emph{midpoint of a bond} --- flanked by two atoms
-at half a spacing each, never at zero distance from any --- to the centre of the next.
-
-\begin{table}[h]\centering
-\small
-\begin{tabular}{@{}lrrr@{}}
-\toprule
-lattice spacing & pocket (Ha) & saddle (Ha) & barrier\\
-\midrule
-$a=2.5\,a_0$ & $-16.254$ & $-16.053$ & $0.200\pm0.003$~Ha $=5.46$~eV\\
-$a=1.4\,a_0$ & $-11.824$ & $-11.402$ & $0.421\pm0.015$~Ha $=11.5$~eV\\
-\bottomrule
-\end{tabular}
-\caption{Barrier for a carrier moving between interstitial sites of a hydrogen lattice. Uncertainties
-are from the mirror-symmetry check, the two bond midpoints either side of a pocket being equivalent
-by construction.}
-\label{tab:barrier}
-\end{table}
-
-\noindent The lattice route is real: passing between two atoms costs $5.8$ times less than passing
-through one, so the chain's figure was an artefact of dimensionality. But the barrier that remains is
-$5.5$~eV, some $200\,k_BT$, and the carrier is confined to its pocket. At $a=2.5\,a_0$ that may be
-right --- nearly twice the $\mathrm{H_2}$ bond length, where stretched hydrogen is a Mott insulator
-in nature too.
-
-\paragraph{The density trend, and why the barrier scans mislead.} Compressing the lattice did not
-close the barrier in those scans; it doubled it. But the scans share a defect that only became clear
-when the question was posed differently: they impose a \emph{localised} carrier and measure what it
-costs to move. If the framework has no localised carrier, that cost is the price of maintaining an
-artificial constraint, not of transport.
-
-\paragraph{What the framework actually does with an extra electron.} The clean test is a ring, which
-has no ends and in which every site is equivalent by construction, so the energy must repeat with the
-lattice period --- a validity check the open-chain scans lacked. Six hydrogens on a ring, one extra
-unit of charge in the corona outside them, slid round by angle:
-
-\begin{center}
-\small
-\begin{tabular}{@{}lccc@{}}
-\toprule
-arc spacing & over an atom & quarter way & between two atoms\\
-\midrule
-$a=2.2\,a_0$ & $-3.51$ & $-3.51$ & $-3.51$\\
-$a=4.0\,a_0$ & $-3.30$ & --- & $-3.30$\\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\noindent The energy is flat to the resolution available, and the reason is visible in the solution
-rather than inferred: the extra charge does not sit anywhere. It relaxes to a \textbf{uniform corona
-around the whole ring}, indifferent to where it was placed. There is no localised carrier to move, so
-there is nothing to corrugate the path and no resistance to measure.
-
-That holds at $a=4.0\,a_0$, nearly three times the $\mathrm{H_2}$ bond length, where a real extra
-electron would occupy a single atom as $\mathrm{H^-}$. \emph{The framework therefore
-over-delocalises: it spreads charge at every separation tested and never localises it.}
-
-\paragraph{The collective mode, which is how a metal actually conducts.} A single carrier is the
-wrong object. Conduction is not one electron moving past stationary others but the whole distribution
-shifting while the ions stay, and the corresponding energy is the \textbf{pinning} of that
-distribution to the lattice --- the quantity that decides whether a charge-density wave slides or
-sticks, and the Frenkel--Kontorova barrier for friction. On a ring it is directly computable: put $n$
-bare ions on an inner ring and $n$ electron domains on an outer one, rotate the electron ring by
-$\phi$ site spacings, and record the energy.
-
-The construction carries its own check, and passes it exactly: a rotation by one full spacing maps
-each electron onto its neighbour's place, so $E(1)$ must equal $E(0)$, and it does to five decimals.
-That also establishes that the solver is \emph{deterministic}, so differences between configurations
-are real rather than scatter.
-
-\begin{center}
-\small
-\begin{tabular}{@{}lr@{}}
-\toprule
-$\phi=0$, electrons over ions & $-3.36796$\\
-$\phi=0.5$, electrons between ions & $-3.35610$\\
-\midrule
-pinning & $0.01186$~Ha $=323$~meV $=12.5\,k_BT$\\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\noindent The sea is \textbf{pinned}, with the electrons preferring to sit over the ions. Six
-electrons give $12.5\,k_BT$, so about $2\,k_BT$ each, and a collective barrier scales with the number
-of participants.
-
-\paragraph{Two results that may fit together as a semiconductor.} Set that beside the corona result:
-a \emph{single} extra electron, beyond a neutral complement of six atoms, delocalises and slides
-freely, while a full complement of six against bare kernels is pinned.
-
-\begin{center}
-\small
-\begin{tabular}{@{}ll@{}}
-\toprule
-the filled electron ring ($n$ electrons, $n$ ions) & pinned, $323$~meV --- does not slide\\
-one extra electron beyond it & delocalised, flat --- no resistance\\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\noindent That reads as a semiconductor rather than a metal --- a filled complement that does not
-conduct, an added carrier that does --- and it would settle what the framework's difficulty with
-metals is: not that it cannot transport charge, since it transports surplus charge without any
-resistance at all, but that it may transport \emph{only} surplus charge, while a metal conducts by
-the sea itself moving.
-
-\paragraph{Why that reading is not yet established.} The two runs differ in more than the filling,
-and the difference is not incidental. In the corona run the inner ring carries \emph{neutral atoms},
-each already holding its own electron, and the extra charge floats outside a screened, nearly
-field-free ring. In the sliding run the inner ring carries \emph{bare} kernels, and the electrons
-under test are themselves the screening, sitting in the unscreened ion field. Flat in one case and
-corrugated in the other is therefore as well explained by screening as by filling.
-
-In a real solid the two are the same statement: the filled valence electrons screen the cores, which
-is precisely why an added carrier moves in a flat potential. But that identification is imported
-rather than demonstrated here, and separating the two requires runs that differ in one respect at a
-time --- the same bare-kernel ring at fixed geometry, with the electron count changed at fixed total
-charge (registry only, via fractional kernels) and with it changed at fixed kernel charge (filling
-as well). Until then the pinning number stands and the semiconductor reading is a conjecture about
-what produces it.
-
-Two further qualifications belong with the number. Commensurate registry, $n$ electrons on $n$ ions,
-is the most strongly pinned case; a metal's sea is incommensurate with its lattice, which is part of
-why it slides, and whether the framework reproduces that distinction is not tested here. And the
-pinning reported is a static barrier, with no thermal or quantum reduction applied.
-
-\paragraph{What is actually transported.} The carrier in this framework is not an electron. An
-electron here is not a particle but a unit of charge density on a domain, and what exists is the
-\emph{partition} of space; dynamics is the evolution of that partition, and transport is the
-partition pattern travelling. What moves along the chain is the \textbf{free boundary} --- a locus
-where two densities balance --- and nothing material traverses it at all.
-
-The quantitative form of this is the useful one. As a kink passes, each electron advances by exactly
-one site spacing and then stops, while the kink advances the entire length of the chain. The
-carrier's displacement and its constituents' displacement are decoupled, and their ratio is the
-chain length. This is the relation between a dislocation and the slip it produces: the dislocation
-crosses the crystal, no atom moves far. Charge is genuinely transported and real charge arrives at
-the far end; it is the \emph{carrier} that is immaterial, in the sense that a wave is immaterial
-while the water is not.
-
-That diagnosis also accounts for the failures recorded earlier in this study rather than excusing
-them. Each of the unsuccessful constructions imposed a carrier that had to \emph{translate}, moving
-bodily through occupied space, and returned costs of tens of electron-volts or else collapsed. Those
-were the price of forbidding the only mechanism the framework has. The solver states as much
-directly: its free boundary evolves by the density balance $(\rho_i - \rho_j)/(\rho_i + \rho_j)$,
-flipping ownership cell by cell. Boundary motion is the only motion it performs. The corona result
-is the same statement seen from the favourable side --- an added electron spread into a uniform
-shell at no cost, which is a boundary redistributing freely.
-
-This raises the stake of the kink measurement. If transport works here it works \emph{because} of
-the free boundary, which is the single feature separating this framework from the standard theory;
-and if the boundary cannot carry charge cheaply, the difficulty is not in a detail of the
-construction but in the framework's defining object.
-
-\paragraph{A repair that is not available, and one that is.} An obvious response to the barrier is
-to let valence electrons share a territory, which removes it by construction. The scaling argument
-above rules that out: sharing destroys the extensivity the partition supplies, and a metal would lose
-its kinetic energy density by fifteen orders of magnitude. \emph{The partition must be kept.}
-
-What may be relaxed instead is the requirement that each domain carry \emph{exactly} one unit of
-charge. Suppose a domain may hold two --- the excess electron is then not a new region competing for
-space, but additional occupation of a region that already exists. Two things follow immediately, and
-neither depends on any coefficient. First, by translational symmetry the energy is the \emph{same}
-wherever the doubly-occupied site sits, so there is no barrier between sites at all. Second,
-electrostatics favours spreading the excess: with the interfaces free, the kinetic energy is
-unchanged at any occupation, so only the Coulomb terms act, and they are lowered monotonically as the
-excess is shared out. A localised double occupancy is therefore not merely mobile but unstable
-against delocalising.
-
-The cost of forming it is the on-site repulsion, of order $10$~eV for hydrogen-like sites --- the
-Hubbard $U$, here \emph{computed} from the geometry rather than fitted.
-
-\paragraph{What the framework then is.} Non-overlapping sites, occupation $0$, $1$ or $2$, an on-site
-repulsion $U$, and transfer between neighbours: that is the \textbf{Hubbard model}. Which locates
-RealQM exactly. As formulated --- one unit of charge per domain, always --- it is the Hubbard model in
-the limit $U\to\infty$, where double occupancy is forbidden outright and every site is singly
-occupied. That limit is a Mott insulator at every density, which is precisely what
-Table~\ref{tab:barrier} found by direct computation, and it explains the density trend as well: no
-finite $U$ can be beaten by a bandwidth that does not exist.
-
-The repair is correspondingly minimal. Keep the partition, keep the geometry, keep the Coulomb
-energetics, and allow occupation to take the value two at a computed cost. The framework then sits
-where the standard treatment of strongly correlated matter sits --- the Hubbard model is the working
-description of Mott insulators, of the cuprates, and of the materials for which band theory fails ---
-with the difference that its $U$ and its lattice are derived rather than supplied.
-
-We do not carry this out here. What is established is where the obstruction lies: not in the
-interface condition, not in the geometry, but in the rule of one unit of charge per domain. That rule
-is also the source of one of the framework's results, charge quantization as a consequence of
-indivisibility rather than an assumption. The tension is worth stating plainly: \emph{the postulate
-that explains why charge comes in units is the postulate that forbids a metal.} Matter has it both
-ways, quantizing the particles while leaving the amplitude on each site continuous, and a partition
-of real densities has no evident means to do the same.
-
-It is fair to ask whether all conduction might be hopping, band transport being a formalism rather
-than an observable. The idea is not idle: hopping is the correct description of amorphous and organic
-semiconductors, of doped semiconductors and polaronic oxides, and in ``bad metals'' at high
-temperature the mean free path falls to the lattice spacing and the band picture fails there too.
-What settles it is the \emph{low}-temperature behaviour of a pure metal. Hopping is thermally
-activated, so its conductivity vanishes as $T\to0$; the resistivity of pure copper instead falls from
-${\approx}1.7\,\mu\Omega$\,cm at $300$~K to below $0.002\,\mu\Omega$\,cm at $4$~K, a ratio above
-$10^3$ in good samples, with a mean free path reaching millimetres --- $10^7$ lattice spacings, which
-is not a sequence of jumps between neighbours. A hopping framework predicts that copper becomes an
-insulator on cooling, and the measurement runs the other way by three orders of magnitude. The
-Wiedemann--Franz ratio, fixed at $L_0=\pi^2k_B^2/3e^2$ by carriers that convey heat and charge alike,
-is a second such constraint.
-
-The regimes are also the wrong way round for the framework: hopping describes matter best at high
-temperature, and it is at low temperature, where band behaviour is cleanest, that RealQM would need
-it to hold.
 
 \section{What remains open: the Fermi surface}\label{sec:fermi}
 
@@ -486,38 +631,6 @@ repair, since a shared valence territory conducts while still having no band str
 And it is not an artefact of any idealisation, being measured on ordinary metals. A set of
 Fermi-surface phenomena simply has no representation in a theory built from densities on domains,
 however those domains are constrained.
-
-\section*{Remark: the uniform electron gas}\label{sec:remark}
-
-It is worth recording what happens if the framework is applied to the \emph{uniform electron gas},
-since the calculation is exact and that system is often taken as the reference problem.
-
-Partitioning a gas of density $n$ into non-overlapping cells of size $a=n^{-1/3}$ gives a
-localisation cost per cell scaling as $a^{-2}$, hence a kinetic energy density $t(n)=C\,n^{5/3}$ ---
-the Thomas--Fermi form, obtained from the geometry of a partition rather than from Fermi statistics.
-Linearising \eqref{eq:E} about the uniform state and substituting into Poisson's equation gives Yukawa
-screening with $k^2=18\pi n^{1/3}/5C$, and setting $C$ to the Thomas--Fermi coefficient
-$C_{\rm TF}=\tfrac{3}{10}(3\pi^2)^{2/3}=2.8712$ reproduces $k_{\rm TF}$ exactly at every density. The
-\emph{form} extends without adjustment.
-
-The coefficient does not. With the free interface used throughout RealQM, $\psi_i\equiv
-|\Omega_i|^{-1/2}$ is admissible: it satisfies the normalisation, makes the total density uniform,
-minimises the electrostatic energy against a neutralising background, and has $\grad\psi_i=0$. Hence
-$C=0$ exactly, the screening length is infinite and the plasmon dispersionless. Neither allowing the
-interfaces to move nor requiring domains to be connected and singly charged alters this.
-
-This should not be read as a test the framework fails. The uniform electron gas is electrons plus a
-\emph{smeared, inert, non-responding} positive background --- a construction of a tradition in which
-exchange--correlation energies are fitted to that very system. RealQM contains no inert backgrounds
-anywhere, so asking it to reproduce jellium asks it to reproduce a system whose central ingredient it
-does not have, and $C=0$ diagnoses that mismatch. Consistently with this, the pathology disappears as
-soon as real ions are present: Table~\ref{tab:alkalis} is the same framework on the same physics, with the
-background replaced by the charges matter is actually made of.
-
-One physical case does approach the uniform limit closely: degenerate matter in which the ion lattice
-is a small perturbation, as in a white dwarf interior, where the measured mass--radius relation
-depends on precisely the pressure the uniform limit does not supply. That is the one place the result
-might have observable consequences, and it is untested here.
 
 \section*{A note on what was tested numerically}
 
