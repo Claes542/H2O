@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html><head>
+  <meta charset="utf-8">
+  <title>Sliding an electron ring over an ion ring — the pinning energy</title>
+  <style>body { margin: 0; background: #000; color: #fff; font-family: monospace; }</style>
+</head><body>
+<div id="info" style="position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.85);padding:10px;border:1px solid #333;border-radius:6px;max-width:550px;font-size:12px;z-index:100">
+  <div style="color:#9f9;font-weight:bold">The collective mode: an electron ring sliding over an ion ring</div>
+  <b>n protons</b> on an inner ring and <b>n electrons</b> on an outer ring, neutral overall. The
+  electron ring is rotated relative to the ions and the energy recorded. <b>E(&phi;) is the pinning
+  energy, and its amplitude is the resistance.</b>
+  <div style="margin-top:6px">
+  <b>Why this and not a single carrier.</b> Conduction in a metal is not one electron moving past
+  stationary others &mdash; it is the whole distribution shifting while the ions stay. Every previous
+  attempt here imposed a single localised carrier and measured what it costs to move; the ring
+  experiment showed the framework has no such object, so those costs were the price of an artificial
+  constraint. In the collective mode each electron moves only a fraction of a spacing and nothing
+  squeezes past anything.
+  </div>
+  <div style="margin-top:6px">
+  <b>What it is, in standard terms.</b> This is the pinning of a charge-density wave to a lattice, and
+  the Frenkel&ndash;Kontorova picture of friction. Flat &rarr; the sea slides freely, a conductor.
+  Corrugated &rarr; pinned, with the amplitude the barrier to sliding.
+  </div>
+  <div style="margin-top:6px;color:#9cf">
+  <b>Built-in check.</b> By symmetry E(&phi;) must repeat when the electron ring is rotated by one
+  site spacing, so <code>phi=0</code> and <code>phi=1</code> must agree. If they do not, the
+  calculation is wrong.
+  </div>
+  <div style="margin-top:6px">
+  <b>URL:</b> <code>?n=6</code> ions and electrons, <code>&amp;a=2.2</code> ion arc spacing,
+  <code>&amp;dr=1.2</code> electron-ring radius minus ion-ring radius,
+  <code>&amp;phi=0</code> relative rotation in site spacings (0 = electrons over ions,
+  0.5 = electrons between ions), <code>&amp;bs=0.25</code>, <code>&amp;reset</code> clears.
+  </div>
+  <div id="mon" style="margin-top:8px;color:#9f9">relaxing&hellip;</div>
+  <div id="tab" style="margin-top:8px;color:#9c9;font-size:11px"></div>
+</div>
+<script>
+(function() {
+  var q = new URLSearchParams(location.search);
+  var nH  = parseInt(q.get('n') || '6');
+  var a   = parseFloat(q.get('a') || '2.2');
+  var dr  = parseFloat(q.get('dr') || '1.2');
+  var PHI = parseFloat(q.get('phi') || '0');     // relative rotation, in site spacings
+  var BS  = parseFloat(q.get('bs') || '0.25');
+
+  var gridN = 150, scr = 26, N2 = 75;
+  var h = scr / gridN;
+  var R1 = a / (2 * Math.sin(Math.PI / nH));     // ion ring radius from the arc spacing
+  var R2 = R1 + dr;                              // electron ring, outside it
+
+  var atoms = [], Z = [], Znuc = [];
+  function add(x, y, zc, zn) {
+    atoms.push({ i: Math.round(N2 + x / h), j: Math.round(N2 + y / h), k: N2, Z: zc, el: 'H' });
+    Z.push(zc); Znuc.push(zn);
+  }
+
+  // the ions: bare kernels, no electron of their own -- the sea carries all the charge.
+  // Z = 0 with Z_nuc = 1 is a bare proton in this solver.
+  for (var w = 0; w < nH; w++) {
+    var ang = 2 * Math.PI * w / nH;
+    add(R1 * Math.cos(ang), R1 * Math.sin(ang), 0, 1);
+  }
+  // the sea: n electron domains on the outer ring, rotated by PHI site spacings.
+  // Z_nuc = 1e-9 rather than 0, since (Z_nuc || Z) treats a falsy zero as the electron count.
+  for (var w = 0; w < nH; w++) {
+    var ang = 2 * Math.PI * (w + PHI) / nH;
+    add(R2 * Math.cos(ang), R2 * Math.sin(ang), 1, 1e-9);
+  }
+
+  window.USER_ATOMS = atoms;
+  window.USER_Z = Z;
+  window.USER_Z_NUC = Znuc;
+  window.USER_NN = gridN;
+  window.USER_SCREEN = scr;
+  window.USER_STEPS = 1000000;
+  window.USER_DYNAMICS = false;                  // ions fixed: the sea is what moves
+  window.USER_BOUNDARY_SPEED = BS;
+  window.USER_CURV_REG = 0.10;
+  window.INIT_ZEFF = 1;
+  window.CONVERGENCE_THRESHOLD = 0.0002;
+
+  var KEY = 'realqm_slide';
+  if (q.get('reset') !== null) localStorage.setItem(KEY, '{}');
+
+  window.onSweepDone = function (E) {
+    var st = JSON.parse(localStorage.getItem(KEY) || '{}');
+    var k = 'a' + a.toFixed(1) + '_phi' + PHI.toFixed(2);
+    if (!Array.isArray(st[k])) st[k] = [];
+    st[k].push(Number(E));
+    localStorage.setItem(KEY, JSON.stringify(st));
+    console.log('CONVERGED ' + k + ' E=' + Number(E).toFixed(5));
+  };
+
+  function table() {
+    var st = JSON.parse(localStorage.getItem(KEY) || '{}');
+    var byA = {};
+    Object.keys(st).forEach(function (k) {
+      var m = k.match(/a([\d.]+)_phi([\d.]+)/);
+      if (m) (byA[m[1]] = byA[m[1]] || {})[m[2]] = st[k];
+    });
+    var out = [];
+    Object.keys(byA).sort().forEach(function (A) {
+      out.push('<b>a = ' + A + ' a0</b>');
+      var lo = 1e9, hi = -1e9, maxSpread = 0;
+      Object.keys(byA[A]).sort(function (x, y) { return x - y; }).forEach(function (p) {
+        var v = byA[A][p], best = Math.min.apply(null, v);
+        var sp = Math.max.apply(null, v) - Math.min.apply(null, v);
+        maxSpread = Math.max(maxSpread, sp);
+        lo = Math.min(lo, best); hi = Math.max(hi, best);
+        out.push('&nbsp; phi = ' + p + ':  ' + best.toFixed(5)
+                 + (v.length > 1 ? '  (' + v.length + ' runs, spread ' + sp.toFixed(5) + ')' : ''));
+      });
+      if (hi > lo) {
+        var amp = hi - lo;
+        out.push('&nbsp; <b>pinning ' + amp.toFixed(5) + ' Ha = ' + (amp * 27214).toFixed(0)
+                 + ' meV = ' + (amp / 0.00095).toFixed(1) + ' k_BT</b>'
+                 + (amp > 2 * maxSpread && maxSpread > 0
+                    ? '  <span style="color:#fc8">resolved: the sea is pinned</span>'
+                    : '  <span style="color:#9f9">within scatter: sliding is free</span>'));
+      }
+      var z = byA[A]['0.00'], o = byA[A]['1.00'];
+      if (z && o) out.push('&nbsp; periodicity |E(0) &minus; E(1)| = '
+        + Math.abs(Math.min.apply(null,z) - Math.min.apply(null,o)).toFixed(5) + ' &mdash; must be ~0');
+    });
+    document.getElementById('tab').innerHTML = out.join('<br>');
+  }
+
+  setInterval(function () {
+    var el = document.getElementById('mon');
+    if (!el) return;
+    var txt = nH + ' ions on a ring of radius ' + R1.toFixed(2) + ' a0 (arc ' + a.toFixed(2)
+            + '),  ' + nH + ' electrons at radius ' + R2.toFixed(2) + '<br>'
+            + 'relative rotation phi = ' + PHI.toFixed(2) + ' site spacings ('
+            + (Math.abs(PHI % 1) < 0.01 ? 'electrons over ions'
+               : Math.abs((PHI % 1) - 0.5) < 0.01 ? 'electrons between ions' : 'intermediate') + ')<br>';
+    if (typeof window._prevE !== 'undefined')
+      txt += 'E = ' + Number(window._prevE).toFixed(5) + ' Ha'
+           + (window._convCount ? '  (settling)' : '  (running)') + '<br>';
+    el.innerHTML = txt;
+    table();
+  }, 500);
+
+  console.log('ring slide: n=' + nH + ' R1=' + R1.toFixed(2) + ' R2=' + R2.toFixed(2) + ' phi=' + PHI);
+})();
+
+var s = document.createElement('script');
+s.src = 'molecule.js?t=' + Date.now();
+s.onload = function() {
+  var p = document.createElement('script');
+  p.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+  document.body.appendChild(p);
+};
+document.body.appendChild(s);
+</script>
+</body></html>
