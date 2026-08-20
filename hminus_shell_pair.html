@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html><head>
+  <meta charset="utf-8">
+  <title>H⁻ as a nested 1+1 shell, plus H</title>
+  <style>body { margin: 0; background: #000; color: #fff; font-family: monospace; }</style>
+</head><body>
+<div id="info" style="position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.85);padding:10px;border:1px solid #333;border-radius:6px;max-width:540px;font-size:12px;z-index:100">
+  <div style="color:#8f8;font-weight:bold">H&minus; as a genuine nested 1+1 shell, with an H beside it</div>
+  Built the way the author specifies: a modified Li with <b>kernel charge +1</b> and one unit of
+  electron charge in <b>each of two nested shells</b> &mdash; inner r &lt; R, outer r &ge; R &mdash;
+  combined with an ordinary H atom at distance d.
+  <div style="margin-top:6px">
+  <b>Why this and not the previous attempt.</b> <code>molecule.js</code> has only <i>angular</i>
+  splits, so the earlier "localised" case was two <b>adjacent blobs</b>, not a nested shell: nothing
+  stopped the carrier migrating onto the nucleus, and it collapsed to &minus;1.43 in two runs of
+  three. A nested shell has the restoring force the author identified &mdash; squeeze the inner
+  domain and its density at the interface rises while the outer's falls, pushing the boundary back
+  out &mdash; so it should hold. The radial machinery lives in
+  <code>molecule_nucleus.js</code> (<code>USER_SHELL_RADIUS</code>), which is what this page uses.
+  </div>
+  <div style="margin-top:6px">
+  <b>How the two centres coexist.</b> The shell zones are radial about the box centre, where the
+  H&minus; sits, and in the outer zone each cell goes to the <i>closest</i> listed outer domain. So
+  the outer shell of H&minus; and the H atom's own electron are both listed outer, and the region
+  beyond R divides between them by proximity &mdash; a nested H&minus; at the centre and an ordinary
+  H to the side.
+  </div>
+  <div style="margin-top:6px">
+  <b>URL:</b> <code>?d=2.0</code> H&minus;-to-H distance, <code>&amp;R=1.2</code> shell radius,
+  <code>&amp;bs=0.25</code> boundary speed. Floor for two protons and three electrons at d=2:
+  about &minus;1.21&nbsp;Ha.
+  </div>
+  <div id="mon" style="margin-top:8px;color:#8f8">relaxing&hellip;</div>
+</div>
+<script>
+(function() {
+  var q = new URLSearchParams(location.search);
+  var d  = parseFloat(q.get('d') || '2.0');
+  var R  = parseFloat(q.get('R') || '1.2');
+  var BS = parseFloat(q.get('bs') || '0.25');
+
+  var gridN = 140, scr = 20, N2 = 70;
+  var h = scr / gridN;
+
+  // 0: H- kernel with its INNER electron, at the box centre (the shell origin)
+  // 1: the OUTER electron of H-, same kernel, no nucleus of its own
+  // 2: the H atom, off to the side
+  var atoms = [
+    { i: N2, j: N2, k: N2, Z: 1, el: 'H' },
+    { i: N2, j: N2, k: N2, Z: 1, el: 'H' },
+    { i: Math.round(N2 + d / h), j: N2, k: N2, Z: 1, el: 'H' }
+  ];
+
+  window.USER_ATOMS = atoms;
+  window.USER_Z     = [1, 1, 1];
+  window.USER_Z_NUC = [1, 0, 1];        // kernel +1 on the H-, none for its outer shell, +1 on the H
+
+  // the nested split: r < R about the box centre -> inner; beyond -> closest listed outer
+  window.USER_SHELL_RADIUS = R;
+  window.USER_SHELL_INNER  = [0];       // inner electron of H-
+  window.USER_SHELL_OUTER  = [1, 2];    // outer electron of H-, and the H atom's electron
+
+  window.USER_NN = gridN;
+  window.USER_SCREEN = scr;
+  window.USER_STEPS = 1000000;
+  window.USER_DYNAMICS = false;
+  window.USER_BOUNDARY_SPEED = BS;
+  window.USER_CURV_REG = 0.10;
+  window.INIT_ZEFF = 1;
+  window.CONVERGENCE_THRESHOLD = 0.0002;
+
+  var KEY = 'realqm_shellpair';
+  window.onSweepDone = function (E) {
+    var st = JSON.parse(localStorage.getItem(KEY) || '{}');
+    var k = 'd' + d.toFixed(1) + '_R' + R.toFixed(1);
+    if (!Array.isArray(st[k])) st[k] = [];
+    st[k].push(Number(E));
+    localStorage.setItem(KEY, JSON.stringify(st));
+    console.log('CONVERGED ' + k + ' E=' + Number(E).toFixed(5));
+  };
+
+  setInterval(function () {
+    var el = document.getElementById('mon');
+    if (!el) return;
+    var txt = 'H&minus; (nested 1+1, shell radius ' + R.toFixed(2) + ' a0) + H at d = '
+            + d.toFixed(2) + ' a0<br>3 unit domains, 2 protons, net charge &minus;1<br>';
+    if (typeof window._prevE !== 'undefined') {
+      var E = Number(window._prevE);
+      txt += 'E = ' + E.toFixed(5) + ' Ha'
+           + (E < -1.35 ? '  <span style="color:#f99">below floor: collapsed</span>'
+                        : '  <span style="color:#9f9">physical</span>') + '<br>';
+    }
+    var st = JSON.parse(localStorage.getItem(KEY) || '{}');
+    Object.keys(st).sort().forEach(function (k) {
+      var v = st[k];
+      txt += '&nbsp; ' + k + ': ' + v.map(function (x) { return x.toFixed(4); }).join(', ')
+           + (v.length > 1 ? '  (spread ' + (Math.max.apply(null,v)-Math.min.apply(null,v)).toFixed(4) + ')' : '')
+           + '<br>';
+    });
+    txt += '<span style="color:#9c9">If this holds where the adjacent-blob version collapsed, the '
+         + 'nested shell is what makes a localised carrier stable &mdash; and the comparison with the '
+         + 'delocalised state (&minus;1.223 to &minus;1.228) becomes meaningful.</span>';
+    el.innerHTML = txt;
+  }, 500);
+
+  console.log('H- nested shell + H: d=' + d + ' R=' + R + ' bs=' + BS);
+})();
+
+var s = document.createElement('script');
+s.src = 'molecule_nucleus.js?t=' + Date.now();
+s.onload = function() {
+  var p = document.createElement('script');
+  p.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+  document.body.appendChild(p);
+};
+document.body.appendChild(s);
+</script>
+</body></html>
