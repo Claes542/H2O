@@ -33,7 +33,9 @@
   transport.
   </div>
   <div style="margin-top:6px">
-  <b>URL:</b> <code>?d=2.0</code> H&minus;-to-H distance, <code>&amp;R=1.2</code> shell radius,
+  <b>URL:</b> <code>&amp;lock</code> freeze the inner/outer interface (the nucleus pages'
+  <code>USER_LOCKED_GROUPS</code> trick) &mdash; stable, but then the boundary cannot move at all.
+  <code>?d=2.0</code> H&minus;-to-H distance, <code>&amp;R=1.2</code> shell radius,
   <code>&amp;bs=0.25</code> boundary speed. Floor for two protons and three electrons at d=2:
   about &minus;1.21&nbsp;Ha.
   </div>
@@ -69,6 +71,15 @@
   window.USER_SHELL_RADIUS = R;
   window.USER_SHELL_INNER  = [0];       // inner electron of H-
   window.USER_SHELL_OUTER  = [1, 2];    // outer electron of H-, and the H atom's electron
+
+  // The shell machinery sets the INITIAL labels only; thereafter the free boundary
+  // evolves by density balance and is not constrained to keep the nesting. The shell is
+  // radially stable -- compressing the inner domain raises its density at the interface
+  // and pushes back -- but ANGULARLY unstable: the outer domain need only break through
+  // at one point to reach the nucleus, and nothing restores that. Hence the collapse.
+  // Locking the pair freezes their interface, which is what the nucleus pages do to
+  // "hold the subdivision". Stable, but the interface can no longer move.
+  if (q.get('lock') !== null) window.USER_LOCKED_GROUPS = [[0, 1]];
 
   window.USER_NN = gridN;
   window.USER_SCREEN = scr;
