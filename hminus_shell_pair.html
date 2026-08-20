@@ -25,6 +25,13 @@
   beyond R divides between them by proximity &mdash; a nested H&minus; at the centre and an ordinary
   H to the side.
   </div>
+  <div style="margin-top:6px;color:#9cf">
+  <b>What to watch for.</b> If the nested H&minus; <i>develops into</i> H<sub>2</sub> surrounded by
+  the electron &mdash; the inner and outer shells rearranging so the extra charge wraps both nuclei
+  &mdash; then the localised carrier is not merely comparable to the delocalised one, it relaxes
+  spontaneously into it. That is no barrier at all, and the strongest statement available for
+  transport.
+  </div>
   <div style="margin-top:6px">
   <b>URL:</b> <code>?d=2.0</code> H&minus;-to-H distance, <code>&amp;R=1.2</code> shell radius,
   <code>&amp;bs=0.25</code> boundary speed. Floor for two protons and three electrons at d=2:
@@ -53,7 +60,10 @@
 
   window.USER_ATOMS = atoms;
   window.USER_Z     = [1, 1, 1];
-  window.USER_Z_NUC = [1, 0, 1];        // kernel +1 on the H-, none for its outer shell, +1 on the H
+  // 1e-9, NOT 0: molecule_nucleus.js accumulates nuclear charge as `zNucVal || zEl`,
+  // and 0 is falsy in JavaScript, so a zero here falls back to the electron count and
+  // the site would carry +2 -- helium, not H-. A tiny truthy value gives no charge.
+  window.USER_Z_NUC = [1, 1e-9, 1];     // kernel +1 on the H-, none for its outer shell, +1 on the H
 
   // the nested split: r < R about the box centre -> inner; beyond -> closest listed outer
   window.USER_SHELL_RADIUS = R;
