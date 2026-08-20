@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html><head>
+  <meta charset="utf-8">
+  <title>Incommensurate rings — does the pinning collapse?</title>
+  <style>body { margin: 0; background: #000; color: #fff; font-family: monospace; }</style>
+</head><body>
+<div id="info" style="position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.85);padding:10px;border:1px solid #333;border-radius:6px;max-width:560px;font-size:12px;z-index:100">
+  <div style="color:#9f9;font-weight:bold">Breaking the registry: n<sub>e</sub> electrons over n<sub>i</sub> ions</div>
+  The same sliding experiment, but with <b>different numbers</b> on the two rings. At 6 electrons over
+  6 ions the sea was pinned at <b>0.01186 Ha = 323 meV</b>. A metal's sea is <i>incommensurate</i> with
+  its lattice, and that is part of why it slides. This asks whether the framework knows the difference.
+  <div style="margin-top:6px">
+  <b>Keeping it neutral.</b> n<sub>e</sub> electrons need +n<sub>e</sub> of ion charge, spread over
+  n<sub>i</sub> sites, so each ion carries <code>n<sub>e</sub>/n<sub>i</sub></code> &mdash; a fractional
+  kernel. That is the usual device for putting a lattice of one period against a charge distribution of
+  another without charging the system.
+  </div>
+  <div style="margin-top:6px">
+  <b>The expected effect, in standard terms.</b> Pinning of a charge-density wave falls off rapidly with
+  the <i>order</i> of the commensurability. 1:1 is order 1, the strongest case &mdash; which is what was
+  measured. 7:6 is order 6, and should be far weaker. If the framework reproduces that, it has the
+  physics that separates a pinned wave from a sliding one.
+  </div>
+  <div style="margin-top:6px;color:#9cf">
+  <b>Built-in check, and it is sharper here.</b> Rotating the electron ring by one <i>electron</i>
+  spacing returns the same configuration, and so does rotating by one <i>ion</i> spacing. Together
+  those force a period of <code>gcd(n<sub>i</sub>,n<sub>e</sub>)/n<sub>i</sub></code> electron spacings
+  &mdash; <b>1/6</b> for 7 over 6, not 1. So E must repeat six times faster than in the commensurate
+  run, which is a much more demanding test than before: the scan below is one full period.
+  </div>
+  <div style="margin-top:6px">
+  <b>The 2&times;2 this makes possible.</b> Two things change at once between 7 electrons and 6, so
+  they have to be separated. <code>neutral=1</code> gives fractional kernels n<sub>e</sub>/n<sub>i</sub>
+  and an uncharged system, so only the <i>registry</i> changes. <code>neutral=0</code> keeps the kernels
+  at +1 so the 7th electron is a genuine surplus, and the <i>filling</i> changes too. Comparing the two
+  isolates which of the two is doing the work &mdash; the question the corona-vs-sea contrast left open.
+  </div>
+  <div style="margin-top:6px">
+  <b>URL:</b> <code>?ni=6</code> ions, <code>&amp;ne=7</code> electrons, <code>&amp;neutral=1</code>, <code>&amp;a=2.2</code> ion arc
+  spacing, <code>&amp;dr=1.2</code> outer-ring offset, <code>&amp;phi=0</code> rotation in
+  <i>electron</i> spacings, <code>&amp;bs=0.25</code>, <code>&amp;reset</code> clears.
+  </div>
+  <div id="mon" style="margin-top:8px;color:#9f9">relaxing&hellip;</div>
+  <div id="tab" style="margin-top:8px;color:#9c9;font-size:11px"></div>
+</div>
+<script>
+(function() {
+  var q = new URLSearchParams(location.search);
+  var NI  = parseInt(q.get('ni') || '6');        // ion sites
+  var NE  = parseInt(q.get('ne') || '7');        // electron domains
+  var a   = parseFloat(q.get('a') || '2.2');
+  var dr  = parseFloat(q.get('dr') || '1.2');
+  var PHI = parseFloat(q.get('phi') || '0');     // rotation, in ELECTRON site spacings
+  var BS  = parseFloat(q.get('bs') || '0.25');
+  var NEUTRAL = q.get('neutral') !== '0';        // 0 = ions keep +1, so the surplus is real charge
+
+  function gcd(x, y) { return y ? gcd(y, x % y) : x; }
+  var PERIOD = gcd(NI, NE) / NI;                 // in electron spacings; see the check above
+
+  var gridN = 150, scr = 26, N2 = 75;
+  var h = scr / gridN;
+  var R1 = a / (2 * Math.sin(Math.PI / NI));     // ion ring radius from the arc spacing
+  var R2 = R1 + dr;                              // electron ring, outside it
+
+  var atoms = [], Z = [], Znuc = [];
+  function add(x, y, zc, zn) {
+    atoms.push({ i: Math.round(N2 + x / h), j: Math.round(N2 + y / h), k: N2, Z: zc, el: 'H' });
+    Z.push(zc); Znuc.push(zn);
+  }
+
+  // the ions: bare kernels carrying NE/NI each, so the ring's total charge is exactly +NE and the
+  // system is neutral however the two periods are chosen. Z = 0 (no electrons of their own).
+  var zIon = NEUTRAL ? NE / NI : 1;
+  for (var w = 0; w < NI; w++) {
+    var ang = 2 * Math.PI * w / NI;
+    add(R1 * Math.cos(ang), R1 * Math.sin(ang), 0, zIon);
+  }
+  // the sea: NE electron domains on the outer ring, rotated by PHI electron spacings.
+  // Z_nuc = 1e-9 rather than 0, since (Z_nuc || Z) treats a falsy zero as the electron count.
+  for (var w = 0; w < NE; w++) {
+    var ange = 2 * Math.PI * (w + PHI) / NE;
+    add(R2 * Math.cos(ange), R2 * Math.sin(ange), 1, 1e-9);
+  }
+
+  window.USER_ATOMS = atoms;
+  window.USER_Z = Z;
+  window.USER_Z_NUC = Znuc;
+  window.USER_NN = gridN;
+  window.USER_SCREEN = scr;
+  window.USER_STEPS = 1000000;
+  window.USER_DYNAMICS = false;                  // ions fixed: the sea is what moves
+  window.USER_BOUNDARY_SPEED = BS;
+  window.USER_CURV_REG = 0.10;
+  window.INIT_ZEFF = 1;
+  window.CONVERGENCE_THRESHOLD = 0.0002;
+
+  var KEY = 'realqm_incomm';
+  if (q.get('reset') !== null) localStorage.setItem(KEY, '{}');
+
+  window.onSweepDone = function (E) {
+    var st = JSON.parse(localStorage.getItem(KEY) || '{}');
+    var k = NI + 'x' + NE + (NEUTRAL ? 'n' : 'c') + '_a' + a.toFixed(1) + '_phi' + PHI.toFixed(4);
+    if (!Array.isArray(st[k])) st[k] = [];
+    st[k].push(Number(E));
+    localStorage.setItem(KEY, JSON.stringify(st));
+    console.log('CONVERGED ' + k + ' E=' + Number(E).toFixed(5));
+  };
+
+  function table() {
+    var st = JSON.parse(localStorage.getItem(KEY) || '{}');
+    var byCase = {};
+    Object.keys(st).forEach(function (k) {
+      var m = k.match(/^(\d+)x(\d+)([nc])_a([\d.]+)_phi([\d.]+)$/);
+      if (!m) return;
+      var lbl = m[1] + ' ions, ' + m[2] + ' electrons  (a=' + m[4] + ', '
+              + (m[3] === 'n' ? 'neutral, fractional kernels' : 'kernels +1, net charge '
+                 + (m[1] - m[2])) + ')';
+      (byCase[lbl] = byCase[lbl] || {})[m[5]] = st[k];
+    });
+    var out = [];
+    Object.keys(byCase).sort().forEach(function (C) {
+      out.push('<b>' + C + '</b>');
+      var lo = 1e9, hi = -1e9, maxSpread = 0;
+      Object.keys(byCase[C]).sort(function (x, y) { return x - y; }).forEach(function (p) {
+        var v = byCase[C][p], best = Math.min.apply(null, v);
+        var sp = Math.max.apply(null, v) - Math.min.apply(null, v);
+        maxSpread = Math.max(maxSpread, sp);
+        lo = Math.min(lo, best); hi = Math.max(hi, best);
+        out.push('&nbsp; phi = ' + Number(p).toFixed(4) + ':  ' + best.toFixed(5)
+                 + (v.length > 1 ? '  (' + v.length + ' runs, spread ' + sp.toFixed(5) + ')' : ''));
+      });
+      if (hi > lo) {
+        var amp = hi - lo;
+        out.push('&nbsp; <b>pinning ' + amp.toFixed(5) + ' Ha = ' + (amp * 27214).toFixed(0)
+                 + ' meV = ' + (amp / 0.00095).toFixed(1) + ' k_BT</b>');
+        out.push('&nbsp; <span style="color:#fc8">vs 0.01186 Ha at 6:6 &mdash; a factor '
+                 + (0.01186 / Math.max(amp, 1e-9)).toFixed(1) + ' weaker</span>');
+      }
+    });
+    document.getElementById('tab').innerHTML = out.join('<br>');
+  }
+
+  setInterval(function () {
+    var el = document.getElementById('mon');
+    if (!el) return;
+    var txt = NI + ' ions (kernel +' + zIon.toFixed(4) + ' each) on a ring of radius '
+            + R1.toFixed(2) + ' a0<br>'
+            + NE + ' electrons at radius ' + R2.toFixed(2) + ',  net charge '
+            + (NI * zIon - NE).toFixed(2) + '<br>'
+            + 'rotation phi = ' + PHI.toFixed(4) + ' electron spacings;  '
+            + '<span style="color:#9cf">period is ' + PERIOD.toFixed(4)
+            + ' &mdash; so phi = ' + PERIOD.toFixed(4) + ' must reproduce phi = 0</span><br>';
+    if (typeof window._prevE !== 'undefined')
+      txt += 'E = ' + Number(window._prevE).toFixed(5) + ' Ha'
+           + (window._convCount ? '  (settling)' : '  (running)') + '<br>';
+    el.innerHTML = txt;
+    table();
+  }, 500);
+
+  console.log('incommensurate: ni=' + NI + ' ne=' + NE + ' zIon=' + zIon
+              + ' R1=' + R1.toFixed(2) + ' R2=' + R2.toFixed(2)
+              + ' phi=' + PHI + ' period=' + PERIOD);
+})();
+
+var s = document.createElement('script');
+s.src = 'molecule.js?t=' + Date.now();
+s.onload = function() {
+  var p = document.createElement('script');
+  p.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+  document.body.appendChild(p);
+};
+document.body.appendChild(s);
+</script>
+</body></html>
