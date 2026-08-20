@@ -35,8 +35,11 @@ That cost is computed, and it vanishes. Partitioning a gas of density $n$ into c
 $n^{-1/3}$ gives a kinetic energy density $t(n)=C\,n^{5/3}$, the Thomas--Fermi \emph{form} obtained
 from the geometry of a partition rather than from Fermi statistics, and with $C=C_{\rm TF}$ it
 reproduces $k_{\rm TF}$ exactly at every density; but with the free interface used throughout,
-$\psi_i\equiv|\Omega_i|^{-1/2}$ is admissible and has $\grad\psi_i=0$, so $C=0$ exactly. The same
-fact carries opposite signs on the two sides of this paper. Against: no degeneracy pressure, infinite
+$\psi_i\equiv|\Omega_i|^{-1/2}$ is admissible and has $\grad\psi_i=0$, so $C=0$ exactly. The
+coefficient is however a boundary condition rather than a structural feature: a Robin interface at
+$\beta a=1.146$ gives $C=2.871=C_{\rm TF}$ exactly, Dirichlet gives $14.804$, and all three carry
+the correct $n^{5/3}$ scaling, so what is wrong is one pure number and not the construction. That
+number carries opposite signs on the two sides of this paper. Against: no degeneracy pressure, infinite
 screening length, dispersionless plasmon, no bandwidth, no metal--insulator mechanism. For: the
 boundary is the only object this framework moves, so a vanishing interface cost is a vanishing cost
 of transport.
@@ -131,6 +134,41 @@ C=0 \quad\text{exactly.}
 Neither allowing the interfaces to move nor requiring domains to be connected and singly charged
 alters this.
 
+\paragraph{The coefficient is a boundary condition, and its value is known.} What sets $C$ is the
+condition imposed where one domain meets the next. Solving the cell problem under a Robin condition
+$\partial_n\psi+\beta\psi=0$ at the face, and fitting $\beta$ to the electron gas, gives:
+
+\begin{center}
+\small
+\begin{tabular}{@{}lcc@{}}
+\toprule
+ & $C$ & $C/C_{\rm TF}$\\
+\midrule
+Neumann, $\beta a=0$ (the present choice) & $0$ & $0$\\
+Robin, $\beta a=1.146$ & $2.871$ & $\mathbf{1.00}$\\
+Dirichlet, $\beta a\to\infty$ & $14.804$ & $5.16$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent All three carry the same, correct, $n^{5/3}$ scaling; \emph{they differ by a pure number},
+and the framework has been using the one value of that number for which confinement is free. This is
+why the Thomas--Fermi comparison is made first and not last: it converts the finding from ``the
+construction has no degeneracy pressure'' into ``the construction has one interface parameter set to
+zero,'' and supplies the value it would need. The structure is not in question. One number is.
+
+\paragraph{Why Neumann is free, and why it went unnoticed.} A constant satisfies Neumann conditions
+on every face, so the ground state of $-\half\grad^2$ in a Neumann cell has energy \emph{exactly}
+zero at any cell size. Confinement costs nothing: halve the cell and the energy is unchanged. That is
+a failure of the uncertainty principle at precisely the place where electron meets electron --- and
+degeneracy pressure is nothing other than the energy cost of confining fermions. The substitute for
+exclusion reproduces its bookkeeping and none of its energy.
+
+It went unnoticed because every previous test of the framework had an attractor in it. Where a
+nucleus shapes the density, $\grad\psi\neq0$ for reasons having nothing to do with the interface, and
+$T$ comes out right; the faces are nearly irrelevant. Remove the attractor and the faces are all that
+is left.
+
 \paragraph{The same fact, with opposite signs.} Equation \eqref{eq:Czero} says that a free interface
 between two domains of equal density carries no confinement energy: the partition may be redrawn at
 any scale for nothing. Read as a statement about \emph{structure}, that is destructive. There is no
@@ -146,6 +184,16 @@ degeneracy is the same one that should let charge flow.
 
 This paper follows the second reading, which is why conduction comes before the equation of state
 below rather than after it.
+
+\paragraph{One dial, pulling both ways.} It should be said at once that $\beta$ cannot be tuned to
+satisfy both readings independently, because a single parameter governs them. Raising $\beta a$ from
+zero towards $1.146$ buys degeneracy pressure, a finite screening length and a dispersive plasmon ---
+and in the same movement makes the interface cost energy to move, which is resistance. The value
+that repairs the structure is the value that impedes the transport. Whether some intermediate setting
+serves both, or whether the two demands are simply in conflict, is not settled here, and it is the
+sharpest form of the question this paper leaves open. Whether the single value the electron gas
+requires is even tolerable for atoms and molecules is a second such question; the attempt is reported
+in the numerical note.
 
 \paragraph{What the partition supplies, and why it cannot be given up.} Since \eqref{eq:Czero}
 arises from the freedom of the interface, an obvious thought is to drop the partition and let the
