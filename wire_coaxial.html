@@ -6,10 +6,17 @@
 </head><body>
 <div id="info" style="position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.86);padding:10px;border:1px solid #333;border-radius:6px;max-width:575px;font-size:12px;z-index:100">
   <div style="color:#9f9;font-weight:bold">The wire: a kernel chain inside a cylinder of electrons</div>
-  A central chain of kernels, a <b>cylindrical shell of electrons</b> around it at standoff
-  <code>dr</code>, and optionally an insulating wall outside that. The electron cylinder is slid
-  <b>along the wire</b> and the energy recorded. <b>E(&delta;) is the pinning; its amplitude is the
-  resistance.</b>
+  A central chain of kernels, the electrons standing off it at radius <code>dr</code>, and
+  optionally an insulating wall outside. The sea is slid <b>along the wire</b> and the energy
+  recorded. <b>E(&delta;) is the pinning; its amplitude is the resistance.</b>
+  <div style="margin-top:6px">
+  <b>m = 1 is a plain H-chain</b> &mdash; one proton, one electron per site, the system used
+  throughout this study, with the electron displaced radially instead of sitting on its proton.
+  That is the case to run first: it is chemically real, it is the cheapest, and at
+  <code>dr</code> in the plane it reproduces <code>ring_slide.html</code> exactly, whose
+  periodicity check has already passed. <code>m &gt; 1</code> builds a genuine cylindrical shell,
+  at the cost of a bare +m kernel with no core &mdash; an elaboration, not the test.
+  </div>
   <div style="margin-top:6px">
   <b>Why it is bent into a loop.</b> A straight wire has ends, and sliding the sea off the end is an
   edge artefact rather than transport. Closed into a ring, sliding by one full site spacing returns
@@ -38,7 +45,7 @@
   </div>
   <div style="margin-top:6px">
   <b>URL:</b> <code>?n=6</code> chain sites, <code>&amp;a=2.2</code> spacing along the wire,
-  <code>&amp;m=3</code> electrons per site around the tube (kernel charge = m, so neutral),
+  <code>&amp;m=1</code> electrons per site (1 = a plain H-chain; kernel charge = m, so neutral),
   <code>&amp;dr=1.5</code> cylinder radius, <code>&amp;d=0</code> slide along the wire in site
   spacings, <code>&amp;nw=0</code> wall atoms per site (try 4), <code>&amp;rw=3.0</code> wall radius,
   <code>&amp;bs=0.25</code>, <code>&amp;reset</code> clears.
@@ -51,7 +58,7 @@
   var q = new URLSearchParams(location.search);
   var N   = parseInt(q.get('n') || '6');          // sites along the wire
   var a   = parseFloat(q.get('a') || '2.2');      // spacing along the wire
-  var M   = parseInt(q.get('m') || '3');          // electrons per site, around the tube
+  var M   = parseInt(q.get('m') || '1');          // electrons per site (1 = an H-chain)
   var DR  = parseFloat(q.get('dr') || '1.5');     // cylinder radius (the standoff)
   var D   = parseFloat(q.get('d') || '0');        // slide along the wire, in site spacings
   var NW  = parseInt(q.get('nw') || '0');         // insulating wall atoms per site
