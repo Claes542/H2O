@@ -105,7 +105,15 @@
   var RW  = parseFloat(q.get('rw') || '2.6');     // wall standoff from the chain
   var BS  = parseFloat(q.get('bs') || '0.25');
 
-  var gridN = 150, scr = BOX, N2 = 75;
+  // Grid SPACING is fixed, not the point count -- otherwise moving the wall silently
+  // refines the mesh. At gridN=150 the validated ring runs had h = 26/150 = 0.173; putting
+  // the wall at box=11 with the same point count gives h = 0.073, a 2.4x refinement, and with
+  // bare protons and no cusp regularisation a finer grid samples -1/r ever closer to the
+  // nucleus, deepening the well without limit until the density falls in. Energies below the
+  // physical floor follow. Keep h fixed and the wall may be moved freely.
+  var HGRID = parseFloat(q.get('h') || '0.173');
+  var gridN = Math.max(48, Math.min(200, 2 * Math.round(BOX / HGRID / 2)));
+  var scr = BOX, N2 = gridN / 2;
   var h = scr / gridN;
   var R1 = a / (2 * Math.sin(Math.PI / N));        // radius of the wire's own loop
 
@@ -247,7 +255,10 @@
     var el = document.getElementById('mon');
     if (!el) return;
     var nel = N * M, npos = N * M;
-    var txt = N + ' kernels (charge +' + M + ' each) on a loop of radius ' + R1.toFixed(2)
+    var floor = -0.6 * N;
+    var txt = 'grid h = ' + h.toFixed(3) + ' (' + gridN + '^3), floor about '
+            + floor.toFixed(1) + ' Ha for ' + N + ' H<br>'
+            + N + ' kernels (charge +' + M + ' each) on a loop of radius ' + R1.toFixed(2)
             + ' a0, spacing ' + a.toFixed(2) + '<br>'
             + nel + ' electrons in a cylinder of radius ' + DR.toFixed(2)
             + ' about the chain, net charge ' + (N * M - npos).toFixed(0)
@@ -257,6 +268,9 @@
             + '<br>slid <b>along the wire</b> by d = ' + D.toFixed(2) + ' site spacings<br>';
     if (typeof window._prevE !== 'undefined')
       txt += 'E = ' + Number(window._prevE).toFixed(5) + ' Ha'
+           + (Number(window._prevE) < floor
+              ? '  <span style="color:#f77">BELOW FLOOR &mdash; collapsed, not a valid energy</span>'
+              : '  <span style="color:#9f9">physical</span>')
            + (window._convCount ? '  (settling)' : '  (running)') + '<br>';
     el.innerHTML = txt;
     table();
