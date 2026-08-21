@@ -35,7 +35,9 @@
   <b>Why the wall is not an artifice.</b> It is the work function. Every RealQM run so far has been a
   cluster in vacuum with nothing holding the electrons in, and they duly spread &mdash; the corona
   result. A real wire has a surface barrier; without one the sea evaporates. The wall here is a ring
-  of <i>neutral</i> H atoms, so it confines by Coulomb alone and adds no net charge.
+  of <i>neutral</i> H atoms, so it confines by Coulomb alone and adds no net charge. It sits at
+  <code>rw</code> from the chain, outside the electrons at <code>dr</code>, and is drawn as the
+  outer ring. Run <code>&amp;nw=0</code> for the bare comparison.
   </div>
   <div style="margin-top:6px">
   <b>What decides where the cylinder sits.</b> The chain pulls it in, the wall pushes it in, and what
@@ -61,8 +63,8 @@
   var M   = parseInt(q.get('m') || '1');          // electrons per site (1 = an H-chain)
   var DR  = parseFloat(q.get('dr') || '1.5');     // cylinder radius (the standoff)
   var D   = parseFloat(q.get('d') || '0');        // slide along the wire, in site spacings
-  var NW  = parseInt(q.get('nw') || '0');         // insulating wall atoms per site
-  var RW  = parseFloat(q.get('rw') || '3.0');     // wall radius
+  var NW  = parseInt(q.get('nw') || '12');        // insulating wall: neutral H atoms
+  var RW  = parseFloat(q.get('rw') || '2.6');     // wall standoff from the chain
   var BS  = parseFloat(q.get('bs') || '0.25');
 
   var gridN = 150, scr = 30, N2 = 75;
@@ -93,13 +95,17 @@
       add(rad * Math.cos(th2), rad * Math.sin(th2), DR * Math.sin(psi), 1, 1e-9);
     }
   }
-  // the insulating wall: NEUTRAL H atoms, so it confines by Coulomb and adds no net charge
-  for (var w3 = 0; NW > 0 && w3 < N; w3++) {
-    var th3 = 2 * Math.PI * w3 / N;
+  // The insulating sheath: NEUTRAL H atoms, so it confines by Coulomb and adds no net charge.
+  // For an H-chain (m=1) the electrons lie in the plane, so the confinement that matters is
+  // radial and outward, and the sheath is a coplanar ring OUTSIDE them at R1 + RW. A torus
+  // shell would be wrong here in any case: the chain's own loop has radius R1 = 
+  // a/(2 sin(pi/n)), only 2.2 a0 at n=6, a=2.2, so a tube of radius 3 passes through its own
+  // axis. RW is therefore measured from the chain and must exceed dr.
+  if (NW > 0) {
+    var Rwall = R1 + RW;
     for (var c = 0; c < NW; c++) {
-      var chi = 2 * Math.PI * (c + 0.5) / NW;
-      var radw = R1 + RW * Math.cos(chi);
-      add(radw * Math.cos(th3), radw * Math.sin(th3), RW * Math.sin(chi), 1, 1);
+      var chi = 2 * Math.PI * c / NW;
+      add(Rwall * Math.cos(chi), Rwall * Math.sin(chi), 0, 1, 1);
     }
   }
 
@@ -180,7 +186,8 @@
             + ' a0, spacing ' + a.toFixed(2) + '<br>'
             + nel + ' electrons in a cylinder of radius ' + DR.toFixed(2)
             + ' about the chain, net charge ' + (N * M - npos).toFixed(0)
-            + (NW > 0 ? ',  wall ' + (N * NW) + ' neutral H at ' + RW.toFixed(2) : ', no wall')
+            + (NW > 0 ? ',  <span style="color:#fc8">sheath ' + NW + ' neutral H at r = '
+                        + (R1 + RW).toFixed(2) + '</span>' : ', <b>no sheath</b>')
             + '<br>slid <b>along the wire</b> by d = ' + D.toFixed(2) + ' site spacings<br>';
     if (typeof window._prevE !== 'undefined')
       txt += 'E = ' + Number(window._prevE).toFixed(5) + ' Ha'
