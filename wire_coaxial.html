@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html><head>
+  <meta charset="utf-8">
+  <title>A conducting wire: kernel chain, electron cylinder, insulating wall</title>
+  <style>body { margin: 0; background: #000; color: #fff; font-family: monospace; }</style>
+</head><body>
+<div id="info" style="position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.86);padding:10px;border:1px solid #333;border-radius:6px;max-width:575px;font-size:12px;z-index:100">
+  <div style="color:#9f9;font-weight:bold">The wire: a kernel chain inside a cylinder of electrons</div>
+  A central chain of kernels, a <b>cylindrical shell of electrons</b> around it at standoff
+  <code>dr</code>, and optionally an insulating wall outside that. The electron cylinder is slid
+  <b>along the wire</b> and the energy recorded. <b>E(&delta;) is the pinning; its amplitude is the
+  resistance.</b>
+  <div style="margin-top:6px">
+  <b>Why it is bent into a loop.</b> A straight wire has ends, and sliding the sea off the end is an
+  edge artefact rather than transport. Closed into a ring, sliding by one full site spacing returns
+  an identical configuration, so <b>E(&delta;=1) must equal E(&delta;=0) exactly</b> &mdash; a check
+  the calculation cannot fake. A wire in a circuit is a loop in any case.
+  </div>
+  <div style="margin-top:6px;color:#9cf">
+  <b>The prediction being tested.</b> A periodic chain of spacing <i>a</i> has its lowest Fourier
+  component at G = 2&pi;/a, and that component decays as e<sup>&minus;G&middot;dr</sup> away from the
+  chain. So the pinning should fall <b>exponentially with the standoff</b>, by a factor
+  e<sup>2&pi;/a</sup> &asymp; 17 per a<sub>0</sub> at a = 2.2. An electron cylinder standing off the
+  chain sees a <i>smooth tube</i> even though the chain is a lattice &mdash; which is why a nanotube
+  conducts ballistically. The page prints measured against predicted.
+  </div>
+  <div style="margin-top:6px">
+  <b>Why the wall is not an artifice.</b> It is the work function. Every RealQM run so far has been a
+  cluster in vacuum with nothing holding the electrons in, and they duly spread &mdash; the corona
+  result. A real wire has a surface barrier; without one the sea evaporates. The wall here is a ring
+  of <i>neutral</i> H atoms, so it confines by Coulomb alone and adds no net charge.
+  </div>
+  <div style="margin-top:6px">
+  <b>What decides where the cylinder sits.</b> The chain pulls it in, the wall pushes it in, and what
+  holds it out is degeneracy pressure &mdash; which at C=0 this framework does not have. So the
+  cylinder may collapse onto the chain, which is the maximum-pinning configuration. If it does, the
+  pinning is a <i>consequence</i> of the missing Fermi pressure rather than a separate defect.
+  </div>
+  <div style="margin-top:6px">
+  <b>URL:</b> <code>?n=6</code> chain sites, <code>&amp;a=2.2</code> spacing along the wire,
+  <code>&amp;m=3</code> electrons per site around the tube (kernel charge = m, so neutral),
+  <code>&amp;dr=1.5</code> cylinder radius, <code>&amp;d=0</code> slide along the wire in site
+  spacings, <code>&amp;nw=0</code> wall atoms per site (try 4), <code>&amp;rw=3.0</code> wall radius,
+  <code>&amp;bs=0.25</code>, <code>&amp;reset</code> clears.
+  </div>
+  <div id="mon" style="margin-top:8px;color:#9f9">relaxing&hellip;</div>
+  <div id="tab" style="margin-top:8px;color:#9c9;font-size:11px"></div>
+</div>
+<script>
+(function() {
+  var q = new URLSearchParams(location.search);
+  var N   = parseInt(q.get('n') || '6');          // sites along the wire
+  var a   = parseFloat(q.get('a') || '2.2');      // spacing along the wire
+  var M   = parseInt(q.get('m') || '3');          // electrons per site, around the tube
+  var DR  = parseFloat(q.get('dr') || '1.5');     // cylinder radius (the standoff)
+  var D   = parseFloat(q.get('d') || '0');        // slide along the wire, in site spacings
+  var NW  = parseInt(q.get('nw') || '0');         // insulating wall atoms per site
+  var RW  = parseFloat(q.get('rw') || '3.0');     // wall radius
+  var BS  = parseFloat(q.get('bs') || '0.25');
+
+  var gridN = 150, scr = 30, N2 = 75;
+  var h = scr / gridN;
+  var R1 = a / (2 * Math.sin(Math.PI / N));        // radius of the wire's own loop
+
+  var atoms = [], Z = [], Znuc = [];
+  function add(x, y, z, zc, zn) {
+    atoms.push({ i: Math.round(N2 + x / h), j: Math.round(N2 + y / h),
+                 k: Math.round(N2 + z / h), Z: zc, el: 'H' });
+    Z.push(zc); Znuc.push(zn);
+  }
+
+  // the chain: bare kernels of charge M, so the cylinder of M electrons per site is neutral
+  for (var w = 0; w < N; w++) {
+    var th = 2 * Math.PI * w / N;
+    add(R1 * Math.cos(th), R1 * Math.sin(th), 0, 0, M);
+  }
+  // the electron cylinder. At each site the tube cross-section is spanned by the radial
+  // direction and z; the electrons sit on a circle of radius DR in that plane. Sliding by D
+  // rotates them about the wire's loop, which is motion ALONG the wire.
+  // Z_nuc = 1e-9 rather than 0, since (Z_nuc || Z) treats a falsy zero as the electron count.
+  for (var w2 = 0; w2 < N; w2++) {
+    var th2 = 2 * Math.PI * (w2 + D) / N;
+    for (var p = 0; p < M; p++) {
+      var psi = 2 * Math.PI * p / M;
+      var rad = R1 + DR * Math.cos(psi);
+      add(rad * Math.cos(th2), rad * Math.sin(th2), DR * Math.sin(psi), 1, 1e-9);
+    }
+  }
+  // the insulating wall: NEUTRAL H atoms, so it confines by Coulomb and adds no net charge
+  for (var w3 = 0; NW > 0 && w3 < N; w3++) {
+    var th3 = 2 * Math.PI * w3 / N;
+    for (var c = 0; c < NW; c++) {
+      var chi = 2 * Math.PI * (c + 0.5) / NW;
+      var radw = R1 + RW * Math.cos(chi);
+      add(radw * Math.cos(th3), radw * Math.sin(th3), RW * Math.sin(chi), 1, 1);
+    }
+  }
+
+  window.USER_ATOMS = atoms;
+  window.USER_Z = Z;
+  window.USER_Z_NUC = Znuc;
+  window.USER_NN = gridN;
+  window.USER_SCREEN = scr;
+  window.USER_STEPS = 1000000;
+  window.USER_DYNAMICS = false;                   // kernels fixed: the sea is what moves
+  window.USER_BOUNDARY_SPEED = BS;
+  window.USER_CURV_REG = 0.10;
+  window.INIT_ZEFF = 1;
+  window.CONVERGENCE_THRESHOLD = 0.0002;
+
+  var KEY = 'realqm_wire';
+  if (q.get('reset') !== null) localStorage.setItem(KEY, '{}');
+
+  window.onSweepDone = function (E) {
+    var st = JSON.parse(localStorage.getItem(KEY) || '{}');
+    var k = 'n' + N + '_m' + M + '_a' + a.toFixed(1) + '_w' + NW + '_dr' + DR.toFixed(2)
+          + '_d' + D.toFixed(2);
+    if (!Array.isArray(st[k])) st[k] = [];
+    st[k].push(Number(E));
+    localStorage.setItem(KEY, JSON.stringify(st));
+    console.log('CONVERGED ' + k + ' E=' + Number(E).toFixed(5));
+  };
+
+  function table() {
+    var st = JSON.parse(localStorage.getItem(KEY) || '{}');
+    var byCase = {};
+    Object.keys(st).forEach(function (k) {
+      var mm = k.match(/^n(\d+)_m(\d+)_a([\d.]+)_w(\d+)_dr([\d.]+)_d([\d.]+)$/);
+      if (!mm) return;
+      var lbl = mm[1] + ' sites x ' + mm[2] + ' e/site, a=' + mm[3]
+              + (mm[4] === '0' ? ', no wall' : ', wall ' + mm[4]);
+      (byCase[lbl] = byCase[lbl] || {});
+      (byCase[lbl][mm[5]] = byCase[lbl][mm[5]] || {})[mm[6]] = st[k];
+    });
+    var out = [];
+    Object.keys(byCase).sort().forEach(function (C) {
+      out.push('<b>' + C + '</b>');
+      var G = 2 * Math.PI / a, ref = null;
+      Object.keys(byCase[C]).sort(function (x, y) { return x - y; }).forEach(function (dr) {
+        var byD = byCase[C][dr];
+        var vals = Object.keys(byD).sort(function (x, y) { return x - y; });
+        var lo = 1e9, hi = -1e9, line = [];
+        vals.forEach(function (d) {
+          var v = byD[d], best = Math.min.apply(null, v);
+          lo = Math.min(lo, best); hi = Math.max(hi, best);
+          line.push('d=' + d + ': ' + best.toFixed(5));
+        });
+        out.push('&nbsp; <b>dr = ' + dr + '</b> &nbsp; ' + line.join(' &nbsp; '));
+        if (hi > lo) {
+          var amp = hi - lo, meV = amp * 27214;
+          if (ref === null) ref = { dr: parseFloat(dr), meV: meV };
+          var pred = ref.meV * Math.exp(-G * (parseFloat(dr) - ref.dr));
+          out.push('&nbsp;&nbsp; pinning <b>' + amp.toFixed(5) + ' Ha = ' + meV.toFixed(0)
+                   + ' meV</b>' + (parseFloat(dr) === ref.dr ? '  <span style="color:#888">'
+                   + '(reference for the exponential)</span>'
+                   : '  &mdash; predicted ' + pred.toFixed(0) + ' meV, ratio '
+                     + (meV / Math.max(pred, 1e-9)).toFixed(2)));
+        }
+        var z = byD['0.00'], o = byD['1.00'];
+        if (z && o) out.push('&nbsp;&nbsp; <span style="color:#9cf">periodicity |E(0)&minus;E(1)| = '
+          + Math.abs(Math.min.apply(null, z) - Math.min.apply(null, o)).toFixed(5)
+          + ' &mdash; must be 0</span>');
+      });
+    });
+    document.getElementById('tab').innerHTML = out.join('<br>');
+  }
+
+  setInterval(function () {
+    var el = document.getElementById('mon');
+    if (!el) return;
+    var nel = N * M, npos = N * M;
+    var txt = N + ' kernels (charge +' + M + ' each) on a loop of radius ' + R1.toFixed(2)
+            + ' a0, spacing ' + a.toFixed(2) + '<br>'
+            + nel + ' electrons in a cylinder of radius ' + DR.toFixed(2)
+            + ' about the chain, net charge ' + (N * M - npos).toFixed(0)
+            + (NW > 0 ? ',  wall ' + (N * NW) + ' neutral H at ' + RW.toFixed(2) : ', no wall')
+            + '<br>slid <b>along the wire</b> by d = ' + D.toFixed(2) + ' site spacings<br>';
+    if (typeof window._prevE !== 'undefined')
+      txt += 'E = ' + Number(window._prevE).toFixed(5) + ' Ha'
+           + (window._convCount ? '  (settling)' : '  (running)') + '<br>';
+    el.innerHTML = txt;
+    table();
+  }, 500);
+
+  console.log('wire: n=' + N + ' m=' + M + ' a=' + a + ' R1=' + R1.toFixed(2)
+              + ' dr=' + DR + ' d=' + D + ' wall=' + NW + '  domains=' + atoms.length);
+})();
+
+var s = document.createElement('script');
+s.src = 'molecule.js?t=' + Date.now();
+s.onload = function() {
+  var p = document.createElement('script');
+  p.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+  document.body.appendChild(p);
+};
+document.body.appendChild(s);
+</script>
+</body></html>

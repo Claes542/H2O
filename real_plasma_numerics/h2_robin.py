@@ -1,250 +1,242 @@
 #!/usr/bin/env python3
 """
 Does H2 still bind when the electron-electron interface carries the surface tension
-the electron gas requires?
+the degenerate electron gas requires?
 
 RealQM gives each electron its own domain. In H2 the two domains meet at the MIDPLANE
 between the nuclei, fixed there by symmetry -- so the free-boundary machinery is not
-needed and the interface condition can be imposed exactly. That also makes H2 the right
-molecule for this test: in helium the two domains meet at a plane THROUGH the nucleus,
-where interface error and Coulomb-cusp error superimpose and cannot be separated.
+needed and the interface condition can be imposed exactly. That is also why H2 is the
+right molecule: in helium the domains meet at a plane THROUGH the nucleus, where
+interface error and Coulomb-cusp error superimpose and cannot be separated.
 
-The interface condition is Robin,
+VARIATIONAL FORMULATION.  Everything is built as a quadratic form and minimised, which
+is both the correct discretisation and a direct instantiation of the claim being tested.
+For one electron on its domain,
 
-    d(psi)/dn + beta*psi = 0        (outward normal of the z>0 domain points in -z,
-                                     so this reads  d(psi)/dz = beta*psi  at z=0)
+    E[u] = 1/2 Int |grad u|^2 dV  +  Int V u^2 dV  +  beta/2 Surf u^2 dS,
+    subject to Int u^2 dV = 1,
 
-which is the natural boundary condition of a surface energy (beta/2) * Int psi^2 dS.
-beta is therefore a SURFACE TENSION of the electron-electron interface. beta=0 is
-Neumann, the framework's present choice and zero surface tension; beta->infinity is
-Dirichlet, a hard node between the atoms.
+whose stationarity condition is the generalised eigenproblem
 
-    beta = 0        H2 as RealQM currently computes it
-    beta > 0        density pushed off the midplane -- the bond region is drained
-    beta = 1.146/a  the value the degenerate electron gas requires, with a the cell size
+    ( 1/2 A  +  M_V  +  beta/2 S ) u  =  mu  M u
 
-Since "a" is not uniquely defined for a molecule, we scan beta and report where binding
-dies, then convert that to the cell size a_crit = 1.146/beta_crit at which the gas value
-would be reached. Comparing a_crit with molecular length scales is the result.
+with A the (symmetric) stiffness matrix, M the diagonal mass matrix of cell volumes,
+M_V = diag(V_j * vol_j), and S the diagonal surface matrix on the interface layer.
+NO GHOST POINTS ARE NEEDED: the Robin condition d(u)/dn + beta u = 0 is the natural
+boundary condition of the surface term, so writing the energy down is enough. beta is
+therefore literally a SURFACE TENSION of the electron-electron interface, and beta = 0,
+the framework's present choice, is zero surface tension.
 
-Geometry: cylindrical (r,z), axially symmetric. Electron 1 occupies z >= 0, electron 2 is
-its mirror image. Nuclei on the axis at z = +/- R/2. Self-consistent: each electron feels
-both nuclei plus the Hartree potential of the other electron, and NO self-interaction --
-which is RealQM's own structure, not an approximation.
+    beta = 0        H2 as RealQM currently computes it (Neumann, free interface)
+    beta = 1.146/a  the value the degenerate electron gas requires, a = cell size
+    beta -> inf     Dirichlet, a hard node between the atoms
 
-E(H2) = 2*[T + Int V_ne rho] + Int V_H[rho2] rho1 + 1/R   [+ surface energy if counted]
-E(H)  = same grid, full space, one nucleus, no interface -- so discretisation error
-        largely cancels in E_bind = 2 E(H) - E(H2).
+Since "a" is not uniquely defined for a molecule we scan beta, find where binding dies,
+and report the cell size a_crit = 1.146/beta_crit at which the gas value would be
+reached. Comparing a_crit with molecular length scales is the result.
+
+GRID.  Both axes are cell-centred, so every physical plane -- the interface at z=0 and
+the nuclear planes at z = +/- R/2 -- lies on a cell FACE. Hence the mirror z -> -z is
+exact with no shared layer; the surface term sits on a face, where it belongs; and every
+nucleus has the SAME position relative to the grid in the atom as in the molecule, so the
+cusp error is common to both and largely cancels in E_bind = 2 E(H) - E(H2). R must be an
+even multiple of the spacing.
+
+WHY THE EARLIER ATTEMPTS FAILED.  The first used a non-symmetric finite-difference
+cylindrical Laplacian -- the radial coefficients r_{j+1/2}/(r_j h^2) differ between
+neighbours -- while eigsh assumes symmetry, so the eigenvalues were unreliable and the
+self-consistency never converged (drho stalled near 7e-2, and the binding trend
+zigzagged where it must fall monotonically). Building the energy as a quadratic form
+fixes this by construction: A is symmetric because it is assembled face by face.
+
+SECOND GATE.  V_ee must be near 1/d for centroid separation d. An earlier version dropped
+the monopole term from the Hartree boundary condition, giving V_ee = 0.333 where ~0.55 was
+due, and since hydrogen carries no Hartree term the error did not cancel: it lowered E(H2)
+alone and inflated E_bind to 9.4 eV. The term is now included.
+
+VALIDATION GATE.  E(H) must come out near -0.5 Ha on the same grid. Nothing else in the
+output means anything until it does, and the script says so.
 """
 import numpy as np
 import scipy.sparse as sp
 import scipy.sparse.linalg as spl
 import sys
 
-# ----------------------------------------------------------------- grid
-#
-# BOTH axes are half-integer (cell centres), so every physical plane -- the interface
-# at z=0 and the nuclear planes at z=+/-R/2 -- lies on a cell FACE. Three things follow,
-# and the first attempt at this calculation failed for want of all three:
-#   * the mirror z -> -z is exact, with no layer shared between the two domains;
-#   * the Robin condition is applied at a face, where a flux condition belongs;
-#   * every nucleus sits at the SAME offset relative to the grid, in the atom and in
-#     the molecule alike, so the cusp error is the same in both and cancels in
-#     E_bind = 2 E(H) - E(H2).
-# R must therefore be an even multiple of H.
-H     = 0.05          # spacing, a0
-RMAX  = 7.0           # radial extent
-ZMAX  = 8.0           # axial half-extent
-
-NR = int(round(RMAX / H))
-rr = (np.arange(NR) + 0.5) * H          # cell centres: r=0 is a face, never sampled
+H    = 0.05        # 1.40 / (2H) = 14, so the equilibrium bond lands on the grid
+RMAX = 8.0
+ZMAX = 8.0
+NR   = int(round(RMAX / H))
+rr   = (np.arange(NR) + 0.5) * H          # cell centres; r = 0 is a face, never sampled
 
 
 def zgrid(zlo, zhi):
-    """cell centres of [zlo, zhi]; the endpoints are faces."""
     n = int(round((zhi - zlo) / H))
     return zlo + (np.arange(n) + 0.5) * H
 
 
-def coulomb(rgrid, zg, z0):
-    """-1/|x - (0,0,z0)| on the (r,z) mesh, regularised at the cell scale."""
-    R2 = rgrid[None, :] ** 2 + (zg[:, None] - z0) ** 2
-    return -1.0 / np.sqrt(R2 + (0.35 * H) ** 2)
-
-
-def volume(zg):
-    """cell volumes 2*pi*r*dr*dz. All cells are full: the boundaries are faces."""
+def volumes(zg):
     return np.broadcast_to((2 * np.pi * rr * H * H)[None, :], (len(zg), NR)).copy()
 
 
-# ----------------------------------------------------------------- operators
-def laplacian(zg, beta=None):
+def stiffness(zg, dirichlet_z=False):
     """
-    Cylindrical Laplacian on (z, r).  Dirichlet at r = RMAX and at the far z faces.
-    If beta is not None, the z = zg[0] face carries the Robin condition
-    d(psi)/dz = beta*psi, implemented with the ghost point psi_{-1} = psi_1 - 2 h beta psi_0.
+    Symmetric A with  u^T A u = Int |grad u|^2 dV, axisymmetric cylindrical.
+
+    Radial face between j and j+1 carries weight 2 pi r_{j+1/2};
+    axial face between k and k+1 carries weight 2 pi r_j.
+    A face to the outside is included only where a Dirichlet wall is wanted (u_ghost = 0);
+    every omitted face is a natural zero-flux (Neumann) boundary -- which is exactly what
+    the interface at z = 0 must be before the surface term is added.
     """
     NZ = len(zg)
-    N = NZ * NR
     idx = lambda k, j: k * NR + j
     rows, cols, vals = [], [], []
+    diag = np.zeros(NZ * NR)
 
-    def add(i, j, v):
-        rows.append(i); cols.append(j); vals.append(v)
+    def face(i1, i2, w):
+        diag[i1] += w; diag[i2] += w
+        rows.append(i1); cols.append(i2); vals.append(-w)
+        rows.append(i2); cols.append(i1); vals.append(-w)
 
     for k in range(NZ):
         for j in range(NR):
             i = idx(k, j)
-            diag = 0.0
-            # ---- radial:  d2/dr2 + (1/r) d/dr, conservative form
-            rp, rm = rr[j] + 0.5 * H, rr[j] - 0.5 * H
             if j + 1 < NR:
-                add(i, idx(k, j + 1), rp / (rr[j] * H * H)); diag -= rp / (rr[j] * H * H)
+                face(i, idx(k, j + 1), 2 * np.pi * (rr[j] + 0.5 * H))
             else:
-                diag -= rp / (rr[j] * H * H)                     # psi = 0 outside
-            if j - 1 >= 0:
-                add(i, idx(k, j - 1), rm / (rr[j] * H * H)); diag -= rm / (rr[j] * H * H)
-            else:
-                diag -= 0.0                                       # r=0: no flux by symmetry
-            # ---- axial
+                diag[i] += 2 * np.pi * (rr[j] + 0.5 * H)       # u = 0 outside
             if k + 1 < NZ:
-                add(i, idx(k + 1, j), 1.0 / (H * H)); diag -= 1.0 / (H * H)
+                face(i, idx(k + 1, j), 2 * np.pi * rr[j])
             else:
-                diag -= 1.0 / (H * H)                             # psi = 0 far away
-            if k - 1 >= 0:
-                add(i, idx(k - 1, j), 1.0 / (H * H)); diag -= 1.0 / (H * H)
-            else:
-                if beta is None:
-                    diag -= 1.0 / (H * H)                         # psi = 0 (full-space atom case)
-                else:
-                    # Robin at the z=0 FACE.  d(psi)/dz = beta*psi there, so with the
-                    # face value (psi_0+psi_g)/2 and slope (psi_0-psi_g)/H,
-                    #     psi_g = gamma * psi_0,  gamma = (1 - beta H/2)/(1 + beta H/2).
-                    # gamma=1 is Neumann (zero flux); gamma=-1 is Dirichlet.
-                    gamma = (1.0 - 0.5 * beta * H) / (1.0 + 0.5 * beta * H)
-                    diag += gamma / (H * H)                        # the ghost folds into the diagonal
-                    diag -= 1.0 / (H * H)
-            add(i, i, diag)
-    return sp.csr_matrix((vals, (rows, cols)), shape=(N, N))
+                diag[i] += 2 * np.pi * rr[j]                    # u = 0 far away (+z)
+            if k == 0 and dirichlet_z:
+                diag[i] += 2 * np.pi * rr[j]                    # u = 0 far away (-z)
+    rows.extend(range(NZ * NR)); cols.extend(range(NZ * NR)); vals.extend(diag)
+    return sp.csr_matrix((vals, (rows, cols)), shape=(NZ * NR, NZ * NR))
 
 
-def poisson_solver(zg):
-    """Factorise -laplacian once; reuse for every Hartree solve."""
-    L = laplacian(zg, beta=None)
-    return spl.factorized((-L).tocsc()), L
+def surface_matrix(zg):
+    """diag carrying the face area 2 pi r dr on the k = 0 layer: the interface at z = 0."""
+    d = np.zeros((len(zg), NR))
+    d[0, :] = 2 * np.pi * rr * H
+    return sp.diags(d.reshape(-1))
 
 
-def hartree(solve, zg, rho, vol):
-    """
-    V_H with  lap V = -4 pi rho, Dirichlet V = Q/|x| on the closed faces.
-    The boundary contribution is folded into the right-hand side.
-    """
-    NZ = len(zg); N = NZ * NR
-    Q = float((rho * vol).sum())
-    b = 4 * np.pi * rho.reshape(N).copy()
-    # far-field monopole on the Dirichlet faces
-    bd = np.zeros((NZ, NR))
-    rad = lambda z, r: np.sqrt(r * r + z * z)
-    bd[:, NR - 1] += Q / rad(zg, rr[NR - 1] + H) / (H * H) * ((rr[NR - 1] + 0.5 * H) / rr[NR - 1])
-    bd[NZ - 1, :] += Q / rad(zg[NZ - 1] + H, rr) / (H * H)
-    bd[0, :] += Q / rad(zg[0] - H, rr) / (H * H)
-    b += bd.reshape(N)
-    return solve(b).reshape(NZ, NR)
+def vnuc(zg, positions):
+    """-1/|x - x_a| point-sampled at cell centres. No softening is applied: each nucleus
+    sits on a grid face/edge and never coincides with a sample point."""
+    V = np.zeros((len(zg), NR))
+    for z0 in positions:
+        V -= 1.0 / np.sqrt(rr[None, :] ** 2 + (zg[:, None] - z0) ** 2)
+    return V
 
 
-def ground_state(V, zg, beta):
-    """Lowest eigenpair of -1/2 lap + V, with the interface condition."""
-    L = laplacian(zg, beta=beta)
-    Hm = (-0.5 * L + sp.diags(V.reshape(-1))).tocsc()
-    w, v = spl.eigsh(Hm, k=1, sigma=-3.0, which='LM', maxiter=5000)
-    psi = np.abs(v[:, 0]).reshape(len(zg), NR)
-    return float(w[0]), psi
+def ground_state(A, M, Vcell, vol, S=None, beta=0.0, sigma=-4.0):
+    Hm = 0.5 * A + sp.diags((Vcell * vol).reshape(-1))
+    if S is not None and beta != 0.0:
+        Hm = Hm + 0.5 * beta * S
+    w, v = spl.eigsh(Hm.tocsc(), k=1, M=M.tocsc(), sigma=sigma, which='LM', maxiter=8000)
+    u = np.abs(v[:, 0])
+    u /= np.sqrt(float(u @ (M @ u)))
+    return float(w[0]), u
 
 
-# ----------------------------------------------------------------- systems
 def hydrogen():
-    """One electron, one nucleus, full space, no interface. Same grid -> errors cancel."""
     zg = zgrid(-ZMAX, ZMAX)
-    vol = volume(zg)
-    V = coulomb(rr, zg, 0.0)
-    solve, L = poisson_solver(zg)
-    _, psi = ground_state(V, zg, beta=None)
-    rho = psi ** 2
-    rho /= (rho * vol).sum()
-    p = np.sqrt(rho).reshape(-1)
-    T = 0.5 * float(-(p * (L @ p) * vol.reshape(-1)).sum())
-    Ene = float((V * rho * vol).sum())
-    return T + Ene
+    vol = volumes(zg); M = sp.diags(vol.reshape(-1))
+    A = stiffness(zg, dirichlet_z=True)
+    V = vnuc(zg, [0.0])
+    mu, u = ground_state(A, M, V, vol)
+    T = 0.5 * float(u @ (A @ u))
+    Ene = float((V * (u.reshape(len(zg), NR) ** 2) * vol).sum())
+    return T + Ene, mu
 
 
 def h2(R, beta, verbose=False):
-    """Electron 1 on z >= 0; electron 2 its mirror image. Robin at z = 0."""
     assert abs(round(R / (2 * H)) - R / (2 * H)) < 1e-9, "R must be an even multiple of H"
-    zg = zgrid(0.0, ZMAX)                    # the domain of electron 1
-    zfull = zgrid(-ZMAX, ZMAX)               # for the Hartree solve
-    vol = volume(zg); volf = volume(zfull)
-    nz1 = len(zg); k0 = len(zfull) // 2      # zfull[k0] is the first cell with z > 0
+    zg = zgrid(0.0, ZMAX)                     # electron 1 occupies z >= 0
+    zf = zgrid(-ZMAX, ZMAX)
+    nz, nzf = len(zg), len(zf)
+    k0 = nzf // 2                             # zf[k0] is the first cell with z > 0
+    vol = volumes(zg); volf = volumes(zf)
+    M = sp.diags(vol.reshape(-1)); Mf = sp.diags(volf.reshape(-1))
 
-    Vne = coulomb(rr, zg, +R / 2) + coulomb(rr, zg, -R / 2)
-    solvef, Lf = poisson_solver(zfull)
-    L1 = laplacian(zg, beta=beta)
+    A  = stiffness(zg, dirichlet_z=False)     # z = 0 left natural: that is the interface
+    Af = stiffness(zf, dirichlet_z=True).tocsc()
+    solve_poisson = spl.factorized(Af)
 
-    # start from an atomic guess on the right nucleus
-    rho = np.exp(-2 * np.sqrt(rr[None, :] ** 2 + (zg[:, None] - R / 2) ** 2))
-    rho /= (rho * vol).sum()
+    # Monopole boundary term for the Hartree solve.  The walls in Af impose V = 0, but the
+    # true potential of a unit charge is Q/|x| there -- about 1/8 Ha for this box. That error
+    # does NOT cancel in E_bind, because hydrogen has no Hartree term at all, so leaving it
+    # out lowers E(H2) alone and inflates the binding. Each Dirichlet face contributes its
+    # stiffness weight times the prescribed ghost value to the right-hand side.
+    bdry = np.zeros((nzf, NR))
+    bdry[:, NR - 1] += (2 * np.pi * (rr[NR - 1] + 0.5 * H)) / np.sqrt(
+        (rr[NR - 1] + H) ** 2 + zf ** 2)
+    bdry[nzf - 1, :] += (2 * np.pi * rr) / np.sqrt(rr ** 2 + (zf[nzf - 1] + H) ** 2)
+    bdry[0, :] += (2 * np.pi * rr) / np.sqrt(rr ** 2 + (zf[0] - H) ** 2)
+    bdry = bdry.reshape(-1)
+    S  = surface_matrix(zg)
+    Vne = vnuc(zg, [+R / 2, -R / 2])
 
-    E = None
-    for it in range(200):
-        # electron 2 = mirror of electron 1, laid on the full grid
-        # exact mirror: zfull[k0-1-k] = -zg[k], no shared layer
-        rho2 = np.zeros_like(volf)
-        rho2[k0 - 1::-1, :] = rho[:k0, :] if nz1 >= k0 else rho
-        rho2 /= (rho2 * volf).sum()
-        VH_full = hartree(solvef, zfull, rho2, volf)
-        VH = VH_full[k0:k0 + nz1, :]
+    u = np.exp(-np.sqrt(rr[None, :] ** 2 + (zg[:, None] - R / 2) ** 2)).reshape(-1)
+    u /= np.sqrt(float(u @ (M @ u)))
+    rho = (u ** 2).reshape(nz, NR)
+    VH = np.zeros((nz, NR)); d = 1.0; it = 0
 
-        mu, psi = ground_state(Vne + VH, zg, beta=beta)
-        rnew = psi ** 2
-        rnew /= (rnew * vol).sum()
-        d = float(np.abs(rnew - rho).sum() * H * H)
-        rho = 0.25 * rnew + 0.75 * rho
-        rho /= (rho * vol).sum()
-        if d < 1e-9:
+    for it in range(60):
+        rho2 = np.zeros((nzf, NR))
+        rho2[k0 - 1::-1, :] = rho[:k0, :]     # exact mirror, no shared layer
+        rho2 /= float((rho2 * volf).sum())
+        VH = solve_poisson(4 * np.pi * (Mf @ rho2.reshape(-1)) + bdry
+                           ).reshape(nzf, NR)[k0:k0 + nz, :]
+
+        mu, u = ground_state(A, M, Vne + VH, vol, S=S, beta=beta)
+        rnew = (u ** 2).reshape(nz, NR)
+        d = float(np.abs(rnew - rho).max() / max(rnew.max(), 1e-30))
+        rho = 0.3 * rnew + 0.7 * rho
+        rho /= float((rho * vol).sum())
+        if d < 1e-8:
             break
 
-    p = np.sqrt(rho).reshape(-1)
-    T = 0.5 * float(-(p * (L1 @ p) * vol.reshape(-1)).sum())
+    u = np.sqrt(rho).reshape(-1)
+    u /= np.sqrt(float(u @ (M @ u)))
+    rho = (u ** 2).reshape(nz, NR)
+    T = 0.5 * float(u @ (A @ u))
     Ene = float((Vne * rho * vol).sum())
     Eee = float((VH * rho * vol).sum())
-    # psi^2 at the z=0 FACE, from the cell value and its ghost
-    gam = (1.0 - 0.5 * beta * H) / (1.0 + 0.5 * beta * H)
-    psif = 0.5 * (1.0 + gam) * np.sqrt(rho[0, :])
-    Esurf = beta * float((psif ** 2 * (2 * np.pi * rr * H)).sum())   # 2 * (beta/2) * Int psi^2 dS
+    Esurf = beta * float(u @ (S @ u))          # 2 * (beta/2) * Int u^2 dS
     Etot = 2 * (T + Ene) + Eee + 1.0 / R
     if verbose:
-        print(f"      T={T:+.5f} Vne={Ene:+.5f} Vee={Eee:+.5f} Vnn={1/R:+.5f} "
-              f"Esurf={Esurf:+.5f} iters={it+1} drho={d:.2e}")
+        print(f"        T={T:+.5f} Vne={Ene:+.5f} Vee={Eee:+.5f} Vnn={1/R:+.5f} "
+              f"Esurf={Esurf:+.5f} mu={mu:+.4f} it={it+1} d={d:.1e}", flush=True)
     return Etot, Etot + Esurf
 
 
 if __name__ == '__main__':
-    print(__doc__.split('Geometry:')[0])
-    print(f"grid h={H}  RMAX={RMAX}  ZMAX={ZMAX}  ({NR} radial points)\n")
-
-    EH = hydrogen()
-    print(f"E(H) on this grid = {EH:+.5f} Ha   (exact -0.50000, error {EH+0.5:+.5f})\n")
-
     R = float(sys.argv[1]) if len(sys.argv) > 1 else 1.40
-    betas = [0.0, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.6, 0.8, 1.146, 1.5, 2.0]
+    verb = '-v' in sys.argv
+    print(f"grid h={H} RMAX={RMAX} ZMAX={ZMAX} "
+          f"({NR} radial x {int(2*ZMAX/H)} axial)", flush=True)
 
-    print(f"R = {R} a0        E_bind = 2 E(H) - E(H2),  positive = bound\n")
-    print(f"{'beta':>6} {'a=1.146/b':>10} {'E(H2)':>10} {'E_bind':>10} {'eV':>8} "
-          f"{'+surf':>10} {'eV':>8}")
-    print('-' * 68)
-    for b in betas:
-        E, Es = h2(R, b, verbose=('-v' in sys.argv))
-        bind = 2 * EH - E
-        binds = 2 * EH - Es
+    EH, muH = hydrogen()
+    err = EH + 0.5
+    print(f"\nVALIDATION  E(H) = {EH:+.6f} Ha   exact -0.500000   error {err:+.6f}"
+          f"   mu = {muH:+.5f}", flush=True)
+    if abs(err) > 0.02:
+        print("\n*** GATE FAILED: E(H) is not within 0.02 Ha of exact.", flush=True)
+        print("*** Nothing below can be trusted; the grid does not resolve the cusp.\n",
+              flush=True)
+    else:
+        print("*** gate passed\n", flush=True)
+
+    print(f"R = {R} a0     E_bind = 2 E(H) - E(H2);  positive = bound\n", flush=True)
+    print(f"{'beta':>6} {'a=1.146/b':>10} {'E(H2)':>11} {'E_bind':>10} {'eV':>8}"
+          f" {'+surf':>10} {'eV':>8}", flush=True)
+    print('-' * 70, flush=True)
+    for b in [0.0, 0.1, 0.2, 0.4, 0.8, 1.146, 2.0]:
+        E, Es = h2(R, b, verbose=verb)
+        bind, binds = 2 * EH - E, 2 * EH - Es
         acrit = ('%10.2f' % (1.146 / b)) if b > 0 else '       inf'
-        print(f"{b:6.2f} {acrit} {E:10.5f} {bind:10.5f} {bind*27.2114:8.3f} "
-              f"{binds:10.5f} {binds*27.2114:8.3f}")
+        print(f"{b:6.3f} {acrit} {E:11.5f} {bind:10.5f} {bind*27.2114:8.3f}"
+              f" {binds:10.5f} {binds*27.2114:8.3f}", flush=True)
