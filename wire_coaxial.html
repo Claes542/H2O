@@ -56,6 +56,21 @@
   cylinder may collapse onto the chain, which is the maximum-pinning configuration. If it does, the
   pinning is a <i>consequence</i> of the missing Fermi pressure rather than a separate defect.
   </div>
+  <div style="margin-top:6px;color:#fc8">
+  <b>Bare kernels are the worst case, and that matters for the 323 meV.</b> A bare +1 is the most
+  strongly corrugating potential a lattice can have. Real ion cores are <i>screened</i> by their
+  core electrons &mdash; the Ashcroft empty-core radius is 1.67 a<sub>0</sub> for sodium &mdash; so
+  the sea in a real wire never sees a point charge. Note too that the corona run, which came out
+  flat with no resistance, used <b>neutral</b> H, while the slide run that gave 323 meV used
+  <b>bare protons</b>: the same screening confound flagged earlier, arriving from a new direction.
+  <div style="margin-top:6px">
+  <code>&amp;rc=0.7</code> supplies a core. The kernel carries +m, one electron is bound close in
+  at radius rc, and the remaining m&minus;1 go to the sea &mdash; so the sea sees an effective
+  +(m&minus;1) softened by the core rather than a bare charge. With <code>m=2&amp;rc=0.7</code>
+  that is an alkali wire: screened core, one valence electron, neutral. Hydrogen has no core, so
+  <code>m=1&amp;rc=0</code> remains the honest metallic-hydrogen case.
+  </div>
+  </div>
   <div style="margin-top:6px">
   <b>URL:</b> <code>?n=6</code> chain sites, <code>&amp;a=2.2</code> spacing along the wire,
   <code>&amp;m=1</code> electrons per site (1 = a plain H-chain; kernel charge = m, so neutral),
@@ -76,6 +91,7 @@
   var D   = parseFloat(q.get('d') || '0');        // slide along the wire, in site spacings
   var NW  = parseInt(q.get('nw') || '0');         // optional ATOM sheath (usually not wanted)
   var BOX = parseFloat(q.get('box') || '11');     // box width: its face IS the Neumann wall
+  var RC  = parseFloat(q.get('rc') || '0');       // >0: bind one electron per site as a CORE
   var RW  = parseFloat(q.get('rw') || '2.6');     // wall standoff from the chain
   var BS  = parseFloat(q.get('bs') || '0.25');
 
@@ -90,19 +106,28 @@
     Z.push(zc); Znuc.push(zn);
   }
 
-  // the chain: bare kernels of charge M, so the cylinder of M electrons per site is neutral
+  // The chain. Kernel charge = M so the M electrons per site make it neutral.
+  // rc > 0 binds ONE of those electrons close in as a CORE, screening the kernel down to an
+  // effective +（M-1) for the sea. That is the alkali picture, and it matters: a BARE kernel is
+  // the most strongly corrugating potential a lattice can have, while a real ion core is soft
+  // (Ashcroft empty-core r_c = 1.67 a0 for sodium). Hydrogen itself has no core -- its one
+  // electron IS the valence electron -- so rc=0 with M=1 is the honest metallic-hydrogen wire.
   for (var w = 0; w < N; w++) {
     var th = 2 * Math.PI * w / N;
     add(R1 * Math.cos(th), R1 * Math.sin(th), 0, 0, M);
+    if (RC > 0) {                                  // the core electron, tight on its kernel
+      add((R1 + RC) * Math.cos(th), (R1 + RC) * Math.sin(th), 0, 1, 1e-9);
+    }
   }
   // the electron cylinder. At each site the tube cross-section is spanned by the radial
   // direction and z; the electrons sit on a circle of radius DR in that plane. Sliding by D
   // rotates them about the wire's loop, which is motion ALONG the wire.
   // Z_nuc = 1e-9 rather than 0, since (Z_nuc || Z) treats a falsy zero as the electron count.
+  var MSEA = RC > 0 ? M - 1 : M;                   // one electron per site is spent on the core
   for (var w2 = 0; w2 < N; w2++) {
     var th2 = 2 * Math.PI * (w2 + D) / N;
-    for (var p = 0; p < M; p++) {
-      var psi = 2 * Math.PI * p / M;
+    for (var p = 0; p < MSEA; p++) {
+      var psi = 2 * Math.PI * p / Math.max(MSEA, 1);
       var rad = R1 + DR * Math.cos(psi);
       add(rad * Math.cos(th2), rad * Math.sin(th2), DR * Math.sin(psi), 1, 1e-9);
     }
@@ -139,7 +164,7 @@
   window.onSweepDone = function (E) {
     var st = JSON.parse(localStorage.getItem(KEY) || '{}');
     var k = 'n' + N + '_m' + M + '_a' + a.toFixed(1) + '_w' + NW + '_dr' + DR.toFixed(2)
-          + '_b' + BOX.toFixed(0) + '_d' + D.toFixed(2);
+          + '_b' + BOX.toFixed(0) + '_rc' + RC.toFixed(2) + '_d' + D.toFixed(2);
     if (!Array.isArray(st[k])) st[k] = [];
     st[k].push(Number(E));
     localStorage.setItem(KEY, JSON.stringify(st));
@@ -150,13 +175,14 @@
     var st = JSON.parse(localStorage.getItem(KEY) || '{}');
     var byCase = {};
     Object.keys(st).forEach(function (k) {
-      var mm = k.match(/^n(\d+)_m(\d+)_a([\d.]+)_w(\d+)_dr([\d.]+)_b([\d.]+)_d([\d.]+)$/);
+      var mm = k.match(/^n(\d+)_m(\d+)_a([\d.]+)_w(\d+)_dr([\d.]+)_b([\d.]+)_rc([\d.]+)_d([\d.]+)$/);
       if (!mm) return;
       var lbl = mm[1] + ' sites x ' + mm[2] + ' e/site, a=' + mm[3]
-              + ', wall at ' + (parseFloat(mm[6]) / 2).toFixed(1)
+              + ', wall ' + (parseFloat(mm[6]) / 2).toFixed(1)
+              + (parseFloat(mm[7]) > 0 ? ', core rc=' + mm[7] : ', BARE kernels')
               + (mm[4] === '0' ? '' : ' + sheath ' + mm[4]);
       (byCase[lbl] = byCase[lbl] || {});
-      (byCase[lbl][mm[5]] = byCase[lbl][mm[5]] || {})[mm[7]] = st[k];
+      (byCase[lbl][mm[5]] = byCase[lbl][mm[5]] || {})[mm[8]] = st[k];
     });
     var out = [];
     Object.keys(byCase).sort().forEach(function (C) {
