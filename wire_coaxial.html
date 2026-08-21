@@ -71,6 +71,15 @@
   <code>m=1&amp;rc=0</code> remains the honest metallic-hydrogen case.
   </div>
   </div>
+  <div style="margin-top:6px;color:#9f9">
+  <b>The doping dial, which is the experiment.</b> Two runs are already on record and they are the
+  two extremes: a chain of <i>neutral</i> H with one electron in a corona came out <b>flat</b>, free
+  sliding with no resistance; bare protons carrying <i>the whole sea</i> came out <b>pinned at
+  323 meV</b>. They differ in filling AND in screening at once, so neither can say which does the
+  work. <code>ion</code> interpolates: ionised sites are bare protons that donate to the shell,
+  un-ionised sites are neutral H keeping their electron at <code>rc</code>. Neutral at every
+  setting, kernels stay at +1, and the carrier density runs from 1/n to 1.
+  </div>
   <div style="margin-top:6px">
   <b>URL:</b> <code>?n=6</code> chain sites, <code>&amp;a=2.2</code> spacing along the wire,
   <code>&amp;m=1</code> electrons per site (1 = a plain H-chain; kernel charge = m, so neutral),
@@ -91,7 +100,8 @@
   var D   = parseFloat(q.get('d') || '0');        // slide along the wire, in site spacings
   var NW  = parseInt(q.get('nw') || '0');         // optional ATOM sheath (usually not wanted)
   var BOX = parseFloat(q.get('box') || '11');     // box width: its face IS the Neumann wall
-  var RC  = parseFloat(q.get('rc') || '0');       // >0: bind one electron per site as a CORE
+  var RC  = parseFloat(q.get('rc') || '0.7');     // radius at which a site keeps its own electron
+  var ION = parseInt(q.get('ion') || '-1');       // how many sites are IONISED (donate to the sea)
   var RW  = parseFloat(q.get('rw') || '2.6');     // wall standoff from the chain
   var BS  = parseFloat(q.get('bs') || '0.25');
 
@@ -112,25 +122,41 @@
   // the most strongly corrugating potential a lattice can have, while a real ion core is soft
   // (Ashcroft empty-core r_c = 1.67 a0 for sodium). Hydrogen itself has no core -- its one
   // electron IS the valence electron -- so rc=0 with M=1 is the honest metallic-hydrogen wire.
+  // ION < 0 keeps the old behaviour (every site ionised, or every site cored if rc>0).
+  // ION >= 0 spreads that many IONISED sites evenly among the N: an ionised site is a bare
+  // proton and sends its electron to the shell, an un-ionised site keeps it at radius rc and
+  // is a neutral H atom. Neutral by construction at any doping, and the carrier density is
+  // ION/N -- which interpolates continuously between the two runs already on record:
+  //   ION = 1  ~  ring_corrugation: neutral H chain + one electron in a corona -> FLAT
+  //   ION = N  ~  ring_slide:       bare protons + the whole sea            -> 323 meV
+  var ionised = [];
+  for (var w = 0; w < N; w++) {
+    ionised.push(ION < 0 ? (RC <= 0) :
+                 (Math.floor(w * ION / N) < Math.floor((w + 1) * ION / N)));
+  }
+  var NSEA = 0;
   for (var w = 0; w < N; w++) {
     var th = 2 * Math.PI * w / N;
     add(R1 * Math.cos(th), R1 * Math.sin(th), 0, 0, M);
-    if (RC > 0) {                                  // the core electron, tight on its kernel
-      add((R1 + RC) * Math.cos(th), (R1 + RC) * Math.sin(th), 0, 1, 1e-9);
+    if (ionised[w]) { NSEA += M; }                 // bare proton: its electrons join the shell
+    else {                                          // neutral atom: electrons stay as a core
+      for (var cc = 0; cc < M; cc++) {
+        var ph = 2 * Math.PI * cc / M;
+        add((R1 + RC * Math.cos(ph)) * Math.cos(th),
+            (R1 + RC * Math.cos(ph)) * Math.sin(th), RC * Math.sin(ph), 1, 1e-9);
+      }
     }
   }
   // the electron cylinder. At each site the tube cross-section is spanned by the radial
   // direction and z; the electrons sit on a circle of radius DR in that plane. Sliding by D
   // rotates them about the wire's loop, which is motion ALONG the wire.
   // Z_nuc = 1e-9 rather than 0, since (Z_nuc || Z) treats a falsy zero as the electron count.
-  var MSEA = RC > 0 ? M - 1 : M;                   // one electron per site is spent on the core
-  for (var w2 = 0; w2 < N; w2++) {
-    var th2 = 2 * Math.PI * (w2 + D) / N;
-    for (var p = 0; p < MSEA; p++) {
-      var psi = 2 * Math.PI * p / Math.max(MSEA, 1);
-      var rad = R1 + DR * Math.cos(psi);
-      add(rad * Math.cos(th2), rad * Math.sin(th2), DR * Math.sin(psi), 1, 1e-9);
-    }
+  // The shell: NSEA electrons, spread evenly around the whole loop rather than sitting over
+  // their donor, because a sea belongs to the wire and not to any one ion. Sliding by D
+  // rotates the shell about the loop, which is motion ALONG the wire.
+  for (var p = 0; p < NSEA; p++) {
+    var th2 = 2 * Math.PI * (p + D * NSEA / N) / Math.max(NSEA, 1);
+    add((R1 + DR) * Math.cos(th2), (R1 + DR) * Math.sin(th2), 0, 1, 1e-9);
   }
   // The insulating sheath: NEUTRAL H atoms, so it confines by Coulomb and adds no net charge.
   // For an H-chain (m=1) the electrons lie in the plane, so the confinement that matters is
