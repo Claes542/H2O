@@ -12,7 +12,7 @@
 \newcommand{\half}{\tfrac12}
 
 
-\title{Conduction in RealQM: the Free Boundary as Charge Carrier}
+\title{Hopping Conduction in RealQM:\\ \large the Free Boundary as Charge Carrier}
 
 \author[1]{Claes Johnson}
 \affil[1]{KTH Royal Institute of Technology, SE-100 44 Stockholm, Sweden \\
@@ -27,7 +27,21 @@
 \begin{abstract}
 \noindent RealQM models matter as non-overlapping unit charge densities in ordinary three-dimensional
 space, one per electron, meeting at free boundaries and minimising the Coulomb energy. This article
-asks whether such a construction \textbf{conducts}, and finds the answer to turn on what is carried.
+asks whether such a construction \textbf{conducts}, and finds the answer to turn on two things: what
+is carried, and what kind of conductor is being asked for.
+
+The second is settled first, because the construction does not have a free choice. Localising one
+electron per domain makes it the Hubbard model at $U\to\infty$ --- a Mott insulator at every density,
+as the barrier scans below find by direct computation. Metals are therefore \emph{out of scope}, in
+kind and not by degree: their carriers are extended Bloch states and their defining measurements are
+properties of a degenerate electron gas. What is within scope is matter whose carrier is a localised
+charge on a site, whose gap is on-site repulsion rather than a band structure, and whose transport is
+activated hopping --- doped Mott insulators, organic and molecular semiconductors, polaronic oxides,
+amorphous semiconductors. Silicon and the III--Vs are excluded with the metals, their gaps being band
+gaps. Two results usually read as failures follow from the scope rather than against it: the
+prediction $d\sigma/dT>0$ is \emph{correct} for an activated conductor and fatal only for copper;
+and the absence of a Fermi surface, which no arrangement of densities on domains appears able to
+supply, does not bear on a dilute carrier gas, which is non-degenerate and has none to reproduce.
 
 Not an electron. An electron here is a unit of charge density on a domain; what exists is the
 \emph{partition} of space, and transport is the partition pattern travelling. What moves is the
@@ -110,6 +124,52 @@ matter, with an attractor always present. A plasma is the first case in which la
 charges of both signs are free to arrange themselves, and it is a fair question what the framework
 then gives.
 
+\section{What kind of conductor this can be}\label{sec:scope}
+
+It is worth settling the target before the measurements, because the framework does not have a free
+choice of one and the wrong choice makes its central results read as failures.
+
+The construction localises charge by design: one electron, one domain, non-overlapping. As
+\S\ref{sec:hubbard} sets out, that is the Hubbard model in the limit $U\to\infty$ --- double
+occupancy forbidden, every site singly occupied --- which is a Mott insulator at every density, and
+which the barrier scans found by direct computation before the identification was made. A metal is
+the opposite object. Its carriers are extended Bloch states spanning the crystal, its conduction is
+band motion, and its defining measurements --- de Haas--van Alphen oscillations, a linear electronic
+specific heat, positive plasmon dispersion --- are properties of a degenerate electron gas with a
+sharp Fermi surface. None of that is available here, and this article does not claim it.
+
+\paragraph{What is within reach.} Matter in which the carrier is a \emph{localised} charge on a site,
+the gap is on-site repulsion rather than a band structure, and transport is thermally activated
+hopping between sites:
+
+\begin{center}
+\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+doped \textbf{Mott insulators} & the gap is $U$; the framework is the $U\to\infty$ limit of their model\\
+\textbf{organic and molecular} semiconductors & hopping is the accepted description, not an approximation\\
+\textbf{polaronic oxides} & the carrier is a self-trapped charge, which is what a domain is\\
+\textbf{amorphous} semiconductors & variable-range hopping, no bands anywhere in the account\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{What is not.} Silicon, germanium and the III--Vs have \emph{band} gaps --- gaps opened by
+a periodic potential acting on delocalised states --- together with effective masses and band
+transport. A theory without bands cannot supply those, and questions of mobility against effective
+mass stay closed to it. The distinction is not a matter of degree: a Mott gap and a band gap have
+different origins, and only the first is available here.
+
+\paragraph{Two consequences, and they run opposite to how these results have been read.} First, the
+prediction $d\sigma/dT>0$ derived in \S\ref{sec:conduction} is \emph{correct} for this target rather
+than fatal to it. Conductivity rising with temperature is what an activated hopping conductor does;
+it is only fatal if the target is copper. Second, and more consequentially, the Fermi surface ceases
+to be an unresolved failure and becomes a scope limit. A Fermi surface is a property of a degenerate
+electron gas; a dilute carrier gas is non-degenerate, Boltzmann rather than Fermi statistics govern
+it, and there is no $E_F$ to reproduce. \emph{The framework's largest lacuna does not bear on the
+material class it can describe.} \S\ref{sec:fermi} states what that costs if one wants metals after
+all.
+
 \section{Conduction}\label{sec:conduction}
 
 Electric conduction is the interaction of the electrons with the ion lattice. It is the elementary
@@ -146,8 +206,9 @@ needs no Fermi surface and follows from the same thermal motion that supplies th
 
 This yields a prediction crude enough to be decisive, and it concerns only a sign. Metallic
 conductivity \emph{falls} with temperature; hopping conductivity \emph{rises}. If RealQM transports
-charge by hopping rather than band motion it should give $d\sigma/dT>0$ for every material, making
-copper behave like a semiconductor. Whether it does has not been computed for electrons, and the
+charge by hopping rather than band motion it should give $d\sigma/dT>0$. Within the scope set in
+\S\ref{sec:scope} that is the \emph{right} answer, activated transport being what a localised-carrier
+semiconductor does; it would be fatal only for a metal, which is why the target matters. Whether it does has not been computed for electrons, and the
 pessimistic reading should be held loosely: the same lattice that carried the metals in \S\ref{sec:metals} is
 present here too.
 
@@ -432,7 +493,7 @@ against delocalising.
 The cost of forming it is the on-site repulsion, of order $10$~eV for hydrogen-like sites --- the
 Hubbard $U$, here \emph{computed} from the geometry rather than fitted.
 
-\paragraph{What the framework then is.} Non-overlapping sites, occupation $0$, $1$ or $2$, an on-site
+\paragraph{What the framework then is.}\label{sec:hubbard} Non-overlapping sites, occupation $0$, $1$ or $2$, an on-site
 repulsion $U$, and transfer between neighbours: that is the \textbf{Hubbard model}. Which locates
 RealQM exactly. As formulated --- one unit of charge per domain, always --- it is the Hubbard model in
 the limit $U\to\infty$, where double occupancy is forbidden outright and every site is singly
@@ -454,8 +515,10 @@ that explains why charge comes in units is the postulate that forbids a metal.} 
 ways, quantizing the particles while leaving the amplitude on each site continuous, and a partition
 of real densities has no evident means to do the same.
 
-It is fair to ask whether all conduction might be hopping, band transport being a formalism rather
-than an observable. The idea is not idle: hopping is the correct description of amorphous and organic
+\paragraph{Where the boundary of the scope actually lies.} It is fair to ask whether all conduction
+might be hopping, band transport being a formalism rather than an observable --- which, if true,
+would remove the scope restriction of \S\ref{sec:scope} altogether. It is not true, and the argument
+that settles it is the same one that fixes the boundary. The idea is not idle: hopping is the correct description of amorphous and organic
 semiconductors, of doped semiconductors and polaronic oxides, and in ``bad metals'' at high
 temperature the mean free path falls to the lattice spacing and the band picture fails there too.
 What settles it is the \emph{low}-temperature behaviour of a pure metal. Hopping is thermally
@@ -467,9 +530,12 @@ insulator on cooling, and the measurement runs the other way by three orders of 
 Wiedemann--Franz ratio, fixed at $L_0=\pi^2k_B^2/3e^2$ by carriers that convey heat and charge alike,
 is a second such constraint.
 
-The regimes are also the wrong way round for the framework: hopping describes matter best at high
-temperature, and it is at low temperature, where band behaviour is cleanest, that RealQM would need
-it to hold.
+The regimes are also the wrong way round for a framework attempting metals: hopping describes matter
+best at high temperature, and it is at low temperature, where band behaviour is cleanest, that it
+would be needed to hold. \emph{That is the boundary, and it is a clean one.} Band transport in a
+pure metal is out of reach and is not claimed; activated transport by localised carriers is the
+regime the construction describes, and there the same features are the correct physics rather than a
+defect.
 
 \section{Metals: a Wigner--Seitz problem the framework already agrees with}\label{sec:metals}
 
@@ -722,7 +788,7 @@ streams, and do so reversibly, in agreement with plasma-echo experiments. Where 
 is thermal, collisionless damping should therefore emerge for the right reason rather than by an
 inserted term. This has not been computed.
 
-\section{What remains open: the Fermi surface}\label{sec:fermi}
+\section{Out of scope: the Fermi surface, and what that costs}\label{sec:fermi}
 
 The framework has no bands and no $E_F$, and there are measurements bearing on this directly. They
 are made on real two-component metals, not on any idealisation, so they cannot be set aside by
@@ -737,14 +803,21 @@ density of states at $E_F$;
 produces it, $\omega^2=\omega_p^2+\tfrac35k^2v_F^2$, is absent here.
 \end{itemize}
 
-No account of these is currently available in the framework, and constructing one is the substantial
-open problem --- the more so because it survives everything else in this paper. It is not disposed of
+No account of these is available in the framework, and none is attempted. Within the scope of
+\S\ref{sec:scope} that is not a debt: every measurement in the list is made on a \emph{degenerate}
+electron gas, and a dilute carrier gas has no Fermi surface to map, no $E_F$ to fix a density of
+states at, and no $v_F$ to disperse a plasmon with. A theory of localised carriers is not obliged to
+supply them.
+
+The price should nonetheless be stated plainly rather than defined away, since it is what the scope
+restriction buys. \emph{Metals are out of reach} --- not approximately, but in kind. It is not disposed of
 by the equation of state, since the lattice scale of a simple metal turns out to be electrostatic and
 to test no quantum treatment at all (\S\ref{sec:metals}). It is not disposed of by the conduction
 repair, since a shared valence territory conducts while still having no band structure and no $E_F$.
 And it is not an artefact of any idealisation, being measured on ordinary metals. A set of
 Fermi-surface phenomena simply has no representation in a theory built from densities on domains,
-however those domains are constrained.
+however those domains are constrained. Anyone wanting metals from this construction must supply
+extended states, and nothing in this article suggests how.
 
 \section*{A note on what was tested numerically}
 
