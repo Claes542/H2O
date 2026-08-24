@@ -182,8 +182,9 @@ rising to $9.0$~eV under compression --- ten to a hundred times too large, and w
 direction that should help. Those are rigid-lattice figures and therefore upper bounds, the polaron
 correction being unmeasured (\S\ref{sec:conduction}); but the gap to be closed is one to two orders
 of magnitude, and lattice relaxation is not usually worth more than a factor of a few. A material with a $9$~eV activation energy is not a semiconductor but an
-insulator with no accessible transport at any temperature. \emph{As formulated, the framework
-conducts nowhere}: not as a metal, and not as a semiconductor either. What follows is therefore the
+insulator with no accessible transport at any temperature. \emph{As formulated the framework does not conduct} --- though see
+\S\ref{sec:conduction}, where a carrier prevented from re-binding to its donor brings the barrier
+down by a factor of $5.5$, to within about three of the semiconductor range. What follows is therefore the
 statement of a class the construction belongs to, not a claim that it describes the materials in it;
 and the repair of \S\ref{sec:hubbard}, finite $U$ in place of infinite, ceases to be one option among
 several and becomes the only route to any conduction at all.
@@ -416,6 +417,44 @@ and a charged cluster in vacuum spreads for reasons unconnected with conduction.
 of the same experiment, reported here, does the opposite: the carrier localises, with a barrier of
 several electron-volts. The conclusion drawn from the corona, that the framework never localises
 charge at any separation, does not survive at neutrality and is withdrawn.
+
+\paragraph{A carrier that cannot re-bind, and a barrier five times smaller.} Every figure above
+shares an assumption that turns out to matter more than the geometry. At zero temperature an
+ionised donor beside a free carrier is not a ground state --- it is what temperature or a band
+buys --- so an energy minimisation will put the carrier back onto its donor if it can, and a
+calculation intended to measure transport instead measures binding. Several electron-volts is what
+climbing out of a donor well costs; sliding a screened carrier along a channel should not be.
+
+The remedy is core--valence separation imposed by construction, which is what a pseudopotential
+does: hold the carriers outside a cylinder about the chain axis, enforced at every step rather than
+merely seeded, and leave the chain's own electrons free to screen the bare protons as they would
+otherwise. On a straight chain of seven hydrogens with every second one ionised --- three carriers
+in an outer sheath, neutral overall --- sliding the sheath along the chain gives
+
+\begin{center}
+\small
+\begin{tabular}{@{}lrr@{}}
+\toprule
+ & carriers free & carriers held outside $r=1.0\,a_0$\\
+\midrule
+barrier & $4.9$~eV & $\mathbf{0.90}$~\textbf{eV}\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent a factor of $5.5$. The constrained figures are $-3.560$ at the sites, $-3.527$ midway,
+against a floor of $-4.11$~Ha for seven hydrogens, so they are physical; and the chain being
+symmetric about its centre atom, $E(-d)$ must equal $E(d)$, which it does to $0.002$~Ha against a
+barrier of $0.033$. \emph{Most of the large barrier was the carrier re-binding, not transport.}
+
+This is a modelling choice and the energies are those of the constrained system; it is stated as
+such. But it changes the size of what remains. At $0.90$~eV a carrier still makes only
+$6\times10^{-3}$ hops per second at room temperature, which is an insulator. At $0.30$~eV it makes
+$10^{8}$, which is a working semiconductor. The gap is therefore a factor of about three, not the
+one to two orders of magnitude reported above --- and the one correction still unmeasured, lattice
+relaxation into a polaron, acts in the right direction and is ordinarily worth a factor of two to
+five. \emph{The conclusion that the framework does not conduct is accordingly weaker than the
+earlier sections state}, and rests on whether that factor is available.
 
 \paragraph{Every barrier here is a rigid-lattice upper bound.} One qualification belongs with all
 of the above, and it is not small. The nuclei are held fixed throughout, so what is computed is the
