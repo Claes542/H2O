@@ -183,8 +183,9 @@ direction that should help. Those are rigid-lattice figures and therefore upper 
 correction being unmeasured (\S\ref{sec:conduction}); but the gap to be closed is one to two orders
 of magnitude, and lattice relaxation is not usually worth more than a factor of a few. A material with a $9$~eV activation energy is not a semiconductor but an
 insulator with no accessible transport at any temperature. \emph{As formulated the framework does not conduct} --- though see
-\S\ref{sec:conduction}, where a carrier prevented from re-binding to its donor gives
-$0.30$~eV per carrier --- inside the range a hopping semiconductor occupies. What follows is therefore the
+\S\ref{sec:conduction}, where a carrier prevented from re-binding to its donor lowers the
+barrier substantially, though the cost per carrier rises again as the doping is thinned towards
+realistic values. What follows is therefore the
 statement of a class the construction belongs to, not a claim that it describes the materials in it;
 and the repair of \S\ref{sec:hubbard}, finite $U$ in place of infinite, ceases to be one option among
 several and becomes the only route to any conduction at all.
@@ -448,17 +449,39 @@ total barrier & $0.180$~Ha & $0.033$~Ha\\
 $-4.11$~Ha for seven hydrogens, so they are physical; and the chain being symmetric about its centre
 atom, $E(-d)$ must equal $E(d)$, which it does to $0.002$~Ha against a total of $0.033$.
 
-The division by the carrier count is the quantity wanted and is clean here. Thermally activated
-transport proceeds by carriers hopping \emph{independently}, so the activation energy is the
-single-carrier barrier; and the three carriers are $4.4\,a_0$ apart in \emph{both} configurations,
-so their mutual repulsion does not change between them and the total is three times the individual
-cost. \emph{Most of the large barrier was the carrier re-binding to its donor, not transport.}
+\paragraph{The division by carrier count is not legitimate, and the dilute limit is the stiff one.}
+That reading assumed the carriers to be independent, which a change of doping falsifies. Removing one
+donor from the same chain --- three carriers to two, $43\%$ to $29\%$, everything else held --- more
+than doubles the total barrier:
 
-At $0.30$~eV a carrier makes some $10^{8}$ hops per second at room temperature, which is a working
-hopping semiconductor rather than an insulator, and the figure sits inside the $10$--$500$~meV
-range such materials occupy --- without recourse to the polaron correction, which is unmeasured and
-would act in the same direction. \emph{The conclusion that the framework does not conduct does not
-survive this, and is withdrawn in the form stated earlier.}
+\begin{center}
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+carriers & doping & total barrier & per carrier\\
+\midrule
+$3$ & $43\%$ & $0.034$~Ha & $0.0113$~Ha $=0.31$~eV\\
+$2$ & $29\%$ & $0.080$~Ha & $0.0400$~Ha $=1.09$~eV\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The cost per carrier therefore \emph{rises} as the carriers are thinned, by a factor of
+$3.5$ for a reduction of $1.5$ in density, and the total is not the sum of independent single-carrier
+costs. \emph{The figure of $0.31$~eV cannot be quoted as an activation energy}, and the withdrawal of
+the negative conclusion announced above is itself withdrawn.
+
+The direction is what matters. A real semiconductor is doped at $10^{-6}$ to $10^{-3}$, far more
+dilute than either row, so the relevant limit is the stiff end of this trend and not the soft one.
+Both figures were obtained at concentrations that are metallic rather than semiconducting.
+
+The trend is nonetheless recognisable, and may be the framework behaving correctly. Dense donors have
+overlapping potentials which screen one another and flatten the landscape a carrier moves on; dilute
+donors leave each carrier in an isolated well it must climb out of. That is the impurity-band picture,
+and the crossover between the two regimes is the Mott criterion for doped semiconductors. What the
+measurements then say is that the framework sits on the wrong side of that crossover for real
+materials: it conducts when the carriers are dense enough to be nearly metallic, and localises them
+when they are not.
 
 Three cautions belong with it, and none is small. The constraint is a modelling choice --- these are
 the energies of a system in which carriers are forbidden the core --- and it is exactly the choice
