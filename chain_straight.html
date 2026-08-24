@@ -167,9 +167,11 @@
   window.INIT_ZEFF = 1;
   window.CONVERGENCE_THRESHOLD = 0.0002;
 
-  // n H atoms can at best make n/2 H2 at equilibrium: -0.587 n. Held on a line at fixed
-  // spacing they must sit above that, so anything below is a runaway rather than a result.
-  var floor = -0.60 * N;
+  // The hard bound: n H atoms make at best floor(n/2) H2 plus a leftover H for odd n, i.e.
+  // -0.587(n-1) - 0.5. A CONSTRAINED calculation must sit above the unconstrained minimum,
+  // never below, so anything under this is a runaway rather than a result. The previous
+  // -0.60n was too loose by ~0.18 Ha and would have passed a slightly collapsed run.
+  var floor = (N % 2 === 0) ? -0.5872 * N : -0.5872 * (N - 1) - 0.5;
 
   var KEY = 'realqm_straight';
   if (q.get('reset') !== null) localStorage.setItem(KEY, '{}');
@@ -246,8 +248,11 @@
             + 'slid by d = ' + D.toFixed(2) + ' spacings'
             + (mirrorOK ? '' : '  <span style="color:#fc8">(NAZ does not divide '
                + (nCarrier - 1) + ': mirror check will not hold)</span>') + '<br>'
-            + 'grid h = ' + h.toFixed(3) + ' (' + gridN + '^3),  floor about '
-            + floor.toFixed(2) + ' Ha<br>';
+            + 'grid h = ' + h.toFixed(3) + ' (' + gridN + '^3),  box ' + BOX.toFixed(0)
+            + ' vs chain ' + ((N - 1) * a).toFixed(1) + ' (margin '
+            + ((BOX - (N - 1) * a) / 2).toFixed(1) + ' a0'
+            + ((BOX - (N - 1) * a) / 2 < 4 ? ' <span style="color:#fc8">TIGHT</span>' : '')
+            + '),  floor ' + floor.toFixed(2) + ' Ha<br>';
     if (typeof window._prevE !== 'undefined') {
       var E = Number(window._prevE);
       txt += 'E = ' + E.toFixed(5) + ' Ha'
