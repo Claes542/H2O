@@ -44,6 +44,7 @@
   var dr  = parseFloat(q.get('dr') || '1.2');
   var PHI = parseFloat(q.get('phi') || '0');     // relative rotation, in site spacings
   var BS  = parseFloat(q.get('bs') || '0.25');
+  var BETA = parseFloat(q.get('beta') || '0');   // Robin surface tension on the interface
 
   var gridN = 150, scr = 26, N2 = 75;
   var h = scr / gridN;
@@ -78,6 +79,7 @@
   window.USER_DYNAMICS = false;                  // ions fixed: the sea is what moves
   window.USER_BOUNDARY_SPEED = BS;
   window.USER_CURV_REG = 0.10;
+  window.USER_BETA = BETA;
   window.INIT_ZEFF = 1;
   window.CONVERGENCE_THRESHOLD = 0.0002;
 
@@ -86,7 +88,7 @@
 
   window.onSweepDone = function (E) {
     var st = JSON.parse(localStorage.getItem(KEY) || '{}');
-    var k = 'a' + a.toFixed(1) + '_phi' + PHI.toFixed(2);
+    var k = 'a' + a.toFixed(1) + '_b' + BETA.toFixed(3) + '_phi' + PHI.toFixed(2);
     if (!Array.isArray(st[k])) st[k] = [];
     st[k].push(Number(E));
     localStorage.setItem(KEY, JSON.stringify(st));
@@ -97,8 +99,8 @@
     var st = JSON.parse(localStorage.getItem(KEY) || '{}');
     var byA = {};
     Object.keys(st).forEach(function (k) {
-      var m = k.match(/a([\d.]+)_phi([\d.]+)/);
-      if (m) (byA[m[1]] = byA[m[1]] || {})[m[2]] = st[k];
+      var m = k.match(/a([\d.]+)_b([\d.]+)_phi([\d.]+)/);
+      if (m) (byA[m[1] + '  beta=' + m[2]] = byA[m[1] + '  beta=' + m[2]] || {})[m[3]] = st[k];
     });
     var out = [];
     Object.keys(byA).sort().forEach(function (A) {
