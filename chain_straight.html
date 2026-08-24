@@ -6,9 +6,17 @@
 </head><body>
 <div id="info" style="position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.86);padding:10px;border:1px solid #333;border-radius:6px;max-width:565px;font-size:12px;z-index:100">
   <div style="color:#9f9;font-weight:bold">A straight chain, and one electron sliding along it</div>
-  <b>n hydrogen atoms in a line</b> along x, each keeping its own electron, with <b>one further
-  electron</b> alongside at standoff <code>dr</code>. That electron is slid parallel to the chain and
-  the energy recorded. <b>E(d) is the corrugation; its amplitude is the resistance.</b>
+  <b>n hydrogen atoms in a line</b> along x, <b>doped</b> by ionising every second one, whose
+  electrons form an <b>outer cylinder</b> at standoff <code>dr</code>. The cylinder is slid parallel
+  to the chain and the energy recorded. <b>E(d) is the corrugation; its amplitude is the
+  resistance.</b> Neutral at every doping, since the carriers are the chain's own electrons.
+  <div style="margin-top:6px">
+  <b>Why doped rather than one loose electron.</b> A single electron beside the chain has nothing to
+  stop it smearing along the chain direction, and it duly does &mdash; which is what made the
+  one-electron corona result unreadable, its energy flat because the solution had forgotten where the
+  seed was rather than because sliding was cheap. With a carrier at every second site each has
+  neighbours and cannot spread without paying.
+  </div>
   <div style="margin-top:6px">
   <b>Straight, not a ring.</b> The earlier runs bent the chain into a loop so that sliding by one
   site spacing returned an identical configuration &mdash; an exact check, but at n=6 the loop radius
@@ -39,8 +47,8 @@
   <b>URL:</b> <code>?n=9</code> atoms (odd, so the centre is an atom), <code>&amp;a=2.2</code>
   spacing, <code>&amp;dr=1.5</code> standoff of the sliding electron, <code>&amp;d=0</code> its
   position along the chain in site spacings from the centre (may be negative),
-  <code>&amp;extra=1</code> electrons beyond neutrality, <code>&amp;ion=0</code> atoms ionised
-  instead, <code>&amp;box=30</code>, <code>&amp;h=0.173</code> grid spacing, <code>&amp;bs=0.25</code>,
+  <code>&amp;dope=2</code> ionise every 2nd atom (0 = none), <code>&amp;naz=3</code> positions
+  round the tube (must divide carriers&minus;1 for the mirror check), <code>&amp;box=30</code>, <code>&amp;h=0.173</code> grid spacing, <code>&amp;bs=0.25</code>,
   <code>&amp;reset</code> clears.
   </div>
   <div id="mon" style="margin-top:8px;color:#9f9">relaxing&hellip;</div>
@@ -53,8 +61,8 @@
   var a     = parseFloat(q.get('a') || '2.2');
   var DR    = parseFloat(q.get('dr') || '1.5');
   var D     = parseFloat(q.get('d') || '0');
-  var EXTRA = parseInt(q.get('extra') || '1');
-  var ION   = parseInt(q.get('ion') || '0');
+  var DOPE  = parseInt(q.get('dope') || '2');    // ionise every DOPEth atom (2 = every second)
+  var NAZ   = parseInt(q.get('naz') || '3');     // azimuthal positions round the tube
   var BOX   = parseFloat(q.get('box') || '30');
   var HG    = parseFloat(q.get('h') || '0.173');
   var BS    = parseFloat(q.get('bs') || '0.25');
@@ -70,23 +78,33 @@
   }
   function xOf(w) { return (w - (N - 1) / 2) * a; }
 
-  // The chain. An un-ionised site is a NEUTRAL H atom -- one kernel, one electron seeded on
-  // it, exactly as an isolated H atom would be. An ionised site is a bare proton whose
-  // electron has gone to the carrier, which keeps the wire neutral.
-  // Ionised sites are taken from the far end, so the carrier's own neighbourhood near the
-  // centre is undisturbed.
-  var nIon = 0;
+  // The chain, DOPED: every DOPEth atom is ionised and its electron joins the outer
+  // cylinder. An un-ionised site is a neutral H atom, one kernel with its electron seeded
+  // on it. Neutral overall at any doping -- the carriers are the chain's own electrons,
+  // not added from outside, so there is no charged-cluster confound.
+  //
+  // The odd sites are ionised rather than the even ones, so that sliding by a full spacing
+  // in EITHER direction keeps every carrier over the chain: at n=9 the carriers start over
+  // sites 1,3,5,7 and reach 0,2,4,6 at d=-1 and 2,4,6,8 at d=+1, none running off an end.
+  var ionSites = [];
   for (var w = 0; w < N; w++) {
-    var isIon = (nIon < ION) && (w === nIon);
-    if (isIon) { add(xOf(w), 0, 0, 0, 1); nIon++; }
+    var isIon = (DOPE > 0) && (w % DOPE === 1);
+    if (isIon) { ionSites.push(w); add(xOf(w), 0, 0, 0, 1); }
     else       { add(xOf(w), 0, 0, 1, 1); }
   }
-  // The sliding electron(s): offset in y by DR, at d site spacings from the chain centre.
-  // Z_nuc = 1e-9 rather than 0, since (Z_nuc || Z) treats a falsy zero as the electron count.
-  var nCarrier = EXTRA + ION;
+  // The outer cylinder: one carrier per ionised site, at radius DR from the chain axis and
+  // stepped round the tube so they form a sheath rather than a line beside it. A single
+  // carrier would simply smear along the chain -- there is nothing to stop it -- which is
+  // what made the one-electron corona result unreadable. With several, each has neighbours
+  // and cannot spread without paying.
+  var nCarrier = ionSites.length;
   for (var c = 0; c < nCarrier; c++) {
-    add((D + c) * a, DR, 0, 1, 1e-9);
+    var az = 2 * Math.PI * (c % NAZ) / NAZ;
+    add(xOf(ionSites[c]) + D * a, DR * Math.cos(az), DR * Math.sin(az), 1, 1e-9);
   }
+  // Mirror symmetry about the chain centre requires the azimuth sequence to be palindromic
+  // under c -> nCarrier-1-c with az -> -az, which holds exactly when NAZ divides nCarrier-1.
+  var mirrorOK = (nCarrier > 1) && ((nCarrier - 1) % NAZ === 0);
 
   window.USER_ATOMS = atoms;
   window.USER_Z = Z;
@@ -102,7 +120,7 @@
 
   // n H atoms can at best make n/2 H2 at equilibrium: -0.587 n. Held on a line at fixed
   // spacing they must sit above that, so anything below is a runaway rather than a result.
-  var floor = -0.60 * N - 0.1 * EXTRA;
+  var floor = -0.60 * N;
 
   var KEY = 'realqm_straight';
   if (q.get('reset') !== null) localStorage.setItem(KEY, '{}');
@@ -110,7 +128,7 @@
   window.onSweepDone = function (E) {
     var st = JSON.parse(localStorage.getItem(KEY) || '{}');
     var k = 'n' + N + '_a' + a.toFixed(1) + '_dr' + DR.toFixed(2)
-          + '_x' + EXTRA + '_i' + ION + '_d' + D.toFixed(2);
+          + '_dp' + DOPE + '_az' + NAZ + '_d' + D.toFixed(2);
     if (!Array.isArray(st[k])) st[k] = [];
     st[k].push(Number(E));
     localStorage.setItem(KEY, JSON.stringify(st));
@@ -121,11 +139,10 @@
     var st = JSON.parse(localStorage.getItem(KEY) || '{}');
     var byCase = {};
     Object.keys(st).forEach(function (k) {
-      var m = k.match(/^n(\d+)_a([\d.]+)_dr([\d.]+)_x(\d+)_i(\d+)_d(-?[\d.]+)$/);
+      var m = k.match(/^n(\d+)_a([\d.]+)_dr([\d.]+)_dp(\d+)_az(\d+)_d(-?[\d.]+)$/);
       if (!m) return;
-      var lbl = m[1] + ' H, a=' + m[2] + ', dr=' + m[3]
-              + (m[5] !== '0' ? ', ' + m[5] + ' ionised (NEUTRAL)'
-                              : ', +' + m[4] + ' extra (charged ' + (-m[4]) + ')');
+      var lbl = m[1] + ' H, a=' + m[2] + ', dr=' + m[3] + ', every ' + m[4]
+              + 'nd ionised, ' + m[5] + ' round the tube (neutral)';
       (byCase[lbl] = byCase[lbl] || {})[m[6]] = st[k];
     });
     var out = [];
@@ -170,9 +187,12 @@
     if (!el) return;
     var txt = N + ' H in a straight line along x, spacing ' + a.toFixed(2)
             + ' a0 (length ' + ((N - 1) * a).toFixed(1) + ')<br>'
-            + nCarrier + ' electron' + (nCarrier === 1 ? '' : 's') + ' at y = ' + DR.toFixed(2)
-            + ', x = ' + (D * a).toFixed(2) + ' (d = ' + D.toFixed(2) + ' spacings from centre)'
-            + ',  <b>net charge ' + (-EXTRA) + '</b><br>'
+            + nCarrier + ' ionised (every ' + DOPE + 'nd), so ' + nCarrier
+            + ' carriers in a cylinder of radius ' + DR.toFixed(2) + ' about the chain, '
+            + NAZ + ' positions round the tube, <b>neutral</b><br>'
+            + 'slid by d = ' + D.toFixed(2) + ' spacings'
+            + (mirrorOK ? '' : '  <span style="color:#fc8">(NAZ does not divide '
+               + (nCarrier - 1) + ': mirror check will not hold)</span>') + '<br>'
             + 'grid h = ' + h.toFixed(3) + ' (' + gridN + '^3),  floor about '
             + floor.toFixed(2) + ' Ha<br>';
     if (typeof window._prevE !== 'undefined') {
