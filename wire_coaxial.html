@@ -102,6 +102,7 @@
   var BOX = parseFloat(q.get('box') || '11');     // box width: its face IS the Neumann wall
   var RC  = parseFloat(q.get('rc') || '0.7');     // radius at which a site keeps its own electron
   var ION = parseInt(q.get('ion') || '-1');       // how many sites are IONISED (donate to the sea)
+  var EXTRA = parseInt(q.get('extra') || '0');    // EXTRA electrons beyond neutrality (the corona)
   var RW  = parseFloat(q.get('rw') || '2.6');     // wall standoff from the chain
   var BS  = parseFloat(q.get('bs') || '0.25');
 
@@ -164,6 +165,16 @@
   // and z -- at radius DR from the chain. Sliding by D rotates the whole shell about the
   // loop, which is motion ALONG the wire. With M=1 this reduces to a single in-plane ring.
   // DR must stay below R1 or the tube passes through its own axis.
+  // Extra electrons beyond neutrality: a string of NEUTRAL atoms with one loose electron
+  // around it. This is the CORONA configuration, and note it leaves the wire CHARGED --
+  // net -EXTRA -- which is a real difference from the doping dial, where an electron is
+  // promoted from an atom and the wire stays neutral. A charged cluster in vacuum spreads
+  // for reasons unconnected with conduction, so read a flat result here with that in mind.
+  for (var e2 = 0; e2 < EXTRA; e2++) {
+    var th4 = 2 * Math.PI * (e2 * N / EXTRA + D) / N;
+    add((R1 + DR) * Math.cos(th4), (R1 + DR) * Math.sin(th4), 0, 1, 1e-9);
+  }
+
   var seaSites = [];
   for (var w4 = 0; w4 < N; w4++) if (ionised[w4]) seaSites.push(w4);
   for (var q2 = 0; q2 < seaSites.length; q2++) {
@@ -269,8 +280,9 @@
             + floor.toFixed(1) + ' Ha for ' + N + ' H<br>'
             + N + ' kernels (charge +' + M + ' each) on a loop of radius ' + R1.toFixed(2)
             + ' a0, spacing ' + a.toFixed(2) + '<br>'
-            + nel + ' electrons in a cylinder of radius ' + DR.toFixed(2)
-            + ' about the chain, net charge ' + (N * M - npos).toFixed(0)
+            + (NSEA + EXTRA) + ' electrons in the shell at radius ' + (R1 + DR).toFixed(2)
+            + ', ' + (N * M - NSEA) + ' held as cores'
+            + ',  <b>net charge ' + (-EXTRA) + '</b>'
             + ',  <span style="color:#fc8">Neumann wall at ' + (BOX / 2).toFixed(1)
             + ' a0</span>'
             + (NW > 0 ? ' + atom sheath ' + NW + ' at r=' + (R1 + RW).toFixed(2) : '')
