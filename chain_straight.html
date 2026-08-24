@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html><head>
+  <meta charset="utf-8">
+  <title>A straight H-chain with one electron sliding along it</title>
+  <style>body { margin: 0; background: #000; color: #fff; font-family: monospace; }</style>
+</head><body>
+<div id="info" style="position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.86);padding:10px;border:1px solid #333;border-radius:6px;max-width:565px;font-size:12px;z-index:100">
+  <div style="color:#9f9;font-weight:bold">A straight chain, and one electron sliding along it</div>
+  <b>n hydrogen atoms in a line</b> along x, each keeping its own electron, with <b>one further
+  electron</b> alongside at standoff <code>dr</code>. That electron is slid parallel to the chain and
+  the energy recorded. <b>E(d) is the corrugation; its amplitude is the resistance.</b>
+  <div style="margin-top:6px">
+  <b>Straight, not a ring.</b> The earlier runs bent the chain into a loop so that sliding by one
+  site spacing returned an identical configuration &mdash; an exact check, but at n=6 the loop radius
+  equals the site spacing, so it is a tight hexagon in which each site's neighbours lie at
+  60&deg; rather than along a line. This is the geometry as actually pictured: a wire.
+  </div>
+  <div style="margin-top:6px;color:#9cf">
+  <b>What replaces the periodicity check.</b> With an odd n the chain is symmetric about its centre
+  atom, so <b>E(&minus;d) must equal E(d)</b> exactly. That is a genuine check &mdash; the two are
+  different configurations that symmetry forces to agree, not one configuration relabelled &mdash;
+  and it is the test that caught the collapsed runs earlier. Run <code>&amp;d=0.5</code> and
+  <code>&amp;d=-0.5</code> as a matched pair.
+  </div>
+  <div style="margin-top:6px">
+  <b>The ends, and how to keep them out of it.</b> A straight chain has two, and sliding charge
+  toward one measures an edge effect rather than transport. Keep <code>d</code> small so the carrier
+  stays near the middle, and use enough atoms that the ends are several spacings away. At n=9 the
+  carrier at d=1 still has four atoms on either side.
+  </div>
+  <div style="margin-top:6px">
+  <b>Charge.</b> With <code>ion=0</code> every atom keeps its electron and the extra one leaves the
+  wire at <b>net &minus;1</b>. A charged cluster in vacuum spreads for reasons unconnected with
+  conduction, which is why an earlier flat result from this configuration was withdrawn. Setting
+  <code>&amp;ion=1</code> instead ionises one atom, so its electron becomes the carrier and the wire
+  stays <b>neutral</b> &mdash; the same experiment without that confound. Running both is the point.
+  </div>
+  <div style="margin-top:6px">
+  <b>URL:</b> <code>?n=9</code> atoms (odd, so the centre is an atom), <code>&amp;a=2.2</code>
+  spacing, <code>&amp;dr=1.5</code> standoff of the sliding electron, <code>&amp;d=0</code> its
+  position along the chain in site spacings from the centre (may be negative),
+  <code>&amp;extra=1</code> electrons beyond neutrality, <code>&amp;ion=0</code> atoms ionised
+  instead, <code>&amp;box=30</code>, <code>&amp;h=0.173</code> grid spacing, <code>&amp;bs=0.25</code>,
+  <code>&amp;reset</code> clears.
+  </div>
+  <div id="mon" style="margin-top:8px;color:#9f9">relaxing&hellip;</div>
+  <div id="tab" style="margin-top:8px;color:#9c9;font-size:11px"></div>
+</div>
+<script>
+(function() {
+  var q = new URLSearchParams(location.search);
+  var N     = parseInt(q.get('n') || '9');
+  var a     = parseFloat(q.get('a') || '2.2');
+  var DR    = parseFloat(q.get('dr') || '1.5');
+  var D     = parseFloat(q.get('d') || '0');
+  var EXTRA = parseInt(q.get('extra') || '1');
+  var ION   = parseInt(q.get('ion') || '0');
+  var BOX   = parseFloat(q.get('box') || '30');
+  var HG    = parseFloat(q.get('h') || '0.173');
+  var BS    = parseFloat(q.get('bs') || '0.25');
+
+  var gridN = Math.max(48, Math.min(200, 2 * Math.round(BOX / HG / 2)));
+  var scr = BOX, N2 = gridN / 2, h = scr / gridN;
+
+  var atoms = [], Z = [], Znuc = [];
+  function add(x, y, z, zc, zn) {
+    atoms.push({ i: Math.round(N2 + x / h), j: Math.round(N2 + y / h),
+                 k: Math.round(N2 + z / h), Z: zc, el: 'H' });
+    Z.push(zc); Znuc.push(zn);
+  }
+  function xOf(w) { return (w - (N - 1) / 2) * a; }
+
+  // The chain. An un-ionised site is a NEUTRAL H atom -- one kernel, one electron seeded on
+  // it, exactly as an isolated H atom would be. An ionised site is a bare proton whose
+  // electron has gone to the carrier, which keeps the wire neutral.
+  // Ionised sites are taken from the far end, so the carrier's own neighbourhood near the
+  // centre is undisturbed.
+  var nIon = 0;
+  for (var w = 0; w < N; w++) {
+    var isIon = (nIon < ION) && (w === nIon);
+    if (isIon) { add(xOf(w), 0, 0, 0, 1); nIon++; }
+    else       { add(xOf(w), 0, 0, 1, 1); }
+  }
+  // The sliding electron(s): offset in y by DR, at d site spacings from the chain centre.
+  // Z_nuc = 1e-9 rather than 0, since (Z_nuc || Z) treats a falsy zero as the electron count.
+  var nCarrier = EXTRA + ION;
+  for (var c = 0; c < nCarrier; c++) {
+    add((D + c) * a, DR, 0, 1, 1e-9);
+  }
+
+  window.USER_ATOMS = atoms;
+  window.USER_Z = Z;
+  window.USER_Z_NUC = Znuc;
+  window.USER_NN = gridN;
+  window.USER_SCREEN = scr;
+  window.USER_STEPS = 1000000;
+  window.USER_DYNAMICS = false;                  // nuclei fixed: the electron is the question
+  window.USER_BOUNDARY_SPEED = BS;
+  window.USER_CURV_REG = 0.10;
+  window.INIT_ZEFF = 1;
+  window.CONVERGENCE_THRESHOLD = 0.0002;
+
+  // n H atoms can at best make n/2 H2 at equilibrium: -0.587 n. Held on a line at fixed
+  // spacing they must sit above that, so anything below is a runaway rather than a result.
+  var floor = -0.60 * N - 0.1 * EXTRA;
+
+  var KEY = 'realqm_straight';
+  if (q.get('reset') !== null) localStorage.setItem(KEY, '{}');
+
+  window.onSweepDone = function (E) {
+    var st = JSON.parse(localStorage.getItem(KEY) || '{}');
+    var k = 'n' + N + '_a' + a.toFixed(1) + '_dr' + DR.toFixed(2)
+          + '_x' + EXTRA + '_i' + ION + '_d' + D.toFixed(2);
+    if (!Array.isArray(st[k])) st[k] = [];
+    st[k].push(Number(E));
+    localStorage.setItem(KEY, JSON.stringify(st));
+    console.log('CONVERGED ' + k + ' E=' + Number(E).toFixed(5));
+  };
+
+  function table() {
+    var st = JSON.parse(localStorage.getItem(KEY) || '{}');
+    var byCase = {};
+    Object.keys(st).forEach(function (k) {
+      var m = k.match(/^n(\d+)_a([\d.]+)_dr([\d.]+)_x(\d+)_i(\d+)_d(-?[\d.]+)$/);
+      if (!m) return;
+      var lbl = m[1] + ' H, a=' + m[2] + ', dr=' + m[3]
+              + (m[5] !== '0' ? ', ' + m[5] + ' ionised (NEUTRAL)'
+                              : ', +' + m[4] + ' extra (charged ' + (-m[4]) + ')');
+      (byCase[lbl] = byCase[lbl] || {})[m[6]] = st[k];
+    });
+    var out = [];
+    Object.keys(byCase).sort().forEach(function (C) {
+      out.push('<b>' + C + '</b>');
+      var ds = Object.keys(byCase[C]).sort(function (x, y) { return x - y; });
+      var lo = 1e9, hi = -1e9;
+      ds.forEach(function (d) {
+        var v = byCase[C][d], best = Math.min.apply(null, v);
+        lo = Math.min(lo, best); hi = Math.max(hi, best);
+        out.push('&nbsp; d = ' + Number(d).toFixed(2) + ':  ' + best.toFixed(5)
+                 + (v.length > 1 ? '  (' + v.length + ' runs, spread '
+                    + (Math.max.apply(null, v) - Math.min.apply(null, v)).toFixed(5) + ')' : '')
+                 + (best < floor ? '  <span style="color:#f77">below floor</span>' : ''));
+      });
+      if (hi > lo) {
+        var amp = hi - lo;
+        out.push('&nbsp; <b>corrugation ' + amp.toFixed(5) + ' Ha = ' + (amp * 27214).toFixed(0)
+                 + ' meV = ' + (amp * 27.2114).toFixed(3) + ' eV</b>');
+      }
+      // the mirror check: E(-d) must equal E(d)
+      ds.forEach(function (d) {
+        var dv = Number(d);
+        if (dv <= 0) return;
+        var mirror = (-dv).toFixed(2);
+        if (byCase[C][mirror]) {
+          var e1 = Math.min.apply(null, byCase[C][d]);
+          var e2 = Math.min.apply(null, byCase[C][mirror]);
+          var diff = Math.abs(e1 - e2);
+          out.push('&nbsp; <span style="color:' + (diff < 0.003 ? '#9f9' : '#f77')
+                   + '">mirror check |E(' + dv.toFixed(2) + ') &minus; E(&minus;'
+                   + dv.toFixed(2) + ')| = ' + diff.toFixed(5)
+                   + (diff < 0.003 ? ' &mdash; passes' : ' &mdash; FAILS, must be 0') + '</span>');
+        }
+      });
+    });
+    document.getElementById('tab').innerHTML = out.join('<br>');
+  }
+
+  setInterval(function () {
+    var el = document.getElementById('mon');
+    if (!el) return;
+    var txt = N + ' H in a straight line along x, spacing ' + a.toFixed(2)
+            + ' a0 (length ' + ((N - 1) * a).toFixed(1) + ')<br>'
+            + nCarrier + ' electron' + (nCarrier === 1 ? '' : 's') + ' at y = ' + DR.toFixed(2)
+            + ', x = ' + (D * a).toFixed(2) + ' (d = ' + D.toFixed(2) + ' spacings from centre)'
+            + ',  <b>net charge ' + (-EXTRA) + '</b><br>'
+            + 'grid h = ' + h.toFixed(3) + ' (' + gridN + '^3),  floor about '
+            + floor.toFixed(2) + ' Ha<br>';
+    if (typeof window._prevE !== 'undefined') {
+      var E = Number(window._prevE);
+      txt += 'E = ' + E.toFixed(5) + ' Ha'
+           + (E < floor ? '  <span style="color:#f77">BELOW FLOOR &mdash; collapsed</span>'
+                        : '  <span style="color:#9f9">physical</span>')
+           + (window._convCount ? '  (settling)' : '  (running)') + '<br>';
+    }
+    el.innerHTML = txt;
+    table();
+  }, 500);
+
+  console.log('straight chain: n=' + N + ' a=' + a + ' dr=' + DR + ' d=' + D
+              + ' extra=' + EXTRA + ' ion=' + ION + '  atoms=' + atoms.length);
+})();
+
+var s = document.createElement('script');
+s.src = 'molecule.js?t=' + Date.now();
+s.onload = function() {
+  var p = document.createElement('script');
+  p.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+  document.body.appendChild(p);
+};
+document.body.appendChild(s);
+</script>
+</body></html>
