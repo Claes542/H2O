@@ -44,7 +44,8 @@
   stays <b>neutral</b> &mdash; the same experiment without that confound. Running both is the point.
   </div>
   <div style="margin-top:6px">
-  <b>URL:</b> <code>?n=9</code> atoms (odd, so the centre is an atom), <code>&amp;a=2.2</code>
+  <b>URL:</b> <code>?n=7</code> atoms (odd, so the centre is an atom; the grid is
+  box/h cubed, so n=9 with box=30 needs 174<sup>3</sup> = 5.3M cells and is slow), <code>&amp;a=2.2</code>
   spacing, <code>&amp;dr=1.5</code> standoff of the sliding electron, <code>&amp;d=0</code> its
   position along the chain in site spacings from the centre (may be negative),
   <code>&amp;dope=2</code> ionise every 2nd atom (0 = none), <code>&amp;naz=3</code> positions
@@ -57,13 +58,13 @@
 <script>
 (function() {
   var q = new URLSearchParams(location.search);
-  var N     = parseInt(q.get('n') || '9');
+  var N     = parseInt(q.get('n') || '7');
   var a     = parseFloat(q.get('a') || '2.2');
   var DR    = parseFloat(q.get('dr') || '1.5');
   var D     = parseFloat(q.get('d') || '0');
   var DOPE  = parseInt(q.get('dope') || '2');    // ionise every DOPEth atom (2 = every second)
-  var NAZ   = parseInt(q.get('naz') || '3');     // azimuthal positions round the tube
-  var BOX   = parseFloat(q.get('box') || '30');
+  var NAZ   = parseInt(q.get('naz') || '2');     // azimuthal positions round the tube
+  var BOX   = parseFloat(q.get('box') || '20');
   var HG    = parseFloat(q.get('h') || '0.173');
   var BS    = parseFloat(q.get('bs') || '0.25');
 
@@ -207,7 +208,8 @@
   }, 500);
 
   console.log('straight chain: n=' + N + ' a=' + a + ' dr=' + DR + ' d=' + D
-              + ' extra=' + EXTRA + ' ion=' + ION + '  atoms=' + atoms.length);
+              + ' dope=' + DOPE + ' naz=' + NAZ + ' carriers=' + nCarrier
+              + ' grid=' + gridN + '  atoms=' + atoms.length);
 })();
 
 var s = document.createElement('script');
