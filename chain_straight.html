@@ -17,6 +17,17 @@
   seed was rather than because sliding was cheap. With a carrier at every second site each has
   neighbours and cannot spread without paying.
   </div>
+  <div style="margin-top:6px;color:#fc8">
+  <b>Hard cylindrical partition (<code>&amp;rc=1.0</code>).</b> The chain's own electrons are
+  confined to an <b>inner cylinder</b> of radius <code>rc</code> about the chain axis, and the
+  carriers to the <b>outside</b> of it. Enforced every step by the solver, not merely seeded.
+  <div style="margin-top:6px">
+  This is core&ndash;valence separation by fiat, which is what a pseudopotential does, and it
+  removes the flaw undermining every doped run: with nowhere to fall, a carrier cannot quietly
+  re-bind to its donor and turn a transport calculation into a binding one. It is a modelling
+  choice, not a result, and the energies are those of the constrained system.
+  </div>
+  </div>
   <div style="margin-top:6px;color:#9cf">
   <b>Wrapping the carriers (<code>&amp;wrap=1.2</code>).</b> The solver moves domain
   <i>boundaries</i>, not domain centres, so a carrier seeded as a point at radius
@@ -64,6 +75,7 @@
   box/h cubed, so n=9 with box=30 needs 174<sup>3</sup> = 5.3M cells and is slow), <code>&amp;a=2.2</code>
   spacing, <code>&amp;dr=1.5</code> standoff of the sliding electron, <code>&amp;d=0</code> its
   position along the chain in site spacings from the centre (may be negative),
+  <code>&amp;rc=0</code> hard cylindrical partition radius (try 1.0; 0 = none),
   <code>&amp;wrap=0</code> cap each atom's reach so carriers wrap (try 1.2; 0 = point seeds),
   <code>&amp;dope=2</code> ionise every 2nd atom (0 = none), <code>&amp;naz=3</code> positions
   round the tube (must divide carriers&minus;1 for the mirror check), <code>&amp;box=30</code>, <code>&amp;h=0.173</code> grid spacing, <code>&amp;bs=0.25</code>,
@@ -82,6 +94,7 @@
   var DOPE  = parseInt(q.get('dope') || '2');    // ionise every DOPEth atom (2 = every second)
   var NAZ   = parseInt(q.get('naz') || '2');     // azimuthal positions round the tube
   var WRAP  = parseFloat(q.get('wrap') || '0');  // >0: cap each atom's reach, so carriers wrap
+  var RC    = parseFloat(q.get('rc') || '0');    // >0: HARD cylindrical partition at this radius
   var BOX   = parseFloat(q.get('box') || '20');
   var HG    = parseFloat(q.get('h') || '0.173');
   var BS    = parseFloat(q.get('bs') || '0.25');
@@ -89,11 +102,12 @@
   var gridN = Math.max(48, Math.min(200, 2 * Math.round(BOX / HG / 2)));
   var scr = BOX, N2 = gridN / 2, h = scr / gridN;
 
-  var atoms = [], Z = [], Znuc = [], rcut = [];
-  function add(x, y, z, zc, zn, rc) {
+  var atoms = [], Z = [], Znuc = [], rcut = [], stype = [], sidx = [];
+  function add(x, y, z, zc, zn, rc, inner) {
     atoms.push({ i: Math.round(N2 + x / h), j: Math.round(N2 + y / h),
                  k: Math.round(N2 + z / h), Z: zc, el: 'H' });
     Z.push(zc); Znuc.push(zn); rcut.push(rc || 0);
+    stype.push(RC > 0 ? 5 : 0); sidx.push(inner ? 0 : 1);
   }
   function xOf(w) { return (w - (N - 1) / 2) * a; }
 
@@ -108,8 +122,8 @@
   var ionSites = [];
   for (var w = 0; w < N; w++) {
     var isIon = (DOPE > 0) && (w % DOPE === 1);
-    if (isIon) { ionSites.push(w); add(xOf(w), 0, 0, 0, 1, 0); }
-    else       { add(xOf(w), 0, 0, 1, 1, WRAP); }
+    if (isIon) { ionSites.push(w); add(xOf(w), 0, 0, 0, 1, 0, true); }
+    else       { add(xOf(w), 0, 0, 1, 1, WRAP, true); }
   }
   // The outer cylinder: one carrier per ionised site, at radius DR from the chain axis and
   // stepped round the tube so they form a sheath rather than a line beside it. A single
@@ -119,7 +133,7 @@
   var nCarrier = ionSites.length;
   for (var c = 0; c < nCarrier; c++) {
     var az = 2 * Math.PI * (c % NAZ) / NAZ;
-    add(xOf(ionSites[c]) + D * a, DR * Math.cos(az), DR * Math.sin(az), 1, 1e-9, 0);
+    add(xOf(ionSites[c]) + D * a, DR * Math.cos(az), DR * Math.sin(az), 1, 1e-9, 0, false);
   }
   // Mirror symmetry about the chain centre requires the azimuth sequence to be palindromic
   // under c -> nCarrier-1-c with az -> -az, which holds exactly when NAZ divides nCarrier-1.
@@ -129,6 +143,12 @@
   window.USER_Z = Z;
   window.USER_Z_NUC = Znuc;
   if (WRAP > 0) window.USER_INIT_RCUT = rcut;   // 0 = uncapped, so the carriers take the rest
+  if (RC > 0) {                                  // hard cylindrical partition (splitType 5)
+    window.USER_SPLIT_TYPE = stype;
+    window.USER_SPLIT_IDX = sidx;                // 0 = chain, confined inside RC; 1 = carriers, outside
+    window.USER_SPLIT_AXIS = atoms.map(function () { return [1, 0, 0]; });
+    window.USER_SPLIT_ROT = atoms.map(function () { return RC; });
+  }
   window.USER_NN = gridN;
   window.USER_SCREEN = scr;
   window.USER_STEPS = 1000000;
@@ -159,12 +179,13 @@
     var st = JSON.parse(localStorage.getItem(KEY) || '{}');
     var byCase = {};
     Object.keys(st).forEach(function (k) {
-      var m = k.match(/^n(\d+)_a([\d.]+)_dr([\d.]+)_dp(\d+)_az(\d+)_w([\d.]+)_d(-?[\d.]+)$/);
+      var m = k.match(/^n(\d+)_a([\d.]+)_dr([\d.]+)_dp(\d+)_az(\d+)_w([\d.]+)_rc([\d.]+)_d(-?[\d.]+)$/);
       if (!m) return;
       var lbl = m[1] + ' H, a=' + m[2] + ', dr=' + m[3] + ', every ' + m[4]
               + 'nd ionised, ' + m[5] + ' round the tube'
-              + (parseFloat(m[6]) > 0 ? ', WRAPPED (rcut ' + m[6] + ')' : ', point seeds');
-      (byCase[lbl] = byCase[lbl] || {})[m[7]] = st[k];
+              + (parseFloat(m[6]) > 0 ? ', wrapped' : ', point seeds')
+              + (parseFloat(m[7]) > 0 ? ', <b>CYLINDER rc=' + m[7] + '</b>' : '');
+      (byCase[lbl] = byCase[lbl] || {})[m[8]] = st[k];
     });
     var out = [];
     Object.keys(byCase).sort().forEach(function (C) {
@@ -210,7 +231,9 @@
             + ' a0 (length ' + ((N - 1) * a).toFixed(1) + ')<br>'
             + nCarrier + ' ionised (every ' + DOPE + 'nd), so ' + nCarrier
             + ' carriers in a cylinder of radius ' + DR.toFixed(2) + ' about the chain, '
-            + NAZ + ' positions round the tube, <b>neutral</b><br>'
+            + NAZ + ' positions round the tube, <b>neutral</b>'
+            + (RC > 0 ? '<br><span style="color:#fc8">hard cylindrical partition at r = '
+                        + RC.toFixed(2) + ': chain inside, carriers outside</span>' : '') + '<br>'
             + 'slid by d = ' + D.toFixed(2) + ' spacings'
             + (mirrorOK ? '' : '  <span style="color:#fc8">(NAZ does not divide '
                + (nCarrier - 1) + ': mirror check will not hold)</span>') + '<br>'

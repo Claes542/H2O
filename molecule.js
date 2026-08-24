@@ -439,6 +439,26 @@ fn cellSectorOK(i: u32, j: u32, k: u32, n: u32) -> bool {
   let dx = (f32(i) - f32(atoms[n].posI)) * p.h;
   let dy = (f32(j) - f32(atoms[n].posJ)) * p.h;
   let dz = (f32(k) - f32(atoms[n].posK)) * p.h;
+  // splitType 5: CYLINDRICAL BAND about the axis through the BOX CENTRE (not about the
+  // atom's own nucleus, unlike the angular splits). splitIdx 0 = this domain may own only
+  // cells INSIDE radius splitRot, 1 = only cells OUTSIDE it. Used to hold a chain's own
+  // electrons in an inner cylinder while carriers are confined to an outer one, so a
+  // carrier cannot quietly re-bind to its donor and turn a transport calculation into a
+  // binding calculation. Absolute coordinates are needed for this, which is why it lives
+  // here rather than in inSplitAtom.
+  if (atoms[n].splitType == 5u) {
+    let c = f32(p.NN) * 0.5;
+    let cx = (f32(i) - c) * p.h; let cy = (f32(j) - c) * p.h; let cz = (f32(k) - c) * p.h;
+    let axL = max(sqrt(atoms[n].splitAxX*atoms[n].splitAxX
+                     + atoms[n].splitAxY*atoms[n].splitAxY
+                     + atoms[n].splitAxZ*atoms[n].splitAxZ), 1e-12);
+    let a0 = atoms[n].splitAxX/axL; let a1 = atoms[n].splitAxY/axL; let a2 = atoms[n].splitAxZ/axL;
+    let dp = cx*a0 + cy*a1 + cz*a2;
+    let qx = cx - dp*a0; let qy = cy - dp*a1; let qz = cz - dp*a2;
+    let pr = sqrt(qx*qx + qy*qy + qz*qz);
+    if (atoms[n].splitIdx == 0u) { return pr < atoms[n].splitRot; }
+    return pr >= atoms[n].splitRot;
+  }
   return inSplitAtom(dx, dy, dz, sqrt(dx*dx + dy*dy + dz*dz), n);
 }
 @compute @workgroup_size(256)
