@@ -32,6 +32,10 @@ const SPLIT_AXIS = window.USER_SPLIT_AXIS || [];
 const SPLIT_ROT  = window.USER_SPLIT_ROT  || [];
 let R_out = 0.5;   // au, unused legacy
 let curvReg = (window.USER_CURV_REG !== undefined) ? window.USER_CURV_REG : 0.15;  // curvature regularization for free boundary
+// Robin surface tension on the electron-electron interface: the natural boundary condition of
+// the surface energy (beta/2) INT psi^2 dS is d(psi)/dn + beta*psi = 0, so nothing is imposed --
+// adding the energy is enough. beta = 0 reproduces the framework exactly as before.
+let betaSurf = (window.USER_BETA !== undefined) ? window.USER_BETA : 0.0;
 let Z = [..._uz];
 let Ne = [..._uz];
 const Z_orig = [..._uz];
@@ -171,13 +175,14 @@ fn cellIdx(gid: vec3<u32>) -> u32 {
 }`;
 
 // Param struct: 16 common fields = 64 bytes. Atom data in separate storage buffer.
-const PARAM_BYTES = 64;
+const PARAM_BYTES = 80;   // 20 fields; was 64 before beta was added
 const paramStructWGSL = `
 struct P {
   NN: u32, S: u32, S2: u32, S3: u32,
   N2: u32, dt_w: f32, curvReg: f32, TWO_PI: f32,
   h: f32, h2: f32, inv_h: f32, inv_h2: f32,
   dt: f32, half_d: f32, h3: f32, sliceK: u32,
+  beta: f32, _pad0: f32, _pad1: f32, _pad2: f32,
 }`;
 
 const ATOM_STRIDE = 14; // 8 base + 6 split (splitType, splitIdx, splitAxX/Y/Z, splitRot)
@@ -338,7 +343,20 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let lap = u_ip + u_im + u_jp + u_jm + u_kp + u_km - 6.0 * uc;
 
   // Full nuclear potential (all nuclei) minus other-electron repulsion (no self-repulsion)
-  Uo[id] = uc + p.half_d * lap + p.dt * (K[id] - 2.0 * Pi[id]) * uc;
+  // Surface tension: a cell with nface faces onto a DIFFERENT domain carries an extra
+  // diagonal potential beta*nface/h -- the discrete form of the Robin condition that the
+  // surface energy (beta/2) INT psi^2 dS generates naturally. Zero when beta is zero.
+  var nface: f32 = 0.0;
+  if (p.beta != 0.0) {
+    if (l_ip != myL) { nface += 1.0; }
+    if (l_im != myL) { nface += 1.0; }
+    if (l_jp != myL) { nface += 1.0; }
+    if (l_jm != myL) { nface += 1.0; }
+    if (l_kp != myL) { nface += 1.0; }
+    if (l_km != myL) { nface += 1.0; }
+  }
+  let vBeta = p.beta * nface * p.inv_h;
+  Uo[id] = uc + p.half_d * lap + p.dt * (K[id] - 2.0 * Pi[id] - vBeta) * uc;
 }
 `;
 
@@ -415,7 +433,20 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
   let lap = u_ip + u_im + u_jp + u_jm + u_kp + u_km - 6.0 * uc;
 
-  let itpStep = uc + p.half_d * lap + p.dt * (K[id] - 2.0 * Pi[id]) * uc;
+  // Surface tension: a cell with nface faces onto a DIFFERENT domain carries an extra
+  // diagonal potential beta*nface/h -- the discrete form of the Robin condition that the
+  // surface energy (beta/2) INT psi^2 dS generates naturally. Zero when beta is zero.
+  var nface: f32 = 0.0;
+  if (p.beta != 0.0) {
+    if (l_ip != myL) { nface += 1.0; }
+    if (l_im != myL) { nface += 1.0; }
+    if (l_jp != myL) { nface += 1.0; }
+    if (l_jm != myL) { nface += 1.0; }
+    if (l_kp != myL) { nface += 1.0; }
+    if (l_km != myL) { nface += 1.0; }
+  }
+  let vBeta = p.beta * nface * p.inv_h;
+  let itpStep = uc + p.half_d * lap + p.dt * (K[id] - 2.0 * Pi[id] - vBeta) * uc;
 
   Uo[id] = cheb.omega * itpStep + (1.0 - cheb.omega) * Uprev[id];
 }
@@ -1022,6 +1053,19 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>,
     let b = select(0.0, U[id + p.S]  - v, sameL_jp);
     let c = select(0.0, U[id + 1u]   - v, sameL_kp);
     sn[lid * NR]        += 0.5 * (a * a + b * b + c * c) * p.h;
+    // Surface energy (beta/2) INT psi^2 dS. All six faces are counted, so each interface
+    // face is paid once from each side, as the functional requires. Folded into the
+    // localisation slot because it arises from the same integration by parts.
+    if (p.beta != 0.0) {
+      var nfaceE: f32 = 0.0;
+      if (label[id + p.S2] != myL) { nfaceE += 1.0; }
+      if (label[id - p.S2] != myL) { nfaceE += 1.0; }
+      if (label[id + p.S]  != myL) { nfaceE += 1.0; }
+      if (label[id - p.S]  != myL) { nfaceE += 1.0; }
+      if (label[id + 1u]   != myL) { nfaceE += 1.0; }
+      if (label[id - 1u]   != myL) { nfaceE += 1.0; }
+      sn[lid * NR]      += 0.5 * p.beta * rho * nfaceE * p.h2;
+    }
     sn[lid * NR + 1u]   += -K[id] * rho * p.h3;
     sn[lid * NR + 2u]   += Pv[id] * rho * p.h3;
 
@@ -1853,6 +1897,7 @@ function fillParamsBuf(pb) {
   pu[4] = N2; pf[5] = boundarySpeed; pf[6] = curvReg; pf[7] = 2 * Math.PI;
   pf[8] = hGrid; pf[9] = h2v; pf[10] = 1 / hGrid; pf[11] = 1 / h2v;
   pf[12] = dtv; pf[13] = half_dv; pf[14] = h3v; pu[15] = sliceK;
+  pf[16] = betaSurf;
 }
 
 // Recompute each split-water's sector frame from its current H positions, so the
