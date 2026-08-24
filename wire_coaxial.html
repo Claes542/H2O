@@ -83,7 +83,7 @@
   <div style="margin-top:6px">
   <b>URL:</b> <code>?n=6</code> chain sites, <code>&amp;a=2.2</code> spacing along the wire,
   <code>&amp;m=1</code> electrons per site (1 = a plain H-chain; kernel charge = m, so neutral),
-  <code>&amp;dr=1.5</code> cylinder radius, <code>&amp;d=0</code> slide along the wire in site
+  <code>&amp;dr=1.5</code> cylinder radius (must be &lt; R1, the loop radius), <code>&amp;d=0</code> slide along the wire in site
   spacings, <code>&amp;nw=0</code> wall atoms per site (try 4), <code>&amp;rw=3.0</code> wall radius,
   <code>&amp;bs=0.25</code>, <code>&amp;reset</code> clears.
   </div>
@@ -159,12 +159,21 @@
   // direction and z; the electrons sit on a circle of radius DR in that plane. Sliding by D
   // rotates them about the wire's loop, which is motion ALONG the wire.
   // Z_nuc = 1e-9 rather than 0, since (Z_nuc || Z) treats a falsy zero as the electron count.
-  // The shell: NSEA electrons, spread evenly around the whole loop rather than sitting over
-  // their donor, because a sea belongs to the wire and not to any one ion. Sliding by D
-  // rotates the shell about the loop, which is motion ALONG the wire.
-  for (var p = 0; p < NSEA; p++) {
-    var th2 = 2 * Math.PI * (p + D * NSEA / N) / Math.max(NSEA, 1);
-    add((R1 + DR) * Math.cos(th2), (R1 + DR) * Math.sin(th2), 0, 1, 1e-9);
+  // The shell, as a genuine CYLINDER about the chain: at each ionised site its M electrons
+  // are placed around the tube cross-section -- the plane spanned by the radial direction
+  // and z -- at radius DR from the chain. Sliding by D rotates the whole shell about the
+  // loop, which is motion ALONG the wire. With M=1 this reduces to a single in-plane ring.
+  // DR must stay below R1 or the tube passes through its own axis.
+  var seaSites = [];
+  for (var w4 = 0; w4 < N; w4++) if (ionised[w4]) seaSites.push(w4);
+  for (var q2 = 0; q2 < seaSites.length; q2++) {
+    var th2 = 2 * Math.PI * (seaSites[q2] + D) / N;
+    var hx = Math.cos(th2), hy = Math.sin(th2);
+    for (var p = 0; p < M; p++) {
+      var psi = 2 * Math.PI * p / M;
+      var rad = R1 + DR * Math.cos(psi);
+      add(rad * hx, rad * hy, DR * Math.sin(psi), 1, 1e-9);
+    }
   }
   // The insulating sheath: NEUTRAL H atoms, so it confines by Coulomb and adds no net charge.
   // For an H-chain (m=1) the electrons lie in the plane, so the confinement that matters is
