@@ -183,8 +183,8 @@ direction that should help. Those are rigid-lattice figures and therefore upper 
 correction being unmeasured (\S\ref{sec:conduction}); but the gap to be closed is one to two orders
 of magnitude, and lattice relaxation is not usually worth more than a factor of a few. A material with a $9$~eV activation energy is not a semiconductor but an
 insulator with no accessible transport at any temperature. \emph{As formulated the framework does not conduct} --- though see
-\S\ref{sec:conduction}, where a carrier prevented from re-binding to its donor brings the barrier
-down by a factor of $5.5$, to within about three of the semiconductor range. What follows is therefore the
+\S\ref{sec:conduction}, where a carrier prevented from re-binding to its donor gives
+$0.30$~eV per carrier --- inside the range a hopping semiconductor occupies. What follows is therefore the
 statement of a class the construction belongs to, not a claim that it describes the materials in it;
 and the repair of \S\ref{sec:hubbard}, finite $U$ in place of infinite, ceases to be one option among
 several and becomes the only route to any conduction at all.
@@ -435,26 +435,39 @@ in an outer sheath, neutral overall --- sliding the sheath along the chain gives
 \small
 \begin{tabular}{@{}lrr@{}}
 \toprule
- & carriers free & carriers held outside $r=1.0\,a_0$\\
+ & ring, carrier free & straight chain, carriers held outside $r=1.0\,a_0$\\
 \midrule
-barrier & $4.9$~eV & $\mathbf{0.90}$~\textbf{eV}\\
+carriers & $1$ & $3$\\
+total barrier & $0.180$~Ha & $0.033$~Ha\\
+\textbf{per carrier} & $\mathbf{4.9}$~\textbf{eV} & $\mathbf{0.30}$~\textbf{eV}\\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\noindent a factor of $5.5$. The constrained figures are $-3.560$ at the sites, $-3.527$ midway,
-against a floor of $-4.11$~Ha for seven hydrogens, so they are physical; and the chain being
-symmetric about its centre atom, $E(-d)$ must equal $E(d)$, which it does to $0.002$~Ha against a
-barrier of $0.033$. \emph{Most of the large barrier was the carrier re-binding, not transport.}
+\noindent The constrained figures are $-3.560$ at the sites and $-3.527$ midway, against a floor of
+$-4.11$~Ha for seven hydrogens, so they are physical; and the chain being symmetric about its centre
+atom, $E(-d)$ must equal $E(d)$, which it does to $0.002$~Ha against a total of $0.033$.
 
-This is a modelling choice and the energies are those of the constrained system; it is stated as
-such. But it changes the size of what remains. At $0.90$~eV a carrier still makes only
-$6\times10^{-3}$ hops per second at room temperature, which is an insulator. At $0.30$~eV it makes
-$10^{8}$, which is a working semiconductor. The gap is therefore a factor of about three, not the
-one to two orders of magnitude reported above --- and the one correction still unmeasured, lattice
-relaxation into a polaron, acts in the right direction and is ordinarily worth a factor of two to
-five. \emph{The conclusion that the framework does not conduct is accordingly weaker than the
-earlier sections state}, and rests on whether that factor is available.
+The division by the carrier count is the quantity wanted and is clean here. Thermally activated
+transport proceeds by carriers hopping \emph{independently}, so the activation energy is the
+single-carrier barrier; and the three carriers are $4.4\,a_0$ apart in \emph{both} configurations,
+so their mutual repulsion does not change between them and the total is three times the individual
+cost. \emph{Most of the large barrier was the carrier re-binding to its donor, not transport.}
+
+At $0.30$~eV a carrier makes some $10^{8}$ hops per second at room temperature, which is a working
+hopping semiconductor rather than an insulator, and the figure sits inside the $10$--$500$~meV
+range such materials occupy --- without recourse to the polaron correction, which is unmeasured and
+would act in the same direction. \emph{The conclusion that the framework does not conduct does not
+survive this, and is withdrawn in the form stated earlier.}
+
+Three cautions belong with it, and none is small. The constraint is a modelling choice --- these are
+the energies of a system in which carriers are forbidden the core --- and it is exactly the choice
+that produces the result. The comparison above spans two changes at once, the constraint and the
+change from ring to straight chain, so the factor of sixteen cannot be attributed to either alone.
+And end effects are not excluded: at $d=0.5$ the outermost carrier has one atom beyond it where the
+innermost has three, an asymmetry the mirror test cannot detect, since it forces both ends to
+behave alike and both are contaminated equally. A longer chain at the same doping would settle it,
+and has not been run.
 
 \paragraph{Every barrier here is a rigid-lattice upper bound.} One qualification belongs with all
 of the above, and it is not small. The nuclei are held fixed throughout, so what is computed is the
