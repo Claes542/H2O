@@ -18,9 +18,12 @@
   neighbours and cannot spread without paying.
   </div>
   <div style="margin-top:6px;color:#fc8">
-  <b>Hard cylindrical partition (<code>&amp;rc=1.0</code>).</b> The chain's own electrons are
-  confined to an <b>inner cylinder</b> of radius <code>rc</code> about the chain axis, and the
-  carriers to the <b>outside</b> of it. Enforced every step by the solver, not merely seeded.
+  <b>Hard cylindrical partition (<code>&amp;rc=1.0</code>).</b> The <b>carriers</b> are held
+  <b>outside</b> a cylinder of radius <code>rc</code> about the chain axis, enforced every step by
+  the solver rather than merely seeded. The chain's own electrons are left free, deliberately: an
+  earlier version confined them inside the cylinder too, which left the bare protons on the axis
+  reachable only by them and screened by nobody, so they piled on and the energy fell 1.5 Ha below
+  the physical floor.
   <div style="margin-top:6px">
   This is core&ndash;valence separation by fiat, which is what a pseudopotential does, and it
   removes the flaw undermining every doped run: with nowhere to fall, a carrier cannot quietly
@@ -107,7 +110,13 @@
     atoms.push({ i: Math.round(N2 + x / h), j: Math.round(N2 + y / h),
                  k: Math.round(N2 + z / h), Z: zc, el: 'H' });
     Z.push(zc); Znuc.push(zn); rcut.push(rc || 0);
-    stype.push(RC > 0 ? 5 : 0); sidx.push(inner ? 0 : 1);
+    // Only the CARRIERS are constrained (kept outside RC). The chain's own electrons are
+    // left free -- confining them inside the cylinder as well was a mistake: the bare
+    // protons sit on the axis INSIDE it, so they became reachable only by chain electrons
+    // and unreachable by the carriers that would screen them, and the chain electrons piled
+    // onto them. Energies came out 1.5 Ha below the physical floor while still passing the
+    // mirror check, which tests symmetry rather than physicality.
+    stype.push((RC > 0 && !inner) ? 5 : 0); sidx.push(1);
   }
   function xOf(w) { return (w - (N - 1) / 2) * a; }
 
