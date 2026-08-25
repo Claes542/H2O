@@ -57,7 +57,23 @@ let curvReg = (window.USER_CURV_REG !== undefined) ? window.USER_CURV_REG : 0.15
 //   charged for. The partition is optimal for beta=0 and merely EVALUATED at beta>0, and the
 //   mismatch grows: +3.4% at beta 0.10, +11% at 0.20.
 //
-//   TO FINISH: the flip criterion in evolveBoundaryWGSL must include the surface-energy change
+//   NOW COMPLETE. The boundary force was added and the concavity restored:
+//
+//        dE/beta        beta 0.10   beta 0.20    across
+//        curvReg 0.10     3.636       3.608      -0.8%   concave
+//        curvReg 0        3.970       3.887      -2.1%   concave, more strongly
+//
+//   against 3.93 / 4.01 / 4.27 -- rising 8.5% -- before the force was added. Every energy
+//   also fell, by an amount growing with beta (0.037 at 0.10, 0.132 at 0.20), recovering
+//   exactly the suboptimality the frozen partition had been carrying.
+//
+//   curvReg is now redundant for CONSISTENCY: beta supplies the same force, derived rather
+//   than chosen, with the U^2 weighting and the zero at a flat interface. It still reduces
+//   interface AREA -- dE/beta is 3.97 at curvReg=0 against 3.64 with it -- so a smoothed
+//   boundary is genuinely cheaper, but keeping it means every absolute number carries an
+//   unquantified extra smoothing. curvReg = 0 is the physical setting at finite beta.
+//
+//   (superseded note) the flip criterion in evolveBoundaryWGSL had to include the surface-energy change
 //   when a cell changes hands -- of order (beta/2)[psi_j^2 nface_j - psi_i^2 nface_i] h^2,
 //   normalised against the density-balance term it competes with. That also subsumes curvReg,
 //   which is the same force with an arbitrary coefficient, no psi^2 weighting, and the wrong
