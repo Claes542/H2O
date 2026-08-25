@@ -85,14 +85,20 @@
   var KEY = 'realqm_h2beta';
   if (q.get('reset') !== null) localStorage.setItem(KEY, '{}');
 
-  window.onSweepDone = function (E) {
+  // the solver hands the breakdown to the callback: totals over all electrons
+  window.onSweepDone = function (E, steps, E_T, E_eK, E_ee, E_KK) {
+    window._parts = { T: E_T, eK: E_eK, ee: E_ee, KK: E_KK };
     var st = JSON.parse(localStorage.getItem(KEY) || '{}');
     var k = MODE + '_R' + R.toFixed(2) + '_b' + BETA.toFixed(3)
           + '_c' + CURV.toFixed(2) + '_h' + h.toFixed(3);
     if (!Array.isArray(st[k])) st[k] = [];
     st[k].push(Number(E));
     localStorage.setItem(KEY, JSON.stringify(st));
-    console.log('CONVERGED ' + k + ' E=' + Number(E).toFixed(5));
+    console.log('CONVERGED ' + k + ' E=' + Number(E).toFixed(5)
+                + '  T=' + Number(E_T).toFixed(5) + ' V_eK=' + Number(E_eK).toFixed(5)
+                + ' V_ee=' + Number(E_ee).toFixed(5) + ' V_KK=' + Number(E_KK).toFixed(5));
+    var st2 = JSON.parse(localStorage.getItem(KEY + '_parts') || '{}');
+    st2[k] = [E_T, E_eK, E_ee, E_KK]; localStorage.setItem(KEY + '_parts', JSON.stringify(st2));
   };
 
   // the Python's numbers, for the comparison column
@@ -130,6 +136,27 @@
                     : '     &mdash;   ')
                  + (v.length > 1 ? '  (' + v.length + ' runs)' : ''));
       });
+    // component comparison against the python at R=2.0, beta=0 (totals, both electrons)
+    var PYP = { T: 1.03514, eK: -3.21556, ee: 0.44778, KK: 0.50000 };
+    var sp = JSON.parse(localStorage.getItem(KEY + '_parts') || '{}');
+    var pk = Object.keys(sp).filter(function (x) { return x.indexOf('h2_') === 0 && x.indexOf('_b0.000_') > 0; });
+    if (pk.length) {
+      var pv = sp[pk[pk.length - 1]];
+      out.push('&nbsp;');
+      out.push('<b>components at beta=0, totals over both electrons</b>');
+      out.push('&nbsp; ' + 'term'.padEnd(8) + 'solver'.padStart(11) + 'python'.padStart(11)
+               + 'diff'.padStart(11));
+      [['T', pv[0], PYP.T], ['V_eK', pv[1], PYP.eK], ['V_ee', pv[2], PYP.ee],
+       ['V_KK', pv[3], PYP.KK]].forEach(function (r) {
+        var d = r[1] - r[2];
+        out.push('&nbsp; ' + r[0].padEnd(8) + r[1].toFixed(5).padStart(11)
+                 + r[2].toFixed(5).padStart(11)
+                 + '<span style="color:' + (Math.abs(d) < 0.02 ? '#9f9' : '#f77') + '">'
+                 + d.toFixed(5).padStart(11) + '</span>');
+      });
+      out.push('&nbsp; <span style="color:#9c9">the gradient-dropping mechanism predicts T low '
+               + 'by about 0.175 and the potential terms matching</span>');
+    }
     out.push('&nbsp;');
     out.push('<span style="color:#9c9">python E(H) = ' + PY_H.toFixed(5)
              + ', E_bind at beta=0 = ' + (2 * PY_H + 1.23264).toFixed(5)
