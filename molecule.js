@@ -3005,7 +3005,25 @@ async function doSteps(n) {
     let vp;
     if (N_ELECTRONS > 1 && !window.NO_VEE && USE_DIRECT_POTHER) {
     // --- Direct per-electron Pother: solve ∇²P_m = -2π·ρ_other_m for each electron ---
-    const JACOBI_DIRECT = 10;
+    // Jacobi sweeps per step on the per-electron Poisson solve for P_other.
+    //
+    // *** THIS IS TOO FEW, AND IT UNDER-COUNTS V_ee. ***
+    //
+    // Jacobi propagates information about one cell per sweep, so building P across a
+    // separation of many cells takes hundreds of sweeps. The iteration is persistent across
+    // frames, but the convergence test watches the TOTAL ENERGY, which settles while P is
+    // still slowly growing -- so the run is declared converged with V_ee short. Measured
+    // against exact values, at h=0.08:
+    //
+    //     R = 2   V_ee 0.206  vs  0.448   54% short
+    //     R = 6   V_ee 0.048  vs  0.167   71% short   (exact: 1/R at this separation)
+    //
+    // The shortfall GROWS with separation, which is the signature of a propagation-limited
+    // relaxation rather than a convention error. Consequence: every molecule is over-bound,
+    // worse as the atoms separate, so binding curves are too deep AND the wrong shape.
+    //
+    // Raise it with window.USER_JACOBI_DIRECT until V_ee stops moving.
+    const JACOBI_DIRECT = window.USER_JACOBI_DIRECT || 10;
     for (let m = 0; m < NELEC; m++) {
       if (Z[m] === 0) continue;
       // Compute rhoOther (density of all electrons except m) into rhoTotalBuf
