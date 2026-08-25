@@ -151,6 +151,19 @@
     // reference implementation at all, so it is checked wherever that holds.
     var PYP = { T: 1.03514, eK: -3.21556, ee: 0.44778, KK: 0.50000 };
     var sp = JSON.parse(localStorage.getItem(KEY + '_parts') || '{}');
+    // The H-atom components. These were previously stored but never displayed -- the block
+    // below filters on 'h2_' only -- so a mode=h run recorded T and V_eK and showed neither.
+    // They are the reference for the two-electron case: at large R each electron should
+    // behave like an isolated atom, so V_eK(H2) - 2*V_eK(H) must equal the cross-attraction
+    // -2/R, and T(H2) is compared against 2*T(H) rather than against any theorem.
+    var hk = Object.keys(sp).filter(function (x) { return x.indexOf('h_') === 0; });
+    if (hk.length) {
+      var hv = sp[hk[hk.length - 1]];
+      out.push('&nbsp; <b>H atom: T = ' + hv[0].toFixed(5) + '   V_eK = ' + hv[1].toFixed(5)
+               + '</b>  &rarr; 2xH: T = ' + (2 * hv[0]).toFixed(5)
+               + '  V_eK = ' + (2 * hv[1]).toFixed(5));
+      window._hParts = hv;
+    }
     var pk = Object.keys(sp).filter(function (x) { return x.indexOf('h2_') === 0; });
     if (pk.length) {
       var kk = pk[pk.length - 1];
@@ -188,6 +201,20 @@
         out.push('&nbsp; <b>integral(rho_other) = <span style="color:'
                  + (rok ? '#9f9' : '#f77') + '">' + window._rhoOther.toFixed(4)
                  + '</span> vs exact 1.0</b>  (max ' + window._rhoOtherMax.toExponential(2) + ')');
+      }
+      // The discriminator. V_eK(H2) - 2*V_eK(H) is the cross-attraction and must be -2/R.
+      // Landing at -1/R instead means exactly one of the two cross terms is being counted.
+      if (window._hParts) {
+        var gap = pv[1] - 2 * window._hParts[1], want = -2 / Rk;
+        out.push('&nbsp; <b>V_eK cross-attraction: ' + gap.toFixed(5)
+                 + ' vs expected -2/R = ' + want.toFixed(5)
+                 + '   <span style="color:' + (Math.abs(gap - want) < 0.05 ? '#9f9' : '#f77')
+                 + '">ratio ' + (gap / want).toFixed(3) + '</span></b>'
+                 + '  (0.5 = one cross term missing)');
+        out.push('&nbsp; <b>T: ' + pv[0].toFixed(5) + ' vs 2xT(H) = '
+                 + (2 * window._hParts[0]).toFixed(5) + '   ratio '
+                 + (pv[0] / (2 * window._hParts[0])).toFixed(3)
+                 + '</b>  (reference gives 0.90 with everything correct)');
       }
       out.push('&nbsp; <span style="color:#9c9">V_KK must equal 1/R = '
                + (1 / Rk).toFixed(5) + ' exactly &mdash; a free check on units</span>');
