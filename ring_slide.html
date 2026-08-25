@@ -78,7 +78,7 @@
   window.USER_STEPS = 1000000;
   window.USER_DYNAMICS = false;                  // ions fixed: the sea is what moves
   window.USER_BOUNDARY_SPEED = BS;
-  window.USER_CURV_REG = 0.10;
+  window.USER_CURV_REG = parseFloat(q.get('curv') || '0.10');
   window.USER_BETA = BETA;
   window.INIT_ZEFF = 1;
   window.CONVERGENCE_THRESHOLD = 0.0002;
@@ -89,7 +89,7 @@
   window.onSweepDone = function (E) {
     var st = JSON.parse(localStorage.getItem(KEY) || '{}');
     var sv = (new URLSearchParams(location.search).get('solver') || 'molecule.js').replace('.js','');
-    var k = 'a' + a.toFixed(1) + '_b' + BETA.toFixed(3) + '_phi' + PHI.toFixed(2) + '_' + sv;
+    var k = 'a' + a.toFixed(1) + '_b' + BETA.toFixed(3) + '_phi' + PHI.toFixed(2) + '_c' + (parseFloat(q.get('curv')||'0.10')).toFixed(2) + '_' + sv;
     if (!Array.isArray(st[k])) st[k] = [];
     st[k].push(Number(E));
     localStorage.setItem(KEY, JSON.stringify(st));
@@ -100,8 +100,8 @@
     var st = JSON.parse(localStorage.getItem(KEY) || '{}');
     var byA = {};
     Object.keys(st).forEach(function (k) {
-      var m = k.match(/a([\d.]+)_b([\d.]+)_phi([\d.]+)_(.+)/);
-      if (m) { var lb = m[1] + '  beta=' + m[2] + '  [' + m[4] + ']';
+      var m = k.match(/a([\d.]+)_b([\d.]+)_phi([\d.]+)_c([\d.]+)_(.+)/);
+      if (m) { var lb = m[1] + '  beta=' + m[2] + '  curv=' + m[4] + '  [' + m[5] + ']';
                (byA[lb] = byA[lb] || {})[m[3]] = st[k]; }
     });
     var out = [];
