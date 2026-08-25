@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html><head>
+  <meta charset="utf-8">
+  <title>H2 against beta — solver vs the independent Python</title>
+  <style>body { margin: 0; background: #000; color: #fff; font-family: monospace; }</style>
+</head><body>
+<div id="info" style="position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.86);padding:10px;border:1px solid #333;border-radius:6px;max-width:575px;font-size:12px;z-index:100">
+  <div style="color:#9f9;font-weight:bold">H<sub>2</sub> as a function of the interface surface tension</div>
+  Two protons at separation <code>R</code>, one electron each. By symmetry the domains meet at the
+  <b>midplane</b>, so the interface sits in the bond region and &beta; acts squarely on it. This is
+  the cross-check for the &beta; implementation: an <b>independent Python calculation</b> solves the
+  same problem by a completely different route, and the two should agree.
+  <div style="margin-top:6px">
+  <b>Why the two are genuinely independent.</b> The Python assembles the energy as a quadratic form
+  on a cylindrical grid and solves a generalised eigenproblem directly, with free-space Poisson by
+  zero-padded FFT. This solver relaxes in imaginary time on a Cartesian GPU grid with a multigrid
+  Poisson and a moving free boundary. Nothing is shared but the physics, so agreement is evidence
+  and disagreement locates a bug.
+  </div>
+  <div style="margin-top:6px;color:#9cf">
+  <b>Reference values from the Python</b> (R = 2.0, h = 0.05, E(H) = &minus;0.501227):
+  <div style="margin-top:4px;font-size:11px">
+  &beta;=0: &minus;1.23264 &nbsp; 0.1: &minus;1.22987 &nbsp; 0.2: &minus;1.22249 &nbsp;
+  0.4: &minus;1.19843 &nbsp; 0.8: &minus;1.13374 &nbsp; 1.146: &minus;1.07585 &nbsp; 2.0: &minus;0.95693
+  </div>
+  <div style="margin-top:4px">
+  Note those carry a standing puzzle: at &beta;=0 the Python gives E<sub>bind</sub> = 0.230 Ha where
+  this framework is recorded at about 0.17. Whether that gap is the Python, the solver or the grid is
+  exactly what this page should settle &mdash; and it must be settled before any &beta; result is
+  quoted.
+  </div>
+  </div>
+  <div style="margin-top:6px">
+  <b>&beta; enters as an energy, not a condition.</b> The surface term
+  (&beta;/2)&int;&psi;<sup>2</sup>dS has &part;<sub>n</sub>&psi;+&beta;&psi;=0 as its natural boundary
+  condition, so nothing is imposed. Set <code>&amp;curv=0</code> for the physical setting: &beta;
+  then supplies the boundary force by itself, which is the configuration validated by the concavity
+  test.
+  </div>
+  <div style="margin-top:6px">
+  <b>URL:</b> <code>?R=2.0</code> proton separation, <code>&amp;beta=0</code>,
+  <code>&amp;mode=h2</code> or <code>h</code> for the single-atom reference (no interface, so &beta;
+  cannot matter &mdash; E must be &minus;0.5 at any &beta;, which is a check in itself),
+  <code>&amp;box=16</code>, <code>&amp;h=0.10</code> grid spacing, <code>&amp;curv=0</code>,
+  <code>&amp;bs=0.25</code>, <code>&amp;reset</code> clears.
+  </div>
+  <div id="mon" style="margin-top:8px;color:#9f9">relaxing&hellip;</div>
+  <div id="tab" style="margin-top:8px;color:#9c9;font-size:11px"></div>
+</div>
+<script>
+(function() {
+  var q = new URLSearchParams(location.search);
+  var R    = parseFloat(q.get('R') || '2.0');
+  var BETA = parseFloat(q.get('beta') || '0');
+  var MODE = q.get('mode') || 'h2';
+  var BOX  = parseFloat(q.get('box') || '16');
+  var HG   = parseFloat(q.get('h') || '0.10');
+  var CURV = parseFloat(q.get('curv') || '0');
+  var BS   = parseFloat(q.get('bs') || '0.25');
+
+  var gridN = Math.max(48, Math.min(200, 2 * Math.round(BOX / HG / 2)));
+  var scr = BOX, N2 = gridN / 2, h = scr / gridN;
+
+  var atoms = [], Z = [], Znuc = [];
+  function add(x) {
+    atoms.push({ i: Math.round(N2 + x / h), j: N2, k: N2, Z: 1, el: 'H' });
+    Z.push(1); Znuc.push(1);
+  }
+  if (MODE === 'h') { add(0); }
+  else { add(-R / 2); add(+R / 2); }
+
+  window.USER_ATOMS = atoms;
+  window.USER_Z = Z;
+  window.USER_Z_NUC = Znuc;
+  window.USER_NN = gridN;
+  window.USER_SCREEN = scr;
+  window.USER_STEPS = 1000000;
+  window.USER_DYNAMICS = false;              // fixed nuclei: E(R), not an optimisation
+  window.USER_BOUNDARY_SPEED = BS;
+  window.USER_CURV_REG = CURV;
+  window.USER_BETA = BETA;
+  window.INIT_ZEFF = 1;
+  window.CONVERGENCE_THRESHOLD = 0.0002;
+
+  var KEY = 'realqm_h2beta';
+  if (q.get('reset') !== null) localStorage.setItem(KEY, '{}');
+
+  window.onSweepDone = function (E) {
+    var st = JSON.parse(localStorage.getItem(KEY) || '{}');
+    var k = MODE + '_R' + R.toFixed(2) + '_b' + BETA.toFixed(3)
+          + '_c' + CURV.toFixed(2) + '_h' + h.toFixed(3);
+    if (!Array.isArray(st[k])) st[k] = [];
+    st[k].push(Number(E));
+    localStorage.setItem(KEY, JSON.stringify(st));
+    console.log('CONVERGED ' + k + ' E=' + Number(E).toFixed(5));
+  };
+
+  // the Python's numbers, for the comparison column
+  var PY = { '0.000': -1.23264, '0.100': -1.22987, '0.200': -1.22249, '0.400': -1.19843,
+             '0.800': -1.13374, '1.146': -1.07585, '2.000': -0.95693 };
+  var PY_H = -0.501227;
+
+  function table() {
+    var st = JSON.parse(localStorage.getItem(KEY) || '{}');
+    var ks = Object.keys(st);
+    if (!ks.length) { document.getElementById('tab').innerHTML = ''; return; }
+    var out = [], EH = null;
+    ks.forEach(function (k) { var m = k.match(/^h_/); if (m) EH = Math.min.apply(null, st[k]); });
+    out.push('<b>' + (EH !== null ? 'E(H) = ' + EH.toFixed(5)
+              + '  (exact -0.50000, error ' + (EH + 0.5).toFixed(5) + ')'
+              : 'E(H) not yet run &mdash; needed for E_bind') + '</b>');
+    out.push('&nbsp;');
+    out.push('<b>' + 'beta'.padEnd(7) + 'E(H2)'.padStart(11) + 'E_bind'.padStart(10)
+             + 'python'.padStart(11) + 'diff'.padStart(9) + '</b>');
+    ks.filter(function (k) { return k.indexOf('h2_') === 0; })
+      .sort(function (a, b) { return parseFloat(a.split('_b')[1]) - parseFloat(b.split('_b')[1]); })
+      .forEach(function (k) {
+        var m = k.match(/^h2_R([\d.]+)_b([\d.]+)_c([\d.]+)_h([\d.]+)$/);
+        if (!m) return;
+        var v = st[k], best = Math.min.apply(null, v);
+        var py = PY[m[2]];
+        var bind = (EH !== null) ? (2 * EH - best) : null;
+        out.push('&nbsp;' + m[2].padEnd(7)
+                 + best.toFixed(5).padStart(11)
+                 + (bind !== null ? bind.toFixed(5).padStart(10) : '     &mdash;   ')
+                 + (py !== undefined ? py.toFixed(5).padStart(11) : '      &mdash;    ')
+                 + (py !== undefined
+                    ? ('<span style="color:' + (Math.abs(best - py) < 0.02 ? '#9f9' : '#fc8') + '">'
+                       + (best - py).toFixed(5).padStart(9) + '</span>')
+                    : '     &mdash;   ')
+                 + (v.length > 1 ? '  (' + v.length + ' runs)' : ''));
+      });
+    out.push('&nbsp;');
+    out.push('<span style="color:#9c9">python E(H) = ' + PY_H.toFixed(5)
+             + ', E_bind at beta=0 = ' + (2 * PY_H + 1.23264).toFixed(5)
+             + ' Ha = ' + ((2 * PY_H + 1.23264) * 27.2114).toFixed(2) + ' eV'
+             + '  (experiment at R=2.0: about 0.14 Ha)</span>');
+    document.getElementById('tab').innerHTML = out.join('<br>');
+  }
+
+  setInterval(function () {
+    var el = document.getElementById('mon');
+    if (!el) return;
+    var txt = (MODE === 'h' ? 'single H atom (no interface: beta cannot matter)'
+                            : 'H2 at R = ' + R.toFixed(2) + ' a0, domains meeting at the midplane')
+            + '<br>beta = ' + BETA.toFixed(3) + ',  curv = ' + CURV.toFixed(2)
+            + ',  grid h = ' + h.toFixed(3) + ' (' + gridN + '^3), box ' + BOX + '<br>';
+    if (typeof window._prevE !== 'undefined')
+      txt += 'E = ' + Number(window._prevE).toFixed(5) + ' Ha'
+           + (window._convCount ? '  (settling)' : '  (running)') + '<br>';
+    el.innerHTML = txt;
+    table();
+  }, 500);
+
+  console.log('h2_beta: mode=' + MODE + ' R=' + R + ' beta=' + BETA + ' curv=' + CURV
+              + ' grid=' + gridN + ' h=' + h.toFixed(3));
+})();
+
+var s = document.createElement('script');
+s.src = (new URLSearchParams(location.search).get('solver') || 'molecule.js') + '?t=' + Date.now();
+s.onload = function() {
+  var p = document.createElement('script');
+  p.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+  document.body.appendChild(p);
+};
+document.body.appendChild(s);
+</script>
+</body></html>
