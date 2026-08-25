@@ -1004,7 +1004,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 // molecule.js replaced this with ten damped-Jacobi sweeps per psi step -- same fixed point
 // in theory, but it drives V_ee from an exact 0.17 down to 0.042 at R=6, and every line of
 // it checks out in isolation. This is the algorithm that demonstrably works.
-// Bindings are identical to jacobiSmooth, so jacobiDirectBG can be reused as-is.
+// Bindings are structurally identical to jacobiSmooth, but BOTH pipelines use
+// layout:'auto', which mints a UNIQUE layout per pipeline -- bind groups are not
+// interchangeable between them. relaxDirectBG is built from this pipeline's own layout.
 const relaxPdirectWGSL = `
 ${paramStructWGSL}
 @group(0) @binding(0) var<uniform> p: P;
@@ -2029,7 +2031,7 @@ let computeRhoPL, computeResidualPL, restrictPL, coarseSmoothPL, prolongCorrectP
 let computeRhoSelfPL, subtractPselfPL;
 let computeRhoOtherPL, copyPotherForLabelPL, initPdirectPL, relaxPdirectPL;
 let P_directBuf = [], P_directScratchBuf = [];
-let computeRhoOtherBG = [], jacobiDirectBG = [], copyPotherForLabelBG = [], initPdirectBG = [];
+let computeRhoOtherBG = [], jacobiDirectBG = [], copyPotherForLabelBG = [], initPdirectBG = [], relaxDirectBG = [];
 let updateBG = [], evolveBoundaryBG = [], fixBoundaryUBG = [], jacobiFineBG = [];
 let reduceEnergyBG = [], finalizeEnergyBG, accumNormsBG = [], decodeNormsBG, normalizeBG = [], extractBG = [];
 let gpuInitAccumBG, gpuInitFinalBG;
@@ -2959,6 +2961,21 @@ async function initGPU() {
             { binding: 3, resource: { buffer: rhoTotalBuf } },
           ]}),
         ];
+        // Same buffers, same ping-pong, but this pipeline's OWN auto layout (see above).
+        relaxDirectBG[m] = [
+          device.createBindGroup({ layout: relaxPdirectPL.getBindGroupLayout(0), entries: [
+            { binding: 0, resource: { buffer: paramsBuf } },
+            { binding: 1, resource: { buffer: P_directBuf[m] } },
+            { binding: 2, resource: { buffer: P_directScratchBuf[m] } },
+            { binding: 3, resource: { buffer: rhoTotalBuf } },
+          ]}),
+          device.createBindGroup({ layout: relaxPdirectPL.getBindGroupLayout(0), entries: [
+            { binding: 0, resource: { buffer: paramsBuf } },
+            { binding: 1, resource: { buffer: P_directScratchBuf[m] } },
+            { binding: 2, resource: { buffer: P_directBuf[m] } },
+            { binding: 3, resource: { buffer: rhoTotalBuf } },
+          ]}),
+        ];
         // copyPotherForLabel: same layout as subtractPself (params, Psrc, Pother, label, domIdx)
         copyPotherForLabelBG[m] = device.createBindGroup({ layout: copyPotherForLabelPL.getBindGroupLayout(0), entries: [
           { binding: 0, resource: { buffer: paramsBuf } },
@@ -3199,11 +3216,11 @@ async function doSteps(n) {
       vp.end();
       // Jacobi iterations on P_direct[m] (persistent, accumulates across frames)
       // USER_P5_RELAX = false falls back to the damped-Jacobi sweeps
-      const _pPipe = (window.USER_P5_RELAX === false) ? jacobiSmoothPL : relaxPdirectPL;
+      const _p5 = (window.USER_P5_RELAX !== false);
       for (let js = 0; js < JACOBI_DIRECT; js++) {
         vp = enc.beginComputePass();
-        vp.setPipeline(_pPipe);
-        vp.setBindGroup(0, jacobiDirectBG[m][js % 2]);
+        vp.setPipeline(_p5 ? relaxPdirectPL : jacobiSmoothPL);
+        vp.setBindGroup(0, (_p5 ? relaxDirectBG : jacobiDirectBG)[m][js % 2]);
         dispatchLinear(vp, INTERIOR);
         vp.end();
       }
