@@ -3491,6 +3491,33 @@ async function doSteps(n) {
   }
   device.queue.submit([enc.finish()]);
 
+  // One-shot diagnostic: integral of rho_other over the interior, which MUST be 1.0 (one
+  // other electron). At this point in the frame rhoTotalBuf holds rho_other for the last
+  // electron of the direct loop. Result goes to document.title so it can be read off the
+  // browser tab without opening devtools.
+  //
+  // Why: at R=6 the direct sum alone gives the exact V_ee = 1/R = 0.1667, and ANY
+  // relaxation walks it DOWN (p5 gradient step 0.0712, damped Jacobi 0.042 -- ordered by
+  // how fast each converges). Starting from the point-charge solution lap(P) is ~0 in the
+  // interior, so the residual is ~ +2*PI*rho_other, which would make P GROW. It shrinks
+  // instead, which is what happens when rho_other is ~0: P relaxes to a harmonic
+  // interpolation of its frozen boundary and the 0.5/r peak decays away.
+  window._rhoDiagN = (window._rhoDiagN || 0) + 1;
+  if (window.USER_RHO_DIAG && window._rhoDiagN === 200) {
+    const rb = device.createBuffer({ size: S3 * 4, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+    const e2 = device.createCommandEncoder();
+    e2.copyBufferToBuffer(rhoTotalBuf, 0, rb, 0, S3 * 4);
+    device.queue.submit([e2.finish()]);
+    await rb.mapAsync(GPUMapMode.READ);
+    const rd = new Float32Array(rb.getMappedRange());
+    let tot = 0.0, mx = 0.0;
+    for (let i = 0; i < rd.length; i++) { tot += rd[i]; if (rd[i] > mx) mx = rd[i]; }
+    rb.unmap(); rb.destroy();
+    const integ = tot * h3v;
+    document.title = 'rho_other=' + integ.toFixed(4) + ' max=' + mx.toExponential(2);
+    console.log('RHO DIAG: integral(rho_other) =', integ, '(expect 1.0)  max =', mx);
+  }
+
   const oomErr = await device.popErrorScope();
   const valErr = await device.popErrorScope();
   if (oomErr) { console.error("GPU OOM:", oomErr.message); window._gpuValErr = "OOM: " + oomErr.message; }
