@@ -175,6 +175,15 @@
                  + (Math.abs(rat - 1) < 0.1 ? '#9f9' : '#f77') + '">' + rat.toFixed(2)
                  + '</span></b>  (no reference code needed)');
       }
+      // The source term the Poisson relaxation is fed. It MUST integrate to 1.0 -- one
+      // other electron. If it does not, that alone explains V_ee: P relaxes toward a
+      // harmonic interpolation of its frozen boundary and the 0.5/r peak decays away.
+      if (window._rhoOther !== undefined) {
+        var rok = Math.abs(window._rhoOther - 1) < 0.05;
+        out.push('&nbsp; <b>integral(rho_other) = <span style="color:'
+                 + (rok ? '#9f9' : '#f77') + '">' + window._rhoOther.toFixed(4)
+                 + '</span> vs exact 1.0</b>  (max ' + window._rhoOtherMax.toExponential(2) + ')');
+      }
       out.push('&nbsp; <span style="color:#9c9">V_KK must equal 1/R = '
                + (1 / Rk).toFixed(5) + ' exactly &mdash; a free check on units</span>');
     }

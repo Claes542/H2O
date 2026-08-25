@@ -3514,6 +3514,7 @@ async function doSteps(n) {
     for (let i = 0; i < rd.length; i++) { tot += rd[i]; if (rd[i] > mx) mx = rd[i]; }
     rb.unmap(); rb.destroy();
     const integ = tot * h3v;
+    window._rhoOther = integ; window._rhoOtherMax = mx;
     document.title = 'rho_other=' + integ.toFixed(4) + ' max=' + mx.toExponential(2);
     console.log('RHO DIAG: integral(rho_other) =', integ, '(expect 1.0)  max =', mx);
   }
