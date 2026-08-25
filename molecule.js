@@ -28,6 +28,20 @@ const NRED_E = 6;  // Energy reduce: T + V_eK + V_ee + dipole(x,y,z)
 //     molecule.js       0.048   = 0.29x exact   under counted  -> OVER-binds
 //     (prebeta same as molecule.js: the defect is original, not introduced with beta)
 //
+// AND THE ORIGINAL p5 IMPLEMENTATION IS THE ONE THAT HAS IT RIGHT. h2_p5_original.html,
+// measured at R=2 and extrapolated to remove the wall truncation every one of these codes
+// shares (V_ee = A - c/L, fitted through two box sizes):
+//
+//     box 16 (L=8)   V_ee 0.3785
+//     box 24 (L=12)  V_ee 0.3915   ->  c = 0.312,  A = 0.4175
+//
+// against the exact 0.448 that is 93%, and the remaining 7% is its much coarser grid
+// (h = 0.13-0.20 against 0.05) plus its explicit r -> sqrt(r^2+h^2) softening, which
+// suppresses V_ee directly. So the framework's first and simplest implementation computes
+// this term correctly, and BOTH later builds are regressions -- one doubling it, one
+// losing more than half. The error is invisible except in an absolute energy checked
+// against a known value, which is why it survived.
+//
 // Each build's total energy follows from its own V_ee error, which is how the account
 // closes: at R=6 two H atoms give about -0.94, and
 //     molecule_h2.js   -0.94 + 0.166 = -0.774   measured -0.81

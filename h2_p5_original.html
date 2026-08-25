@@ -23,6 +23,8 @@ let _q = new URLSearchParams(location.search);
 let N = parseInt(_q.get('N') || '100');
 let N2 = Math.round(N / 2);
 let D = parseInt(_q.get('D') || '19');
+let BOXAU = parseFloat(_q.get('box') || '8');
+let Vee = 0, Vne = 0;   // split out of Ep so V_ee can be checked against its exact value
 let dt;
 let h;
 let t = 1;
@@ -30,8 +32,8 @@ let d = 0.1;
 let M = 3;
 
 function setup() {
-  createCanvas(500, 420);
-  h = 8 / N;
+  createCanvas(560, 470);
+  h = BOXAU / N;
   dt = d * pow(h, 2);
 
   var actualR = D * h;
@@ -130,6 +132,8 @@ function draw() {
     E = 0;
     Ek = 0;
     Ep = 0;
+    Vee = 0;
+    Vne = 0;
     for (var i = 1; i < N; i++) {
       for (var j = 1; j < N; j++) {
         for (var k = 1; k < N; k++) {
@@ -152,7 +156,12 @@ function draw() {
             if (w[m][i][j][k] > 0.5) {
               Ek = Ek + 0.5 * (pow(u[m][i + 1][j][k] - u[m][i][j][k], 2) + pow(u[m][i][j + 1][k] - u[m][i][j][k], 2) + pow(u[m][i][j][k + 1] - u[m][i][j][k], 2)) * h;
             }
-            Ep = Ep + (P[m][i][j][k] - K[i][j][k]) * pow(u[m][i][j][k], 2) * pow(h, 3);
+            // split Ep so V_ee is visible on its own: at large R it must equal 1/R,
+            // which arbitrates between builds without needing a reference implementation
+            var _d = pow(u[m][i][j][k], 2) * pow(h, 3);
+            Vee = Vee + P[m][i][j][k] * _d;
+            Vne = Vne - K[i][j][k] * _d;
+            Ep = Ep + (P[m][i][j][k] - K[i][j][k]) * _d;
           }
         }
       }
@@ -217,6 +226,13 @@ function draw() {
   text("T = " + Ek.toFixed(4), 10, 375);
   text("V_eK+V_ee = " + Ep.toFixed(4), 10, 390);
   text("V_KK = " + window._V_KK.toFixed(4), 10, 405);
+  var _R = D * h;
+  // on their own lines: 375 and 390 are already taken by T and V_eK+V_ee above
+  fill(150, 255, 150);
+  text("V_ee = " + Vee.toFixed(4) + "   exact 1/R = " + (1/_R).toFixed(4)
+       + "   ratio " + (Vee / (1/_R)).toFixed(2), 10, 428);
+  fill(255);
+  text("V_ne = " + Vne.toFixed(4) + "   R = " + _R.toFixed(3) + " au", 10, 445);
   text("(ref: E(R=1.4)=-1.17 Ha)", 250, 360);
 }
 </script>
