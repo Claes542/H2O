@@ -2598,7 +2598,9 @@ async function initGPU() {
     }
     // Multigrid buffers
     const cBufSize = SC3 * 4;
-    rhoTotalBuf = device.createBuffer({ size: bs, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+    // COPY_SRC so the rho_other diagnostic can read it back; without it the copy is a
+    // validation error and the readback returns an all-zero destination buffer.
+    rhoTotalBuf = device.createBuffer({ size: bs, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC });
     residualBuf = device.createBuffer({ size: bs, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
     for (let i = 0; i < 2; i++) {
       Pc_buf[i] = device.createBuffer({ size: cBufSize, usage: usage });
