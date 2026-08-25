@@ -793,13 +793,31 @@ struct DomIdx { idx: u32, _p0: u32, _p1: u32, _p2: u32 }
 ${cellIdxWGSL}
 @compute @workgroup_size(256)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
-  let NM = p.NN - 1u;
-  let tot = NM * NM * NM;
+  // FULL grid, 0..NN inclusive -- NOT the interior only.
+  //
+  // This kernel used to run over the interior (1..NN-1), leaving the boundary cells of
+  // Pdirect at their zero-initialised value. The Jacobi smoother also updates only the
+  // interior, so it read that zero as its boundary condition: P was pinned to 0 at the box
+  // wall where it should carry the monopole tail 0.5*Q/r. The electron-electron energy was
+  // therefore short by about 1/L for a wall at distance L, uniformly, regardless of the
+  // separation of the charges.
+  //
+  //     R=6, box 16 (L=8):   V_ee 0.048 measured, 0.042 predicted, 0.167 exact
+  //     R=2, box 10 (L=5):   V_ee 0.206 measured, 0.248 predicted, 0.448 exact
+  //
+  // A fixed deficit against a quantity that falls as 1/R looks like a growing fractional
+  // error, which is how it hid: it reads as a scaling law rather than a constant.
+  // Every molecule was over-bound, worst in the dissociation tail.
+  //
+  // Covering the full grid gives the boundary the same monopole sum the interior gets,
+  // which is exactly the condition wanted, and costs one extra shell of cells.
+  let NF = p.NN + 1u;
+  let tot = NF * NF * NF;
   let cell = cellIdx(gid);
   if (cell >= tot) { return; }
-  let k = (cell % NM) + 1u;
-  let j = ((cell / NM) % NM) + 1u;
-  let i = (cell / (NM * NM)) + 1u;
+  let k = cell % NF;
+  let j = (cell / NF) % NF;
+  let i = cell / (NF * NF);
   let id = i * p.S2 + j * p.S + k;
   let xi = f32(i) * p.h;
   let yj = f32(j) * p.h;
@@ -2858,7 +2876,7 @@ async function initGPU() {
         const cp = initEnc.beginComputePass();
         cp.setPipeline(initPdirectPL);
         cp.setBindGroup(0, initPdirectBG[m]);
-        dispatchLinear(cp, INTERIOR);
+        dispatchLinear(cp, S3);   // FULL grid: the boundary needs the monopole tail too
         cp.end();
         device.queue.submit([initEnc.finish()]);
       }
