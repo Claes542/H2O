@@ -3184,16 +3184,11 @@ async function doSteps(n) {
     // cell, so interleaving it with copyPotherForLabel would leave earlier domains holding
     // P_m + P_n. Seeding all electrons first, then relaxing and copying each, is correct
     // because copyPotherForLabel then overwrites every cell.
-    if (window.USER_REANCHOR !== false) {
-      for (let m = 0; m < NELEC; m++) {
-        if (Z[m] === 0) continue;
-        vp = enc.beginComputePass();
-        vp.setPipeline(initPdirectPL);
-        vp.setBindGroup(0, initPdirectBG[m]);
-        dispatchLinear(vp, S3);
-        vp.end();
-      }
-    }
+    // A per-step re-anchor (initPdirect for every electron, every step) lived here as a
+    // stopgap while the V_ee fault was unlocated. It is gone: initPdirect is a direct sum
+    // over all electrons at every cell of the FULL grid, so running it per step added
+    // NELEC full-grid direct-sum dispatches to every iteration and locked the page on a
+    // fine mesh. The p5 relaxation removes the need for it.
     for (let m = 0; m < NELEC; m++) {
       if (Z[m] === 0) continue;
       // Compute rhoOther (density of all electrons except m) into rhoTotalBuf
