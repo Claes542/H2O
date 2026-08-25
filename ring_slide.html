@@ -100,8 +100,11 @@
     var st = JSON.parse(localStorage.getItem(KEY) || '{}');
     var byA = {};
     Object.keys(st).forEach(function (k) {
-      var m = k.match(/a([\d.]+)_b([\d.]+)_phi([\d.]+)_c([\d.]+)_(.+)/);
-      if (m) { var lb = m[1] + '  beta=' + m[2] + '  curv=' + m[4] + '  [' + m[5] + ']';
+      // the _c (curv) field was added later, so accept keys without it and mark them
+      var m = k.match(/a([\d.]+)_b([\d.]+)_phi([\d.]+)(?:_c([\d.]+))?_(.+)/);
+      if (m) { var lb = m[1] + '  beta=' + m[2]
+                      + '  curv=' + (m[4] !== undefined ? m[4] : '0.10?legacy')
+                      + '  [' + m[5] + ']';
                (byA[lb] = byA[lb] || {})[m[3]] = st[k]; }
     });
     var out = [];
