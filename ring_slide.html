@@ -88,7 +88,8 @@
 
   window.onSweepDone = function (E) {
     var st = JSON.parse(localStorage.getItem(KEY) || '{}');
-    var k = 'a' + a.toFixed(1) + '_b' + BETA.toFixed(3) + '_phi' + PHI.toFixed(2);
+    var sv = (new URLSearchParams(location.search).get('solver') || 'molecule.js').replace('.js','');
+    var k = 'a' + a.toFixed(1) + '_b' + BETA.toFixed(3) + '_phi' + PHI.toFixed(2) + '_' + sv;
     if (!Array.isArray(st[k])) st[k] = [];
     st[k].push(Number(E));
     localStorage.setItem(KEY, JSON.stringify(st));
@@ -99,8 +100,9 @@
     var st = JSON.parse(localStorage.getItem(KEY) || '{}');
     var byA = {};
     Object.keys(st).forEach(function (k) {
-      var m = k.match(/a([\d.]+)_b([\d.]+)_phi([\d.]+)/);
-      if (m) (byA[m[1] + '  beta=' + m[2]] = byA[m[1] + '  beta=' + m[2]] || {})[m[3]] = st[k];
+      var m = k.match(/a([\d.]+)_b([\d.]+)_phi([\d.]+)_(.+)/);
+      if (m) { var lb = m[1] + '  beta=' + m[2] + '  [' + m[4] + ']';
+               (byA[lb] = byA[lb] || {})[m[3]] = st[k]; }
     });
     var out = [];
     Object.keys(byA).sort().forEach(function (A) {
@@ -148,7 +150,7 @@
 })();
 
 var s = document.createElement('script');
-s.src = 'molecule.js?t=' + Date.now();
+s.src = (new URLSearchParams(location.search).get('solver') || 'molecule.js') + '?t=' + Date.now();
 s.onload = function() {
   var p = document.createElement('script');
   p.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';

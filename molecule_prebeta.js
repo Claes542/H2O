@@ -32,37 +32,6 @@ const SPLIT_AXIS = window.USER_SPLIT_AXIS || [];
 const SPLIT_ROT  = window.USER_SPLIT_ROT  || [];
 let R_out = 0.5;   // au, unused legacy
 let curvReg = (window.USER_CURV_REG !== undefined) ? window.USER_CURV_REG : 0.15;  // curvature regularization for free boundary
-// Robin surface tension on the electron-electron interface: the natural boundary condition of
-// the surface energy (beta/2) INT psi^2 dS is d(psi)/dn + beta*psi = 0, so nothing is imposed --
-// adding the energy is enough. beta = 0 reproduces the framework exactly as before.
-//
-// STATUS: HALF IMPLEMENTED. Do not quote energies at beta > 0.
-//
-//   beta = 0 regression PASSED: ring_slide n=6 a=2.2 dr=1.2 phi=0 returns -3.36796, matching
-//   the paper's sliding calculation and wire_coaxial's independent reproduction of it.
-//
-//   psi-side PASSED. First-order perturbation theory requires dE = (beta/2) INT psi^2 dS, so at
-//   small beta the energy must rise linearly. Measured on that same configuration:
-//        beta 0.05  dE 0.191   dE/beta 3.82
-//        beta 0.10  dE 0.395   dE/beta 3.95
-//        beta 0.20  dE 0.848   dE/beta 4.24
-//   Sign right, and the ratio at 0.10 is 2.07 where 2.00 is exact -- so the face counting and
-//   the factor of 1/2 are both correct.
-//
-//   BOUNDARY-SIDE MISSING, and the same numbers show it. dE/beta RISES, so E(beta) is convex.
-//   It must be concave: E(beta) is a minimum over psi of quantities linear in beta, hence below
-//   its tangent at zero. Convexity means the solver is not minimising the energy it reports --
-//   because beta enters the psi equation and the energy sum but NOT the boundary motion, which
-//   is still density balance plus curvReg and knows nothing of the surface energy it is being
-//   charged for. The partition is optimal for beta=0 and merely EVALUATED at beta>0, and the
-//   mismatch grows: +3.4% at beta 0.10, +11% at 0.20.
-//
-//   TO FINISH: the flip criterion in evolveBoundaryWGSL must include the surface-energy change
-//   when a cell changes hands -- of order (beta/2)[psi_j^2 nface_j - psi_i^2 nface_i] h^2,
-//   normalised against the density-balance term it competes with. That also subsumes curvReg,
-//   which is the same force with an arbitrary coefficient, no psi^2 weighting, and the wrong
-//   zero: it vanishes at a three-exposed-face corner rather than at a flat interface.
-let betaSurf = (window.USER_BETA !== undefined) ? window.USER_BETA : 0.0;
 let Z = [..._uz];
 let Ne = [..._uz];
 const Z_orig = [..._uz];
@@ -202,14 +171,13 @@ fn cellIdx(gid: vec3<u32>) -> u32 {
 }`;
 
 // Param struct: 16 common fields = 64 bytes. Atom data in separate storage buffer.
-const PARAM_BYTES = 80;   // 20 fields; was 64 before beta was added
+const PARAM_BYTES = 64;
 const paramStructWGSL = `
 struct P {
   NN: u32, S: u32, S2: u32, S3: u32,
   N2: u32, dt_w: f32, curvReg: f32, TWO_PI: f32,
   h: f32, h2: f32, inv_h: f32, inv_h2: f32,
   dt: f32, half_d: f32, h3: f32, sliceK: u32,
-  beta: f32, _pad0: f32, _pad1: f32, _pad2: f32,
 }`;
 
 const ATOM_STRIDE = 14; // 8 base + 6 split (splitType, splitIdx, splitAxX/Y/Z, splitRot)
@@ -370,20 +338,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let lap = u_ip + u_im + u_jp + u_jm + u_kp + u_km - 6.0 * uc;
 
   // Full nuclear potential (all nuclei) minus other-electron repulsion (no self-repulsion)
-  // Surface tension: a cell with nface faces onto a DIFFERENT domain carries an extra
-  // diagonal potential beta*nface/h -- the discrete form of the Robin condition that the
-  // surface energy (beta/2) INT psi^2 dS generates naturally. Zero when beta is zero.
-  var nface: f32 = 0.0;
-  if (p.beta != 0.0) {
-    if (l_ip != myL) { nface += 1.0; }
-    if (l_im != myL) { nface += 1.0; }
-    if (l_jp != myL) { nface += 1.0; }
-    if (l_jm != myL) { nface += 1.0; }
-    if (l_kp != myL) { nface += 1.0; }
-    if (l_km != myL) { nface += 1.0; }
-  }
-  let vBeta = p.beta * nface * p.inv_h;
-  Uo[id] = uc + p.half_d * lap + p.dt * (K[id] - 2.0 * Pi[id] - vBeta) * uc;
+  Uo[id] = uc + p.half_d * lap + p.dt * (K[id] - 2.0 * Pi[id]) * uc;
 }
 `;
 
@@ -460,20 +415,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
   let lap = u_ip + u_im + u_jp + u_jm + u_kp + u_km - 6.0 * uc;
 
-  // Surface tension: a cell with nface faces onto a DIFFERENT domain carries an extra
-  // diagonal potential beta*nface/h -- the discrete form of the Robin condition that the
-  // surface energy (beta/2) INT psi^2 dS generates naturally. Zero when beta is zero.
-  var nface: f32 = 0.0;
-  if (p.beta != 0.0) {
-    if (l_ip != myL) { nface += 1.0; }
-    if (l_im != myL) { nface += 1.0; }
-    if (l_jp != myL) { nface += 1.0; }
-    if (l_jm != myL) { nface += 1.0; }
-    if (l_kp != myL) { nface += 1.0; }
-    if (l_km != myL) { nface += 1.0; }
-  }
-  let vBeta = p.beta * nface * p.inv_h;
-  let itpStep = uc + p.half_d * lap + p.dt * (K[id] - 2.0 * Pi[id] - vBeta) * uc;
+  let itpStep = uc + p.half_d * lap + p.dt * (K[id] - 2.0 * Pi[id]) * uc;
 
   Uo[id] = cheb.omega * itpStep + (1.0 - cheb.omega) * Uprev[id];
 }
@@ -586,35 +528,6 @@ ${(function() {
   w += p.dt_w * velocity;
 
   // Curvature regularization: smooth jagged boundaries
-  // --- surface-tension force from beta -------------------------------------------------
-  // Flipping this cell from its own domain i to the candidate j changes the surface energy
-  // by  dE = (beta/2) h^2 [ U_c^2 (cnt_i - cnt_j) + S_i - S_j ],  where cnt_x counts the
-  // neighbours in domain x and S_x sums U^2 over them: faces onto i turn into interface,
-  // faces onto j turn internal, and each of those neighbours' own exposure changes to match.
-  // Dividing by the density sum -- the same denominator the density-balance term uses --
-  // makes it dimensionless and of order beta*h, which is the range curvReg occupies. A
-  // positive dE means the flip costs energy, so it ADDS to w, resisting the flip.
-  //
-  // This is what was missing when beta entered only the psi equation: the partition stayed
-  // optimal for beta=0 and was merely evaluated at beta>0, which showed up as E(beta) coming
-  // out convex where a minimum over psi of quantities linear in beta must be concave.
-  if (p.beta != 0.0 && bestOtherL != myL) {
-    var cntJ: f32 = 0.0; var sumI: f32 = 0.0; var sumJ: f32 = 0.0;
-    if (l_ip == myL) { sumI += U[id_ip]*U[id_ip]; } else if (l_ip == bestOtherL) { cntJ += 1.0; sumJ += U[id_ip]*U[id_ip]; }
-    if (l_im == myL) { sumI += U[id_im]*U[id_im]; } else if (l_im == bestOtherL) { cntJ += 1.0; sumJ += U[id_im]*U[id_im]; }
-    if (l_jp == myL) { sumI += U[id_jp]*U[id_jp]; } else if (l_jp == bestOtherL) { cntJ += 1.0; sumJ += U[id_jp]*U[id_jp]; }
-    if (l_jm == myL) { sumI += U[id_jm]*U[id_jm]; } else if (l_jm == bestOtherL) { cntJ += 1.0; sumJ += U[id_jm]*U[id_jm]; }
-    if (l_kp == myL) { sumI += U[id_kp]*U[id_kp]; } else if (l_kp == bestOtherL) { cntJ += 1.0; sumJ += U[id_kp]*U[id_kp]; }
-    if (l_km == myL) { sumI += U[id_km]*U[id_km]; } else if (l_km == bestOtherL) { cntJ += 1.0; sumJ += U[id_km]*U[id_km]; }
-    let dEsurf = myRho * (myCnt - cntJ) + sumI - sumJ;
-    w += p.beta * p.h * dEsurf / max(myRho + bestOtherRho, 1e-12);
-  }
-
-  // curvReg is the same force with an arbitrary coefficient, no U^2 weighting and the wrong
-  // zero -- it vanishes at a three-exposed-face corner rather than at a flat interface. It is
-  // kept because it also serves as numerical smoothing, and because being independent of beta
-  // it shifts the baseline without affecting the concavity test. For physical runs at finite
-  // beta it should be set to zero, the beta term above supplying the force properly.
   let curv = (myCnt - 3.0) / 3.0;  // [-1, +1], negative = surrounded by others
   w += p.curvReg * curv;
 
@@ -1109,19 +1022,6 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>,
     let b = select(0.0, U[id + p.S]  - v, sameL_jp);
     let c = select(0.0, U[id + 1u]   - v, sameL_kp);
     sn[lid * NR]        += 0.5 * (a * a + b * b + c * c) * p.h;
-    // Surface energy (beta/2) INT psi^2 dS. All six faces are counted, so each interface
-    // face is paid once from each side, as the functional requires. Folded into the
-    // localisation slot because it arises from the same integration by parts.
-    if (p.beta != 0.0) {
-      var nfaceE: f32 = 0.0;
-      if (label[id + p.S2] != myL) { nfaceE += 1.0; }
-      if (label[id - p.S2] != myL) { nfaceE += 1.0; }
-      if (label[id + p.S]  != myL) { nfaceE += 1.0; }
-      if (label[id - p.S]  != myL) { nfaceE += 1.0; }
-      if (label[id + 1u]   != myL) { nfaceE += 1.0; }
-      if (label[id - 1u]   != myL) { nfaceE += 1.0; }
-      sn[lid * NR]      += 0.5 * p.beta * rho * nfaceE * p.h2;
-    }
     sn[lid * NR + 1u]   += -K[id] * rho * p.h3;
     sn[lid * NR + 2u]   += Pv[id] * rho * p.h3;
 
@@ -1953,7 +1853,6 @@ function fillParamsBuf(pb) {
   pu[4] = N2; pf[5] = boundarySpeed; pf[6] = curvReg; pf[7] = 2 * Math.PI;
   pf[8] = hGrid; pf[9] = h2v; pf[10] = 1 / hGrid; pf[11] = 1 / h2v;
   pf[12] = dtv; pf[13] = half_dv; pf[14] = h3v; pu[15] = sliceK;
-  pf[16] = betaSurf;
 }
 
 // Recompute each split-water's sector frame from its current H positions, so the
