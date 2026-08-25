@@ -47,6 +47,19 @@ const NRED_E = 6;  // Energy reduce: T + V_eK + V_ee + dipole(x,y,z)
 //     molecule_h2.js   -0.94 + 0.166 = -0.774   measured -0.81
 //     molecule.js      -0.94 - 0.120 = -1.060   measured -1.06
 //
+// NO FACTOR FIX IS LICENSED FOR EITHER BUILD. The obvious repair -- halve molecule_h2.js,
+// scale up molecule.js -- fails its own test: neither error is a constant.
+//
+//     molecule_h2.js   R=6 ratio 1.99   R=2 ratio 1.07
+//     molecule.js      R=6 ratio 0.29   R=2 ratio 0.46
+//
+// A factor tuned on H2 would leave every other system wrong by an unknown amount and
+// would destroy the evidence that anything is broken. All three builds share the SAME
+// energy convention (2*PI Poisson, un-halved Int P rho), so the fault is not in the energy
+// formula: it is in how P is computed, and the builds use different algorithms for it --
+// molecule.js a direct per-electron Poisson, molecule_h2.js total Poisson plus SIC. Each
+// must be debugged against the original p5, which is the only implementation shown correct.
+//
 // molecule_h2.js sums the interaction from both domains without the compensating half.
 // molecule.js has two faults: the wall truncation below (now fixed, worth ~1/L) and a
 // residual roughly CONSTANT shortfall of about 2.2x that remains -- constant across
@@ -4888,7 +4901,14 @@ function draw() {
           if (!window._convCount) window._convCount = 0;
           window._convCount++;
           if (window._convCount >= 3) {  // 3 consecutive frames within threshold
-            console.log("=== CONVERGED at step " + phaseSteps + ": E=" + E.toFixed(6) + " (dE=" + Math.abs(E - window._prevE).toFixed(6) + ") ===");
+            // V_ee is reported alongside E because it is the term that has been wrong in
+            // every build of this solver, and the only way to catch it is to look at it.
+            // For two well-separated electrons it must equal 1/R; see the note at NRED_E.
+            console.log("=== CONVERGED at step " + phaseSteps + ": E=" + E.toFixed(6)
+              + " (dE=" + Math.abs(E - window._prevE).toFixed(6) + ") ==="
+              + "  T=" + E_T.toFixed(5) + " V_eK=" + E_eK.toFixed(5)
+              + " V_ee=" + E_ee.toFixed(5) + " V_KK=" + E_KK.toFixed(5)
+              + "   [V_ee check: two charges a distance R apart give 1/R]");
             phase = 1;
             window._convCount = 0;
             if (window.onSweepDone) window.onSweepDone(E, phaseSteps, E_T, E_eK, E_ee, E_KK);
