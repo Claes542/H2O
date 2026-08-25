@@ -3473,6 +3473,18 @@ async function doSteps(n) {
 
   // --- Evolve level set W + flip labels where W < 0 ---
   frameCount++;
+  // FREEZE_BOUNDARY pins the domains at their initial Voronoi split. For a SYMMETRIC
+  // system this is not an approximation: the free boundary's equilibrium position is the
+  // midplane by symmetry, so the Voronoi split already IS the answer and freezing it only
+  // removes a degree of freedom that at beta=0 has no restoring force to hold it (the C=0
+  // defect -- a free interface carries no confinement energy). H2 at R=6 scattered over
+  // 0.3 Ha across repeat runs with the boundary free, while E(H), which has no interface,
+  // was stable to 1e-3. With the plane fixed, h2_template.py gives a smooth binding curve:
+  // R_e = 1.72, D_e = 0.204 Ha (experiment 1.401, 0.174) at h = 0.1875.
+  //
+  // NOT valid for asymmetric systems: a heteronuclear interface genuinely sits off-centre,
+  // and freezing it at the Voronoi split imposes the wrong answer. There beta must supply
+  // the restoring force instead.
   if (window.FREEZE_BOUNDARY) { /* skip boundary evolution */ }
   else for (let s = 0; s < W_STEPS_PER_FRAME; s++) {
     let bp = enc.beginComputePass();

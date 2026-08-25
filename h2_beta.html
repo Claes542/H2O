@@ -83,6 +83,10 @@
   // rhodiag=1 -> molecule.js reports integral(rho_other) in document.title at step 200.
   // It must be 1.0 (exactly one other electron).
   if (q.get('rhodiag')) window.USER_RHO_DIAG = 1;
+  // fixed=1 -> pin the domains at the Voronoi split, which for symmetric H2 is exactly the
+  // midplane. Removes the free-boundary degree of freedom that at beta=0 has nothing to
+  // hold it: repeat runs at R=6 scattered -0.802 to -1.100 with it free.
+  if (q.get('fixed')) window.FREEZE_BOUNDARY = true;
   window.INIT_ZEFF = 1;
   window.CONVERGENCE_THRESHOLD = 0.0002;
 
