@@ -995,6 +995,43 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 // === Multigrid V-cycle shaders ===
 
 // Compute rho_total from single density field + labels
+// The p5 relaxation for P, which is the update BOTH correct implementations use
+// (h2_p5_original.html and essence_solver.html):
+//
+//     P += dt * ( lap(P)/h^2 + 2*PI*rho )
+//
+// i.e. psi and P are advanced by the SAME gradient step, once per iteration, interleaved.
+// molecule.js replaced this with ten damped-Jacobi sweeps per psi step -- same fixed point
+// in theory, but it drives V_ee from an exact 0.17 down to 0.042 at R=6, and every line of
+// it checks out in isolation. This is the algorithm that demonstrably works.
+// Bindings are identical to jacobiSmooth, so jacobiDirectBG can be reused as-is.
+const relaxPdirectWGSL = `
+${paramStructWGSL}
+@group(0) @binding(0) var<uniform> p: P;
+@group(0) @binding(1) var<storage, read> Pin: array<f32>;
+@group(0) @binding(2) var<storage, read_write> Pout: array<f32>;
+@group(0) @binding(3) var<storage, read> rhoTotal: array<f32>;
+
+${cellIdxWGSL}
+@compute @workgroup_size(256)
+fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+  let NM = p.NN - 1u;
+  let tot = NM * NM * NM;
+  let cell = cellIdx(gid);
+  if (cell >= tot) { return; }
+  let k = (cell % NM) + 1u;
+  let j = ((cell / NM) % NM) + 1u;
+  let i = (cell / (NM * NM)) + 1u;
+  let id = i * p.S2 + j * p.S + k;
+
+  let Pc = Pin[id];
+  let lap = Pin[id + p.S2] + Pin[id - p.S2]
+          + Pin[id + p.S]  + Pin[id - p.S]
+          + Pin[id + 1u]   + Pin[id - 1u] - 6.0 * Pc;
+  Pout[id] = Pc + p.dt * (lap * p.inv_h2 + p.TWO_PI * rhoTotal[id]);
+}
+`;
+
 const computeRhoWGSL = `
 ${paramStructWGSL}
 @group(0) @binding(0) var<uniform> p: P;
@@ -1990,7 +2027,7 @@ let reduceEnergyPL, finalizeEnergyPL, accumNormsPL, decodeNormsPL, normalizePL, 
 let gpuInitAccumPL, gpuInitFinalPL;
 let computeRhoPL, computeResidualPL, restrictPL, coarseSmoothPL, prolongCorrectPL;
 let computeRhoSelfPL, subtractPselfPL;
-let computeRhoOtherPL, copyPotherForLabelPL, initPdirectPL;
+let computeRhoOtherPL, copyPotherForLabelPL, initPdirectPL, relaxPdirectPL;
 let P_directBuf = [], P_directScratchBuf = [];
 let computeRhoOtherBG = [], jacobiDirectBG = [], copyPotherForLabelBG = [], initPdirectBG = [];
 let updateBG = [], evolveBoundaryBG = [], fixBoundaryUBG = [], jacobiFineBG = [];
@@ -2672,6 +2709,8 @@ async function initGPU() {
       computeRhoOtherPL = await device.createComputePipelineAsync({ layout: 'auto', compute: { module: computeRhoOtherMod, entryPoint: 'main' } });
       copyPotherForLabelPL = await device.createComputePipelineAsync({ layout: 'auto', compute: { module: copyPotherForLabelMod, entryPoint: 'main' } });
       initPdirectPL = await device.createComputePipelineAsync({ layout: 'auto', compute: { module: initPdirectMod, entryPoint: 'main' } });
+      const relaxPdirectMod = await compileShader('relaxPdirect', relaxPdirectWGSL);
+      relaxPdirectPL = await device.createComputePipelineAsync({ layout: 'auto', compute: { module: relaxPdirectMod, entryPoint: 'main' } });
     }
     jacobiSmoothPL = await device.createComputePipelineAsync({ layout: 'auto', compute: { module: jacobiSmoothMod, entryPoint: 'main' } });
     computeRhoPL = await device.createComputePipelineAsync({ layout: 'auto', compute: { module: computeRhoMod, entryPoint: 'main' } });
@@ -3164,9 +3203,11 @@ async function doSteps(n) {
       dispatchLinear(vp, INTERIOR);
       vp.end();
       // Jacobi iterations on P_direct[m] (persistent, accumulates across frames)
+      // USER_P5_RELAX = false falls back to the damped-Jacobi sweeps
+      const _pPipe = (window.USER_P5_RELAX === false) ? jacobiSmoothPL : relaxPdirectPL;
       for (let js = 0; js < JACOBI_DIRECT; js++) {
         vp = enc.beginComputePass();
-        vp.setPipeline(jacobiSmoothPL);
+        vp.setPipeline(_pPipe);
         vp.setBindGroup(0, jacobiDirectBG[m][js % 2]);
         dispatchLinear(vp, INTERIOR);
         vp.end();
