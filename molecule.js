@@ -17,6 +17,42 @@ const NELEC = (function() {
 })();
 const N_ELECTRONS = _uz.reduce((s, z) => s + z, 0);  // total valence electrons
 const NRED_E = 6;  // Energy reduce: T + V_eK + V_ee + dipole(x,y,z)
+//
+// *** V_ee IS UNDER-COUNTED BY ROUGHLY A FACTOR OF TWO. UNRESOLVED. ***
+//
+// Found by comparing H2 at R=2.0 against two independent implementations that agree with
+// each other: a Python solving the same problem variationally on a cylindrical grid, and
+// h2_p5_original.html, the original 3D p5 code with a front-tracked boundary.
+//
+//     code           E(H2)      boundary treatment
+//     python        -1.23264    fixed plane, symmetry-imposed
+//     original p5   -1.210      smooth field, front-tracked   (h=0.08 vs 0.05)
+//     molecule.js   -1.432      hard label, moving            (mean of 5 runs, +/-0.03)
+//
+// Component breakdown at R=2.0 against the python (totals over both electrons):
+//
+//     T      0.99386   vs   1.03514    -0.041
+//     V_eK  -3.16606   vs  -3.21556    +0.050    (these two largely cancel)
+//     V_ee   0.20597   vs   0.44778    -0.242    <-- the entire discrepancy
+//     V_KK   0.49999   vs   0.50000     0.000
+//
+// Substituting the python's V_ee and leaving the other three alone gives -1.22443 against
+// -1.23264, i.e. agreement to 0.008 Ha, which is grid level. One term carries all of it.
+//
+// The ratio is 2.17. P is stored as HALF the Hartree potential by design -- P_direct[m] =
+// sum_{n!=m} 0.5/r below, and the Poisson right-hand side uses TWO_PI rather than 4*PI --
+// so Int P rho summed over BOTH domains should give U_12 exactly. It gives about half,
+// which is what accumulating only one domain's contribution would produce.
+//
+// WHAT IT AFFECTS. Any energy comparing systems with different numbers of interacting
+// electron pairs: binding energies, atomisation energies, ionisation energies. E(H) has no
+// V_ee at all, so E_bind = 2E(H) - E(H2) carries the error in full -- 0.474 computed here
+// against 0.230 from the python and 0.138 from experiment.
+//
+// WHAT IT DOES NOT AFFECT. Differences at fixed composition and geometry, where V_ee is
+// nearly the same in both configurations and the error cancels. That covers the barrier
+// and pinning work, which is why those numbers held up across grids and settings.
+
 const r_cut = window.USER_RC || [0, 0, 0, 0, 0];
 while (r_cut.length < MAX_ATOMS) r_cut.push(0);
 // Z_nuc: nuclear charge for K potential (defaults to Z if not set)
