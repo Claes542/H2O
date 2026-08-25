@@ -32,6 +32,16 @@ BOX = float(os.environ.get('BOX', 16.0))
 N = int(os.environ.get('N', 48))
 STEPS = int(os.environ.get('STEPS', 3000))
 DV = float(os.environ.get('DV', 0.12))          # dt = DV*h^2, stable below 1/6
+# Offset of the dividing plane from the midpoint, in a0. This models a free boundary that
+# has drifted: SHIFT > 0 gives electron 1 more of the box than electron 0. molecule.js
+# evolves its boundary freely and at beta=0, curv=0 there is no confinement cost opposing
+# a drift (the C=0 defect), so the question is how far V_ee falls when the split is lopsided.
+SHIFT = float(os.environ.get('SHIFT', 0.0))
+# PBC=0 pins P to zero on the box wall instead of seeding it with the exact monopole tail
+# 0.5/r. This is what a ping-pong pair whose scratch half was never seeded would do: the
+# zero boundary is read back in on alternate sweeps and propagates inward. The predicted
+# cost is 0.5/L per electron, so at L=8 with two electrons V_ee should fall by ~0.125.
+PBC = os.environ.get('PBC', '1')
 
 S = N + 1
 h = BOX / N
@@ -61,7 +71,7 @@ for m in range(NE):
     if NE == 1:
         o = interior.copy()
     else:
-        o = interior & ((Z < 0) if m == 0 else (Z >= 0))
+        o = interior & ((Z < SHIFT) if m == 0 else (Z >= SHIFT))
     own.append(o)
 
 # psi: a 1s on its own nucleus, normalised over its own domain
@@ -84,6 +94,10 @@ for m in range(NE):
             continue
         nx, ny, nz, _ = nuc[n]
         a += 0.5 / np.sqrt((X - nx) ** 2 + (Y - ny) ** 2 + (Z - nz) ** 2 + h2)
+    if PBC == '0':
+        b = np.zeros_like(a)
+        b[1:-1, 1:-1, 1:-1] = a[1:-1, 1:-1, 1:-1]
+        a = b
     P.append(a)
 
 SHIFTS = [(1, 0), (-1, 0), (1, 1), (-1, 1), (1, 2), (-1, 2)]

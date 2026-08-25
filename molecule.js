@@ -2592,7 +2592,11 @@ async function initGPU() {
       // Seeding it per electron at init costs memory once rather than a 32 MB copy per
       // electron per step, which stalled the run.
       for (let m = 0; m < NELEC; m++) {
-        P_directBuf[m] = device.createBuffer({ size: bs, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+        // COPY_SRC is required: this buffer is the SOURCE of the copy that seeds the
+        // ping-pong scratch below. Without it that copy is a validation error that
+        // silently does nothing, the scratch keeps its zero boundary, and every odd
+        // sweep reads that zero back in -- dragging P to the zero-boundary solution.
+        P_directBuf[m] = device.createBuffer({ size: bs, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC });
         P_directScratchBuf[m] = device.createBuffer({ size: bs, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
       }
     }
