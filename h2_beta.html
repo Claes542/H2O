@@ -178,6 +178,7 @@
       // The source term the Poisson relaxation is fed. It MUST integrate to 1.0 -- one
       // other electron. If it does not, that alone explains V_ee: P relaxes toward a
       // harmonic interpolation of its frozen boundary and the 0.5/r peak decays away.
+      if (window._rhoDiagText) out.push('&nbsp; <b>' + window._rhoDiagText + '</b>');
       if (window._rhoOther !== undefined) {
         var rok = Math.abs(window._rhoOther - 1) < 0.05;
         out.push('&nbsp; <b>integral(rho_other) = <span style="color:'

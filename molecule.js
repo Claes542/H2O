@@ -3506,19 +3506,30 @@ async function doSteps(n) {
   // interpolation of its frozen boundary and the 0.5/r peak decays away.
   window._rhoDiagN = (window._rhoDiagN || 0) + 1;
   if (window.USER_RHO_DIAG) {
-    const rb = device.createBuffer({ size: S3 * 4, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
-    const e2 = device.createCommandEncoder();
-    e2.copyBufferToBuffer(rhoTotalBuf, 0, rb, 0, S3 * 4);
-    device.queue.submit([e2.finish()]);
-    await rb.mapAsync(GPUMapMode.READ);
-    const rd = new Float32Array(rb.getMappedRange());
-    let tot = 0.0, mx = 0.0;
-    for (let i = 0; i < rd.length; i++) { tot += rd[i]; if (rd[i] > mx) mx = rd[i]; }
-    rb.unmap(); rb.destroy();
-    const integ = tot * h3v;
-    window._rhoOther = integ; window._rhoOtherMax = mx;
-    document.title = 'rho_other=' + integ.toFixed(4) + ' max=' + mx.toExponential(2);
-    console.log('RHO DIAG: integral(rho_other) =', integ, '(expect 1.0)  max =', mx);
+    // Self-validating: U_buf is a CONTROL. It is certainly nonzero and already carries
+    // COPY_SRC, so it goes through the identical readback path. If the control also reads
+    // zero the instrument is broken, not the source. v4 tags the build so a stale page is
+    // visible rather than being reported as an unchanged result.
+    const _rdBuf = async (src) => {
+      const rb = device.createBuffer({ size: S3 * 4, usage: GPUMapMode.READ ? (GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST) : 0 });
+      const e2 = device.createCommandEncoder();
+      e2.copyBufferToBuffer(src, 0, rb, 0, S3 * 4);
+      device.queue.submit([e2.finish()]);
+      await rb.mapAsync(GPUMapMode.READ);
+      const a = new Float32Array(rb.getMappedRange().slice(0));
+      rb.unmap(); rb.destroy();
+      let tot = 0.0, mx = 0.0, nz = 0;
+      for (let i = 0; i < a.length; i++) { tot += a[i]; if (a[i] > mx) mx = a[i]; if (a[i] !== 0) nz++; }
+      return { tot, mx, nz, n: a.length };
+    };
+    const rr = await _rdBuf(rhoTotalBuf);
+    const uu = await _rdBuf(U_buf[0]);
+    window._rhoOther = rr.tot * h3v; window._rhoOtherMax = rr.mx;
+    window._rhoDiagText = 'v4  rho: sum=' + (rr.tot * h3v).toFixed(4) + ' max=' + rr.mx.toExponential(2)
+      + ' nonzero=' + rr.nz + '/' + rr.n
+      + '  |  CONTROL U: max=' + uu.mx.toExponential(2) + ' nonzero=' + uu.nz + '/' + uu.n;
+    document.title = window._rhoDiagText;
+    console.log('RHO DIAG ' + window._rhoDiagText);
   }
 
   const oomErr = await device.popErrorScope();
