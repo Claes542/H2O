@@ -47,6 +47,28 @@ const NRED_E = 6;  // Energy reduce: T + V_eK + V_ee + dipole(x,y,z)
 //     molecule_h2.js   -0.94 + 0.166 = -0.774   measured -0.81
 //     molecule.js      -0.94 - 0.120 = -1.060   measured -1.06
 //
+// STATE OF THE INVESTIGATION, molecule.js
+//
+//   ESTABLISHED, at R=6 where the exact V_ee is 1/R = 0.1667:
+//     JACOBI_DIRECT = 0    V_ee 0.17     the direct sum P = sum 0.5/r is CORRECT
+//     JACOBI_DIRECT = 10   V_ee 0.042    the relaxation DESTROYS it
+//
+//   EXCLUDED as causes:
+//     the energy formula      -- identical in all four builds, and correct in two of them
+//     the direct init         -- exact at large R (the jac=0 run)
+//     the Poisson boundary    -- initPdirect now covers the full grid; barely moved it
+//     the scratch boundary    -- now per-electron and seeded at init; NO change at all
+//
+//   NOT FOUND: what inside the relaxation is wrong. Three hypotheses have failed.
+//
+//   USABLE MEANWHILE:
+//     molecules, well separated -> JACOBI_DIRECT = 0 is exact (the direct sum needs no
+//       relaxation when densities barely overlap); ~12% high at R=2 where they do
+//     atoms -> NOT usable at any setting. Two electrons on one nucleus make the direct
+//       sum singular, so the relaxation does all the work and it is the broken part.
+//     absolute energies -> use essence_solver.html or h2_p5_original.html, both correct
+//     differences at fixed composition -> unaffected; V_ee cancels
+//
 // NO FACTOR FIX IS LICENSED FOR EITHER BUILD. The obvious repair -- halve molecule_h2.js,
 // scale up molecule.js -- fails its own test: neither error is a constant.
 //
