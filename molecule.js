@@ -1969,7 +1969,7 @@ let gpuInitAccumPL, gpuInitFinalPL;
 let computeRhoPL, computeResidualPL, restrictPL, coarseSmoothPL, prolongCorrectPL;
 let computeRhoSelfPL, subtractPselfPL;
 let computeRhoOtherPL, copyPotherForLabelPL, initPdirectPL;
-let P_directBuf = [], P_directScratchBuf;
+let P_directBuf = [], P_directScratchBuf = [];
 let computeRhoOtherBG = [], jacobiDirectBG = [], copyPotherForLabelBG = [], initPdirectBG = [];
 let updateBG = [], evolveBoundaryBG = [], fixBoundaryUBG = [], jacobiFineBG = [];
 let reduceEnergyBG = [], finalizeEnergyBG, accumNormsBG = [], decodeNormsBG, normalizeBG = [], extractBG = [];
@@ -2523,9 +2523,16 @@ async function initGPU() {
     }
     if (USE_DIRECT_POTHER) {
       // Per-electron persistent P buffers for direct Pother solve
-      P_directScratchBuf = device.createBuffer({ size: bs, usage });
+      // One scratch PER ELECTRON. It used to be a single shared buffer that was created
+      // and never seeded, so its boundary held zeros -- and since the smoother ping-pongs
+      // between P_direct[m] and the scratch, every odd sweep replaced the correct monopole
+      // boundary with zero and dragged P down. That is why V_ee came out 0.048 against an
+      // exact 0.1667 with the relaxation on, and 0.17 with it off.
+      // Seeding it per electron at init costs memory once rather than a 32 MB copy per
+      // electron per step, which stalled the run.
       for (let m = 0; m < NELEC; m++) {
         P_directBuf[m] = device.createBuffer({ size: bs, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+        P_directScratchBuf[m] = device.createBuffer({ size: bs, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
       }
     }
     // Multigrid buffers
@@ -2881,12 +2888,12 @@ async function initGPU() {
           device.createBindGroup({ layout: jacobiSmoothPL.getBindGroupLayout(0), entries: [
             { binding: 0, resource: { buffer: paramsBuf } },
             { binding: 1, resource: { buffer: P_directBuf[m] } },
-            { binding: 2, resource: { buffer: P_directScratchBuf } },
+            { binding: 2, resource: { buffer: P_directScratchBuf[m] } },
             { binding: 3, resource: { buffer: rhoTotalBuf } },
           ]}),
           device.createBindGroup({ layout: jacobiSmoothPL.getBindGroupLayout(0), entries: [
             { binding: 0, resource: { buffer: paramsBuf } },
-            { binding: 1, resource: { buffer: P_directScratchBuf } },
+            { binding: 1, resource: { buffer: P_directScratchBuf[m] } },
             { binding: 2, resource: { buffer: P_directBuf[m] } },
             { binding: 3, resource: { buffer: rhoTotalBuf } },
           ]}),
@@ -2923,6 +2930,11 @@ async function initGPU() {
         cp.setBindGroup(0, initPdirectBG[m]);
         dispatchLinear(cp, S3);   // FULL grid: the boundary needs the monopole tail too
         cp.end();
+        // Seed this electron's ping-pong scratch from its P_direct, ONCE. The smoother
+        // alternates between the two buffers, so both need the monopole boundary; the
+        // scratch was previously created and never written, and its zero boundary was
+        // imposed on every odd sweep. One copy at init, not per step.
+        initEnc.copyBufferToBuffer(P_directBuf[m], 0, P_directScratchBuf[m], 0, S3 * 4);
         device.queue.submit([initEnc.finish()]);
       }
       await device.queue.onSubmittedWorkDone();
@@ -3102,23 +3114,6 @@ async function doSteps(n) {
       vp.setBindGroup(0, computeRhoOtherBG[m][cur]);
       dispatchLinear(vp, INTERIOR);
       vp.end();
-      // Seed the ping-pong scratch from P_direct[m] before smoothing.
-      //
-      // The smoother alternates between P_directBuf[m] and P_directScratchBuf, but
-      // initPdirect writes only the former, so the scratch was created and never seeded:
-      // its boundary held zeros. On every odd sweep the correct monopole boundary was
-      // therefore replaced by zero, dragging P down -- which is why the relaxation
-      // DEGRADED a correct starting value, and why fixing initPdirect's boundary alone
-      // barely helped. It fixed one of the two buffers.
-      //
-      // The scratch is also a single buffer shared by all electrons, so even once seeded
-      // it would carry the previous electron's boundary. Copying per electron per step
-      // fixes both: each round starts with the right boundary in both buffers.
-      //
-      // Measured at R=6, exact V_ee = 0.1667:
-      //     JACOBI_DIRECT = 0   V_ee 0.17    (direct init alone -- correct)
-      //     JACOBI_DIRECT = 10  V_ee 0.048   (relaxation destroys it)
-      enc.copyBufferToBuffer(P_directBuf[m], 0, P_directScratchBuf, 0, S3 * 4);
       // Jacobi iterations on P_direct[m] (persistent, accumulates across frames)
       for (let js = 0; js < JACOBI_DIRECT; js++) {
         vp = enc.beginComputePass();
