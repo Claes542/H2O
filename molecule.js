@@ -35,6 +35,33 @@ let curvReg = (window.USER_CURV_REG !== undefined) ? window.USER_CURV_REG : 0.15
 // Robin surface tension on the electron-electron interface: the natural boundary condition of
 // the surface energy (beta/2) INT psi^2 dS is d(psi)/dn + beta*psi = 0, so nothing is imposed --
 // adding the energy is enough. beta = 0 reproduces the framework exactly as before.
+//
+// STATUS: HALF IMPLEMENTED. Do not quote energies at beta > 0.
+//
+//   beta = 0 regression PASSED: ring_slide n=6 a=2.2 dr=1.2 phi=0 returns -3.36796, matching
+//   the paper's sliding calculation and wire_coaxial's independent reproduction of it.
+//
+//   psi-side PASSED. First-order perturbation theory requires dE = (beta/2) INT psi^2 dS, so at
+//   small beta the energy must rise linearly. Measured on that same configuration:
+//        beta 0.05  dE 0.191   dE/beta 3.82
+//        beta 0.10  dE 0.395   dE/beta 3.95
+//        beta 0.20  dE 0.848   dE/beta 4.24
+//   Sign right, and the ratio at 0.10 is 2.07 where 2.00 is exact -- so the face counting and
+//   the factor of 1/2 are both correct.
+//
+//   BOUNDARY-SIDE MISSING, and the same numbers show it. dE/beta RISES, so E(beta) is convex.
+//   It must be concave: E(beta) is a minimum over psi of quantities linear in beta, hence below
+//   its tangent at zero. Convexity means the solver is not minimising the energy it reports --
+//   because beta enters the psi equation and the energy sum but NOT the boundary motion, which
+//   is still density balance plus curvReg and knows nothing of the surface energy it is being
+//   charged for. The partition is optimal for beta=0 and merely EVALUATED at beta>0, and the
+//   mismatch grows: +3.4% at beta 0.10, +11% at 0.20.
+//
+//   TO FINISH: the flip criterion in evolveBoundaryWGSL must include the surface-energy change
+//   when a cell changes hands -- of order (beta/2)[psi_j^2 nface_j - psi_i^2 nface_i] h^2,
+//   normalised against the density-balance term it competes with. That also subsumes curvReg,
+//   which is the same force with an arbitrary coefficient, no psi^2 weighting, and the wrong
+//   zero: it vanishes at a three-exposed-face corner rather than at a flat interface.
 let betaSurf = (window.USER_BETA !== undefined) ? window.USER_BETA : 0.0;
 let Z = [..._uz];
 let Ne = [..._uz];
