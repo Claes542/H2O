@@ -3086,7 +3086,14 @@ async function doSteps(n) {
     // worse as the atoms separate, so binding curves are too deep AND the wrong shape.
     //
     // Raise it with window.USER_JACOBI_DIRECT until V_ee stops moving.
-    const JACOBI_DIRECT = window.USER_JACOBI_DIRECT || 10;
+    // NOTE: 0 must be allowed -- it is the diagnostic that isolates the relaxation.
+    // The direct initialisation alone, P = sum 0.5/r with the other electron as a point
+    // charge at its nucleus, already gives Int P rho = 0.5/R per domain and 1/R over both,
+    // which is the exact answer at large separation. So if V_ee is right at JACOBI_DIRECT=0
+    // and wrong at 10, the relaxation is degrading a correct starting value and the fault
+    // is in its right-hand side, not in the boundary.
+    const JACOBI_DIRECT = (window.USER_JACOBI_DIRECT !== undefined)
+                          ? window.USER_JACOBI_DIRECT : 10;
     for (let m = 0; m < NELEC; m++) {
       if (Z[m] === 0) continue;
       // Compute rhoOther (density of all electrons except m) into rhoTotalBuf
