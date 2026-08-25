@@ -3524,10 +3524,27 @@ async function doSteps(n) {
     };
     const rr = await _rdBuf(rhoTotalBuf);
     const uu = await _rdBuf(U_buf[0]);
+    // The decisive read. On the direct path computeRho never runs (it is the else branch),
+    // so rhoTotalBuf legitimately holds rho_other for the LAST electron. A genuine zero
+    // there means label[id] == dom.idx everywhere for that electron -- one domain owning
+    // the whole grid, which would starve its Poisson source and leave the other electron
+    // self-interacting. labelBuf carries COPY_SRC, so this read is trustworthy.
+    const lb = device.createBuffer({ size: S3 * 4, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+    const e3 = device.createCommandEncoder();
+    e3.copyBufferToBuffer(labelBuf, 0, lb, 0, S3 * 4);
+    device.queue.submit([e3.finish()]);
+    await lb.mapAsync(GPUMapMode.READ);
+    const la = new Uint32Array(lb.getMappedRange().slice(0));
+    const hist = {};
+    for (let i = 0; i < la.length; i++) { hist[la[i]] = (hist[la[i]] || 0) + 1; }
+    lb.unmap(); lb.destroy();
+    const hs = Object.keys(hist).sort((a, b) => hist[b] - hist[a]).slice(0, 4)
+                     .map(k => 'L' + k + ':' + hist[k]).join(' ');
     window._rhoOther = rr.tot * h3v; window._rhoOtherMax = rr.mx;
-    window._rhoDiagText = 'v4  rho: sum=' + (rr.tot * h3v).toFixed(4) + ' max=' + rr.mx.toExponential(2)
+    window._rhoDiagText = 'v5  rho_other(last elec): sum=' + (rr.tot * h3v).toFixed(4)
       + ' nonzero=' + rr.nz + '/' + rr.n
-      + '  |  CONTROL U: max=' + uu.mx.toExponential(2) + ' nonzero=' + uu.nz + '/' + uu.n;
+      + '  |  U ctrl nonzero=' + uu.nz
+      + '  |  LABELS ' + hs;
     document.title = window._rhoDiagText;
     console.log('RHO DIAG ' + window._rhoDiagText);
   }
