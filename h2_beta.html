@@ -138,26 +138,42 @@
                     : '     &mdash;   ')
                  + (v.length > 1 ? '  (' + v.length + ' runs)' : ''));
       });
-    // component comparison against the python at R=2.0, beta=0 (totals, both electrons)
+    // Components. The python reference exists only at R=2.0, so it is shown only there;
+    // at any other R the rows would go red against the wrong numbers, which is meaningless.
+    // V_ee is different: it has an EXACT value 1/R at large separation, needing no
+    // reference implementation at all, so it is checked wherever that holds.
     var PYP = { T: 1.03514, eK: -3.21556, ee: 0.44778, KK: 0.50000 };
     var sp = JSON.parse(localStorage.getItem(KEY + '_parts') || '{}');
-    var pk = Object.keys(sp).filter(function (x) { return x.indexOf('h2_') === 0 && x.indexOf('_b0.000_') > 0; });
+    var pk = Object.keys(sp).filter(function (x) { return x.indexOf('h2_') === 0; });
     if (pk.length) {
-      var pv = sp[pk[pk.length - 1]];
+      var kk = pk[pk.length - 1];
+      var rm = kk.match(/^h2_R([\d.]+)_/);
+      var Rk = rm ? parseFloat(rm[1]) : R;
+      var pv = sp[kk];
       out.push('&nbsp;');
-      out.push('<b>components at beta=0, totals over both electrons</b>');
-      out.push('&nbsp; ' + 'term'.padEnd(8) + 'solver'.padStart(11) + 'python'.padStart(11)
-               + 'diff'.padStart(11));
-      [['T', pv[0], PYP.T], ['V_eK', pv[1], PYP.eK], ['V_ee', pv[2], PYP.ee],
-       ['V_KK', pv[3], PYP.KK]].forEach(function (r) {
-        var d = r[1] - r[2];
-        out.push('&nbsp; ' + r[0].padEnd(8) + r[1].toFixed(5).padStart(11)
-                 + r[2].toFixed(5).padStart(11)
-                 + '<span style="color:' + (Math.abs(d) < 0.02 ? '#9f9' : '#f77') + '">'
-                 + d.toFixed(5).padStart(11) + '</span>');
+      out.push('<b>components, last run (R = ' + Rk.toFixed(2) + ')</b>');
+      var rows = [['T', pv[0]], ['V_eK', pv[1]], ['V_ee', pv[2]], ['V_KK', pv[3]]];
+      rows.forEach(function (r) {
+        var line = '&nbsp; ' + r[0].padEnd(8) + r[1].toFixed(5).padStart(11);
+        if (Math.abs(Rk - 2.0) < 0.01) {
+          var ref = [PYP.T, PYP.eK, PYP.ee, PYP.KK][rows.indexOf(r)];
+          var d = r[1] - ref;
+          line += ref.toFixed(5).padStart(11)
+                + '<span style="color:' + (Math.abs(d) < 0.02 ? '#9f9' : '#f77') + '">'
+                + d.toFixed(5).padStart(11) + '</span>  vs python';
+        }
+        out.push(line);
       });
-      out.push('&nbsp; <span style="color:#9c9">the gradient-dropping mechanism predicts T low '
-               + 'by about 0.175 and the potential terms matching</span>');
+      // V_ee against its exact value: 1/R once the densities barely overlap
+      if (Rk >= 4.0) {
+        var ex = 1 / Rk, rat = pv[2] / ex;
+        out.push('&nbsp; <b>V_ee check: ' + pv[2].toFixed(4) + ' vs exact 1/R = '
+                 + ex.toFixed(4) + '  ratio <span style="color:'
+                 + (Math.abs(rat - 1) < 0.1 ? '#9f9' : '#f77') + '">' + rat.toFixed(2)
+                 + '</span></b>  (no reference code needed)');
+      }
+      out.push('&nbsp; <span style="color:#9c9">V_KK must equal 1/R = '
+               + (1 / Rk).toFixed(5) + ' exactly &mdash; a free check on units</span>');
     }
     out.push('&nbsp;');
     out.push('<span style="color:#9c9">python E(H) = ' + PY_H.toFixed(5)
