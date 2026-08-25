@@ -3503,7 +3503,7 @@ async function doSteps(n) {
   // instead, which is what happens when rho_other is ~0: P relaxes to a harmonic
   // interpolation of its frozen boundary and the 0.5/r peak decays away.
   window._rhoDiagN = (window._rhoDiagN || 0) + 1;
-  if (window.USER_RHO_DIAG && window._rhoDiagN > 5 && window._rhoDiagN % 25 === 0) {
+  if (window.USER_RHO_DIAG) {
     const rb = device.createBuffer({ size: S3 * 4, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
     const e2 = device.createCommandEncoder();
     e2.copyBufferToBuffer(rhoTotalBuf, 0, rb, 0, S3 * 4);
