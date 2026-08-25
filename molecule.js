@@ -3102,6 +3102,23 @@ async function doSteps(n) {
       vp.setBindGroup(0, computeRhoOtherBG[m][cur]);
       dispatchLinear(vp, INTERIOR);
       vp.end();
+      // Seed the ping-pong scratch from P_direct[m] before smoothing.
+      //
+      // The smoother alternates between P_directBuf[m] and P_directScratchBuf, but
+      // initPdirect writes only the former, so the scratch was created and never seeded:
+      // its boundary held zeros. On every odd sweep the correct monopole boundary was
+      // therefore replaced by zero, dragging P down -- which is why the relaxation
+      // DEGRADED a correct starting value, and why fixing initPdirect's boundary alone
+      // barely helped. It fixed one of the two buffers.
+      //
+      // The scratch is also a single buffer shared by all electrons, so even once seeded
+      // it would carry the previous electron's boundary. Copying per electron per step
+      // fixes both: each round starts with the right boundary in both buffers.
+      //
+      // Measured at R=6, exact V_ee = 0.1667:
+      //     JACOBI_DIRECT = 0   V_ee 0.17    (direct init alone -- correct)
+      //     JACOBI_DIRECT = 10  V_ee 0.048   (relaxation destroys it)
+      enc.copyBufferToBuffer(P_directBuf[m], 0, P_directScratchBuf, 0, S3 * 4);
       // Jacobi iterations on P_direct[m] (persistent, accumulates across frames)
       for (let js = 0; js < JACOBI_DIRECT; js++) {
         vp = enc.beginComputePass();
