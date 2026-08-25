@@ -3128,6 +3128,33 @@ async function doSteps(n) {
     // is in its right-hand side, not in the boundary.
     const JACOBI_DIRECT = (window.USER_JACOBI_DIRECT !== undefined)
                           ? window.USER_JACOBI_DIRECT : 10;
+    // RE-ANCHOR P_direct to the direct sum every step.
+    //
+    // The relaxation drags P away from the correct answer rather than refining it -- at
+    // R=6, exact V_ee 0.1667, the direct sum alone gives 0.17 and ten sweeps give 0.042.
+    // The chain has been checked line by line (initPdirect, computeRhoOther, jacobiSmooth,
+    // copyPotherForLabel, the energy sum, every bind group and the dispatch order) and each
+    // is correct in isolation, so the fault is in runtime state and is not yet found.
+    //
+    // Until it is, this bounds the damage. P = sum 0.5/r is the exact long-range solution,
+    // so re-seeding each step keeps the long range right and leaves the sweeps to supply
+    // only the short-range correction where densities overlap. The relaxation can perturb
+    // that; it can no longer walk away from it.
+    //
+    // The two loops must stay separate: initPdirect ACCUMULATES into PotherBuf at every
+    // cell, so interleaving it with copyPotherForLabel would leave earlier domains holding
+    // P_m + P_n. Seeding all electrons first, then relaxing and copying each, is correct
+    // because copyPotherForLabel then overwrites every cell.
+    if (window.USER_REANCHOR !== false) {
+      for (let m = 0; m < NELEC; m++) {
+        if (Z[m] === 0) continue;
+        vp = enc.beginComputePass();
+        vp.setPipeline(initPdirectPL);
+        vp.setBindGroup(0, initPdirectBG[m]);
+        dispatchLinear(vp, S3);
+        vp.end();
+      }
+    }
     for (let m = 0; m < NELEC; m++) {
       if (Z[m] === 0) continue;
       // Compute rhoOther (density of all electrons except m) into rhoTotalBuf
