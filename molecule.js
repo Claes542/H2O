@@ -18,7 +18,25 @@ const NELEC = (function() {
 const N_ELECTRONS = _uz.reduce((s, z) => s + z, 0);  // total valence electrons
 const NRED_E = 6;  // Energy reduce: T + V_eK + V_ee + dipole(x,y,z)
 //
-// *** V_ee IS UNDER-COUNTED BY ROUGHLY A FACTOR OF TWO. UNRESOLVED. ***
+// *** V_ee IS WRONG IN BOTH BUILDS, IN OPPOSITE DIRECTIONS. PARTLY FIXED. ***
+//
+// Settled against the EXACT value rather than against another code: two electrons a
+// distance R apart have V_ee = 1/R to better than a percent by R = 6. At R = 6, where the
+// exact value is 0.1667:
+//
+//     molecule_h2.js    0.332   = 2.0x exact    double counted -> UNDER-binds
+//     molecule.js       0.048   = 0.29x exact   under counted  -> OVER-binds
+//     (prebeta same as molecule.js: the defect is original, not introduced with beta)
+//
+// Each build's total energy follows from its own V_ee error, which is how the account
+// closes: at R=6 two H atoms give about -0.94, and
+//     molecule_h2.js   -0.94 + 0.166 = -0.774   measured -0.81
+//     molecule.js      -0.94 - 0.120 = -1.060   measured -1.06
+//
+// molecule_h2.js sums the interaction from both domains without the compensating half.
+// molecule.js has two faults: the wall truncation below (now fixed, worth ~1/L) and a
+// residual roughly CONSTANT shortfall of about 2.2x that remains -- constant across
+// separations, which is the signature of a convention error and is the next thing to find.
 //
 // Found by comparing H2 at R=2.0 against two independent implementations that agree with
 // each other: a Python solving the same problem variationally on a cylindrical grid, and
