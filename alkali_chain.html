@@ -100,12 +100,20 @@ window.onerror = function (msg, url, line) {
     Z.push(zc); Znuc.push(1.0); zeff.push(ze); rcs.push(RC);
   }
 
-  // n cores, n-1 valence electrons: the LAST core is left bare, so the vacancy starts at the
-  // right-hand end and a field along +x drives the carriers toward it.
+  // n cores, n-1 valence electrons. The vacancy sits in the MIDDLE by default, which makes
+  // the configuration left-right symmetric.
+  //
+  // It was at the right-hand end first, and that was wrong: all the electrons then start on
+  // the left with an unscreened +1 core on the right, which is not the ground state, so
+  // relaxation moves charge rightward WITH NO FIELD APPLIED. That equilibration drift is
+  // indistinguishable from field-driven transport and makes the measurement impossible.
+  // With the vacancy centred, symmetry forbids net drift at field = 0 -- so any drift that
+  // does appear is numerical, which makes zero field a diagnostic rather than a nuisance,
+  // and any drift under field is transport.
+  var VAC = parseInt(q.get('vac') !== null ? q.get('vac') : String(Math.floor(N / 2)));
   var x0 = -span / 2;
   for (var m = 0; m < N; m++) {
-    var occupied = (m < N - 1);
-    add(x0 + m * A, (m % 2 === 0 ? DY : -DY), occupied ? 1 : 0, ZE);
+    add(x0 + m * A, (m % 2 === 0 ? DY : -DY), (m === VAC) ? 0 : 1, ZE);
   }
 
   window.USER_ATOMS = atoms;
@@ -133,7 +141,8 @@ window.onerror = function (msg, url, line) {
     // confident wrong number rather than a visible failure.
     var k = 'n' + N + '_a' + A.toFixed(1) + '_rc' + RC.toFixed(2) + '_ze' + ZE.toFixed(2)
           + '_f' + FIELD.toFixed(4)
-          + '_b' + BETA.toFixed(3) + '_dy' + DY.toFixed(2) + '_bs' + BS.toFixed(2);
+          + '_b' + BETA.toFixed(3) + '_dy' + DY.toFixed(2) + '_bs' + BS.toFixed(2)
+          + '_v' + VAC;
     if (!Array.isArray(st[k])) st[k] = [];
     st[k].push(Number(E));
     localStorage.setItem(KEY, JSON.stringify(st));
