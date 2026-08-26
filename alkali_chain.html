@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html><head>
+  <meta charset="utf-8">
+  <title>Alkali chain — one loosely bound valence electron per atom, under bias</title>
+  <style>body { margin: 0; background: #000; color: #fff; font-family: monospace; }</style>
+</head><body>
+<div id="info" style="position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.85);padding:10px;border:1px solid #333;border-radius:6px;max-width:600px;font-size:12px;z-index:100">
+  <div style="color:#9f9;font-weight:bold">A chain of big atoms, one valence electron each</div>
+  n pseudopotential cores in a line, each a closed shell of net charge +1, each carrying one
+  loosely bound valence electron. A uniform field along the chain drives transport.
+
+  <div style="margin-top:6px">
+  <b>Why this and not H&minus;&nbsp;+&nbsp;H.</b> The outer electron of a hydride sees a
+  <i>neutral</i> atom and is held by 0.75&nbsp;eV of correlation, which non-overlapping domains do
+  not represent &mdash; so it lowers its energy by spreading, without limit, and no partition
+  constraint can stop it (RealQM partitions all space; removing space from the partition only
+  hands it to whichever domain the default label points at). A valence electron on an alkali core
+  sees <b>+1</b> and sits in a real Coulomb well. The pathology is absent by construction rather
+  than suppressed by a constraint.
+  </div>
+
+  <div style="margin-top:6px">
+  <b>The core is a pseudopotential.</b> <code>rc</code> is the cutoff radius: inside it the
+  wavefunction is held at zero and the core electrons are not represented at all, so lithium costs
+  one electron rather than three and sodium one rather than eleven. Larger <code>rc</code> is a
+  bigger, softer atom whose valence electron is more diffuse &mdash; which is the physical reason
+  alkali metals conduct, and the parameter to scan.
+  </div>
+
+  <div style="margin-top:6px">
+  <b>One site is empty.</b> n cores with n electrons is half filling, and single occupancy forbids
+  conduction there outright &mdash; every domain is occupied, so nothing has anywhere to go. That
+  is the structural insulator the ring demonstrates, not a transport calculation. So this runs
+  <b>n cores and n&minus;1 electrons</b>: one vacancy, which is what the carrier moves into.
+  Net charge +1.
+  </div>
+
+  <div style="margin-top:6px">
+  <b>Why n&nbsp;=&nbsp;5 by default.</b> Five cores and four electrons keeps NELEC at 4, which puts
+  the solver on the <b>direct per-electron Poisson path</b> (used at 5 electrons or fewer) rather
+  than the total-Poisson + SIC path. That matters: the SIC path fails to converge on the kink
+  chain, oscillating over 0.05&nbsp;Ha, while the direct path is the one checked against
+  V_ee&nbsp;=&nbsp;1/R exactly.
+  </div>
+
+  <div style="margin-top:6px">
+  <b>What to look for, in order.</b> (1) With <code>field=0</code>, run twice with different
+  <code>dy</code>. If the two energies differ, the result is seed-dependent and nothing further is
+  measurable &mdash; that is what killed the ring, the kink and the H&minus; pair. (2) Only if they
+  agree, turn the field on and watch whether the vacancy moves along the chain.
+  </div>
+
+  <div style="margin-top:6px">
+  <b>Caveat on the energy.</b> The field enters the wavefunction equation but is not included in the
+  reported energy, so E is the zero-field energy of a field-driven configuration. Differences at
+  fixed field are meaningful; comparing across fields is not.
+  </div>
+
+  <div style="margin-top:6px">
+  URL: <code>?n=5</code> cores, <code>&amp;a=6.0</code> spacing (Li nearest-neighbour is 5.7 a0),
+  <code>&amp;rc=1.6</code> core radius, <code>&amp;field=0</code> E-field along +x in au,
+  <code>&amp;beta=0</code> surface tension, <code>&amp;dy=0</code> transverse seed offset,
+  <code>&amp;reset</code> clear the table.
+  </div>
+  <div id="out" style="margin-top:8px;color:#ff9"></div>
+</div>
+<script>
+(function () {
+  var q = new URLSearchParams(location.search);
+  var N     = parseInt  (q.get('n')     || '5');     // cores
+  var A     = parseFloat(q.get('a')     || '6.0');   // spacing, a0
+  var RC    = parseFloat(q.get('rc')    || '1.6');   // pseudopotential radius
+  var FIELD = parseFloat(q.get('field') || '0');     // uniform E along +x
+  var BETA  = parseFloat(q.get('beta')  || '0');
+  var DY    = parseFloat(q.get('dy')    || '0');     // transverse seed offset, the seed test
+  var BS    = parseFloat(q.get('bs')    || '0.25');
+
+  // Box: the chain plus room for the valence electrons to spread sideways. Grid spacing is
+  // fixed and the grid size derived, so changing the box cannot silently refine the mesh --
+  // that mistake collapsed an earlier chain run by refining 2.4x without anyone asking.
+  var span = (N - 1) * A;
+  var scr  = span + 14.0;
+  var h    = 0.20;
+  var gridN = 2 * Math.round(scr / h / 2);
+  var N2 = gridN / 2;
+  h = scr / gridN;
+
+  var atoms = [], Z = [], Znuc = [], zeff = [], rcs = [];
+  function add(x, y, zc, ze) {
+    atoms.push({ i: Math.round(N2 + x / h), j: Math.round(N2 + y / h), k: N2, Z: zc, el: 'Li' });
+    Z.push(zc); Znuc.push(1.0); zeff.push(ze); rcs.push(RC);
+  }
+
+  // n cores, n-1 valence electrons: the LAST core is left bare, so the vacancy starts at the
+  // right-hand end and a field along +x drives the carriers toward it.
+  var x0 = -span / 2;
+  for (var m = 0; m < N; m++) {
+    var occupied = (m < N - 1);
+    add(x0 + m * A, (m % 2 === 0 ? DY : -DY), occupied ? 1 : 0, 0.65);
+  }
+
+  window.USER_ATOMS = atoms;
+  window.USER_Z = Z;
+  window.USER_Z_NUC = Znuc;
+  window.USER_INIT_ZEFF = zeff;
+  window.USER_RC = rcs;
+  window.USER_NN = gridN;
+  window.USER_SCREEN = scr;
+  window.USER_STEPS = 1000000;
+  window.USER_DYNAMICS = false;          // cores fixed: the electrons are the question
+  window.USER_BOUNDARY_SPEED = BS;
+  window.USER_BETA = BETA;
+  window.USER_FIELD_X = FIELD;
+  window.USER_CURV_REG = 0.10;
+  window.CONVERGENCE_THRESHOLD = 0.00005;
+
+  var KEY = 'realqm_alkali';
+  if (q.get('reset') !== null) localStorage.setItem(KEY, '{}');
+
+  window.onSweepDone = function (E) {
+    var st = JSON.parse(localStorage.getItem(KEY) || '{}');
+    // every settable parameter goes in the key. Three pages this session compared runs from
+    // different configurations because a key omitted one, and each time it produced a
+    // confident wrong number rather than a visible failure.
+    var k = 'n' + N + '_a' + A.toFixed(1) + '_rc' + RC.toFixed(2) + '_f' + FIELD.toFixed(4)
+          + '_b' + BETA.toFixed(3) + '_dy' + DY.toFixed(2) + '_bs' + BS.toFixed(2);
+    if (!Array.isArray(st[k])) st[k] = [];
+    st[k].push(Number(E));
+    localStorage.setItem(KEY, JSON.stringify(st));
+    console.log('CONVERGED ' + k + ' E=' + Number(E).toFixed(6));
+    table();
+  };
+
+  function table() {
+    var st = JSON.parse(localStorage.getItem(KEY) || '{}');
+    var ks = Object.keys(st);
+    if (!ks.length) return;
+    var out = [];
+    ks.sort().forEach(function (k) {
+      var v = st[k], best = Math.min.apply(null, v);
+      var sp = Math.max.apply(null, v) - Math.min.apply(null, v);
+      out.push(k + ' : <b>' + best.toFixed(5) + '</b>'
+               + (v.length > 1 ? '  (' + v.length + ' runs, spread ' + sp.toFixed(5) + ')' : ''));
+    });
+    // The seed test, made explicit: same settings but different dy must give the same energy.
+    var byCfg = {};
+    ks.forEach(function (k) {
+      var base = k.replace(/_dy[-\d.]+/, ''), m = k.match(/_dy([-\d.]+)/);
+      if (m) { (byCfg[base] = byCfg[base] || {})[m[1]] = Math.min.apply(null, st[k]); }
+    });
+    Object.keys(byCfg).forEach(function (b) {
+      var dys = Object.keys(byCfg[b]);
+      if (dys.length < 2) return;
+      var vals = dys.map(function (d) { return byCfg[b][d]; });
+      var spread = Math.max.apply(null, vals) - Math.min.apply(null, vals);
+      out.push('<b>seed test: ' + dys.length + ' values of dy, spread <span style="color:'
+               + (spread < 0.002 ? '#9f9' : '#f77') + '">' + spread.toFixed(5)
+               + '</span> Ha</b>  (must be ~0 or nothing further is measurable)');
+    });
+    document.getElementById('out').innerHTML = out.join('<br>');
+  }
+  table();
+
+  console.log('alkali chain: n=' + N + ' cores, ' + (N - 1) + ' electrons, a=' + A
+              + ', rc=' + RC + ', field=' + FIELD + ', grid ' + gridN + ' h=' + h.toFixed(4));
+})();
+var s = document.createElement('script');
+s.src = 'molecule.js?t=' + Date.now();
+document.body.appendChild(s);
+</script>
+</body></html>

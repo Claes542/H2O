@@ -328,7 +328,7 @@ struct P {
   N2: u32, dt_w: f32, curvReg: f32, TWO_PI: f32,
   h: f32, h2: f32, inv_h: f32, inv_h2: f32,
   dt: f32, half_d: f32, h3: f32, sliceK: u32,
-  beta: f32, _pad0: f32, _pad1: f32, _pad2: f32,
+  beta: f32, fieldX: f32, _pad1: f32, _pad2: f32,
 }`;
 
 const ATOM_STRIDE = 14; // 8 base + 6 split (splitType, splitIdx, splitAxX/Y/Z, splitRot)
@@ -528,7 +528,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     if (l_km != myL) { nface += 1.0; }
   }
   let vBeta = p.beta * nface * p.inv_h;
-  Uo[id] = uc + p.half_d * lap + p.dt * (K[id] - 2.0 * Pi[id] - vBeta) * uc;
+  let vExt = p.fieldX * (f32(i) - f32(p.NN) * 0.5) * p.h;
+  Uo[id] = uc + p.half_d * lap + p.dt * (K[id] - 2.0 * Pi[id] - vBeta - vExt) * uc;
 }
 `;
 
@@ -618,7 +619,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     if (l_km != myL) { nface += 1.0; }
   }
   let vBeta = p.beta * nface * p.inv_h;
-  let itpStep = uc + p.half_d * lap + p.dt * (K[id] - 2.0 * Pi[id] - vBeta) * uc;
+  let vExt = p.fieldX * (f32(i) - f32(p.NN) * 0.5) * p.h;
+  let itpStep = uc + p.half_d * lap + p.dt * (K[id] - 2.0 * Pi[id] - vBeta - vExt) * uc;
 
   Uo[id] = cheb.omega * itpStep + (1.0 - cheb.omega) * Uprev[id];
 }
@@ -2158,6 +2160,12 @@ function fillParamsBuf(pb) {
   pf[8] = hGrid; pf[9] = h2v; pf[10] = 1 / hGrid; pf[11] = 1 / h2v;
   pf[12] = dtv; pf[13] = half_dv; pf[14] = h3v; pu[15] = sliceK;
   pf[16] = betaSurf;
+  // External uniform E-field along +x: V_ext(x) = E*x, ported from mol_fast.js. Uses a
+  // spare pad slot, so PARAM_BYTES stays at 80 -- resizing the params struct is what
+  // shifted the ring energies at beta=0, and that is not worth repeating for a field.
+  // NOTE: this enters the psi equation only. The reported energy does NOT include the
+  // field term, so E is the zero-field energy of a field-driven configuration.
+  pf[17] = (window.USER_FIELD_X !== undefined) ? window.USER_FIELD_X : 0.0;
 }
 
 // Recompute each split-water's sector frame from its current H positions, so the
