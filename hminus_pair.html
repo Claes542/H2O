@@ -158,8 +158,21 @@
     // left it unbounded outward, which is the pathology itself. With all three inside, the
     // bound is symmetric, the competition is fair, and the axial direction -- the transfer
     // coordinate -- stays free.
+    // COMPLEMENTARY, and it has to be. RealQM partitions ALL space: every cell belongs to
+    // some domain. Putting every domain INSIDE the cylinder leaves the outside owned by
+    // nobody -- and the label kernel then falls through to label[id], which is 0 from
+    // clearBuffer, so the left inner electron silently takes the entire far field. That
+    // gave -1.629 against an unconstrained -1.106: a constrained minimum BELOW the
+    // unconstrained one, which is impossible, and it is also why the bound appeared only
+    // on the left.
+    //
+    // So the split must cover space: bound electrons inside, carrier outside. The carrier
+    // is then unbounded outward -- which cannot be fixed by a partition constraint at all,
+    // since removing space from the partition only hands it to the default label. Outward
+    // spreading needs an ENERGY penalty (beta on the interface, or a confining wall), not
+    // a relabelling.
     window.USER_SPLIT_TYPE = atoms.map(function () { return 5; });
-    window.USER_SPLIT_IDX  = atoms.map(function () { return 0; });
+    window.USER_SPLIT_IDX  = atoms.map(function (a, n) { return n === 1 ? 1 : 0; });
     window.USER_SPLIT_AXIS = atoms.map(function () { return [1, 0, 0]; });
     window.USER_SPLIT_ROT  = atoms.map(function () { return RC; });
   }
