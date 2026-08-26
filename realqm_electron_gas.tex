@@ -76,8 +76,9 @@ $0.01186$~Ha $=323$~meV for six electrons --- $54$~meV each, a threshold field o
 $9\times10^{8}$~V/m, or $0.11$~V per lattice site against the $4\times10^{-12}$~V per site of copper
 carrying an ampere. Rigid sliding is therefore excluded as a conduction mechanism by ten orders of
 magnitude. It is however an upper bound, since it obliges every electron to crest its barrier at
-once; the cheap path is a kink, whose cost is independent of chain length --- measured below at
-$179$~meV, and independent of length to $5\%$. Whether the two ring results additionally constitute a
+once; the cheap path is a kink, whose cost is independent of chain length; the elementary defect from
+which one is built is measured below at $179$~meV and is itself length-independent to $5\%$, but
+the kink energy proper is not reported here. Whether the two ring results additionally constitute a
 semiconductor --- filled complement pinned, added carrier free --- is left as a conjecture, the two
 runs differing in screening as well as in filling.
 
@@ -441,12 +442,22 @@ question asked is no longer ``where does the boundary go'' but ``what does this 
 cost'' --- which is the question a barrier actually poses. It is the device that makes the
 $\mathrm{H}_2$ midplane exact, applied to a coordinate instead of a symmetry.
 
-\paragraph{The kink creation energy, and that it does not grow.} Lithium-like cores, one valence
-electron each, a pseudopotential radius $r_c=1.6$ and spacing $a=6.0$~a$_0$. The uniform
-configuration puts every wall midway between neighbouring cores; the kink displaces the
-\emph{middle} wall by $a/2$ and leaves the rest, so one domain widens and its neighbour narrows
-while everything beyond is untouched --- and the end domains, identical in both, cancel exactly in
-the difference:
+\paragraph{The cost of a misplaced domain wall, and that it does not grow.} What follows is
+\emph{not} the kink of the preceding paragraph, and the distinction matters. A kink is a
+discommensuration: the registry slips by one full spacing across it, one ion is left unpartnered,
+and the slip is spread over a width. That requires the number of domains and the number of cores to
+differ locally --- $N$ domains in $N$ wells is perfectly commensurate and admits no kink at all.
+What is computed here is the elementary defect a kink is built from: a \emph{single misplaced domain
+wall}, sitting on a core instead of midway between two, sharp and one site wide, with the registry
+unchanged on either side. It is an upper bound on nothing in particular and a lower bound on
+nothing either; it is a well-defined local defect energy, and it is reported because it is
+reproducible where the free-boundary numbers are not.
+
+Lithium-like cores, one valence electron each, a pseudopotential radius $r_c=1.6$ and spacing
+$a=6.0$~a$_0$. The uniform configuration puts every wall midway between neighbouring cores; the
+defect displaces the \emph{middle} wall by $a/2$ and leaves the rest, so one domain widens and its
+neighbour narrows while everything beyond is untouched --- and the end domains, identical in both,
+cancel exactly in the difference:
 
 \begin{center}
 \small
@@ -460,18 +471,23 @@ $5$ & $-1.29985$ & $-1.29310$ & $0.00675$~Ha $=184$~meV\\
 \end{tabular}
 \end{center}
 
-\noindent \textbf{The kink costs $\approx0.0066$~Ha $=179$~meV $\approx7\,k_BT$, and the cost does
-not grow with the chain.} Adding a whole site changes it by $0.00035$~Ha while the chain's total
+\noindent \textbf{The defect costs $\approx0.0066$~Ha $=179$~meV $\approx7\,k_BT$, and the cost
+does not grow with the chain.} Adding a whole site changes it by $0.00035$~Ha while the chain's total
 energy changes by $0.26$~Ha --- a factor of $750$. That is the property the mechanism turns on:
 rigid sliding costs $54$~meV per electron and obliges all of them at once, so its activation is
 $\sim5\times54=270$~meV at five sites and $5.4$~eV at a hundred, while the kink stays at $179$~meV
 however long the chain. At these short lengths the two are already comparable and the kink is
 lower; at any physical length the comparison is not close.
 
-Two caveats belong with the figure. Displacing one wall by $a/2$ is a \emph{sharp} kink, and a
-profile spread over several sites will cost less, so $179$~meV is an upper bound. And chains of four
-and five sites are short against a plausible kink width, so the length-independence is demonstrated
-over a narrow range even though it holds to $5\%$ there.
+Two caveats belong with the figure, and a third with its interpretation. Chains of four and five
+sites are short, so the length-independence is demonstrated over a narrow range even though it
+holds to $5\%$ there. The defect profile is the sharpest possible, one wall wide. And the step from
+this quantity to the kink energy proper is not taken here: a kink needs $N$ domains over $N\pm1$
+cores, which an equal-count chain cannot host, so it must be built either on a chain with a vacancy
+or as a kink--antikink pair with the domain counts locally compressed and dilated. A pair
+constructed instead by displacing the walls rigidly by one spacing was tried and rejected: it
+collapses the domain at the antikink to zero width. That construction, and the migration barrier
+with it, remain the open half of the pair of numbers named above.
 
 A third result falls out of the same scan and confirms an earlier one by a different route. Sliding
 all the walls together, the \emph{bond}-centred registry lies $0.064$~Ha below the atom-centred one

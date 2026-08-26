@@ -85,13 +85,55 @@ window.onerror = function (msg, url, line) {
   // the end domains and contaminated the d=0 vs d=0.5 comparison (2 of 5 domains, 40% of
   // the system). And the cost is independent of chain length, which is the property that
   // makes a kink barrier quotable where a rigid-sliding barrier is not.
-  var KINK = q.get('kink') === '1';
+  var KINK = q.get('kink') === '1';   // one wall displaced: a local registry DEFECT
+  var SLIP = q.get('slip') === '1';   // a true kink: the registry slips by a FULL spacing
+  var W    = parseFloat(q.get('w') || '0.6');   // kink half-width, in sites
+  var PAIR = q.get('pair') === '1';             // kink + antikink: the clean object
+  var M1   = parseFloat(q.get('m1') || String(Math.floor((N - 1) / 2) - 1.5));
+  var M2   = parseFloat(q.get('m2') || String(Math.floor((N - 1) / 2) + 1.5));
+  // Force the per-electron Poisson path regardless of electron count. It is the path checked
+  // against V_ee = 1/R; the SIC path used above 5 electrons oscillates over 0.05 Ha with the
+  // partition frozen, which is what blocked the original kink attempt.
+  if (q.get('direct') !== '0') window.USER_DIRECT_POTHER = true;
   var dGrid = DFRAC * A / h;
   var mid = Math.floor((N - 1) / 2);
   var walls = [];
   for (var m = 0; m < N - 1; m++) {
-    var w = 0.5 * (coreI[m] + coreI[m + 1]);
-    walls.push(w + (KINK ? (m === mid ? dGrid : 0) : dGrid));
+    var w0 = 0.5 * (coreI[m] + coreI[m + 1]);
+    if (PAIR) {
+      // KINK-ANTIKINK PAIR, which is the only clean object in an open chain. A single slip
+      // displaces every wall to one side of it, which pushes the last domain off the end --
+      // measured at n=5 it left domain 4 squeezed to 0.40a against the box wall with no core
+      // in it, a penalty that has nothing to do with the kink. A pair returns the registry
+      // to normal at BOTH ends, so the end domains are identical to the uniform reference
+      // and cancel exactly. The article says as much: on a ring kinks must come in pairs.
+      //
+      // Walls in the middle region are displaced by a FULL spacing, zero outside it, with
+      // tanh edges of half-width W. That is one kink and one antikink, so the pair costs
+      // 2 E_kink and the kink energy is half the measured difference.
+      var up = 0.5 * (1 + Math.tanh((m - M1 + 0.5) / W));
+      var dn = 0.5 * (1 + Math.tanh((m - M2 + 0.5) / W));
+      walls.push(w0 + (A / h) * (up - dn));
+    } else if (SLIP) {
+      // A TRUE KINK (discommensuration). Far to the left the walls sit at their midpoints;
+      // far to the right every wall is displaced by a FULL lattice spacing, so the registry
+      // on the two sides differs by one site. The mismatch is absorbed in between: one
+      // domain ends up spanning two cores and one core is left unpartnered -- which is what
+      // "advance the electrons on one side of a point by one spacing, leaving one ion
+      // unpartnered" means. When such a kink traverses the chain every domain advances one
+      // site and exactly one electron arrives at the far end. That is the transport event.
+      //
+      // The profile is the standard soliton form, tanh, with half-width W in sites. W -> 0
+      // is a sharp slip at one wall; larger W spreads the slip over several sites, which
+      // costs less. The optimum W is set by the pattern's stiffness against the lattice's
+      // grip, and scanning it is how the kink's own width is found.
+      walls.push(w0 + (A / h) * 0.5 * (1 + Math.tanh((m - mid + 0.5) / W)));
+    } else {
+      // kink=1 displaces ONE wall by d*a: a single misplaced domain wall, sharp, one site
+      // wide, with the registry unchanged either side. That is the elementary defect a kink
+      // is built from, NOT a kink -- no full-spacing slip, no unpartnered core.
+      walls.push(w0 + (KINK ? (m === mid ? dGrid : 0) : dGrid));
+    }
   }
 
   window.CUSTOM_LABEL_INIT = function (S, hGrid, nucPos, NELEC) {
@@ -126,7 +168,9 @@ window.onerror = function (msg, url, line) {
   window.onSweepDone = function (E) {
     var st = JSON.parse(localStorage.getItem(KEY) || '{}');
     var cfg = 'n' + N + '_a' + A.toFixed(1) + '_rc' + RC.toFixed(2) + '_ze' + ZE.toFixed(2)
-            + '_h' + h.toFixed(3) + (KINK ? '_KINK' : '_rigid');
+            + '_h' + h.toFixed(3)
+            + (PAIR ? '_PAIR w' + W.toFixed(2) + '_m' + M1 + '-' + M2
+                    : SLIP ? '_SLIP w' + W.toFixed(2) : (KINK ? '_KINK' : '_rigid'));
     st[cfg] = st[cfg] || {};
     var dk = DFRAC.toFixed(3);
     if (!Array.isArray(st[cfg][dk])) st[cfg][dk] = [];
@@ -162,14 +206,17 @@ window.onerror = function (msg, url, line) {
     // page computes it rather than leaving it to be read off two rounded displays. At the
     // equilibrium spacing the difference sits below the resolution of a 4-decimal read.
     Object.keys(st).forEach(function (cfg) {
-      if (cfg.indexOf('_KINK') < 0) return;
-      var ref = st[cfg.replace('_KINK', '_rigid')];
+      if (cfg.indexOf('_KINK') < 0 && cfg.indexOf('_SLIP') < 0 && cfg.indexOf('_PAIR') < 0) return;
+      var ref = st[cfg.replace(/_KINK|_SLIP w[\d.]+|_PAIR w[\d.]+_m[-\d.]+/, '_rigid')];
+      var isPair = cfg.indexOf('_PAIR') >= 0;
       if (!ref || !ref['0.000']) return;
       var E0 = Math.min.apply(null, ref['0.000']);
       Object.keys(st[cfg]).forEach(function (d) {
         var Ek = Math.min.apply(null, st[cfg][d]);
         var dE = Ek - E0;
-        out.push('<b>kink formation (' + cfg.replace('_KINK', '') + ', d=' + d + '): '
+        if (isPair) { dE = dE / 2; }   // a pair costs 2 E_kink
+        out.push('<b>' + (isPair ? 'E_kink (pair/2)' : 'defect energy')
+                 + ' (' + cfg.replace('_KINK', '') + ', d=' + d + '): '
                  + '<span style="color:' + (Math.abs(dE) < 0.001 ? '#9f9' : '#ff9') + '">'
                  + dE.toFixed(6) + ' Ha = ' + (dE * 27211).toFixed(0) + ' meV = '
                  + (dE / 0.00095).toFixed(1) + ' kT</span></b>');
