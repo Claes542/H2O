@@ -42,6 +42,23 @@ SHIFT = float(os.environ.get('SHIFT', 0.0))
 # zero boundary is read back in on alternate sweeps and propagates inward. The predicted
 # cost is 0.5/L per electron, so at L=8 with two electrons V_ee should fall by ~0.125.
 PBC = os.environ.get('PBC', '1')
+# RCUT models molecule.js's Voronoi labelling, where the trial function is cut off at
+# initRcut: beyond that radius from BOTH nuclei no atom wins and the cells fall to the
+# default label. Electron 1 then owns only its near field while electron 0 inherits all
+# the far field. RCUT=0 disables (clean half-space split).
+RCUT = float(os.environ.get('RCUT', 0.0))
+# KERNEL=clamp reproduces molecule.js's nuclear kernel: Z/max(|r|, 2h) -- a hard clamp two
+# grid spacings from the nucleus (R_SING = 2*hGrid) rather than the sqrt(r^2+h^2) softening
+# used above. It gives a far better single atom (molecule.js: E(H) = -0.49861), which is
+# exactly why it needs checking across TWO domains: a kernel tuned on one atom need not
+# carry over, and E(H2) - 2E(H) is where any discrepancy would show.
+KERNEL = os.environ.get('KERNEL', 'soft')
+# BETA: the Robin surface tension. The energy carries (beta/2) * Int psi^2 dS on every face
+# of a domain that borders a non-domain cell, whose natural boundary condition is
+# dn(psi) + beta*psi = 0. It supplies the confinement energy a free interface otherwise
+# lacks (the C=0 defect). molecule.js implements the same pair: an extra -beta*nface/h in
+# the psi update, and 0.5*beta*psi^2*nface*h^2 in the energy sum.
+BETA = float(os.environ.get('BETA', 0.0))
 
 S = N + 1
 h = BOX / N
@@ -59,7 +76,11 @@ NE = len(nuc)
 # nuclear attraction, softened at the nucleus by sqrt(r^2 + h^2) as the GPU code does
 K = np.zeros((S, S, S))
 for (nx, ny, nz, nZ) in nuc:
-    K += nZ / np.sqrt((X - nx) ** 2 + (Y - ny) ** 2 + (Z - nz) ** 2 + h2)
+    _r = np.sqrt((X - nx) ** 2 + (Y - ny) ** 2 + (Z - nz) ** 2)
+    if KERNEL == 'clamp':
+        K += nZ / np.maximum(_r, 2.0 * h)
+    else:
+        K += nZ / np.sqrt(_r ** 2 + h2)
 
 # Domains: one electron per nucleus, split at the midplane z = 0 for H2 -- the hard-Neumann
 # midplane of the essence solver. The outermost shell is excluded from every domain, so the
@@ -72,6 +93,10 @@ for m in range(NE):
         o = interior.copy()
     else:
         o = interior & ((Z < SHIFT) if m == 0 else (Z >= SHIFT))
+        if RCUT > 0.0:
+            nx1, ny1, nz1, _ = nuc[1]
+            near1 = np.sqrt((X - nx1) ** 2 + (Y - ny1) ** 2 + (Z - nz1) ** 2) < RCUT
+            o = (interior & near1 & (Z >= SHIFT)) if m == 1 else (interior & ~(near1 & (Z >= SHIFT)))
     own.append(o)
 
 # psi: a 1s on its own nucleus, normalised over its own domain
@@ -101,6 +126,18 @@ for m in range(NE):
     P.append(a)
 
 SHIFTS = [(1, 0), (-1, 0), (1, 1), (-1, 1), (1, 2), (-1, 2)]
+
+
+def exposed_faces(o):
+    """Number of faces of each cell that border a cell outside the domain. This is the
+    discrete surface measure: sum(psi^2 * nface) * h^2 approximates Int psi^2 dS."""
+    n = np.zeros(o.shape)
+    for sh, axis in SHIFTS:
+        n += np.where(np.roll(o, sh, axis=axis), 0.0, 1.0)
+    return np.where(o, n, 0.0)
+
+
+nface = [exposed_faces(o) for o in own]
 
 
 def lap_own(a, o):
@@ -134,7 +171,8 @@ for step in range(STEPS):
         P[m][1:-1, 1:-1, 1:-1] += upd[1:-1, 1:-1, 1:-1]
     for m in range(NE):
         a = u[m]
-        nxt = a + half_d * lap_own(a, own[m]) + dt * (K - 2.0 * P[m]) * a
+        vbeta = BETA * nface[m] / h if BETA != 0.0 else 0.0
+        nxt = a + half_d * lap_own(a, own[m]) + dt * (K - 2.0 * P[m] - vbeta) * a
         nxt = np.where(own[m], nxt, 0.0)
         nxt /= np.sqrt((nxt[own[m]] ** 2).sum() * h3)
         u[m] = nxt
@@ -145,8 +183,12 @@ for m in range(NE):
     T += float((-0.5 * u[m] * lap_own(u[m], o) / h2)[o].sum()) * h3
     V_eK += float((-K * u[m] ** 2)[o].sum()) * h3
     V_ee += float((P[m] * u[m] ** 2)[o].sum()) * h3
+S_beta = 0.0
+if BETA != 0.0:
+    for m in range(NE):
+        S_beta += 0.5 * BETA * float((u[m] ** 2 * nface[m])[own[m]].sum()) * h2
 V_KK = (1.0 / R) if MODE == 'H2' else 0.0
-E = T + V_eK + V_ee + V_KK
+E = T + V_eK + V_ee + V_KK + S_beta
 
 tag = f" R={R:.2f}" if MODE == 'H2' else ""
 print(f"{MODE}{tag}  box={BOX} N={N} h={h:.4f} steps={STEPS}")
@@ -157,4 +199,6 @@ if MODE == 'H2':
 else:
     print(f"  V_ee  {V_ee:+.5f}")
 print(f"  V_KK  {V_KK:+.5f}")
+if BETA != 0.0:
+    print(f"  S_beta{S_beta:+.5f}   (beta = {BETA})")
 print(f"  E     {E:+.5f}" + ("   exact -0.50000" if MODE == 'H' else ""))
