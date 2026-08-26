@@ -88,6 +88,12 @@
   // stopped the runaway without setting the answer, while a monotone drift means the
   // constraint IS the answer and nothing physical has been measured.
   var RC   = parseFloat(q.get('rc') || '0');
+  // beta: Robin surface tension. This is the only thing that can stop the outward
+  // spreading. A partition constraint cannot -- RealQM partitions all space, so removing
+  // space from the partition merely hands it to the default label (see the split block
+  // below). Spreading is an energy question and needs an energy penalty: (beta/2) times
+  // the interface area, which charges the carrier for the surface it gains by diffusing.
+  var BETA = parseFloat(q.get('beta') || '0');
 
   var gridN = 140, scr = 24, N2 = 70;
   var h = scr / gridN;
@@ -186,12 +192,13 @@
     if (NOEXTRA) return;
     var st = JSON.parse(localStorage.getItem('realqm_pair') || '{}');
     var key = d.toFixed(2) + '|' + MODE + '|b' + BIAS.toFixed(3) + '|dy' + DY.toFixed(2)
-              + '|rc' + RC.toFixed(2);
+              + '|rc' + RC.toFixed(2) + '|beta' + BETA.toFixed(3);
     if (!Array.isArray(st[key])) st[key] = [];
     st[key].push(Number(E));               // keep every repeat: the spread is the error bar
     localStorage.setItem('realqm_pair', JSON.stringify(st));
     console.log('CONVERGED ' + MODE + ' E=' + Number(E).toFixed(6));
   };
+  window.USER_BETA = BETA;
   window.USER_CURV_REG = 0.10;
   // The quantity wanted is E(symmetric) - E(localised), which IS the hopping barrier,
   // and for facile hopping that is of order k_B T = 0.001 Ha. A tolerance of the same
