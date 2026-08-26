@@ -130,8 +130,18 @@
     // domain order: 0 = left inner (the H- core), 1 = the carrier, 2 = right kernel.
     // Only the carrier is confined; the bound electrons keep the whole space, or the
     // protons would be left unscreened.
-    window.USER_SPLIT_TYPE = atoms.map(function (a, n) { return n === 1 ? 5 : 0; });
-    window.USER_SPLIT_IDX  = atoms.map(function () { return 0; });   // 0 = inside the radius
+    // ALL THREE domains are partitioned by the same cylinder, or the competition is rigged.
+    // Constraining only the carrier let the right electron occupy the tube while the carrier
+    // could not leave it -- the right electron competes for the carrier's cells but not the
+    // reverse, which biases the very transfer being measured, and asymmetrically between the
+    // two ends that are supposed to be degenerate.
+    //
+    // Bound electrons INSIDE (idx 0), carrier OUTSIDE (idx 1): each proton keeps its own
+    // core, the carrier is a sheath about the axis free to slide from one end to the other,
+    // and it cannot seize either nucleus. This is the chain_straight arrangement, and it is
+    // symmetric in left/right as the degeneracy of the two end states requires.
+    window.USER_SPLIT_TYPE = atoms.map(function () { return 5; });
+    window.USER_SPLIT_IDX  = atoms.map(function (a, n) { return n === 1 ? 1 : 0; });
     window.USER_SPLIT_AXIS = atoms.map(function () { return [1, 0, 0]; });
     window.USER_SPLIT_ROT  = atoms.map(function () { return RC; });
   }
