@@ -97,9 +97,19 @@
   window.onSweepDone = function (E, steps, E_T, E_eK, E_ee, E_KK) {
     window._parts = { T: E_T, eK: E_eK, ee: E_ee, KK: E_KK };
     var st = JSON.parse(localStorage.getItem(KEY) || '{}');
-    var k = MODE + '_R' + R.toFixed(2) + '_b' + BETA.toFixed(3)
-          + '_c' + CURV.toFixed(2) + '_h' + h.toFixed(3)
-          + '_j' + (parseInt(q.get('jac') || '10'));
+    // The key MUST carry box and the freeze flag. Without them a frozen H run and a free
+    // H run collide, Math.min below picks the more negative of the two, and E_bind is
+    // computed across configurations. That is exactly how E(H2) at fixed=1 (-0.82) got
+    // compared against a free atom (-0.49861) and produced a phantom 0.18 Ha of
+    // underbinding. A single atom has no interface, so freezing confines it to the initial
+    // initRcut sphere and costs ~0.1 Ha; the molecule pays the same per electron and the
+    // error cancels ONLY if both ends use identical settings.
+    // A lone atom has no R, beta or curvature, so those are left out of its key entirely.
+    var FIXED = q.get('fixed') ? 1 : 0;
+    var JAC = parseInt(q.get('jac') || '10');
+    var cfg = '_h' + h.toFixed(3) + '_j' + JAC + '_x' + BOX.toFixed(1) + '_f' + FIXED;
+    var k = (MODE === 'h') ? ('h' + cfg)
+          : ('h2_R' + R.toFixed(2) + '_b' + BETA.toFixed(3) + '_c' + CURV.toFixed(2) + cfg);
     if (!Array.isArray(st[k])) st[k] = [];
     st[k].push(Number(E));
     localStorage.setItem(KEY, JSON.stringify(st));
@@ -120,20 +130,28 @@
     var ks = Object.keys(st);
     if (!ks.length) { document.getElementById('tab').innerHTML = ''; return; }
     var out = [], EH = null;
-    ks.forEach(function (k) { var m = k.match(/^h_/); if (m) EH = Math.min.apply(null, st[k]); });
-    out.push('<b>' + (EH !== null ? 'E(H) = ' + EH.toFixed(5)
-              + '  (exact -0.50000, error ' + (EH + 0.5).toFixed(5) + ')'
+    // EH is resolved PER ROW below against the row's own configuration, not globally.
+    var hRuns = ks.filter(function (x) { return x.indexOf('h_') === 0; });
+    out.push('<b>' + (hRuns.length
+              ? 'E(H) runs: ' + hRuns.map(function (x) {
+                  return x.replace('h_', '') + ' = ' + Math.min.apply(null, st[x]).toFixed(5);
+                }).join(' &nbsp; ')
               : 'E(H) not yet run &mdash; needed for E_bind') + '</b>');
+    out.push('<span style="color:#888">E_bind uses the atom run whose box, h, jac and '
+             + 'fixed-flag match the molecule row; mismatched settings show &mdash;.</span>');
     out.push('&nbsp;');
     out.push('<b>' + 'beta'.padEnd(7) + 'E(H2)'.padStart(11) + 'E_bind'.padStart(10)
              + 'python'.padStart(11) + 'diff'.padStart(9) + '</b>');
     ks.filter(function (k) { return k.indexOf('h2_') === 0; })
       .sort(function (a, b) { return parseFloat(a.split('_b')[1]) - parseFloat(b.split('_b')[1]); })
       .forEach(function (k) {
-        var m = k.match(/^h2_R([\d.]+)_b([\d.]+)_c([\d.]+)_h([\d.]+)_j(\d+)$/);
+        var m = k.match(/^h2_R([\d.]+)_b([\d.]+)_c([\d.]+)(_h[\d.]+_j\d+_x[\d.]+_f\d)$/);
         if (!m) return;
         var v = st[k], best = Math.min.apply(null, v);
         var py = PY[m[2]];
+        // the atom run with the SAME configuration tail, or nothing
+        var hk = 'h' + m[4];
+        var EH = (st[hk] && st[hk].length) ? Math.min.apply(null, st[hk]) : null;
         var bind = (EH !== null) ? (2 * EH - best) : null;
         out.push('&nbsp;' + m[2].padEnd(7)
                  + best.toFixed(5).padStart(11)

@@ -3473,11 +3473,19 @@ async function doSteps(n) {
 
   // --- Evolve level set W + flip labels where W < 0 ---
   frameCount++;
-  // FREEZE_BOUNDARY pins the domains at their initial Voronoi split. For a SYMMETRIC
-  // system this is not an approximation: the free boundary's equilibrium position is the
-  // midplane by symmetry, so the Voronoi split already IS the answer and freezing it only
-  // removes a degree of freedom that at beta=0 has no restoring force to hold it (the C=0
-  // defect -- a free interface carries no confinement energy). H2 at R=6 scattered over
+  // FREEZE_BOUNDARY pins the domains at their INITIAL labels. Note what those are: the
+  // Voronoi assignment is made from trial functions cut off at initRcut, so it is a pair of
+  // spheres plus a default-labelled far field, NOT a clean midplane partition of the box.
+  // Freezing therefore confines each electron, which costs real energy -- a lone H atom
+  // goes from -0.49861 free to -0.40 frozen, ~0.1 Ha, because a single atom has no
+  // interface and its domain SHOULD expand to fill the box.
+  //
+  // For a symmetric molecule the confinement is paid equally by both electrons and largely
+  // cancels in E(R) differences, and freezing does remove a degree of freedom that at
+  // beta=0 has no restoring force (the C=0 defect -- a free interface carries no
+  // confinement energy), which is what caused 0.3 Ha of run-to-run scatter at R=6.
+  // But E_bind must then be taken against a molecule at large R with the SAME flags, never
+  // against a separately-run free atom: that mismatch fabricates ~0.18 Ha of underbinding. H2 at R=6 scattered over
   // 0.3 Ha across repeat runs with the boundary free, while E(H), which has no interface,
   // was stable to 1e-3. With the plane fixed, h2_template.py gives a smooth binding curve:
   // R_e = 1.72, D_e = 0.204 Ha (experiment 1.401, 0.174) at h = 0.1875.
