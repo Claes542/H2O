@@ -65,12 +65,16 @@ window.onerror = function (msg, url, line) {
 
   // cores, all occupied: n cores and n electrons is half filling, which is the registry
   // problem rigid sliding is about. NELEC = n <= 5 keeps this on the direct Poisson path.
+  // vk=1: leave the LAST core bare, giving n-1 domains over n cores. That count mismatch is
+  // what a kink is made of -- N domains in N wells is perfectly commensurate and admits none.
+  var VK = q.get('vk') === '1';
   var atoms = [], Z = [], Znuc = [], zeff = [], rcs = [], coreI = [];
   var x0 = -span / 2;
   for (var m = 0; m < N; m++) {
     var xi = Math.round(N2 + (x0 + m * A) / h);
-    atoms.push({ i: xi, j: N2, k: N2, Z: 1, el: 'Li' });
-    Z.push(1); Znuc.push(1.0); zeff.push(ZE); rcs.push(RC); coreI.push(xi);
+    atoms.push({ i: xi, j: N2, k: N2, Z: (VK && m === N - 1) ? 0 : 1, el: 'Li' });
+    Z.push((VK && m === N - 1) ? 0 : 1);
+    Znuc.push(1.0); zeff.push(ZE); rcs.push(RC); coreI.push(xi);
   }
 
   // The walls: plane m sits between core m and core m+1, shifted by d*a. Domain m owns the
@@ -91,6 +95,7 @@ window.onerror = function (msg, url, line) {
   var PAIR = q.get('pair') === '1';             // kink + antikink: the clean object
   var M1   = parseFloat(q.get('m1') || String(Math.floor((N - 1) / 2) - 1.5));
   var M2   = parseFloat(q.get('m2') || String(Math.floor((N - 1) / 2) + 1.5));
+  var KC   = parseFloat(q.get('kc') || String((N - 2) / 2));   // kink centre, in sites
   // Force the per-electron Poisson path regardless of electron count. It is the path checked
   // against V_ee = 1/R; the SIC path used above 5 electrons oscillates over 0.05 Ha with the
   // partition frozen, which is what blocked the original kink attempt.
@@ -98,6 +103,26 @@ window.onerror = function (msg, url, line) {
   var dGrid = DFRAC * A / h;
   var mid = Math.floor((N - 1) / 2);
   var walls = [];
+  if (VK) {
+    // The n-1 domains are placed by their CENTRES, not by their walls, because a kink is a
+    // statement about where the charges sit relative to the wells. Domain m sits on core m
+    // far to the left of the kink and on core m+1 far to the right:
+    //
+    //     c_m = coreX[m] + a * S((m - kc)/W),   S = 0.5(1 + tanh)
+    //
+    // so the registry slips by exactly one spacing across the kink and the unpartnered core
+    // is left where the slip occurs. W is the kink half-width in sites: W -> 0 puts the whole
+    // mismatch at one place (a sharp kink), while W of order the chain length spreads it
+    // evenly over every domain (a uniformly stretched, incommensurate pattern). The physical
+    // kink is the MINIMUM of E(W) -- the width at which the pattern's stiffness balances the
+    // lattice's grip. Scanning W is therefore how the kink finds its own size, and kc is the
+    // kink centre, whose translation gives the migration barrier.
+    var cen = [];
+    for (var m = 0; m < N - 1; m++) {
+      cen.push(coreI[m] + (A / h) * 0.5 * (1 + Math.tanh((m - KC) / W)));
+    }
+    for (var m = 0; m < N - 2; m++) walls.push(0.5 * (cen[m] + cen[m + 1]));
+  } else
   for (var m = 0; m < N - 1; m++) {
     var w0 = 0.5 * (coreI[m] + coreI[m + 1]);
     if (PAIR) {
@@ -169,8 +194,9 @@ window.onerror = function (msg, url, line) {
     var st = JSON.parse(localStorage.getItem(KEY) || '{}');
     var cfg = 'n' + N + '_a' + A.toFixed(1) + '_rc' + RC.toFixed(2) + '_ze' + ZE.toFixed(2)
             + '_h' + h.toFixed(3)
-            + (PAIR ? '_PAIR w' + W.toFixed(2) + '_m' + M1 + '-' + M2
-                    : SLIP ? '_SLIP w' + W.toFixed(2) : (KINK ? '_KINK' : '_rigid'));
+            + (VK ? '_VK w' + W.toFixed(2) + '_kc' + KC.toFixed(2)
+                  : PAIR ? '_PAIR w' + W.toFixed(2) + '_m' + M1 + '-' + M2
+                  : SLIP ? '_SLIP w' + W.toFixed(2) : (KINK ? '_KINK' : '_rigid'));
     st[cfg] = st[cfg] || {};
     var dk = DFRAC.toFixed(3);
     if (!Array.isArray(st[cfg][dk])) st[cfg][dk] = [];
