@@ -1,0 +1,32 @@
+cell R = 1.95 a0   box 5.8 (48^3, h = 0.122)   cell size a = n^(-1/3) = 2.555 a0
+domain: 17256 cells in the sphere
+/Users/cgjoh/Development/H2O/real_plasma_numerics/split_vs_double.py:88: DeprecationWarning: `axes` should not be `None` if `s` is not `None` (Deprecated in NumPy 2.0). In a future version of NumPy, this will raise an error and `s[i]` will correspond to the size along the transformed axis specified by `axes[i]`. To retain current behaviour, pass a sequence [0, ..., k-1] to `axes` for an array of dimension k.
+  out = np.fft.irfftn(np.fft.rfftn(pad) * _KHAT, s=(_NP, _NP, _NP))
+Poisson check: sphere self-energy 0.30701 vs exact 0.30769 (0.22% error)
+
+  beta   beta*a      E_split    E_together      split-together
+------------------------------------------------------------------
+/Users/cgjoh/Development/H2O/real_plasma_numerics/split_vs_double.py:177: RuntimeWarning: divide by zero encountered in matmul
+  nrm = float(u @ (M @ u))
+/Users/cgjoh/Development/H2O/real_plasma_numerics/split_vs_double.py:177: RuntimeWarning: overflow encountered in matmul
+  nrm = float(u @ (M @ u))
+/Users/cgjoh/Development/H2O/real_plasma_numerics/split_vs_double.py:177: RuntimeWarning: invalid value encountered in matmul
+  nrm = float(u @ (M @ u))
+/Users/cgjoh/Development/H2O/real_plasma_numerics/split_vs_double.py:185: RuntimeWarning: divide by zero encountered in matmul
+  Ts.append(0.5 * float(u @ (kinetic_and_surface(m, 0.0)[0] @ u)))
+/Users/cgjoh/Development/H2O/real_plasma_numerics/split_vs_double.py:185: RuntimeWarning: overflow encountered in matmul
+  Ts.append(0.5 * float(u @ (kinetic_and_surface(m, 0.0)[0] @ u)))
+/Users/cgjoh/Development/H2O/real_plasma_numerics/split_vs_double.py:185: RuntimeWarning: invalid value encountered in matmul
+  Ts.append(0.5 * float(u @ (kinetic_and_surface(m, 0.0)[0] @ u)))
+  0.00   0.000     -0.74187     -0.61697     -0.12489  split wins
+  0.20   0.511     -0.20229     -0.21885     +0.01656  TOGETHER wins
+  0.40   1.022     +0.25210     +0.10025     +0.15185  TOGETHER wins
+  0.60   1.533     +0.63766     +0.35628     +0.28139  TOGETHER wins
+  0.80   2.044     +0.96764     +0.56284     +0.40480  TOGETHER wins
+  1.00   2.555     +1.25253     +0.73092     +0.52161  TOGETHER wins
+  1.40   3.577     +1.71824     +0.98386     +0.73438  TOGETHER wins
+  2.00   5.111     +2.23500     +1.23212     +1.00288  TOGETHER wins
+
+CROSSOVER  beta* = 0.177 a0^-1,  beta* a = 0.451
+           the electron gas requires beta a = 1.146
+           ratio = 0.39
