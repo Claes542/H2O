@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html><body style="margin:0;background:#000">
+<div id="info" style="position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.85);color:#fff;font-family:monospace;font-size:12px;padding:10px;border:1px solid #4fc3f7;border-radius:6px;max-width:600px;z-index:100">
+  <div style="color:#4fc3f7;font-weight:bold">Sliding the partition through the lattice</div>
+  A chain of pseudopotential cores, one valence electron each, and the domain walls placed
+  <b>by hand</b> as planes between neighbouring cores. The walls are then shifted together by
+  <code>d</code> and the energy recorded. E(d) is periodic with period <code>a</code>, and its
+  <b>amplitude is the Peierls&ndash;Nabarro pinning barrier</b>.
+
+  <div style="margin-top:6px">
+  <b>Why this is well posed when the free-boundary runs were not.</b> Nothing is searched for.
+  The free boundary moves by local single-cell label flips, so it descends to whichever
+  configuration no single flip improves &mdash; which depends on the seed, not on the physics.
+  Measured spreads: 0.005&nbsp;Ha between builds on the ring, 0.013 across seeds on the alkali
+  chain, 0.031 on H&minus;&nbsp;+&nbsp;H, and outright non-convergence on the kink chain, against
+  barriers of order 0.001&ndash;0.02. Here the partition is <b>specified</b> and frozen, only the
+  wavefunctions relax, and the same input gives the same output. It is the trick that made the
+  H<sub>2</sub> midplane work, applied to a coordinate instead of a symmetry.
+  </div>
+
+  <div style="margin-top:6px">
+  <b>What is being measured.</b> At <code>d=0</code> each wall sits midway between two cores and
+  every domain is centred on its own core &mdash; the commensurate, lowest-energy registry. At
+  <code>d=a/2</code> the walls sit <i>on</i> the cores, the least favourable registry. The
+  difference is the cost of sliding the whole electron pattern one half spacing through the
+  lattice, which is exactly what <code>ring_slide</code> measured by rigid rotation and got
+  0.01186&nbsp;Ha for six electrons &mdash; but that number moved to 0.022 on a recompile, because
+  the partition there was found rather than given.
+  </div>
+
+  <div style="margin-top:6px">
+  <b>This is rigid sliding, the expensive path.</b> Every electron moves at once and the cost
+  grows with chain length, so it is an upper bound, not the activation energy. The cheap path is a
+  kink, whose cost is length-independent &mdash; a non-uniform wall spacing, which the same
+  machinery can specify once rigid sliding is checked.
+  </div>
+
+  <div style="margin-top:6px">
+  URL: <code>?n=5</code> cores, <code>&amp;a=6.0</code> spacing, <code>&amp;rc=1.6</code> core
+  radius, <code>&amp;d=0</code> wall shift in units of <code>a</code> (scan 0 &rarr; 0.5),
+  <code>&amp;zeff=1.0</code>, <code>&amp;h=0.30</code>, <code>&amp;reset</code>.
+  </div>
+  <div id="out" style="margin-top:8px;color:#ff9"></div>
+</div>
+<script>
+window.onerror = function (msg, url, line) {
+  var o = document.getElementById('out');
+  if (o) o.innerHTML = '<b style="color:#f77">ERROR line ' + line + ': ' + msg + '</b>';
+  return false;
+};
+(function () {
+  var q = new URLSearchParams(location.search);
+  var N    = parseInt  (q.get('n')    || '5');
+  var A    = parseFloat(q.get('a')    || '6.0');
+  var RC   = parseFloat(q.get('rc')   || '1.6');
+  var DFRAC= parseFloat(q.get('d')    || '0');     // wall shift, in units of a
+  var ZE   = parseFloat(q.get('zeff') || '1.0');
+
+  var span = (N - 1) * A;
+  var scr  = span + parseFloat(q.get('pad') || '10.0');
+  var hReq = parseFloat(q.get('h') || '0.30');
+  var gridN = 2 * Math.round(scr / hReq / 2);
+  var N2 = gridN / 2;
+  var h = scr / gridN;
+
+  // cores, all occupied: n cores and n electrons is half filling, which is the registry
+  // problem rigid sliding is about. NELEC = n <= 5 keeps this on the direct Poisson path.
+  var atoms = [], Z = [], Znuc = [], zeff = [], rcs = [], coreI = [];
+  var x0 = -span / 2;
+  for (var m = 0; m < N; m++) {
+    var xi = Math.round(N2 + (x0 + m * A) / h);
+    atoms.push({ i: xi, j: N2, k: N2, Z: 1, el: 'Li' });
+    Z.push(1); Znuc.push(1.0); zeff.push(ZE); rcs.push(RC); coreI.push(xi);
+  }
+
+  // The walls: plane m sits between core m and core m+1, shifted by d*a. Domain m owns the
+  // slab between wall m-1 and wall m, so every domain contains exactly one core while
+  // |d| < 0.5. Shifting all walls together slides the whole pattern through the lattice.
+  var dGrid = DFRAC * A / h;
+  var walls = [];
+  for (var m = 0; m < N - 1; m++) walls.push(0.5 * (coreI[m] + coreI[m + 1]) + dGrid);
+
+  window.CUSTOM_LABEL_INIT = function (S, hGrid, nucPos, NELEC) {
+    var lab = new Uint32Array(S * S * S), S2 = S * S;
+    for (var i = 0; i < S; i++) {
+      var dom = 0;
+      while (dom < walls.length && i >= walls[dom]) dom++;
+      for (var j = 0; j < S; j++) {
+        var base = i * S2 + j * S;
+        for (var k = 0; k < S; k++) lab[base + k] = dom;
+      }
+    }
+    return lab;
+  };
+
+  window.USER_ATOMS = atoms;
+  window.USER_Z = Z;
+  window.USER_Z_NUC = Znuc;
+  window.USER_INIT_ZEFF = zeff;
+  window.USER_RC = rcs;
+  window.USER_NN = gridN;
+  window.USER_SCREEN = scr;
+  window.USER_STEPS = 1000000;
+  window.USER_DYNAMICS = false;
+  window.FREEZE_BOUNDARY = true;      // the whole point: the specified partition must not move
+  window.USER_CURV_REG = 0.10;
+  window.CONVERGENCE_THRESHOLD = 0.00002;
+
+  var KEY = 'realqm_chainslide';
+  if (q.get('reset') !== null) localStorage.setItem(KEY, '{}');
+
+  window.onSweepDone = function (E) {
+    var st = JSON.parse(localStorage.getItem(KEY) || '{}');
+    var cfg = 'n' + N + '_a' + A.toFixed(1) + '_rc' + RC.toFixed(2) + '_ze' + ZE.toFixed(2)
+            + '_h' + h.toFixed(3);
+    st[cfg] = st[cfg] || {};
+    var dk = DFRAC.toFixed(3);
+    if (!Array.isArray(st[cfg][dk])) st[cfg][dk] = [];
+    st[cfg][dk].push(Number(E));
+    localStorage.setItem(KEY, JSON.stringify(st));
+    console.log('CONVERGED ' + cfg + ' d=' + dk + ' E=' + Number(E).toFixed(6));
+    table();
+  };
+
+  function table() {
+    var st = JSON.parse(localStorage.getItem(KEY) || '{}');
+    var out = [];
+    Object.keys(st).forEach(function (cfg) {
+      out.push('<b>' + cfg + '</b>');
+      var ds = Object.keys(st[cfg]).sort(function (x, y) { return parseFloat(x) - parseFloat(y); });
+      var lo = 1e9, hi = -1e9;
+      ds.forEach(function (d) {
+        var v = st[cfg][d], best = Math.min.apply(null, v);
+        var sp = Math.max.apply(null, v) - Math.min.apply(null, v);
+        lo = Math.min(lo, best); hi = Math.max(hi, best);
+        out.push('&nbsp; d = ' + d + ' a :  ' + best.toFixed(5)
+                 + (v.length > 1 ? '  <span style="color:' + (sp < 1e-4 ? '#9f9' : '#f77')
+                    + '">(' + v.length + ' runs, spread ' + sp.toFixed(5) + ')</span>' : ''));
+      });
+      if (ds.length > 1) {
+        var bar = hi - lo;
+        out.push('&nbsp; <b>pinning barrier = ' + bar.toFixed(5) + ' Ha = '
+                 + (bar * 27211).toFixed(0) + ' meV = ' + (bar / 0.00095).toFixed(1)
+                 + ' kT</b>  (ring_slide gave 0.01186 Ha by rigid rotation)');
+      }
+    });
+    document.getElementById('out').innerHTML = out.join('<br>');
+  }
+  table();
+
+  document.getElementById('out').innerHTML +=
+    '<br>grid ' + gridN + '^3, h=' + h.toFixed(3) + ', walls at i = '
+    + walls.map(function (w) { return w.toFixed(1); }).join(', ') + ' &mdash; running&hellip;';
+  console.log('chain_slide: n=' + N + ' a=' + A + ' rc=' + RC + ' d=' + DFRAC + 'a grid=' + gridN);
+})();
+var s = document.createElement('script');
+s.src = 'molecule.js?t=' + Date.now();
+// p5 calls setup()/draw(), which molecule.js defines. Without it nothing runs and nothing
+// throws -- the failure mode that made alkali_chain look broken for six rounds.
+s.onload = function () {
+  var p5s = document.createElement('script');
+  p5s.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+  document.body.appendChild(p5s);
+};
+document.body.appendChild(s);
+</script>
+</body></html>
