@@ -76,9 +76,23 @@ window.onerror = function (msg, url, line) {
   // The walls: plane m sits between core m and core m+1, shifted by d*a. Domain m owns the
   // slab between wall m-1 and wall m, so every domain contains exactly one core while
   // |d| < 0.5. Shifting all walls together slides the whole pattern through the lattice.
+  // kink=1 shifts ONE wall (the middle one) instead of all of them. That is a LOCAL
+  // rearrangement: one domain widens, its neighbour narrows, and everything beyond is
+  // untouched. Two consequences, both wanted.
+  //
+  // The ends are then IDENTICAL in the kinked and unkinked configurations, so they cancel
+  // exactly in the difference -- unlike rigid sliding, where shifting every wall re-chops
+  // the end domains and contaminated the d=0 vs d=0.5 comparison (2 of 5 domains, 40% of
+  // the system). And the cost is independent of chain length, which is the property that
+  // makes a kink barrier quotable where a rigid-sliding barrier is not.
+  var KINK = q.get('kink') === '1';
   var dGrid = DFRAC * A / h;
+  var mid = Math.floor((N - 1) / 2);
   var walls = [];
-  for (var m = 0; m < N - 1; m++) walls.push(0.5 * (coreI[m] + coreI[m + 1]) + dGrid);
+  for (var m = 0; m < N - 1; m++) {
+    var w = 0.5 * (coreI[m] + coreI[m + 1]);
+    walls.push(w + (KINK ? (m === mid ? dGrid : 0) : dGrid));
+  }
 
   window.CUSTOM_LABEL_INIT = function (S, hGrid, nucPos, NELEC) {
     var lab = new Uint32Array(S * S * S), S2 = S * S;
@@ -112,7 +126,7 @@ window.onerror = function (msg, url, line) {
   window.onSweepDone = function (E) {
     var st = JSON.parse(localStorage.getItem(KEY) || '{}');
     var cfg = 'n' + N + '_a' + A.toFixed(1) + '_rc' + RC.toFixed(2) + '_ze' + ZE.toFixed(2)
-            + '_h' + h.toFixed(3);
+            + '_h' + h.toFixed(3) + (KINK ? '_KINK' : '_rigid');
     st[cfg] = st[cfg] || {};
     var dk = DFRAC.toFixed(3);
     if (!Array.isArray(st[cfg][dk])) st[cfg][dk] = [];
