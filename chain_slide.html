@@ -158,6 +158,23 @@ window.onerror = function (msg, url, line) {
                  + ' kT</b>  (ring_slide gave 0.01186 Ha by rigid rotation)');
       }
     });
+    // The number actually wanted is E(kink) - E(uniform), which spans two cfg keys, so the
+    // page computes it rather than leaving it to be read off two rounded displays. At the
+    // equilibrium spacing the difference sits below the resolution of a 4-decimal read.
+    Object.keys(st).forEach(function (cfg) {
+      if (cfg.indexOf('_KINK') < 0) return;
+      var ref = st[cfg.replace('_KINK', '_rigid')];
+      if (!ref || !ref['0.000']) return;
+      var E0 = Math.min.apply(null, ref['0.000']);
+      Object.keys(st[cfg]).forEach(function (d) {
+        var Ek = Math.min.apply(null, st[cfg][d]);
+        var dE = Ek - E0;
+        out.push('<b>kink formation (' + cfg.replace('_KINK', '') + ', d=' + d + '): '
+                 + '<span style="color:' + (Math.abs(dE) < 0.001 ? '#9f9' : '#ff9') + '">'
+                 + dE.toFixed(6) + ' Ha = ' + (dE * 27211).toFixed(0) + ' meV = '
+                 + (dE / 0.00095).toFixed(1) + ' kT</span></b>');
+      });
+    });
     document.getElementById('out').innerHTML = out.join('<br>');
   }
   table();
