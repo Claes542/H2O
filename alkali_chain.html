@@ -181,6 +181,17 @@ window.onerror = function (msg, url, line) {
 })();
 var s = document.createElement('script');
 s.src = 'molecule.js?t=' + Date.now();
+// p5 must follow molecule.js, and it is NOT optional: molecule.js defines setup() and
+// draw(), and p5 is what calls them. Without it nothing runs at all -- no render, no GPU
+// init, no energies -- and nothing throws either, so the console stays clean. That is
+// exactly what "nothing to see, nothing red" looks like, and it cost several rounds of
+// hunting the grid size, the pseudopotential and the atom setup before the page was
+// compared against one that works.
+s.onload = function () {
+  var p5s = document.createElement('script');
+  p5s.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+  document.body.appendChild(p5s);
+};
 document.body.appendChild(s);
 </script>
 </body></html>
