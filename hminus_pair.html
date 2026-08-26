@@ -109,7 +109,18 @@
     // spuriously deep (it produced -2.0, some 21 eV below the floor for 2p+3e).
     // So displace it: a shell centred on the left atom but seeded OUTSIDE the inner
     // electron, or centred on the molecule for the delocalised state.
-    var xc = (MODE === 'both') ? 0.0 : -d / 2 - OFFS;
+    // mode=shell seeds the carrier CENTRED ON the left proton rather than displaced beside
+    // it -- a genuine diffuse outer shell wrapping the tight inner electron, which is what
+    // H- actually is. The radial split then emerges from the trial densities competing:
+    // zeff 1.0 for the inner electron takes the core, the diffuse ze takes the shell.
+    //
+    // This was tried before and abandoned: with nothing to stop it the outer domain claimed
+    // the innermost cells, sat in the unscreened -1/r well and returned a spurious -2.0,
+    // some 21 eV below the floor -- a relabelling of which domain owns the nucleus, not an
+    // H-. Worth retrying now that the cylinder binds at initialisation rather than only
+    // where a boundary happens to move. If -2.0 comes back, the core-grabbing is not what
+    // the cylinder prevents and the displaced seeding stands.
+    var xc = (MODE === 'both') ? 0.0 : (MODE === 'shell') ? -d / 2 : -d / 2 - OFFS;
     var ze = (MODE === 'both') ? Math.min(ZEFF, 0.30) : ZEFF;
     // dy displaces the carrier TRANSVERSELY, perpendicular to the internuclear axis.
     // This tests whether the symmetric configuration is a genuine transition state. At a
