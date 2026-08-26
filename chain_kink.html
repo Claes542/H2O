@@ -94,7 +94,10 @@
 
   window.onSweepDone = function (E) {
     var st = JSON.parse(localStorage.getItem(KEY) || '{}');
-    var k = 'n' + N + '_a' + a.toFixed(1) + '_' +
+    // bs belongs in the key: it is settable, and a key that omits a settable parameter lets
+    // runs from different configurations collide and be compared as if they were the same.
+    // That mistake produced a phantom 0.18 Ha in h2_beta and cost an afternoon in ring_slide.
+    var k = 'n' + N + '_a' + a.toFixed(1) + '_bs' + BS.toFixed(2) + '_' +
             (KINK ? 'kink_w' + W.toFixed(1) + '_j' + J0.toFixed(2)
                   : 'unif_phi' + PHI.toFixed(2));
     if (!Array.isArray(st[k])) st[k] = [];
