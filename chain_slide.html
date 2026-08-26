@@ -187,6 +187,9 @@ window.onerror = function (msg, url, line) {
   window.USER_CURV_REG = 0.10;
   window.CONVERGENCE_THRESHOLD = 0.00002;
 
+  var SWEEP = q.get('sweep');                                   // parameter to sweep
+  var VALS  = (q.get('vals') || '').split(',').filter(Boolean);  // its values, in order
+
   var KEY = 'realqm_chainslide';
   if (q.get('reset') !== null) localStorage.setItem(KEY, '{}');
 
@@ -204,6 +207,28 @@ window.onerror = function (msg, url, line) {
     localStorage.setItem(KEY, JSON.stringify(st));
     console.log('CONVERGED ' + cfg + ' d=' + dk + ' E=' + Number(E).toFixed(6));
     table();
+    // Chain the next run automatically. molecule.js has no way to re-initialise in place,
+    // so the sweep advances by navigating to the same URL with the swept parameter set to
+    // its next value; localStorage carries the table across the reload. Nothing is lost and
+    // no run has to be launched by hand.
+    //   ?sweep=w&vals=0.4,0.8,1.5,2.0,3.0&w=0.4
+    if (SWEEP && VALS.length) {
+      var cur = q.get(SWEEP);
+      var idx = VALS.indexOf(cur);
+      if (idx >= 0 && idx < VALS.length - 1) {
+        var u = new URL(location.href);
+        u.searchParams.set(SWEEP, VALS[idx + 1]);
+        u.searchParams.delete('reset');            // never wipe the accumulating table
+        u.searchParams.set('cb', String(Date.now()));
+        document.getElementById('out').innerHTML +=
+          '<br><b style="color:#4fc3f7">sweep: ' + SWEEP + '=' + cur + ' done, next '
+          + VALS[idx + 1] + ' (' + (idx + 2) + '/' + VALS.length + ')</b>';
+        setTimeout(function () { location.href = u.toString(); }, 1200);
+      } else {
+        document.getElementById('out').innerHTML +=
+          '<br><b style="color:#9f9">sweep complete</b>';
+      }
+    }
   };
 
   function table() {
