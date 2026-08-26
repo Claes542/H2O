@@ -77,13 +77,14 @@
   //   'both'  -> H2 surrounded by e     (the extra charge wrapping the molecule)
   var MODE = q.get('mode') || 'left';
   var OFFS = parseFloat(q.get('offs') || '1.6');   // how far outside the inner electron to seed
+  var DY   = parseFloat(q.get('dy') || '0');      // transverse seed offset for the carrier
 
   var gridN = 140, scr = 24, N2 = 70;
   var h = scr / gridN;
 
   var atoms = [], Z = [], Znuc = [], zeff = [];
-  function add(x, zc, zn, ze) {
-    atoms.push({ i: Math.round(N2 + x / h), j: N2, k: N2, Z: zc, el: 'H' });
+  function add(x, zc, zn, ze, y) {
+    atoms.push({ i: Math.round(N2 + x / h), j: Math.round(N2 + (y || 0) / h), k: N2, Z: zc, el: 'H' });
     Z.push(zc); Znuc.push(zn); zeff.push(ze);
   }
 
@@ -100,7 +101,14 @@
     // electron, or centred on the molecule for the delocalised state.
     var xc = (MODE === 'both') ? 0.0 : -d / 2 - OFFS;
     var ze = (MODE === 'both') ? Math.min(ZEFF, 0.30) : ZEFF;
-    add(xc, 1, 0.0, ze);                         // the carrier
+    // dy displaces the carrier TRANSVERSELY, perpendicular to the internuclear axis.
+    // This tests whether the symmetric configuration is a genuine transition state. At a
+    // true saddle the Hessian has exactly ONE negative direction, along the transfer
+    // coordinate. If a transverse direction is also downhill there is a second negative
+    // eigenvalue, the symmetric point is not the saddle, and the real path bifurcates
+    // around it -- lop-sided and lower. Seed with dy, relax, and see whether it slides
+    // further off-axis and drops, or returns to dy = 0.
+    add(xc, 1, 0.0, ze, DY);                     // the carrier
   }
   add(+d / 2, 1, 1.0 + BIAS, 1.0);
 
@@ -117,7 +125,7 @@
   window.onSweepDone = function (E) {
     if (NOEXTRA) return;
     var st = JSON.parse(localStorage.getItem('realqm_pair') || '{}');
-    var key = d.toFixed(2) + '|' + MODE;
+    var key = d.toFixed(2) + '|' + MODE + '|b' + BIAS.toFixed(3) + '|dy' + DY.toFixed(2);
     if (!Array.isArray(st[key])) st[key] = [];
     st[key].push(Number(E));               // keep every repeat: the spread is the error bar
     localStorage.setItem('realqm_pair', JSON.stringify(st));
