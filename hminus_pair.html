@@ -78,6 +78,16 @@
   var MODE = q.get('mode') || 'left';
   var OFFS = parseFloat(q.get('offs') || '1.6');   // how far outside the inner electron to seed
   var DY   = parseFloat(q.get('dy') || '0');      // transverse seed offset for the carrier
+  // rc > 0 confines the CARRIER inside a cylinder of that radius about the internuclear
+  // axis (splitType 5, splitIdx 0 = inside). The axial direction is left free, which is
+  // exactly the transfer coordinate, so the constraint caps the pathological outward
+  // spreading without obstructing the motion being measured.
+  //
+  // The trade must be stated: a constrained energy is an UPPER bound, and the barrier will
+  // depend on rc. Scanning rc is therefore obligatory -- a plateau means the constraint has
+  // stopped the runaway without setting the answer, while a monotone drift means the
+  // constraint IS the answer and nothing physical has been measured.
+  var RC   = parseFloat(q.get('rc') || '0');
 
   var gridN = 140, scr = 24, N2 = 70;
   var h = scr / gridN;
@@ -116,6 +126,15 @@
   window.USER_Z = Z;
   window.USER_Z_NUC = Znuc;
   window.USER_INIT_ZEFF = zeff;
+  if (RC > 0 && !NOEXTRA) {
+    // domain order: 0 = left inner (the H- core), 1 = the carrier, 2 = right kernel.
+    // Only the carrier is confined; the bound electrons keep the whole space, or the
+    // protons would be left unscreened.
+    window.USER_SPLIT_TYPE = atoms.map(function (a, n) { return n === 1 ? 5 : 0; });
+    window.USER_SPLIT_IDX  = atoms.map(function () { return 0; });   // 0 = inside the radius
+    window.USER_SPLIT_AXIS = atoms.map(function () { return [1, 0, 0]; });
+    window.USER_SPLIT_ROT  = atoms.map(function () { return RC; });
+  }
   window.USER_NN = gridN;
   window.USER_SCREEN = scr;
   window.USER_STEPS = 1000000;
@@ -125,7 +144,8 @@
   window.onSweepDone = function (E) {
     if (NOEXTRA) return;
     var st = JSON.parse(localStorage.getItem('realqm_pair') || '{}');
-    var key = d.toFixed(2) + '|' + MODE + '|b' + BIAS.toFixed(3) + '|dy' + DY.toFixed(2);
+    var key = d.toFixed(2) + '|' + MODE + '|b' + BIAS.toFixed(3) + '|dy' + DY.toFixed(2)
+              + '|rc' + RC.toFixed(2);
     if (!Array.isArray(st[key])) st[key] = [];
     st[key].push(Number(E));               // keep every repeat: the spread is the error bar
     localStorage.setItem('realqm_pair', JSON.stringify(st));
