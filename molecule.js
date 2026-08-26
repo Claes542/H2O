@@ -375,6 +375,32 @@ fn inSplitAtom(dx: f32, dy: f32, dz: f32, r: f32, n: u32) -> bool {
 }
 `;
 
+// splitType 5 in ABSOLUTE coordinates, for kernels that have grid indices to hand.
+//
+// The cylinder previously lived only in cellSectorOK, which the BOUNDARY-EVOLUTION shader
+// calls -- so it was enforced only where a boundary actually moved. A domain with no
+// competitor nearby never had its boundary pushed and simply kept whatever cells the
+// initial Voronoi labelling gave it, cylinder or not. In H- + H that showed as a bound
+// visible on the left, where two domains compete, and none on the right, where one domain
+// sits unchallenged. The constraint has to be imposed at initialisation as well.
+const cylSplitWGSL = `
+fn cylOK(i: u32, j: u32, k: u32, n: u32) -> bool {
+  if (atoms[n].splitType != 5u) { return true; }
+  let c = f32(p.NN) * 0.5;
+  let cx = (f32(i) - c) * p.h; let cy = (f32(j) - c) * p.h; let cz = (f32(k) - c) * p.h;
+  let axL = max(sqrt(atoms[n].splitAxX*atoms[n].splitAxX
+                   + atoms[n].splitAxY*atoms[n].splitAxY
+                   + atoms[n].splitAxZ*atoms[n].splitAxZ), 1e-12);
+  let a0 = atoms[n].splitAxX/axL; let a1 = atoms[n].splitAxY/axL; let a2 = atoms[n].splitAxZ/axL;
+  let dp = cx*a0 + cy*a1 + cz*a2;
+  let qx = cx - dp*a0; let qy = cy - dp*a1; let qz = cz - dp*a2;
+  let pr = sqrt(qx*qx + qy*qy + qz*qz);
+  if (atoms[n].splitIdx == 0u) { return pr < atoms[n].splitRot; }
+  return pr >= atoms[n].splitRot;
+}
+`;
+
+
 // U update — label-based domains, Neumann BC at domain boundaries and r_c surfaces
 const updateU_WGSL = `
 ${paramStructWGSL}
@@ -1683,6 +1709,7 @@ struct Range { start: u32, count: u32, _p0: u32, _p1: u32 }
 
 ${cellIdxWGSL}
 ${inSplitWGSL}
+${cylSplitWGSL}
 @compute @workgroup_size(256)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let id = cellIdx(gid);
@@ -1717,7 +1744,8 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let Ze = atoms[n].initZeff;
     let rReal = sqrt(r2);
     let rCutInit = atoms[n].initRcut;
-    let okSplit = inSplitAtom(dx, dy, dz, rReal, n);
+    // cylOK as well: splitType 5 must bind at initialisation, not only once a boundary moves
+    let okSplit = inSplitAtom(dx, dy, dz, rReal, n) && cylOK(i, j, kk, n);
     let uTrial = select(Ze * Ze * ${(1/Math.sqrt(Math.PI)).toFixed(10)} * exp(-Ze * r), 0.0, rReal > rCutInit || Za <= 0.0 || !okSplit);
     if (uTrial > bU) { bU = uTrial; bestN = n; }
   }
