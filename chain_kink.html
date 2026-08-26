@@ -91,6 +91,15 @@
   window.USER_STEPS = 1000000;
   window.USER_DYNAMICS = false;                  // ions fixed: the electron row is what moves
   window.USER_BETA = BETA;
+  // fixed=1 pins the partition. This is not a convergence knob -- it changes WHICH quantity
+  // is computed, and it is the right one here. A kink is not the ground state: a free
+  // minimisation relaxes it away, which is what the article means by "a minimisation has no
+  // time in it". Asked to hold a kink, the free boundary oscillates between the kinked and
+  // uniform partitions and the energy never settles (0.04-0.05 Ha, against a barrier of
+  // order 0.01). The kink formation energy is a CONSTRAINED minimum -- the energy at a
+  // specified partition -- so both configurations must be evaluated with their labels held,
+  // exactly as the H2 midplane is held. The comparison is then like for like.
+  if (q.get('fixed')) window.FREEZE_BOUNDARY = true;
   window.USER_BOUNDARY_SPEED = BS;
   window.USER_CURV_REG = 0.10;
   window.INIT_ZEFF = 1;
@@ -105,7 +114,7 @@
     // runs from different configurations collide and be compared as if they were the same.
     // That mistake produced a phantom 0.18 Ha in h2_beta and cost an afternoon in ring_slide.
     var k = 'n' + N + '_a' + a.toFixed(1) + '_bs' + BS.toFixed(2)
-            + '_b' + BETA.toFixed(3) + '_' +
+            + '_b' + BETA.toFixed(3) + (q.get('fixed') ? '_fix' : '') + '_' +
             (KINK ? 'kink_w' + W.toFixed(1) + '_j' + J0.toFixed(2)
                   : 'unif_phi' + PHI.toFixed(2));
     if (!Array.isArray(st[k])) st[k] = [];
