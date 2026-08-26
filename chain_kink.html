@@ -55,6 +55,12 @@
   var W    = parseFloat(q.get('w') || '1.0');
   var PHI  = parseFloat(q.get('phi') || '0');
   var BS   = parseFloat(q.get('bs') || '0.25');
+  // beta: Robin surface tension on the electron-electron interface. Not optional here.
+  // At beta=0 the free boundary has no restoring force (the C=0 defect) and the UNIFORM
+  // ground state does not converge -- it wanders over 0.04 Ha, while the kink barrier being
+  // measured is of order 0.01 Ha. The reference state must be stable before a difference
+  // taken against it means anything.
+  var BETA = parseFloat(q.get('beta') || '0.05');
 
   var gridN = 160, scr = 30, N2 = 80;
   var h = scr / gridN;
@@ -84,6 +90,7 @@
   window.USER_SCREEN = scr;
   window.USER_STEPS = 1000000;
   window.USER_DYNAMICS = false;                  // ions fixed: the electron row is what moves
+  window.USER_BETA = BETA;
   window.USER_BOUNDARY_SPEED = BS;
   window.USER_CURV_REG = 0.10;
   window.INIT_ZEFF = 1;
@@ -97,7 +104,8 @@
     // bs belongs in the key: it is settable, and a key that omits a settable parameter lets
     // runs from different configurations collide and be compared as if they were the same.
     // That mistake produced a phantom 0.18 Ha in h2_beta and cost an afternoon in ring_slide.
-    var k = 'n' + N + '_a' + a.toFixed(1) + '_bs' + BS.toFixed(2) + '_' +
+    var k = 'n' + N + '_a' + a.toFixed(1) + '_bs' + BS.toFixed(2)
+            + '_b' + BETA.toFixed(3) + '_' +
             (KINK ? 'kink_w' + W.toFixed(1) + '_j' + J0.toFixed(2)
                   : 'unif_phi' + PHI.toFixed(2));
     if (!Array.isArray(st[k])) st[k] = [];
