@@ -65,6 +65,11 @@
   <div id="out" style="margin-top:8px;color:#ff9"></div>
 </div>
 <script>
+window.onerror = function (msg, url, line) {
+  var o = document.getElementById('out');
+  if (o) { o.innerHTML = '<b style="color:#f77">ERROR line ' + line + ': ' + msg + '</b>'; }
+  return false;
+};
 (function () {
   var q = new URLSearchParams(location.search);
   var N     = parseInt  (q.get('n')     || '5');     // cores
@@ -79,8 +84,8 @@
   // fixed and the grid size derived, so changing the box cannot silently refine the mesh --
   // that mistake collapsed an earlier chain run by refining 2.4x without anyone asking.
   var span = (N - 1) * A;
-  var scr  = span + 14.0;
-  var h    = 0.20;
+  var scr  = span + parseFloat(q.get('pad') || '10.0');
+  var h    = parseFloat(q.get('h') || '0.30');
   var gridN = 2 * Math.round(scr / h / 2);
   var N2 = gridN / 2;
   h = scr / gridN;
@@ -161,6 +166,11 @@
   }
   table();
 
+  var cells = Math.pow(gridN + 1, 3);
+  document.getElementById('out').innerHTML =
+    'grid ' + gridN + '^3 = ' + (cells / 1e6).toFixed(1) + 'M cells, h=' + h.toFixed(3)
+    + ', box ' + scr.toFixed(1) + ' a0, ' + (N - 1) + ' electrons &mdash; starting&hellip;'
+    + (cells > 4e6 ? ' <b style="color:#f77">(large: raise h if it fails)</b>' : '');
   console.log('alkali chain: n=' + N + ' cores, ' + (N - 1) + ' electrons, a=' + A
               + ', rc=' + RC + ', field=' + FIELD + ', grid ' + gridN + ' h=' + h.toFixed(4));
 })();
