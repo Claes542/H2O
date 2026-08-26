@@ -136,12 +136,19 @@
     // reverse, which biases the very transfer being measured, and asymmetrically between the
     // two ends that are supposed to be degenerate.
     //
-    // Bound electrons INSIDE (idx 0), carrier OUTSIDE (idx 1): each proton keeps its own
-    // core, the carrier is a sheath about the axis free to slide from one end to the other,
-    // and it cannot seize either nucleus. This is the chain_straight arrangement, and it is
-    // symmetric in left/right as the degeneracy of the two end states requires.
+    // EVERY domain inside the same cylinder (idx 0 for all). The pathology is unbounded
+    // outward spreading -- a non-overlapping outer domain lowers its energy by diffusing
+    // away, since the correlation that really binds H- at 0.75 eV is not there to stop it --
+    // so every domain must be bounded outward, not just the carrier.
+    //
+    // Two earlier arrangements were wrong. Confining only the carrier rigged the
+    // competition: the right electron could enter the tube while the carrier could not
+    // leave it. Putting the carrier OUTSIDE as a sheath (the chain_straight arrangement)
+    // left it unbounded outward, which is the pathology itself. With all three inside, the
+    // bound is symmetric, the competition is fair, and the axial direction -- the transfer
+    // coordinate -- stays free.
     window.USER_SPLIT_TYPE = atoms.map(function () { return 5; });
-    window.USER_SPLIT_IDX  = atoms.map(function (a, n) { return n === 1 ? 1 : 0; });
+    window.USER_SPLIT_IDX  = atoms.map(function () { return 0; });
     window.USER_SPLIT_AXIS = atoms.map(function () { return [1, 0, 0]; });
     window.USER_SPLIT_ROT  = atoms.map(function () { return RC; });
   }
