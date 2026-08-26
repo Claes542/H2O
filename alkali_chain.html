@@ -79,6 +79,10 @@ window.onerror = function (msg, url, line) {
   var BETA  = parseFloat(q.get('beta')  || '0');
   var DY    = parseFloat(q.get('dy')    || '0');     // transverse seed offset, the seed test
   var BS    = parseFloat(q.get('bs')    || '0.25');
+  // Trial tightness for the valence electron. 0.65 is a properly diffuse alkali valence
+  // orbital, but spread over a large box it renders as almost nothing -- start compact and
+  // loosen it once the run is visibly working.
+  var ZE    = parseFloat(q.get('zeff')  || '1.0');
 
   // Box: the chain plus room for the valence electrons to spread sideways. Grid spacing is
   // fixed and the grid size derived, so changing the box cannot silently refine the mesh --
@@ -101,7 +105,7 @@ window.onerror = function (msg, url, line) {
   var x0 = -span / 2;
   for (var m = 0; m < N; m++) {
     var occupied = (m < N - 1);
-    add(x0 + m * A, (m % 2 === 0 ? DY : -DY), occupied ? 1 : 0, 0.65);
+    add(x0 + m * A, (m % 2 === 0 ? DY : -DY), occupied ? 1 : 0, ZE);
   }
 
   window.USER_ATOMS = atoms;
@@ -127,7 +131,8 @@ window.onerror = function (msg, url, line) {
     // every settable parameter goes in the key. Three pages this session compared runs from
     // different configurations because a key omitted one, and each time it produced a
     // confident wrong number rather than a visible failure.
-    var k = 'n' + N + '_a' + A.toFixed(1) + '_rc' + RC.toFixed(2) + '_f' + FIELD.toFixed(4)
+    var k = 'n' + N + '_a' + A.toFixed(1) + '_rc' + RC.toFixed(2) + '_ze' + ZE.toFixed(2)
+          + '_f' + FIELD.toFixed(4)
           + '_b' + BETA.toFixed(3) + '_dy' + DY.toFixed(2) + '_bs' + BS.toFixed(2);
     if (!Array.isArray(st[k])) st[k] = [];
     st[k].push(Number(E));
