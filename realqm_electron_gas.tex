@@ -76,8 +76,8 @@ $0.01186$~Ha $=323$~meV for six electrons --- $54$~meV each, a threshold field o
 $9\times10^{8}$~V/m, or $0.11$~V per lattice site against the $4\times10^{-12}$~V per site of copper
 carrying an ampere. Rigid sliding is therefore excluded as a conduction mechanism by ten orders of
 magnitude. It is however an upper bound, since it obliges every electron to crest its barrier at
-once; the cheap path is a kink, whose cost is independent of chain length, and that measurement is
-identified but not reported here. Whether the two ring results additionally constitute a
+once; the cheap path is a kink, whose cost is independent of chain length --- measured below at
+$179$~meV, and independent of length to $5\%$. Whether the two ring results additionally constitute a
 semiconductor --- filled complement pinned, added carrier free --- is left as a conjecture, the two
 runs differing in screening as well as in filling.
 
@@ -397,7 +397,87 @@ Two numbers settle it: the creation energy $E(\mathrm{kink})-E(\mathrm{uniform})
 exists at all; and the migration barrier, the variation of the energy as the kink is stepped along,
 which is the Peierls--Nabarro barrier and fixes the threshold field for kink motion. If migration
 falls far below the $54$~meV of the rigid mode, the chain conducts at fields the rigid mode could
-never reach. These are being computed and are not reported here.
+never reach. The creation energy is now computed and is reported below; the migration barrier is not, and
+remains the open half of the pair.
+
+\paragraph{The partition must be specified, not searched for.} Before the number, the method,
+because the obvious approach fails and the failure is instructive. A kink is \emph{not} the ground
+state, so a free-boundary minimisation relaxes it away --- asked to hold one, the solver oscillates
+between the kinked and uniform partitions and the energy never settles, wandering over
+$0.05$~Ha against a barrier of order $0.01$. That is not a convergence failure to be tuned away:
+it is unaltered by the surface tension $\beta$, by reducing the boundary step fivefold, and by
+freezing the labels outright.
+
+The cause is general and it disqualifies the free boundary for every transport quantity in this
+article. The interface moves by \emph{local single-cell label flips}, so a run descends to whichever
+configuration no single flip improves --- the nearest stuck point, not the minimum --- and which one
+that is depends on the initial condition. Four independent geometries agree:
+
+\begin{center}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+geometry & spread & against a barrier of\\
+\midrule
+ring, between two builds & $0.005$~Ha & $0.012$--$0.022$\\
+kink chain, across steps & $0.05$~Ha (never settles) & $\sim0.01$\\
+$\mathrm{H}^-+\mathrm{H}$, four seeds & $0.031$~Ha & $\sim0.001$\\
+alkali chain, two seeds & $0.013$~Ha & $\sim0.001$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent In every case the ambiguity exceeds the quantity sought, by one to two orders. It is a
+failure of the \emph{search}, not of the energy functional, which is why nothing in the functional
+touches it. It is also why the ring's $0.01186$~Ha moved to $0.022$~Ha under a recompilation that
+altered no physics: rounding at the last bit flips cells sitting near the threshold, and a different
+stuck point follows. The rigid-sliding figure should be read as a bound of that order rather than a
+determination, and the doping barriers of Table~\ref{tab:barrier}, obtained the same way, with it.
+
+The repair is not a better minimiser but no minimiser. The domain walls of a chain are planes
+perpendicular to the axis, so they can be \emph{placed}: specify the partition, freeze it, and relax
+only the wavefunctions. Nothing is searched for, the same input returns the same output, and the
+question asked is no longer ``where does the boundary go'' but ``what does this configuration
+cost'' --- which is the question a barrier actually poses. It is the device that makes the
+$\mathrm{H}_2$ midplane exact, applied to a coordinate instead of a symmetry.
+
+\paragraph{The kink creation energy, and that it does not grow.} Lithium-like cores, one valence
+electron each, a pseudopotential radius $r_c=1.6$ and spacing $a=6.0$~a$_0$. The uniform
+configuration puts every wall midway between neighbouring cores; the kink displaces the
+\emph{middle} wall by $a/2$ and leaves the rest, so one domain widens and its neighbour narrows
+while everything beyond is untouched --- and the end domains, identical in both, cancel exactly in
+the difference:
+
+\begin{center}
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+cores & uniform (Ha) & kinked (Ha) & $E(\mathrm{kink})-E(\mathrm{uniform})$\\
+\midrule
+$4$ & $-1.03860$ & $-1.03220$ & $0.00640$~Ha $=174$~meV\\
+$5$ & $-1.29985$ & $-1.29310$ & $0.00675$~Ha $=184$~meV\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent \textbf{The kink costs $\approx0.0066$~Ha $=179$~meV $\approx7\,k_BT$, and the cost does
+not grow with the chain.} Adding a whole site changes it by $0.00035$~Ha while the chain's total
+energy changes by $0.26$~Ha --- a factor of $750$. That is the property the mechanism turns on:
+rigid sliding costs $54$~meV per electron and obliges all of them at once, so its activation is
+$\sim5\times54=270$~meV at five sites and $5.4$~eV at a hundred, while the kink stays at $179$~meV
+however long the chain. At these short lengths the two are already comparable and the kink is
+lower; at any physical length the comparison is not close.
+
+Two caveats belong with the figure. Displacing one wall by $a/2$ is a \emph{sharp} kink, and a
+profile spread over several sites will cost less, so $179$~meV is an upper bound. And chains of four
+and five sites are short against a plausible kink width, so the length-independence is demonstrated
+over a narrow range even though it holds to $5\%$ there.
+
+A third result falls out of the same scan and confirms an earlier one by a different route. Sliding
+all the walls together, the \emph{bond}-centred registry lies $0.064$~Ha below the atom-centred one
+($-1.364$ against $-1.29985$): the electrons prefer to sit between two cores rather than on one.
+That is the interstitial-pocket preference the compression test finds below, obtained here without
+a free boundary anywhere in the calculation.
 
 \paragraph{The compression test, and the absence of a Mott transition.} The barrier scans of
 Table~\ref{tab:barrier} were open to the objection that they impose a localised carrier and so
