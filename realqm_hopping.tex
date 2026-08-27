@@ -109,9 +109,34 @@ then gives.
 
 \section{What kind of conductor this can be}\label{sec:scope}
 
-The construction does not have a free choice of target. One electron per domain,
-non-overlapping, is the Hubbard model at $U\to\infty$: double occupancy forbidden, every site
-singly occupied, a Mott insulator at every density. Metals are therefore out of scope in kind and
+The construction does not have a free choice of target, and identifying it correctly settles most
+of what follows. One electron per domain, non-overlapping, is usually described as the Hubbard model
+at $U\to\infty$: double occupancy forbidden, every site singly occupied. That is right as far as it
+goes and it is not far enough. The Hubbard Hamiltonian has two parameters, and non-overlap fixes
+both. $U=\infty$ because two electrons may not share a domain; but also $t=0$, because the transfer
+integral \emph{is} the overlap of neighbouring orbitals and there is none. The construction is
+therefore not the Mott limit but the \textbf{atomic limit}, and the difference is not a refinement:
+
+\begin{center}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+ & $U\to\infty$, $t\neq0$ & $U\to\infty$, $t=0$\\
+\midrule
+half filling      & Mott insulator      & isolated atoms\\
+superexchange     & $J=4t^2/U$          & none\\
+doped             & \textbf{conducts}   & still nothing\\
+spin dynamics     & yes                 & none\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent A Mott insulator is insulating but alive: it carries magnetic exchange, and doping it
+produces a conductor, which is what the cuprates are. The atomic limit is a collection of atoms with
+electrostatics between them. This accounts for every negative result below, and for one in
+particular: doping a Mott insulator works \emph{through} $t$, so at $t=0$ there is nothing for
+doping to activate --- which is exactly what the measurement shows, the barrier rising with carrier
+concentration rather than falling. Metals are therefore out of scope in kind and
 not by degree. Their carriers are extended Bloch states, their transport is band motion, and their
 defining measurements --- de Haas--van Alphen oscillations, a linear electronic specific heat,
 positive plasmon dispersion --- belong to a degenerate electron gas with a sharp Fermi surface,
@@ -791,6 +816,22 @@ to $5\%$; a vacancy's mismatch gaining $0.112$~Ha by delocalising, also length-i
 sliding barrier tunable through zero by density and by core radius. What it does not yet yield is
 the activation energy for a kink to \emph{move}, which is the quantity conductivity depends on, and
 which is left open here with a construction stated rather than a number estimated.
+
+\paragraph{What the postulate buys, and what it costs.} The results here say something about
+non-overlap itself, and it is worth stating separately from any of them. Overlap is not an optional
+feature of quantum mechanics; it is the mechanism by which amplitude passes between places.
+Forbidding it makes the electrons objects with disjoint supports --- distinguishable, in the way
+classical charges are --- and leaves a theory of \emph{static} charge distributions carrying a
+quantum-derived kinetic penalty.
+
+That division predicts where the framework succeeds and where it does not, and the prediction is
+borne out across its whole corpus. Ground-state energies, bond lengths, lattice constants, binding
+curves: quantities set by electrostatics against a localisation cost, and it does them well.
+Tunnelling, exchange, dispersion, transport, a Fermi surface: quantities that exist only because
+amplitude is shared, and it has none of them. The failure recorded in this article is not a
+shortfall in accuracy but an absence of the ingredient, and it could have been predicted from the
+postulate without any computation --- which is the strongest form of the result, and the least
+comfortable.
 
 \paragraph{The construction is $U\to\infty$, and this sets both its scope and its errors.} Single
 occupancy is the Hubbard limit in which double occupancy is forbidden, so metals are excluded in
