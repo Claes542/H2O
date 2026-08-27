@@ -129,8 +129,14 @@ window.onerror = function (msg, url, line) {
     var cD = (N - 1) / 2;
     var cen = [];
     for (var m = 0; m < N - 1; m++) {
-      var f = SAD ? 0.5 * (1 + Math.tanh((m - (cD - 0.5)) / W))
-                  : (m >= cD ? 1 : 0);
+      // Both configurations use the SAME tanh profile of width W; only the CENTRE moves --
+      // on a site for the localised state, between sites for the saddle. The first version
+      // gave the saddle a tanh and the localised state a sharp step, so the two differed in
+      // profile width as well as in position, and since spreading lowers the energy on its
+      // own the comparison measured mostly that. Same error as the curvature scan: two
+      // configurations differing in more than the coordinate of interest.
+      var centre = SAD ? (cD - 0.5) : cD;
+      var f = 0.5 * (1 + Math.tanh((m - centre) / W));
       cen.push(coreI[m] + (A / h) * f);
     }
     for (var m = 0; m < N - 2; m++) walls.push(0.5 * (cen[m] + cen[m + 1]));
@@ -277,7 +283,7 @@ window.onerror = function (msg, url, line) {
             + (parseFloat(q.get('beta') || '0') !== 0 ? '_b' + parseFloat(q.get('beta')).toFixed(3) : '')
             + (q.get('curv') !== null ? '_c' + parseFloat(q.get('curv')).toFixed(2) : '')
             + (parseFloat(q.get('field') || '0') !== 0 ? '_F' + parseFloat(q.get('field')).toFixed(4) : '')
-            + (HOP ? (SAD ? '_HOPsaddle w' + W.toFixed(2) : '_HOPlocal')
+            + (HOP ? (SAD ? '_HOPsaddle w' + W.toFixed(2) : '_HOPlocal w' + W.toFixed(2))
                   : VK ? '_VK w' + W.toFixed(2) + '_kc' + KC.toFixed(2)
                   : PAIR ? '_PAIR w' + W.toFixed(2) + '_m' + M1 + '-' + M2
                   : SLIP ? '_SLIP w' + W.toFixed(2) : (KINK ? '_KINK' : '_rigid'));
