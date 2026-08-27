@@ -1,0 +1,204 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{authblk}
+\usepackage[margin=1in]{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage{setspace}
+
+\title{Local update rules find stuck points, not minima:\\
+\large free-boundary partitions, and a remedy}
+
+\author[1]{Claes Johnson}
+\affil[1]{KTH Royal Institute of Technology, SE-100 44 Stockholm, Sweden \\
+\texttt{claesjohnson@gmail.com}}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent A class of solvers partitions space into domains, assigns a field to each, and evolves the
+interfaces by a \emph{local} rule: a cell changes ownership when a neighbouring domain's field
+exceeds its own, or when a locally computed velocity points that way. Level-set schemes with local
+reinitialisation, Voronoi-partitioned solvers with density-balance interfaces, and free-boundary
+formulations of multi-domain energy minimisation all have this structure.
+
+Such a rule cannot minimise. It descends to the nearest configuration that no single admissible
+change improves --- a \emph{stuck point} --- and which one it reaches depends on the initial
+condition. This is reported here as a measured effect rather than a possibility. In a
+multi-domain Coulomb energy minimisation, four independent geometries give converged energies that
+differ by $0.005$--$0.05$ between seeds, between initial partitions, and between binary builds
+differing only in floating-point rounding, against target quantities of $0.001$--$0.02$ in the same
+units. The ambiguity exceeds the quantity sought by one to two orders in every case. Each run
+converges cleanly; they converge to different places.
+
+Four remedies were tried and none works: an interfacial energy penalty regularising the boundary, a
+five-fold reduction of the interface time step, freezing the interface entirely, and changing to a
+physical system without the first one's pathologies. The reason they fail is that this is a defect
+of the \emph{search} and not of the energy functional, so nothing expressed in the functional
+reaches it.
+
+The remedy that does work is to stop searching. Interfaces in these problems are surfaces and can be
+placed: specify the partition, hold it fixed, relax only the fields, and evaluate what a stated
+configuration costs rather than asking where a boundary goes. Repeated runs then agree to every
+digit recorded, and quantities that were previously irreproducible become well defined --- a
+localised defect energy independent of system size to $5\%$, and an energy of delocalisation
+independent of it likewise. The cost is that the family of admissible partitions must be
+constructed rather than discovered, and three constructions are given, together with the invariants
+that rejected two of them.
+\end{abstract}
+
+\section{The structure at issue}
+
+Consider a domain of space divided into subdomains $\Omega_1,\dots,\Omega_N$ with
+$\bigcup\Omega_i=\Omega$ and $\Omega_i\cap\Omega_j=\emptyset$, a field $u_i$ supported on each, and
+an energy $E[\{u_i\},\{\Omega_i\}]$ to be minimised over both the fields and the partition. The
+fields are handled by any standard relaxation. The partition is the difficulty, and the usual
+treatment is an interface rule of the form
+\begin{equation}\label{eq:rule}
+\text{cell } c \text{ moves from } \Omega_i \text{ to } \Omega_j
+\quad\text{when}\quad w_{ij}(c) < 0 ,
+\end{equation}
+where $w_{ij}$ is computed from the fields in a neighbourhood of $c$ --- a density balance, a local
+energy difference, a level-set velocity. The rule is attractive because it is local, cheap, and
+requires no global bookkeeping.
+
+It is also, as an optimiser, a descent method whose moves are single-cell transfers. Its fixed
+points are the configurations from which no single such transfer decreases the energy. These are
+not the minima of $E$ over partitions, and there is in general no relation between the two sets
+beyond inclusion of the latter in the former. That much is elementary. What is not obvious in
+advance is the \emph{size} of the resulting ambiguity in a problem of practical interest, and
+whether it can be controlled by the means one would ordinarily reach for.
+
+\section{The measurement}
+
+The setting is a minimisation of the Coulomb energy of $N$ non-overlapping unit charge densities,
+one per domain, with the interfaces evolved by \eqref{eq:rule} using a density balance
+$w=(\rho_i-\rho_j)/(\rho_i+\rho_j)$. Energies are in Hartree. Four geometries were run, each many
+times, varying only the initial condition or the compiled binary:
+
+\begin{center}
+\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+geometry & what was varied & spread & target quantity\\
+\midrule
+ring of six sites      & the binary, physics identical & $0.005$ & $0.012$--$0.022$\\
+chain of nine sites    & --- (never settles)           & $0.05$  & $\sim0.01$\\
+two-centre transfer    & four initial partitions       & $0.031$ & $\sim0.001$\\
+chain of five sites    & two initial partitions        & $0.013$ & $\sim0.001$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Three remarks on the entries. The ring's spread appeared between two builds of the
+\emph{same source} differing in an unrelated addition; recompilation perturbs floating-point
+rounding, cells sitting near the threshold in \eqref{eq:rule} then fall the other way, and a
+different stuck point follows. The chain of nine did not converge at all, oscillating between two
+partitions indefinitely, which is the same phenomenon with a two-cycle instead of a fixed point. The
+two-centre transfer was monotone in the initial displacement of one domain --- four seeds, four
+energies, ordered --- which is the signature of a landscape of stuck points rather than of noise.
+
+Each individual run is deterministic and reproducible: repeating one with the same seed and the same
+binary returns the same energy to every digit. The irreproducibility is entirely across initial
+conditions, and it exceeds the quantities being computed by one to two orders in all four cases.
+
+\section{What does not fix it}
+
+\paragraph{An interfacial penalty.} Adding $\tfrac{\beta}{2}\oint u^2\,dS$ to the energy gives the
+interface a restoring force and is the natural regularisation. It behaves correctly as an energy: at
+fixed initial condition it raises the total, linearly in $\beta$ at small $\beta$. It does not
+reduce the spread. In the two-centre geometry the spread across seeds went from $0.031$ at
+$\beta=0$ to $0.040$ at $\beta=0.05$ --- slightly worse. Spreading is an energy question and the
+penalty answers it; which stuck point is reached is a search question, on which the penalty is
+silent.
+
+\paragraph{A smaller interface step.} Reducing the interface time step five-fold changes nothing.
+Oscillation between two partitions looks like an overshoot and is not: the two configurations are
+both fixed points of the fields, and the cycle is between them, not around one.
+
+\paragraph{Freezing the interface.} Holding the partition fixed at its initial value removes the
+search but also removes the answer, since the initial partition is then simply asserted. Applied to
+the oscillating chain it left a residual variation of the same order, which localised the remaining
+difficulty in the \emph{field} relaxation for that geometry --- a separate defect, and evidence that
+the interface rule is not the only source of trouble in multi-domain solvers.
+
+\paragraph{A different physical system.} The first geometries involved a weakly bound outer domain
+whose field could lower its energy by spreading without limit, and one might attribute the spread to
+that pathology. Replacing it with a system where every domain sits in a confining well removed the
+pathology --- energies became physically sensible, with no runaway --- and the seed spread remained,
+at $0.013$. The effect is not a property of the particular system.
+
+\paragraph{And geometry cannot bound it either.} Confining domains to prescribed regions to prevent
+spreading fails structurally when the partition must cover the domain: excluding a region from every
+subdomain leaves it owned by whichever label the implementation defaults to. In our case that
+produced a constrained minimum \emph{below} the unconstrained one --- impossible, and a useful
+inequality to test against, since it exposed the error immediately.
+
+\section{The remedy: specify the partition}
+
+Interfaces in these problems are surfaces, and a surface can be placed. For a chain geometry the
+interfaces are planes transverse to the axis, so a partition is fixed by the plane positions; more
+generally any parametrised family will do. The procedure is:
+
+\begin{enumerate}\itemsep2pt
+\item construct a family of admissible partitions $\Omega(\lambda)$ parametrised by a coordinate
+$\lambda$ carrying the physics of interest;
+\item for each $\lambda$, fix the partition and relax the fields alone to convergence;
+\item read $E(\lambda)$, and take from it whatever the problem requires --- a minimum, a barrier as
+the amplitude over a period, a formation energy as a difference against a reference partition.
+\end{enumerate}
+
+Nothing is searched for, so nothing can be stuck. The question changes from ``where does the
+boundary go'' to ``what does this configuration cost'', which is the question a barrier or a
+formation energy actually poses. Repeated runs agree to every digit recorded --- verified three
+times, at two system sizes, against the $0.005$--$0.05$ spreads above.
+
+\paragraph{What it then delivers.} In the same multi-domain problem: a localised interface defect
+costing $0.0064$ and $0.00675$ at two system sizes, i.e.\ independent of size to $5\%$ while the
+total energy changes by $0.26$ between them --- a factor of $750$ in sensitivity; and an energy of
+delocalisation of $0.111$ and $0.113$ at those two sizes, agreeing to $2\%$. Neither quantity was
+obtainable at all by the free-boundary route, both being smaller than its ambiguity.
+
+\paragraph{What it costs.} The family $\Omega(\lambda)$ must be constructed, and constructing it
+correctly is not automatic. Three families were built for a single physical question and two were
+wrong. One left a subdomain stranded against the boundary of $\Omega$ with no source in it; one
+collapsed a subdomain to zero measure; the third was correct. Each was rejected before being run, by
+checking an invariant the family had to satisfy --- that the ends of a chain be identical between
+the configurations compared, that the subdomain count be preserved, that a translation by one period
+return the original energy. \emph{Constructing the invariant is the substantive work}, and it is
+worth doing before the computation rather than after, since a family that violates one produces
+numbers that look entirely reasonable.
+
+\section{Scope}
+
+The finding applies to any scheme whose partition is advanced by a rule of the form
+\eqref{eq:rule}, which includes local level-set reinitialisation, Voronoi- or power-diagram solvers
+with locally computed interface velocities, and multi-domain energy minimisations of the kind
+above. It does not apply to schemes that optimise the partition globally, nor to those in which the
+partition is determined by the physics rather than sought --- a symmetry-fixed interface, for
+example, is exact and costs nothing.
+
+The remedy is available whenever the partitions of interest form a family that can be written down.
+Where the partition itself is the unknown and no such family is available, the difficulty is real
+and this note offers no solution to it; the honest course there is to report the ambiguity rather
+than a converged energy, and to test for it, which requires only running the same problem twice from
+different initial conditions. That test is cheap, it is not standard practice, and in four
+geometries out of four here it would have been decisive.
+
+\section{Conclusion}
+
+A local interface rule is a descent method over single-cell moves, and its fixed points are stuck
+points rather than minima. In a multi-domain Coulomb minimisation the resulting ambiguity was
+$0.005$--$0.05$ Hartree across four geometries, one to two orders above the quantities being
+computed, and was not removed by an interfacial penalty, a smaller step, a frozen interface, or a
+change of physical system --- because it is a property of the search and not of the energy.
+Specifying the partition and relaxing only the fields restores reproducibility to every recorded
+digit and makes quantities computable that were not computable otherwise. The price is that the
+family of partitions must be constructed and checked against an invariant, and the check must
+precede the computation.
+
+\end{document}
