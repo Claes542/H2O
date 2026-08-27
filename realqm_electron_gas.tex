@@ -913,6 +913,61 @@ framework's own design claim --- that non-overlap does the work exchange does --
 metals it holds for the radius and fails for the curvature, which is what one would expect of a
 cancellation that is close but not exact.
 
+\section{The same chain, computed the ordinary way}\label{sec:stdqm}
+
+Everything above is internal to the framework. It is worth putting the same system beside the
+standard treatment, on quantities both can produce, and the result is a check on the scope claim of
+\S\ref{sec:scope} rather than a contest.
+
+Kohn--Sham DFT, PBE/6-31G, all electrons, a straight chain of lithium atoms at the spacings used
+above, with the geometry held uniform so that the comparison is like for like --- a Peierls
+distortion is not permitted on either side:
+
+\begin{center}
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+ & RealQM & PBE/6-31G & experiment\\
+\midrule
+equilibrium spacing (a$_0$)      & $4.5$              & $6.0$    & $5.7$ (bcc n.n.)\\
+verdict at $a=6.0$               & pinned, $184$~meV  & metallic & lithium conducts\\
+verdict at its own equilibrium   & depinned, $\approx0$ & metallic & ---\\
+cohesive energy (eV/atom)        & $\sim1.7$          & $0.486$  & $1.63$ (bulk, 8 n.n.)\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The metallic verdict is not read off a single gap, which any finite chain has, but off its
+scaling: $0.432$, $0.346$, $0.291$, $0.247$, $0.173$~eV at $n=5,7,9,11,13$, with $n\times{\rm gap}$
+constant near $2.4$~eV. The gap closes as $1/n$ and is therefore finite-size, not a band gap.
+
+\paragraph{What this establishes, and what it does not.} On this system the standard treatment is
+better and cheaply so: the equilibrium spacing within a few per cent of the measured
+nearest-neighbour distance, the right conduction verdict, a sensible cohesive energy, in seconds.
+RealQM places the atoms some twenty per cent too close, and at the spacing lithium actually adopts
+it predicts a pinning barrier of $184$~meV where the metal has none.
+
+That is not a surprise and should not be read as one, because \emph{lithium is outside the scope
+this article claims}. \S\ref{sec:scope} excludes metals in kind and not by degree: extended Bloch
+states, band transport, a Fermi surface, none of which the construction possesses. A simple metal is
+the standard treatment's best case and this framework's declared worst, so the table is a scope check
+and not a competition.
+
+As a scope check it passes, in the specific sense that matters: the framework errs by
+\emph{over-localising}, in bond length and in pinning alike, which is what $U\to\infty$ implies and
+therefore the direction the identification predicts. It fails as it was said it would, rather than
+arbitrarily.
+
+\paragraph{Where the comparison would actually bite.} The corollary is uncomfortable and is recorded
+plainly: nothing computed here is a quantity the standard treatment does not already supply more
+accurately. The case for the construction rests instead on the real-space mechanism --- a registry,
+a sliding partition, a carrier that is a boundary rather than a particle --- being a more transparent
+account of activated hopping than a model Hamiltonian with fitted parameters. That claim is not
+tested by lithium. It would be tested on the systems the scope table names, where on-site repulsion
+rather than band structure sets the gap and where density-functional theory is itself in difficulty:
+a doped Mott insulator, an organic semiconductor, a polaronic oxide. Those comparisons are not made
+here.
+
 \section{The interface coefficient, and the one number that is wrong}\label{sec:coefficient}
 
 Equation \eqref{eq:Czero} was introduced above for what it gives conduction. It has a second face,
