@@ -744,8 +744,49 @@ bending rigidity is therefore in principle computable from the density profile a
 in the same way that $\beta$ is fixed by matching the electron gas. It is an unevaluated number, not
 an adjustable one, and it is unevaluated here.
 
-\paragraph{Why it cannot be set to zero.} There is direct evidence that $\kappa>0$ is required
-rather than optional. With the curvature term removed and the boundary released, a five-site chain
+\paragraph{The sign of $\kappa$, measured.} The bending rigidity can be read off directly by
+freezing the interface at a prescribed curvature, with no curvature term in the energy, and
+recording what the Coulomb and kinetic energies do. Bowing the walls of a five-site chain
+quadratically off the axis, at the registry where each wall sits midway between two identical cores:
+
+\begin{center}
+\small
+\begin{tabular}{@{}rr@{}}
+\toprule
+bow & $E$ (Ha)\\
+\midrule
+$-0.30$ & $-1.34835$\\
+$-0.15$ & $-1.31324$\\
+$0$ (flat) & $\mathbf{-1.29985}$\\
+$+0.15$ & $-1.31470$\\
+$+0.30$ & $-1.34923$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The response is symmetric in the sign of the bow to $0.001$~Ha, and quadratic in its
+magnitude --- $-0.0136$ at $|{\rm bow}|=0.15$ against $-0.0489$ at $0.30$, a ratio of $3.6$ where a
+pure $H^2$ term requires $4$. It is therefore the curvature term of \eqref{eq:helfrich} and not a
+registry effect. And its sign is \emph{negative}: the flat interface is a local \textbf{maximum}.
+
+\textbf{The interface of this construction has negative bending rigidity.} It gains energy by
+corrugating, without limit, so \eqref{eq:E} has no ground state until something supplies positive
+$\kappa$.
+
+\paragraph{What that explains.} One defect accounts for a list of difficulties that had looked
+separate. An interface that gains by crumpling has no minimum to find, so a search returns wherever
+it stopped: hence the stuck points of \S\ref{sec:conduction} across four geometries, the spread of
+$0.005$--$0.05$~Ha between initial conditions, the chain that never converged at all, and the
+$3.6$~eV between two releases of the same configuration. Hence too that a free boundary beats every
+imposed family --- it is finding corrugation the family cannot express, not a better physical
+solution. And hence, finally, that the surface tension $\beta$ never repaired any of it: $\beta$
+penalises \emph{area}, and corrugation at fixed area is invisible to it.
+
+Alongside $C=0$ this is a second defect of the free interface, of the same kind and worse in degree.
+$C=0$ is a coefficient that comes out wrong and can be repaired by a boundary condition. $\kappa<0$
+is an energy unbounded below.
+
+\paragraph{Why it cannot be set to zero.} The consequence is visible directly. With the curvature term removed and the boundary released, a five-site chain
 of pseudopotential cores runs to $-1.610$~Ha. The isolated pseudo-atom at the same $r_c$ is
 $-0.222$, so five of them give $-1.11$, and the chain figure implies a cohesive energy of
 $2.7$~eV/atom --- against $1.63$~eV/atom for bulk lithium with eight neighbours. A one-dimensional
