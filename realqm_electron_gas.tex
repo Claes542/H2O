@@ -25,111 +25,41 @@
 \maketitle
 
 \begin{abstract}
-\noindent RealQM models matter as non-overlapping unit charge densities in ordinary three-dimensional
-space, one per electron, meeting at free boundaries and minimising the Coulomb energy. This article
-asks whether such a construction \textbf{conducts}, and finds the answer to turn on two things: what
-is carried, and what kind of conductor is being asked for.
+\noindent RealQM models matter as non-overlapping unit charge densities in ordinary
+three-dimensional space, one per electron, meeting at free boundaries and minimising the Coulomb
+energy. This article asks whether such a construction \textbf{conducts}.
 
-The second is settled first, because the construction does not have a free choice. Localising one
-electron per domain makes it the Hubbard model at $U\to\infty$ --- a Mott insulator at every density,
-as the barrier scans below find by direct computation. Metals are therefore \emph{out of scope}, in
-kind and not by degree: their carriers are extended Bloch states and their defining measurements are
-properties of a degenerate electron gas. What is within scope is matter whose carrier is a localised
-charge on a site, whose gap is on-site repulsion rather than a band structure, and whose transport is
-activated hopping --- doped Mott insulators, organic and molecular semiconductors, polaronic oxides,
-amorphous semiconductors. Silicon and the III--Vs are excluded with the metals, their gaps being band
-gaps. Two results usually read as failures follow from the scope rather than against it: the
-prediction $d\sigma/dT>0$ is \emph{correct} for an activated conductor and fatal only for copper;
-and the absence of a Fermi surface, which no arrangement of densities on domains appears able to
-supply, does not bear on a dilute carrier gas, which is non-degenerate and has none to reproduce.
+What moves is not an electron. An electron here is a unit of charge density on a domain; what
+exists is the \emph{partition} of space, and the carrier is a \textbf{free boundary} --- in the
+relation a dislocation bears to the slip it produces, charge arriving at the far end while nothing
+material crosses the sample. Single occupancy makes the construction the Hubbard model at
+$U\to\infty$, so metals are out of scope in kind and not by degree, their carriers being extended
+Bloch states; doped Mott insulators, molecular semiconductors and polaronic oxides are not.
 
-The scope is nonetheless a class the construction belongs to rather than a set of materials it
-describes, and the reason is measured here. On a ring validated against the sliding calculation to
-five decimals, a neutral chain with one site ionised gives a carrier that localises unaided in the
-interstitial pockets, with an activation energy of $4.9$~eV at $a=2.2\,a_0$ --- and $9.0$~eV when the
-lattice is compressed to $1.4\,a_0$. Compression \emph{doubles} the barrier rather than closing it,
-so there is no Mott transition and no metallic state at higher density, exactly as the $U\to\infty$
-identification predicts: compression cannot increase overlap when non-overlap is the postulate.
-Against the $10$--$500$~meV of a real hopping semiconductor that is ten to a hundred times too large.
-\emph{As formulated the framework conducts nowhere}, and the repair identified below --- occupation
-two at a computed on-site cost, finite $U$ in place of infinite --- becomes the only route to any
-conduction rather than one option among several. The same runs withdraw an earlier conclusion: the
-corona result, an added electron delocalising with a flat energy, carried a net charge, and at
-neutrality the carrier localises instead.
+The central obstacle is computational, and is this article's principal result. A free boundary
+evolves by \emph{local} rules and so descends to the nearest configuration no single cell change
+improves --- a stuck point, not a minimum --- and which one depends on where the run started. Four
+independent geometries spread $0.005$--$0.05$~Ha across seeds and builds, against the
+$0.001$--$0.02$~Ha barriers sought; the ambiguity exceeds the quantity by one to two orders, and is
+unrepaired by surface tension, by step size, by freezing the labels, and by changing system. It is a
+failure of the \emph{search}, not of the energy functional. The repair is to specify the partition
+rather than find it: place the domain walls, freeze them, relax only the wavefunctions. Repeated
+runs then agree to all five decimals recorded. On that footing a misplaced domain wall costs
+$179$~meV, independent of chain length to $5\%$; a chain carrying a vacancy gains $0.112$~Ha by
+delocalising its mismatch, also length-independent; and the barrier to sliding a pattern through its
+lattice is tunable through zero by density and by core radius. The activation energy for a kink to
+\emph{move}, which is what governs conductivity, is not among them and is left open with a stated
+route rather than estimated.
 
-Not an electron. An electron here is a unit of charge density on a domain; what exists is the
-\emph{partition} of space, and transport is the partition pattern travelling. What moves is the
-\textbf{free boundary} --- a locus where two densities balance --- in the relation a dislocation
-bears to the slip it produces: as a kink passes, each electron advances one lattice spacing and
-stops while the kink crosses the whole chain, so charge genuinely arrives at the far end while no
-constituent moves far. Nothing material traverses the sample. That diagnosis also accounts for a
-series of null results reported here, each of which imposed a carrier obliged to translate bodily
-through occupied space, and so measured the price of forbidding the only mechanism available: with
-the free interface, a uniform density is admissible on any partition, redrawing a boundary costs
-nothing, and the boundary is the only object the framework moves.
-
-Numerically, an extra electron on a ring of hydrogens does not sit anywhere: it relaxes to a uniform
-corona, at $a=2.2\,a_0$ and still at $a=4.0\,a_0$ where a real electron would occupy one atom as
-$\mathrm{H^-}$, so the framework over-delocalises and never localises charge. A full electron ring
-against bare kernels is by contrast \textbf{pinned}, rotating against the ion ring at a cost of
-$0.01186$~Ha $=323$~meV for six electrons --- $54$~meV each, a threshold field of
-$9\times10^{8}$~V/m, or $0.11$~V per lattice site against the $4\times10^{-12}$~V per site of copper
-carrying an ampere. Rigid sliding is therefore excluded as a conduction mechanism by ten orders of
-magnitude. It is however an upper bound, since it obliges every electron to crest its barrier at
-once; the cheap path is a kink, whose cost is independent of chain length; the elementary defect from
-which one is built is measured below at $179$~meV and is itself length-independent to $5\%$, but
-the kink energy proper is not reported here. Whether the two ring results additionally constitute a
-semiconductor --- filled complement pinned, added carrier free --- is left as a conjecture, the two
-runs differing in screening as well as in filling.
-
-The same free interface that supplies the mechanism damages the equation of state, and the two cannot
-be repaired independently. Partitioning a gas of density $n$ gives a kinetic energy density
-$t(n)=C\,n^{5/3}$ --- the Thomas--Fermi form from partition geometry rather than Fermi statistics ---
-but the flat trial function is admissible, so $C=0$ exactly: no degeneracy pressure, a
-\emph{vanishing} screening length since $k^2\propto1/C$ (the framework over-screens rather than
-failing to screen), a dispersionless plasmon, no bandwidth. The defect is nonetheless one number and
-not the construction, $C$ being fixed by the interface condition: Robin at $\beta a=1.146$ gives
-$C=2.871=C_{\rm TF}$ exactly against Dirichlet's $14.804$, all three carrying the correct $n^{5/3}$
-scaling. Whether that value is tolerable for atoms and molecules is the open question, and it is
-sharper than a parameter check --- Thomas--Fermi binds no molecule at all, by Teller's theorem, so
-the far end of the dial is hostile to exactly what this framework does best.
-
-Two further results are recorded. The alkali series Li--Cs is reproduced to a mean error of $6.2\%$
-against the standard treatment's $5.6\%$, carrying neither exchange nor band filling, but this is
-shown \emph{not} to test the quantum treatment, since setting the electronic kinetic energy to zero
-altogether moves the radii by one per cent: the lattice scale of a simple metal is electrostatic.
-And the high-temperature limit is the \emph{easier} case for this framework rather than the harder
-one, degeneracy not being required there --- $\omega_p^2=4\pi n$ comes out exactly, for the
-structural reason that a rigid translation leaves the localisation term untouched. What remains
-genuinely open is the Fermi surface, which no arrangement of densities on domains appears able to
-supply.
-
-A last result is methodological, and on reflection it is the load-bearing one, since every number
-above that concerns transport depends on it. The free boundary is evolved by \emph{local} rules: a
-cell changes hands when the neighbouring density exceeds its own. A run therefore descends to the
-nearest configuration no single such change improves --- a stuck point, not a minimum --- and which
-one it reaches depends on where it started. Four independent geometries were measured and all four
-agree: energies that ought to be properties of the system spread by $0.005$--$0.05$~Ha across seeds,
-across builds, or fail to settle at all, against the $0.001$--$0.02$~Ha barriers being sought. The
-ambiguity exceeds the quantity by one to two orders. It is unrepaired by the surface tension
-$\beta$, by reducing the boundary step, by freezing the labels, and by changing to a test system
-without the pathologies of the first. It is a failure of the \emph{search} and not of the energy
-functional, which is why nothing in the functional touches it, and it is why the ring's rigid-sliding
-figure moved under a recompilation that altered no physics.
-
-The repair is not a better minimiser but none at all. The domain walls of a chain are planes, so
-they can be \emph{placed}: specify the partition, freeze it, relax only the wavefunctions, and ask
-what a stated configuration costs rather than where a boundary goes. Repeated runs then agree to all
-five decimals recorded, which no free-boundary quantity here does. On that footing a misplaced
-domain wall costs $179$~meV and the figure is independent of chain length to $5\%$; the mismatch of
-a chain carrying a vacancy gains $0.112$~Ha by delocalising, again length-independent; and the
-barrier to sliding a pattern through its lattice is tunable through zero by density and by core
-radius. The quantity that governs conduction --- the activation energy for a kink to \emph{move} ---
-is not among them: three constructions were attempted and each was rejected by an invariant it
-failed, the last because translating a kink in a short chain measures the vacancy's preference for
-the chain's centre and not the lattice's grip on it. It is left open with a stated route rather than
-estimated, which is the honest position and is the reason this article is about the carrier and the
-difficulty of costing it rather than about a conductivity.
+Two further results bound the framework. The interface coefficient vanishes exactly, $C=0$, removing
+degeneracy pressure and leaving a vanishing screening length and a dispersionless plasmon; a Robin
+condition at $\beta a=1.146$ restores $C=C_{\rm TF}$, but $\beta$ that large \emph{unbinds}
+$\mathrm{H}_2$, which fails by $\beta a\approx0.71$ --- so the equation of state and molecular
+binding cannot be repaired together, while double occupancy, the repair conduction needs at half
+filling, becomes favourable at $\beta a=0.451$ and is affordable. And against density-functional
+theory and exact full configuration interaction on the same chains, the framework errs by
+\textbf{over-localising} --- in bond length and in pinning alike --- which is the direction
+$U\to\infty$ implies, so it fails as its own analysis says it should rather than arbitrarily.
 \end{abstract}
 
 \setstretch{1.15}
