@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html><body style="margin:0;background:#000">
+<div id="info" style="position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.85);color:#fff;font-family:monospace;font-size:12px;padding:10px;border:1px solid #4fc3f7;border-radius:6px;max-width:620px;z-index:100">
+  <div style="color:#4fc3f7;font-weight:bold">Sliding on a ring, with the partition specified</div>
+  n<sub>e</sub> electrons over n<sub>i</sub> ions, the electron domains placed by hand as angular
+  sectors and rotated rigidly by <code>phi</code>. Only the wavefunctions relax.
+
+  <div style="margin-top:6px">
+  <b>Why this rather than the free-boundary version.</b> The same experiment run with a free
+  boundary fails its own control: rotating by a full period must return the starting energy, and it
+  missed by 370&nbsp;meV, with every displaced configuration landing above the origin. That is the
+  free boundary settling into a worse stuck point when started displaced &mdash; the failure this
+  work documents across four geometries. Specifying the partition removes the search, so the control
+  becomes exact by construction rather than something to hope for.
+  </div>
+
+  <div style="margin-top:6px">
+  <b>What sliding would look like.</b> Not a small barrier &mdash; a <b>flat</b> E(phi). A
+  charge-density wave in its sliding phase has a degenerate valley along the translation coordinate,
+  a phason mode, and translating costs nothing. A pinned wave has a corrugated E(phi) with a finite
+  Peierls&ndash;Nabarro amplitude. The signature is qualitative and hard to fake.
+  </div>
+
+  <div style="margin-top:6px">
+  <b>Two controls, both free.</b> E(phi) must have period 1/(n<sub>i</sub>) in electron spacings, so
+  <code>phi</code> = 1/n<sub>i</sub> must reproduce <code>phi</code> = 0 exactly &mdash; and with the
+  partition specified it must do so to every digit, since the two configurations are related by a
+  relabelling. And E(phi) must be symmetric about the half period. Any departure is numerical error,
+  and bounds what pinning can be resolved.
+  </div>
+
+  <div style="margin-top:6px">
+  URL: <code>?ni=6&amp;ne=7</code> ions and electrons, <code>&amp;a=2.2</code> ion radius,
+  <code>&amp;dr=1.2</code> electron ring offset, <code>&amp;phi=0</code> rotation in electron
+  spacings, <code>&amp;h=0.15</code>, <code>&amp;reset</code>.
+  </div>
+  <div id="out" style="margin-top:8px;color:#ff9"></div>
+</div>
+<script>
+window.onerror = function (msg, url, line) {
+  var o = document.getElementById('out');
+  if (o) o.innerHTML = '<b style="color:#f77">ERROR line ' + line + ': ' + msg + '</b>';
+  return false;
+};
+(function () {
+  var q = new URLSearchParams(location.search);
+  var NI  = parseInt  (q.get('ni')  || '6');
+  var NE  = parseInt  (q.get('ne')  || '7');
+  var RA  = parseFloat(q.get('a')   || '2.2');     // ion ring radius
+  var DR  = parseFloat(q.get('dr')  || '1.2');     // electrons sit at RA + DR
+  var PHI = parseFloat(q.get('phi') || '0');       // rotation, in electron spacings
+
+  var RE = RA + DR;
+  var scr = 2 * RE + parseFloat(q.get('pad') || '9.0');
+  var hReq = parseFloat(q.get('h') || '0.15');
+  var gridN = 2 * Math.round(scr / hReq / 2);
+  var N2 = gridN / 2;
+  var h = scr / gridN;
+
+  // ions carry a fractional kernel ne/ni so the ring is neutral against ne electrons: the usual
+  // way of setting a lattice of one period against a charge distribution of another.
+  var atoms = [], Z = [], Znuc = [], zeff = [], rcs = [];
+  var zi = NE / NI;
+  for (var m = 0; m < NI; m++) {
+    var th = 2 * Math.PI * m / NI;
+    atoms.push({ i: Math.round(N2 + RA * Math.cos(th) / h),
+                 j: Math.round(N2 + RA * Math.sin(th) / h), k: N2, Z: 0, el: 'X' });
+    Z.push(0); Znuc.push(zi); zeff.push(1.0); rcs.push(0);
+  }
+  // the electrons: one domain each, seeded on the electron ring at the rotated angles
+  var thE = [];
+  for (var m = 0; m < NE; m++) {
+    var t = 2 * Math.PI * (m + PHI) / NE;
+    thE.push(t);
+    atoms.push({ i: Math.round(N2 + RE * Math.cos(t) / h),
+                 j: Math.round(N2 + RE * Math.sin(t) / h), k: N2, Z: 1, el: 'e' });
+    Z.push(1); Znuc.push(0); zeff.push(0.8); rcs.push(0);
+  }
+
+  // The partition, stated: electron m owns the angular sector nearest its own angle. Sectors
+  // cover the plane, so this is a complete partition, and rotating phi rotates it rigidly --
+  // which is exactly the translation whose energy cost is the pinning.
+  window.CUSTOM_LABEL_INIT = function (S, hGrid, nucPos, NELEC) {
+    var lab = new Uint32Array(S * S * S), S2 = S * S, c = (S - 1) / 2;
+    for (var i = 0; i < S; i++) for (var j = 0; j < S; j++) {
+      var th = Math.atan2(j - c, i - c);
+      var best = 0, bd = 1e9;
+      for (var m = 0; m < NE; m++) {
+        var d = Math.abs(((th - thE[m]) % (2 * Math.PI) + 3 * Math.PI) % (2 * Math.PI) - Math.PI);
+        if (d < bd) { bd = d; best = NI + m; }     // electron domains are indices NI..NI+NE-1
+      }
+      var base = i * S2 + j * S;
+      for (var k = 0; k < S; k++) lab[base + k] = best;
+    }
+    return lab;
+  };
+
+  window.USER_ATOMS = atoms;
+  window.USER_Z = Z;
+  window.USER_Z_NUC = Znuc;
+  window.USER_INIT_ZEFF = zeff;
+  window.USER_RC = rcs;
+  window.USER_NN = gridN;
+  window.USER_SCREEN = scr;
+  window.USER_STEPS = 1000000;
+  window.USER_DYNAMICS = false;
+  window.FREEZE_BOUNDARY = (q.get('free') !== '1');
+  window.USER_DIRECT_POTHER = true;
+  window.USER_CURV_REG = 0;
+  window.CONVERGENCE_THRESHOLD = 0.00002;
+
+  var KEY = 'realqm_ringfixed';
+  if (q.get('reset') !== null) localStorage.setItem(KEY, '{}');
+
+  window.onSweepDone = function (E) {
+    var st = JSON.parse(localStorage.getItem(KEY) || '{}');
+    var cfg = 'ni' + NI + '_ne' + NE + '_a' + RA.toFixed(1) + '_dr' + DR.toFixed(1)
+            + '_h' + h.toFixed(3);
+    st[cfg] = st[cfg] || {};
+    var pk = PHI.toFixed(4);
+    if (!Array.isArray(st[cfg][pk])) st[cfg][pk] = [];
+    st[cfg][pk].push(Number(E));
+    localStorage.setItem(KEY, JSON.stringify(st));
+    console.log('CONVERGED ' + cfg + ' phi=' + pk + ' E=' + Number(E).toFixed(6));
+    table();
+    var SW = q.get('sweep'), VALS = (q.get('vals') || '').split(',').filter(Boolean);
+    if (SW && VALS.length) {
+      var cur = q.get(SW), idx = VALS.indexOf(cur);
+      if (idx >= 0 && idx < VALS.length - 1) {
+        var u = new URL(location.href);
+        u.searchParams.set(SW, VALS[idx + 1]);
+        u.searchParams.delete('reset');
+        u.searchParams.set('cb', String(Date.now()));
+        setTimeout(function () { location.href = u.toString(); }, 1200);
+      } else {
+        document.getElementById('out').innerHTML += '<br><b style="color:#9f9">sweep complete</b>';
+      }
+    }
+  };
+
+  function table() {
+    var st = JSON.parse(localStorage.getItem(KEY) || '{}');
+    var out = [];
+    Object.keys(st).forEach(function (cfg) {
+      out.push('<b>' + cfg + '</b>  (period 1/' + NI + ' = ' + (1 / NI).toFixed(4) + ')');
+      var ps = Object.keys(st[cfg]).sort(function (x, y) { return parseFloat(x) - parseFloat(y); });
+      var lo = 1e9, hi = -1e9;
+      ps.forEach(function (p) {
+        var v = st[cfg][p], best = Math.min.apply(null, v);
+        lo = Math.min(lo, best); hi = Math.max(hi, best);
+        out.push('&nbsp; phi = ' + p + ' :  ' + best.toFixed(5)
+                 + (v.length > 1 ? '  (' + v.length + ' runs)' : ''));
+      });
+      if (ps.length > 1) {
+        var amp = hi - lo;
+        out.push('&nbsp; <b>amplitude of E(phi): ' + amp.toFixed(5) + ' Ha = '
+                 + (amp * 27211).toFixed(0) + ' meV</b>  &mdash; flat means sliding, corrugated'
+                 + ' means pinned');
+        // the control: phi = 1/NI must return phi = 0
+        var z = st[cfg][(0).toFixed(4)], w = st[cfg][(1 / NI).toFixed(4)];
+        if (z && w) {
+          var err = Math.abs(Math.min.apply(null, w) - Math.min.apply(null, z));
+          out.push('&nbsp; <b>control (phi = 1/' + NI + ' must equal phi = 0): '
+                   + '<span style="color:' + (err < 0.001 ? '#9f9' : '#f77') + '">'
+                   + err.toFixed(5) + ' Ha = ' + (err * 27211).toFixed(0)
+                   + ' meV</span></b>  &mdash; this bounds what can be resolved');
+        }
+      }
+    });
+    document.getElementById('out').innerHTML = out.join('<br>');
+  }
+  table();
+
+  document.getElementById('out').innerHTML +=
+    '<br>' + NI + ' ions (kernel +' + zi.toFixed(4) + ') at r=' + RA + ', ' + NE
+    + ' electrons at r=' + RE + ', phi=' + PHI + ', grid ' + gridN + '^3 &mdash; running&hellip;';
+  console.log('ring_fixed: ni=' + NI + ' ne=' + NE + ' phi=' + PHI);
+})();
+var s = document.createElement('script');
+s.src = 'molecule.js?t=' + Date.now();
+s.onload = function () {
+  var p5s = document.createElement('script');
+  p5s.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+  document.body.appendChild(p5s);
+};
+document.body.appendChild(s);
+</script>
+</body></html>
