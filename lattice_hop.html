@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html><body style="margin:0;background:#000">
+<div id="info" style="position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.85);color:#fff;font-family:monospace;font-size:12px;padding:10px;border:1px solid #4fc3f7;border-radius:6px;max-width:600px;z-index:100">
+  <div style="color:#4fc3f7;font-weight:bold">The hop in two dimensions</div>
+  A square lattice of pseudopotential cores, one valence electron each, and one <b>excess</b>
+  electron carried as a domain of its own with no kernel. Its position is stated, not searched for,
+  and the two positions that matter are fixed by symmetry.
+
+  <div style="margin-top:6px">
+  <b>Why two dimensions changes the answer.</b> On a chain the carrier has no way round: to advance
+  one site it must pass <i>through</i> an ion, and the on-site configuration is the saddle. That
+  barrier came out at <b>818&nbsp;meV</b>. A lattice offers a route between atoms &mdash; from the
+  centre of one square, through the <b>midpoint of a bond</b>, to the centre of the next, flanked by
+  two atoms at half a spacing each and never at zero distance from any. An earlier scan of this
+  framework found the difference to be a factor of <b>5.8</b>: 31.5&nbsp;eV through an ion against
+  5.46&nbsp;eV between two.
+  </div>
+
+  <div style="margin-top:6px">
+  <b>Both endpoints are symmetry-fixed</b>, which is what makes a specified partition legitimate
+  here. The carrier at a square centre is invariant under the four-fold symmetry of that site; at a
+  bond midpoint, under the two-fold symmetry of the bond. Each is therefore a stationary point of
+  the energy over partitions, at which the interface condition holds without being imposed &mdash;
+  the same footing as the H<sub>2</sub> midplane. Neither position is chosen.
+  </div>
+
+  <div style="margin-top:6px">
+  <b>What decides it.</b> barrier = E(bond&nbsp;midpoint) &minus; E(square&nbsp;centre). Real
+  hopping semiconductors run 10&ndash;500&nbsp;meV. The chain gave 818, which placed this framework
+  outside that class; if two dimensions brings it under ~500, the class is back within reach.
+  </div>
+
+  <div style="margin-top:6px">
+  URL: <code>?nx=3</code> lattice size, <code>&amp;a=6.0</code> spacing, <code>&amp;rc=1.6</code>
+  core radius, <code>&amp;site=pocket</code> or <code>bond</code> or <code>atop</code>,
+  <code>&amp;h=0.40</code>, <code>&amp;reset</code>.
+  </div>
+  <div id="out" style="margin-top:8px;color:#ff9"></div>
+</div>
+<script>
+window.onerror = function (msg, url, line) {
+  var o = document.getElementById('out');
+  if (o) o.innerHTML = '<b style="color:#f77">ERROR line ' + line + ': ' + msg + '</b>';
+  return false;
+};
+(function () {
+  var q = new URLSearchParams(location.search);
+  var NX   = parseInt  (q.get('nx')   || '3');      // nx by nx cores in the xy plane
+  var A    = parseFloat(q.get('a')    || '6.0');
+  var RC   = parseFloat(q.get('rc')   || '1.6');
+  var ZE   = parseFloat(q.get('zeff') || '1.0');
+  var SITE = q.get('site') || 'pocket';             // pocket | bond | atop
+
+  var span = (NX - 1) * A;
+  var scr  = span + parseFloat(q.get('pad') || '10.0');
+  var hReq = parseFloat(q.get('h') || '0.40');
+  var gridN = 2 * Math.round(scr / hReq / 2);
+  var N2 = gridN / 2;
+  var h = scr / gridN;
+
+  var atoms = [], Z = [], Znuc = [], zeff = [], rcs = [];
+  function add(x, y, zc, zn, ze, rc) {
+    atoms.push({ i: Math.round(N2 + x / h), j: Math.round(N2 + y / h), k: N2, Z: zc, el: 'Li' });
+    Z.push(zc); Znuc.push(zn); zeff.push(ze); rcs.push(rc);
+  }
+
+  // the lattice: nx by nx cores, one valence electron each
+  var x0 = -span / 2;
+  for (var ix = 0; ix < NX; ix++)
+    for (var iy = 0; iy < NX; iy++)
+      add(x0 + ix * A, x0 + iy * A, 1, 1.0, ZE, RC);
+
+  // The carrier: an EXCESS electron, a domain of its own with NO kernel (Z_nuc = 0), so its
+  // position is a property of the partition rather than of a nucleus. That is what lets it be
+  // placed at points where no atom sits -- which is the whole question in two dimensions.
+  //
+  //   pocket : centre of a square, four-fold symmetric   -- expected minimum
+  //   bond   : midpoint of a bond, two-fold symmetric    -- expected saddle
+  //   atop   : on an atom, for comparison with the chain, where this was the saddle
+  var cx = x0 + Math.floor(NX / 2) * A, cy = x0 + Math.floor(NX / 2) * A;
+  var px = cx, py = cy;
+  if (SITE === 'pocket') { px = cx + A / 2; py = cy + A / 2; }
+  else if (SITE === 'bond') { px = cx + A / 2; py = cy; }
+  // 'atop' leaves it on the central atom
+  // diffuse, so it is the outer electron rather than one competing for a core
+  add(px, py, 1, 0.0, 0.45, 0);
+
+  window.USER_ATOMS = atoms;
+  window.USER_Z = Z;
+  window.USER_Z_NUC = Znuc;
+  window.USER_INIT_ZEFF = zeff;
+  window.USER_RC = rcs;
+  window.USER_NN = gridN;
+  window.USER_SCREEN = scr;
+  window.USER_STEPS = 1000000;
+  window.USER_DYNAMICS = false;
+  window.FREEZE_BOUNDARY = (q.get('free') !== '1');   // hold the stated partition
+  window.USER_DIRECT_POTHER = true;                   // the verified per-electron Poisson path
+  window.USER_BETA = parseFloat(q.get('beta') || '0');
+  window.USER_CURV_REG = parseFloat(q.get('curv') || '0.10');
+  window.CONVERGENCE_THRESHOLD = 0.00005;
+
+  var KEY = 'realqm_latticehop';
+  if (q.get('reset') !== null) localStorage.setItem(KEY, '{}');
+
+  window.onSweepDone = function (E) {
+    var st = JSON.parse(localStorage.getItem(KEY) || '{}');
+    var k = 'nx' + NX + '_a' + A.toFixed(1) + '_rc' + RC.toFixed(2) + '_h' + h.toFixed(3)
+          + '_' + SITE;
+    if (!Array.isArray(st[k])) st[k] = [];
+    st[k].push(Number(E));
+    localStorage.setItem(KEY, JSON.stringify(st));
+    console.log('CONVERGED ' + k + ' E=' + Number(E).toFixed(6));
+    table();
+    var SW = q.get('sweep'), VALS = (q.get('vals') || '').split(',').filter(Boolean);
+    if (SW && VALS.length) {
+      var cur = q.get(SW), idx = VALS.indexOf(cur);
+      if (idx >= 0 && idx < VALS.length - 1) {
+        var u = new URL(location.href);
+        u.searchParams.set(SW, VALS[idx + 1]);
+        u.searchParams.delete('reset');
+        u.searchParams.set('cb', String(Date.now()));
+        setTimeout(function () { location.href = u.toString(); }, 1200);
+      } else {
+        document.getElementById('out').innerHTML += '<br><b style="color:#9f9">sweep complete</b>';
+      }
+    }
+  };
+
+  function table() {
+    var st = JSON.parse(localStorage.getItem(KEY) || '{}');
+    var ks = Object.keys(st); if (!ks.length) return;
+    var out = [], by = {};
+    ks.sort().forEach(function (k) {
+      var v = st[k], best = Math.min.apply(null, v);
+      var sp = Math.max.apply(null, v) - Math.min.apply(null, v);
+      out.push(k + ' : <b>' + best.toFixed(5) + '</b>'
+               + (v.length > 1 ? '  (' + v.length + ' runs, spread ' + sp.toFixed(5) + ')' : ''));
+      var m = k.match(/^(.*)_(pocket|bond|atop)$/);
+      if (m) { (by[m[1]] = by[m[1]] || {})[m[2]] = best; }
+    });
+    Object.keys(by).forEach(function (cfg) {
+      var g = by[cfg];
+      if (g.pocket !== undefined && g.bond !== undefined) {
+        var d = g.bond - g.pocket;
+        out.push('<b>barrier (bond &minus; pocket): ' + d.toFixed(5) + ' Ha = '
+                 + (d * 27211).toFixed(0) + ' meV = ' + (d / 0.00095).toFixed(1) + ' kT</b>'
+                 + '  &mdash; the chain gave 818 meV; hopping semiconductors are 10&ndash;500');
+      }
+      if (g.atop !== undefined && g.pocket !== undefined) {
+        var d2 = g.atop - g.pocket;
+        out.push('&nbsp; through an atom instead: ' + (d2 * 27211).toFixed(0)
+                 + ' meV  (the route a chain is forced to take)');
+      }
+    });
+    document.getElementById('out').innerHTML = out.join('<br>');
+  }
+  table();
+
+  document.getElementById('out').innerHTML +=
+    '<br>' + (NX * NX) + ' cores + 1 carrier at <b>' + SITE + '</b>, grid ' + gridN
+    + '^3, h=' + h.toFixed(3) + ' &mdash; running&hellip;';
+  console.log('lattice_hop: ' + NX + 'x' + NX + ' a=' + A + ' rc=' + RC + ' site=' + SITE);
+})();
+var s = document.createElement('script');
+s.src = 'molecule.js?t=' + Date.now();
+s.onload = function () {
+  var p5s = document.createElement('script');
+  p5s.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+  document.body.appendChild(p5s);
+};
+document.body.appendChild(s);
+</script>
+</body></html>
