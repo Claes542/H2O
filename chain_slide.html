@@ -183,7 +183,15 @@ window.onerror = function (msg, url, line) {
   window.USER_SCREEN = scr;
   window.USER_STEPS = 1000000;
   window.USER_DYNAMICS = false;
-  window.FREEZE_BOUNDARY = true;      // the whole point: the specified partition must not move
+  // free=1 RELEASES the boundary after seeding it with the specified partition. This joins
+  // the two halves of the argument. Freezing is instrumental, not a claim: it maps E(d) the
+  // way a constrained scan maps a reaction barrier, and nobody supposes the reacting system
+  // is constrained. The carrier is genuinely a FREE boundary, and the test of that is to
+  // start it at a stated point of the mapped surface and let go. It should move the way the
+  // surface says -- downhill in d, toward whichever stationary point it started nearest.
+  // If instead it wanders somewhere unrelated, the mapped surface is not the one the free
+  // boundary actually moves on, and the two halves do not join.
+  window.FREEZE_BOUNDARY = (q.get('free') !== '1');
   window.USER_CURV_REG = 0.10;
   window.CONVERGENCE_THRESHOLD = 0.00002;
 
@@ -197,6 +205,7 @@ window.onerror = function (msg, url, line) {
     var st = JSON.parse(localStorage.getItem(KEY) || '{}');
     var cfg = 'n' + N + '_a' + A.toFixed(1) + '_rc' + RC.toFixed(2) + '_ze' + ZE.toFixed(2)
             + '_h' + h.toFixed(3)
+            + (q.get('free') === '1' ? '_FREE' : '')
             + (VK ? '_VK w' + W.toFixed(2) + '_kc' + KC.toFixed(2)
                   : PAIR ? '_PAIR w' + W.toFixed(2) + '_m' + M1 + '-' + M2
                   : SLIP ? '_SLIP w' + W.toFixed(2) : (KINK ? '_KINK' : '_rigid'));
