@@ -161,14 +161,31 @@ window.onerror = function (msg, url, line) {
     }
   }
 
+  // BOW curves the interface instead of leaving it flat. A plane is a STRONG regularisation:
+  // one degree of freedom, and the shape forbidden to respond at all. The interface between
+  // two domains would physically bulge toward or away from a core, and forbidding that costs
+  // energy. BOW is the smallest family that allows it -- the wall position varies
+  // quadratically with distance from the chain axis,
+  //
+  //     x_wall(r) = x_wall(0) + BOW * (r/a)^2
+  //
+  // so BOW = 0 is the plane and one extra parameter measures what the plane costs. If
+  // minimising over BOW gains little, the plane is vindicated as a collective coordinate
+  // rather than merely assumed; if it gains a lot, the one-coordinate description is too
+  // crude and the hierarchy needs another rung before the numbers mean anything.
+  var BOW = parseFloat(q.get('bow') || '0');
   window.CUSTOM_LABEL_INIT = function (S, hGrid, nucPos, NELEC) {
     var lab = new Uint32Array(S * S * S), S2 = S * S;
-    for (var i = 0; i < S; i++) {
-      var dom = 0;
-      while (dom < walls.length && i >= walls[dom]) dom++;
-      for (var j = 0; j < S; j++) {
-        var base = i * S2 + j * S;
-        for (var k = 0; k < S; k++) lab[base + k] = dom;
+    var c = (S - 1) / 2, aG = A / h;              // axis centre and spacing, in cells
+    for (var j = 0; j < S; j++) {
+      for (var k = 0; k < S; k++) {
+        var dy = j - c, dz = k - c;
+        var shift = (BOW === 0) ? 0 : BOW * aG * ((dy * dy + dz * dz) / (aG * aG));
+        for (var i = 0; i < S; i++) {
+          var dom = 0;
+          while (dom < walls.length && i >= walls[dom] + shift) dom++;
+          lab[i * S2 + j * S + k] = dom;
+        }
       }
     }
     return lab;
@@ -206,6 +223,7 @@ window.onerror = function (msg, url, line) {
     var cfg = 'n' + N + '_a' + A.toFixed(1) + '_rc' + RC.toFixed(2) + '_ze' + ZE.toFixed(2)
             + '_h' + h.toFixed(3)
             + (q.get('free') === '1' ? '_FREE' : '')
+            + (BOW !== 0 ? '_bow' + BOW.toFixed(2) : '')
             + (VK ? '_VK w' + W.toFixed(2) + '_kc' + KC.toFixed(2)
                   : PAIR ? '_PAIR w' + W.toFixed(2) + '_m' + M1 + '-' + M2
                   : SLIP ? '_SLIP w' + W.toFixed(2) : (KINK ? '_KINK' : '_rigid'));
