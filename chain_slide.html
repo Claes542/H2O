@@ -67,7 +67,24 @@ window.onerror = function (msg, url, line) {
   // problem rigid sliding is about. NELEC = n <= 5 keeps this on the direct Poisson path.
   // vk=1: leave the LAST core bare, giving n-1 domains over n cores. That count mismatch is
   // what a kink is made of -- N domains in N wells is perfectly commensurate and admits none.
-  var VK = q.get('vk') === '1';
+  // hop=1 builds the two configurations of a carrier hopping between the two CENTRAL sites of
+  // an odd chain, which is the one transport quantity here that rests on symmetry rather than
+  // on a chosen partition.
+  //
+  //   hop=1&sad=0  the localised state: the vacancy sits on one central site. A minimum, so
+  //                the boundary may be released and will stay -- and should be checked from
+  //                two seeds to confirm it is one.
+  //   hop=1&sad=1  the SADDLE: the partition invariant under reflection about the chain's
+  //                midpoint, with the charge deficit shared equally between the two central
+  //                sites. Symmetry fixes it completely, so specifying it is legitimate in the
+  //                way the H2 midplane is legitimate: the balance condition holds there by
+  //                symmetry, even though the configuration is a saddle and a released
+  //                boundary would slide off it.
+  //
+  // barrier = E(saddle) - E(localised), both configurations admissible.
+  var HOP = q.get('hop') === '1';
+  var SAD = q.get('sad') === '1';
+  var VK = q.get('vk') === '1' || HOP;
   var atoms = [], Z = [], Znuc = [], zeff = [], rcs = [], coreI = [];
   var x0 = -span / 2;
   for (var m = 0; m < N; m++) {
@@ -103,7 +120,21 @@ window.onerror = function (msg, url, line) {
   var dGrid = DFRAC * A / h;
   var mid = Math.floor((N - 1) / 2);
   var walls = [];
-  if (VK) {
+  if (HOP) {
+    // n-1 domains over n cores. Let c = (n-1)/2 be the central DOMAIN index of the odd chain.
+    // Localised: domains 0..c-1 sit on their own cores, c..n-2 on the next one up, so the
+    // unpartnered core is at c -- one of the two central sites. Saddle: the slip is centred
+    // exactly between the two central cores, so reflection about the chain midpoint maps the
+    // partition to itself.
+    var cD = (N - 1) / 2;
+    var cen = [];
+    for (var m = 0; m < N - 1; m++) {
+      var f = SAD ? 0.5 * (1 + Math.tanh((m - (cD - 0.5)) / W))
+                  : (m >= cD ? 1 : 0);
+      cen.push(coreI[m] + (A / h) * f);
+    }
+    for (var m = 0; m < N - 2; m++) walls.push(0.5 * (cen[m] + cen[m + 1]));
+  } else if (VK) {
     // The n-1 domains are placed by their CENTRES, not by their walls, because a kink is a
     // statement about where the charges sit relative to the wells. Domain m sits on core m
     // far to the left of the kink and on core m+1 far to the right:
@@ -246,7 +277,8 @@ window.onerror = function (msg, url, line) {
             + (parseFloat(q.get('beta') || '0') !== 0 ? '_b' + parseFloat(q.get('beta')).toFixed(3) : '')
             + (q.get('curv') !== null ? '_c' + parseFloat(q.get('curv')).toFixed(2) : '')
             + (parseFloat(q.get('field') || '0') !== 0 ? '_F' + parseFloat(q.get('field')).toFixed(4) : '')
-            + (VK ? '_VK w' + W.toFixed(2) + '_kc' + KC.toFixed(2)
+            + (HOP ? (SAD ? '_HOPsaddle w' + W.toFixed(2) : '_HOPlocal')
+                  : VK ? '_VK w' + W.toFixed(2) + '_kc' + KC.toFixed(2)
                   : PAIR ? '_PAIR w' + W.toFixed(2) + '_m' + M1 + '-' + M2
                   : SLIP ? '_SLIP w' + W.toFixed(2) : (KINK ? '_KINK' : '_rigid'));
     st[cfg] = st[cfg] || {};
