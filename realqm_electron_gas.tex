@@ -937,6 +937,33 @@ cohesive energy (eV/atom)        & $\sim1.7$          & $0.486$  & $1.63$ (bulk,
 \end{tabular}
 \end{center}
 
+\paragraph{And it is not one functional's answer.} Density-functional theory is not the
+Schr\"odinger equation: it replaces the interacting problem with fictitious non-interacting
+electrons in an effective potential, exact in principle by Hohenberg--Kohn but resting in practice
+on a \emph{constructed} exchange--correlation functional and a finite basis --- two uncontrolled
+approximations. The comparison above is therefore model against model, not model against exact, and
+would normally be qualified accordingly. On the quantity at issue it need not be. Repeating the
+scan with Hartree--Fock, which carries no correlation whatever, and with MP2, which carries it
+perturbatively, moves the total energy by some $0.3$~Ha between methods and leaves the equilibrium
+spacing at $6.0$~a$_0$ in all three:
+
+\begin{center}
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+$a$ (a$_0$) & HF & PBE & MP2\\
+\midrule
+$4.5$ & $-51.97126$ & $-52.29669$ & $-52.02861$\\
+$5.0$ & $-52.01844$ & $-52.33386$ & $-52.06750$\\
+$6.0$ & $\mathbf{-52.04726}$ & $\mathbf{-52.34332}$ & $\mathbf{-52.08273}$\\
+$7.0$ & $-52.04089$ & $-52.31653$ & $-52.06476$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The twenty per cent is thus a disagreement with standard quantum chemistry rather than
+with a choice of functional.
+
 \noindent The metallic verdict is not read off a single gap, which any finite chain has, but off its
 scaling: $0.432$, $0.346$, $0.291$, $0.247$, $0.173$~eV at $n=5,7,9,11,13$, with $n\times{\rm gap}$
 constant near $2.4$~eV. The gap closes as $1/n$ and is therefore finite-size, not a band gap.
