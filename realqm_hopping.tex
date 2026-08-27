@@ -39,10 +39,14 @@ Bloch states; doped Mott insulators, molecular semiconductors and polaronic oxid
 The activation energy for that boundary to advance one site can be computed, and it decides the
 question. Two configurations of a doped chain are fixed by \emph{symmetry} --- the carrier centred
 on a site, and centred between two --- so both are stationary points at which the interface
-condition holds without being imposed, and their difference is the hopping barrier. It is
-$818$~meV at the equilibrium spacing, independent of chain length to $8\%$, and it \emph{rises}
-under compression, to $1723$~meV at two-thirds the spacing: a doubling rather than a closing, so no
-metallic state appears at higher density. The carrier sits between sites rather than on one. At
+condition holds without being imposed, and their difference is the hopping barrier. The path itself carries a
+free parameter --- the width over which the slip is spread --- so the barrier is the minimum over
+that family and not a value at one width: $E_a=555$~meV $=21\,k_BT$, at a kink width of about one
+and a half sites, independent of chain length to $1.5\%$. The width dependence has a genuine
+minimum, elastic stiffness penalising a wide kink and the lattice's grip a narrow one, and every
+figure computed at a fixed width is an upper bound accordingly. The barrier \emph{rises} under
+compression, to $1723$~meV at two-thirds the spacing, so no metallic state appears at higher
+density. The carrier sits between sites rather than on one. At
 $24$ to $67\,k_BT$ across the range tested, against the $10$--$500$~meV of real hopping
 semiconductors, the construction describes a \textbf{Mott insulator} and not the semiconducting
 class this article set out to claim.
@@ -814,6 +818,38 @@ rather than band structure sets the gap and where density-functional theory is i
 a doped Mott insulator, an organic semiconductor, a polaronic oxide. Those comparisons are not made
 here.
 
+\section*{A note on what was tested numerically}
+
+The plasma frequency $\omega_p^2=4\pi n$, the screening relation, the Thomas--Fermi comparison and
+the vanishing of $C$ are analytic. The alkali lattice constants are a radial Wigner--Seitz
+calculation with the stated pseudopotential and correlation functional, run for five alkalis; the
+standard column reproducing the
+series is what makes the comparison meaningful, and its own $44\%$ mean error in the bulk modulus
+sets the accuracy available at this level of model. Three attempts are reported as null rather than omitted. The interface parameter
+$\beta$ was tested on helium at three meshes at fixed imaginary time, giving shifts of $+0.151$,
+$-0.018$ and $-0.184$~Ha as the mesh refined --- swinging through zero and growing, with absolute
+energies moving away from the exact $-2.9037$. The cause is the geometry rather than the arithmetic:
+in helium the two domains meet at a plane \emph{through the nucleus}, so interface error and
+Coulomb-cusp error are superimposed and cannot be separated on a uniform grid. The measurement wants
+$\mathrm{H_2}$, where the domains meet at the midplane \emph{between} the nuclei in a smooth
+region. An interface-condition test on helium was
+not converged, giving a sensitivity that reversed sign under mesh refinement, and no conclusion is
+drawn from it. Two chain calculations --- five hydrogens with an excess electron, and five hydrogen
+kernels with one electron missing --- returned no transport, but for a reason established by reading
+the constructions rather than by the runs: a carrier without a kernel feels no lattice force, and a
+bare kernel receives no domain for a vacancy to occupy. Both are recorded because the null results
+located those obstructions. A caution on the numerics belongs with them. Several attempts returned
+energies below the physical floor for their particle content, but these track the boundary speed and
+the seeding rather than the configuration: with the interface driven faster than the densities can
+follow, or with a carrier seeded directly onto an occupied kernel, the relaxation runs away, while the
+same configurations at a quarter of that speed settled to physical values. A two-domain shell on one
+nucleus is in fact stable under the density-balance rule --- compressing the inner domain raises its
+density at the interface and lowers the outer's, which pushes the boundary back out --- and both
+domains carry real kinetic energy there, since the nucleus shapes their profiles. The vanishing of
+$C$ is a statement about a \emph{uniform} density and does not transfer to a shaped one. Scripts and pages accompany the source.
+
+
+
 \section{Conclusion}\label{sec:conclusion}
 
 The question was whether a construction of non-overlapping unit charge densities, meeting at free
@@ -880,38 +916,6 @@ filling requires, becomes favourable at $\beta a=0.451$ and leaves molecules bou
 interface coefficient to its Thomas--Fermi value requires $\beta a=1.146$, and $\mathrm{H}_2$
 unbinds by $\beta a\approx0.71$. Teller's theorem is thereby met inside the framework rather than
 inherited from outside it.
-
-\section*{A note on what was tested numerically}
-
-The plasma frequency $\omega_p^2=4\pi n$, the screening relation, the Thomas--Fermi comparison and
-the vanishing of $C$ are analytic. The alkali lattice constants are a radial Wigner--Seitz
-calculation with the stated pseudopotential and correlation functional, run for five alkalis; the
-standard column reproducing the
-series is what makes the comparison meaningful, and its own $44\%$ mean error in the bulk modulus
-sets the accuracy available at this level of model. Three attempts are reported as null rather than omitted. The interface parameter
-$\beta$ was tested on helium at three meshes at fixed imaginary time, giving shifts of $+0.151$,
-$-0.018$ and $-0.184$~Ha as the mesh refined --- swinging through zero and growing, with absolute
-energies moving away from the exact $-2.9037$. The cause is the geometry rather than the arithmetic:
-in helium the two domains meet at a plane \emph{through the nucleus}, so interface error and
-Coulomb-cusp error are superimposed and cannot be separated on a uniform grid. The measurement wants
-$\mathrm{H_2}$, where the domains meet at the midplane \emph{between} the nuclei in a smooth
-region. An interface-condition test on helium was
-not converged, giving a sensitivity that reversed sign under mesh refinement, and no conclusion is
-drawn from it. Two chain calculations --- five hydrogens with an excess electron, and five hydrogen
-kernels with one electron missing --- returned no transport, but for a reason established by reading
-the constructions rather than by the runs: a carrier without a kernel feels no lattice force, and a
-bare kernel receives no domain for a vacancy to occupy. Both are recorded because the null results
-located those obstructions. A caution on the numerics belongs with them. Several attempts returned
-energies below the physical floor for their particle content, but these track the boundary speed and
-the seeding rather than the configuration: with the interface driven faster than the densities can
-follow, or with a carrier seeded directly onto an occupied kernel, the relaxation runs away, while the
-same configurations at a quarter of that speed settled to physical values. A two-domain shell on one
-nucleus is in fact stable under the density-balance rule --- compressing the inner domain raises its
-density at the interface and lowers the outer's, which pushes the boundary back out --- and both
-domains carry real kinetic energy there, since the nucleus shapes their profiles. The vanishing of
-$C$ is a statement about a \emph{uniform} density and does not transfer to a shaped one. Scripts and pages accompany the source.
-
-
 
 \begin{thebibliography}{9}
 \bibitem{realqm} C.~Johnson, \emph{Real Quantum Mechanics}, \texttt{https://realqm.com}.
