@@ -36,7 +36,18 @@ material crosses the sample. Single occupancy makes the construction the Hubbard
 $U\to\infty$, so metals are out of scope in kind and not by degree, their carriers being extended
 Bloch states; doped Mott insulators, molecular semiconductors and polaronic oxides are not.
 
-The central obstacle is computational, and is this article's principal result. A free boundary
+The activation energy for that boundary to advance one site can be computed, and it decides the
+question. Two configurations of a doped chain are fixed by \emph{symmetry} --- the carrier centred
+on a site, and centred between two --- so both are stationary points at which the interface
+condition holds without being imposed, and their difference is the hopping barrier. It is
+$818$~meV at the equilibrium spacing, independent of chain length to $8\%$, and it \emph{rises}
+under compression, to $1723$~meV at two-thirds the spacing: a doubling rather than a closing, so no
+metallic state appears at higher density. The carrier sits between sites rather than on one. At
+$24$ to $67\,k_BT$ across the range tested, against the $10$--$500$~meV of real hopping
+semiconductors, the construction describes a \textbf{Mott insulator} and not the semiconducting
+class this article set out to claim.
+
+A second obstacle is computational, and it conditions everything else. A free boundary
 evolves by \emph{local} rules and so descends to the nearest configuration no single cell change
 improves --- a stuck point, not a minimum --- and which one depends on where the run started. Four
 independent geometries spread $0.005$--$0.05$~Ha across seeds and builds, against the
@@ -615,6 +626,68 @@ only the wavefunctions. Nothing is searched for, the same input returns the same
 question asked is no longer ``where does the boundary go'' but ``what does this configuration
 cost'' --- which is the question a barrier actually poses. It is the device that makes the
 $\mathrm{H}_2$ midplane exact, applied to a coordinate instead of a symmetry.
+
+\paragraph{The hopping barrier, from two configurations neither of which was chosen.} The
+quantity conduction depends on is the activation energy for a carrier to advance one site, and it
+can be had without choosing any partition, because \emph{symmetry fixes both ends}. Take a chain
+with an odd number of sites carrying one vacancy, and let the carrier hop between the two central
+sites. Two configurations are then distinguished:
+
+\begin{itemize}\itemsep2pt
+\item the carrier centred \textbf{on} a site --- invariant under reflection about that site;
+\item the carrier centred \textbf{between} the two sites --- invariant under reflection about the
+bond midpoint.
+\end{itemize}
+
+\noindent Each is invariant under a reflection, hence a stationary point of the energy over
+partitions, hence a configuration at which the balance condition holds without being imposed. This
+is the footing that makes the $\mathrm{H}_2$ midplane exact, and it is the only footing on which a
+specified partition is legitimate. The profile connecting the two is given the same width in both,
+so that position is the only thing that differs.
+
+\begin{center}
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+spacing $a$ (a$_0$) & on site (Ha) & between sites (Ha) & barrier\\
+\midrule
+$4.0$ & $-1.00761$ & $-1.07092$ & $0.06331$~Ha $=1723$~meV\\
+$5.0$ & $-1.14835$ & $-1.17695$ & $0.02860$~Ha $=\phantom{0}778$~meV\\
+$6.0$ & $-1.21951$ & $-1.24957$ & $0.03006$~Ha $=\phantom{0}818$~meV\\
+$7.0$ & $-1.17275$ & $-1.19527$ & $0.02252$~Ha $=\phantom{0}613$~meV\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Three things follow, and the first is a structural claim rather than a number. The carrier
+sits \textbf{between} sites, not on one: the bond-centred configuration is the minimum at every
+spacing. The hop is therefore bond to bond, through the on-site saddle, and this reproduces by an
+independent route the registry preference found above, where the bond-centred partition lay
+$0.064$~Ha below the atom-centred one.
+
+Second, the barrier is a property of the hop and not of the chain. At $a=6.0$ it is $0.03006$~Ha for
+seven sites and $0.03247$~Ha for nine --- $8\%$ apart, while the total energy moves by $0.59$~Ha
+between them, a factor of $245$ in sensitivity.
+
+Third, and this is the substantive result, \textbf{compression raises the barrier}. It is
+$818$~meV at the equilibrium spacing and $1723$~meV compressed to $a=4.0$, a doubling rather than a
+closing. That is the conclusion the compression scans of this article reached by the free-boundary
+route, and it is worth stating plainly that those scans are the ones \S\ref{sec:conduction} shows to
+be unreliable. The result survives the discrediting of the method that first found it.
+
+\paragraph{What the barrier says about scope.} At every spacing tested the activation energy lies
+between $613$ and $1723$~meV, that is $24$ to $67\,k_BT$. Hopping semiconductors --- the organic and
+molecular solids, the polaronic oxides, the amorphous semiconductors named in \S\ref{sec:scope} ---
+have activation energies of $10$ to $500$~meV. This construction is an order of magnitude above them
+at every accessible density, and shows no sign of approaching them under compression, which makes it
+worse rather than better.
+
+The honest reading narrows the scope claim of \S\ref{sec:scope} rather than supporting it. What this
+framework describes is a \textbf{Mott insulator}: a carrier localised on a site, a gap set by on-site
+repulsion, and a barrier too large for the carrier to move at any temperature at which the lattice
+survives. The threshold field tells the same story --- $E_a/ea=2.7\times10^9$~V/m, or $0.85$~V per
+site against copper's $4\times10^{-12}$. Semiconduction was the class this article hoped to belong
+to; the measurement places it outside.
 
 \paragraph{The cost of a misplaced domain wall, and that it does not grow.} What follows is
 \emph{not} the kink of the preceding paragraph, and the distinction matters. A kink is a
