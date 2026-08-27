@@ -985,7 +985,35 @@ discrepancy.
 
 \noindent The metallic verdict is not read off a single gap, which any finite chain has, but off its
 scaling: $0.432$, $0.346$, $0.291$, $0.247$, $0.173$~eV at $n=5,7,9,11,13$, with $n\times{\rm gap}$
-constant near $2.4$~eV. The gap closes as $1/n$ and is therefore finite-size, not a band gap.
+constant near $2.4$~eV, so the gap closes as $1/n$ and is finite-size rather than a band gap.
+
+\paragraph{That verdict is weaker than it looks, and in a direction that matters.} What was compared
+are Kohn--Sham eigenvalue differences, and Kohn--Sham eigenvalues are not excitation energies. They
+belong to a fictitious system of \emph{non-interacting} particles introduced to reproduce a density;
+the true gap differs from theirs by the derivative discontinuity of the exchange--correlation
+functional, which PBE does not possess at all. Approximate functionals are known to underestimate
+gaps for exactly this reason, often by a factor of two. A small Kohn--Sham gap is therefore what the
+method returns whether or not a gap is present.
+
+The bias has a direction, and it is the one at issue here. Approximate functionals carry a
+self-interaction error --- an electron repelled in part by its own density --- whose consequence is
+\textbf{delocalisation error}: densities spread too far, localised solutions are penalised, and
+metallic answers are favoured. So the standard column calling this chain metallic is that treatment
+erring in its characteristic direction, not a neutral measurement. Against it, the framework of this
+article over-localises, by construction, being $U\to\infty$. \emph{Both are biased and in opposite
+senses}, and lithium is simply a case where the standard bias does no damage, because the chain
+really is metallic. On a system where it does damage --- an oxide, a doped Mott insulator, anything
+whose gap is on-site repulsion --- the delocalisation error is the well-known failure and the
+localisation is the correct instinct.
+
+Two further asymmetries belong in the record. Density-functional theory admits no convergence path:
+wavefunction methods form a hierarchy, Hartree--Fock through MP2, CCSD, CCSD(T) to full
+configuration interaction, which converges to the exact answer within a basis, whereas no procedure
+refines PBE towards the true functional. And the quantities are not of the same kind. What is
+computed here are total energies of \emph{specified configurations} --- differences between states
+of one system, which are observables --- where the gap above is an eigenvalue difference in an
+auxiliary system that was never claimed to have physical states. Where this framework is less
+accurate it is at least computing something that means what it says.
 
 \paragraph{What this establishes, and what it does not.} On this system the standard treatment is
 better and cheaply so: the equilibrium spacing within a few per cent of the measured
