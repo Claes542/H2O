@@ -209,7 +209,14 @@ window.onerror = function (msg, url, line) {
   // If instead it wanders somewhere unrelated, the mapped surface is not the one the free
   // boundary actually moves on, and the two halves do not join.
   window.FREEZE_BOUNDARY = (q.get('free') !== '1');
-  window.USER_CURV_REG = 0.10;
+  // Two regularisers, both testable here. curv penalises interface CURVATURE, beta its AREA.
+  // The prediction is that neither escapes a stuck point and beta actively entrenches one:
+  // the configuration a release from d=0 refuses to leave has FLAT interfaces, which is the
+  // minimum-area configuration, so an area penalty stabilises precisely what we want to
+  // destabilise. Consistent with the two-centre geometry, where the seed spread went from
+  // 0.031 at beta=0 to 0.040 at beta=0.05.
+  window.USER_BETA = parseFloat(q.get('beta') || '0');
+  window.USER_CURV_REG = parseFloat(q.get('curv') || '0.10');
   window.CONVERGENCE_THRESHOLD = 0.00002;
 
   var SWEEP = q.get('sweep');                                   // parameter to sweep
@@ -224,6 +231,8 @@ window.onerror = function (msg, url, line) {
             + '_h' + h.toFixed(3)
             + (q.get('free') === '1' ? '_FREE' : '')
             + (BOW !== 0 ? '_bow' + BOW.toFixed(2) : '')
+            + (parseFloat(q.get('beta') || '0') !== 0 ? '_b' + parseFloat(q.get('beta')).toFixed(3) : '')
+            + (q.get('curv') !== null ? '_c' + parseFloat(q.get('curv')).toFixed(2) : '')
             + (VK ? '_VK w' + W.toFixed(2) + '_kc' + KC.toFixed(2)
                   : PAIR ? '_PAIR w' + W.toFixed(2) + '_m' + M1 + '-' + M2
                   : SLIP ? '_SLIP w' + W.toFixed(2) : (KINK ? '_KINK' : '_rigid'));
