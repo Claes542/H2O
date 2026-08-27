@@ -49,7 +49,7 @@ window.onerror = function (msg, url, line) {
   var A    = parseFloat(q.get('a')    || '6.0');
   var RC   = parseFloat(q.get('rc')   || '1.6');
   var ZE   = parseFloat(q.get('zeff') || '1.0');
-  var SITE = q.get('site') || 'pocket';             // pocket | bond | atop
+  var SITE = q.get('site') || 'site';               // site | bond
 
   var span = (NX - 1) * A;
   var scr  = span + parseFloat(q.get('pad') || '10.0');
@@ -70,20 +70,48 @@ window.onerror = function (msg, url, line) {
     for (var iy = 0; iy < NX; iy++)
       add(x0 + ix * A, x0 + iy * A, 1, 1.0, ZE, RC);
 
-  // The carrier: an EXCESS electron, a domain of its own with NO kernel (Z_nuc = 0), so its
-  // position is a property of the partition rather than of a nucleus. That is what lets it be
-  // placed at points where no atom sits -- which is the whole question in two dimensions.
+  // The carrier is a VACANCY, built exactly as in the chain so the only difference is
+  // dimension. Weakening one core's trial function is NOT a symmetric way to straddle a bond
+  // -- it leaves one core empty and its neighbour merely weakened -- so the domains are placed
+  // by their CENTRES instead, with a slip along the central row:
   //
-  //   pocket : centre of a square, four-fold symmetric   -- expected minimum
-  //   bond   : midpoint of a bond, two-fold symmetric    -- expected saddle
-  //   atop   : on an atom, for comparison with the chain, where this was the saddle
-  var cx = x0 + Math.floor(NX / 2) * A, cy = x0 + Math.floor(NX / 2) * A;
-  var px = cx, py = cy;
-  if (SITE === 'pocket') { px = cx + A / 2; py = cy + A / 2; }
-  else if (SITE === 'bond') { px = cx + A / 2; py = cy; }
-  // 'atop' leaves it on the central atom
-  // diffuse, so it is the outer electron rather than one competing for a core
-  add(px, py, 1, 0.0, 0.45, 0);
+  //     c_m = core_m + a * 0.5(1 + tanh((m - centre)/W))     along the row
+  //
+  // Left of the slip each domain sits on its own core, right of it on the next, so one core in
+  // that row is left unpartnered and the hole is where the slip is. centre = ic puts the hole
+  // ON a site (four-fold symmetric); centre = ic + 0.5 straddles the bond (two-fold symmetric).
+  // Rows above and below are untouched and supply the two-dimensional environment the chain
+  // lacks -- which is the whole point of the comparison.
+  var ic = Math.floor(NX / 2);
+  var W  = parseFloat(q.get('w') || '0.8');
+  var slipCentre = (SITE === 'bond') ? (ic - 0.5) : ic;
+  Z[ic * NX + ic] = 0;                       // one electron fewer than cores
+
+  window.CUSTOM_LABEL_INIT = function (S, hGrid, nucPos, NELEC) {
+    var lab = new Uint32Array(S * S * S), S2 = S * S;
+    // domain centres in grid units: the central row slips, the others do not
+    var cen = [];
+    for (var ix = 0; ix < NX; ix++) for (var iy = 0; iy < NX; iy++) {
+      var n = ix * NX + iy;
+      if (Z[n] <= 0) { cen.push(null); continue; }
+      var f = (iy === ic) ? 0.5 * (1 + Math.tanh((ix - slipCentre) / W)) : 0;
+      cen.push({ n: n,
+                 i: atoms[n].i + f * (A / h),
+                 j: atoms[n].j });
+    }
+    var live = cen.filter(function (c) { return c; });
+    for (var i = 0; i < S; i++) for (var j = 0; j < S; j++) {
+      var bi = 0, bd = 1e18;
+      for (var m = 0; m < live.length; m++) {
+        var di = i - live[m].i, dj = j - live[m].j;
+        var d = di * di + dj * dj;
+        if (d < bd) { bd = d; bi = live[m].n; }
+      }
+      var base = i * S2 + j * S;
+      for (var k = 0; k < S; k++) lab[base + k] = bi;
+    }
+    return lab;
+  };
 
   window.USER_ATOMS = atoms;
   window.USER_Z = Z;
@@ -136,14 +164,14 @@ window.onerror = function (msg, url, line) {
       var sp = Math.max.apply(null, v) - Math.min.apply(null, v);
       out.push(k + ' : <b>' + best.toFixed(5) + '</b>'
                + (v.length > 1 ? '  (' + v.length + ' runs, spread ' + sp.toFixed(5) + ')' : ''));
-      var m = k.match(/^(.*)_(pocket|bond|atop)$/);
+      var m = k.match(/^(.*)_(site|bond)$/);
       if (m) { (by[m[1]] = by[m[1]] || {})[m[2]] = best; }
     });
     Object.keys(by).forEach(function (cfg) {
       var g = by[cfg];
-      if (g.pocket !== undefined && g.bond !== undefined) {
-        var d = g.bond - g.pocket;
-        out.push('<b>barrier (bond &minus; pocket): ' + d.toFixed(5) + ' Ha = '
+      if (g.site !== undefined && g.bond !== undefined) {
+        var d = g.bond - g.site;
+        out.push('<b>barrier (bond &minus; site): ' + d.toFixed(5) + ' Ha = '
                  + (d * 27211).toFixed(0) + ' meV = ' + (d / 0.00095).toFixed(1) + ' kT</b>'
                  + '  &mdash; the chain gave 818 meV; hopping semiconductors are 10&ndash;500');
       }
