@@ -82,7 +82,7 @@ systems}: ions and electrons, both charged, both free to move, interacting by Co
 nothing else. A metal is such a system, and the question pursued here is the elementary one such a
 system poses --- whether it \emph{conducts}, and if so what carries the charge. The same
 construction covers a stellar interior and the recombination era of a Coulomb cosmology, which are
-treated as the high-temperature limit in \S\ref{sec:plasma}.
+treated as the classical plasma, where $\omega_p^2=4\pi n$ comes out exactly.
 
 RealQM \cite{realqm,realqmbook} represents an $N$-electron system by $N$ non-negative densities
 $\psi_i$, each carrying unit charge on its own domain $\Omega_i$, the domains non-overlapping and
@@ -166,7 +166,7 @@ it is only fatal if the target is copper. Second, and more consequentially, the 
 to be an unresolved failure and becomes a scope limit. A Fermi surface is a property of a degenerate
 electron gas; a dilute carrier gas is non-degenerate, Boltzmann rather than Fermi statistics govern
 it, and there is no $E_F$ to reproduce. \emph{The framework's largest lacuna does not bear on the
-material class it can describe.} \S\ref{sec:fermi} states what that costs if one wants metals after
+material class it can describe.} That is the substantive cost of the construction if one wants metals after
 all.
 
 \section{The interface coefficient, and the one number that is wrong}\label{sec:coefficient}
@@ -378,7 +378,7 @@ That also settles how much weight the uniform electron gas should carry. It is e
 in which exchange--correlation energies are fitted to that very system. RealQM contains no inert
 backgrounds anywhere, so asking it to reproduce jellium asks for a system whose central ingredient it
 does not have, and $C=0$ diagnoses that mismatch rather than recording a failed test. Consistently,
-the pathology disappears as soon as real ions are present: the alkali lattice constants of \S\ref{sec:metals} are the same framework on the same physics, with
+the pathology disappears as soon as real ions are present: the alkali lattice constants are the same framework on the same physics, with
 the background replaced by the charges matter is actually made of.
 
 One physical case does approach the uniform limit closely: degenerate matter in which the ion lattice
@@ -425,7 +425,7 @@ conductivity \emph{falls} with temperature; hopping conductivity \emph{rises}. I
 charge by hopping rather than band motion it should give $d\sigma/dT>0$. Within the scope set in
 \S\ref{sec:scope} that is the \emph{right} answer, activated transport being what a localised-carrier
 semiconductor does; it would be fatal only for a metal, which is why the target matters. Whether it does has not been computed for electrons, and the
-pessimistic reading should be held loosely: the same lattice that carried the metals in \S\ref{sec:metals} is
+pessimistic reading should be held loosely: the same lattice that reproduces alkali lattice constants is
 present here too.
 
 For \emph{protons} the mechanism has already been demonstrated in this framework. Grotthuss
@@ -618,7 +618,7 @@ failure of the \emph{search}, not of the energy functional, which is why nothing
 touches it. It is also why the ring's $0.01186$~Ha moved to $0.022$~Ha under a recompilation that
 altered no physics: rounding at the last bit flips cells sitting near the threshold, and a different
 stuck point follows. The rigid-sliding figure should be read as a bound of that order rather than a
-determination, and the doping barriers of Table~\ref{tab:barrier}, obtained the same way, with it.
+determination, and the doping barriers of the earlier barrier scans, obtained the same way, with it.
 
 The repair is not a better minimiser but no minimiser. The domain walls of a chain are planes
 perpendicular to the axis, so they can be \emph{placed}: specify the partition, freeze it, and relax
@@ -689,97 +689,14 @@ survives. The threshold field tells the same story --- $E_a/ea=2.7\times10^9$~V/
 site against copper's $4\times10^{-12}$. Semiconduction was the class this article hoped to belong
 to; the measurement places it outside.
 
-\paragraph{The cost of a misplaced domain wall, and that it does not grow.} What follows is
-\emph{not} the kink of the preceding paragraph, and the distinction matters. A kink is a
-discommensuration: the registry slips by one full spacing across it, one ion is left unpartnered,
-and the slip is spread over a width. That requires the number of domains and the number of cores to
-differ locally --- $N$ domains in $N$ wells is perfectly commensurate and admits no kink at all.
-What is computed here is the elementary defect a kink is built from: a \emph{single misplaced domain
-wall}, sitting on a core instead of midway between two, sharp and one site wide, with the registry
-unchanged on either side. It is an upper bound on nothing in particular and a lower bound on
-nothing either; it is a well-defined local defect energy, and it is reported because it is
-reproducible where the free-boundary numbers are not.
-
-Lithium-like cores, one valence electron each, a pseudopotential radius $r_c=1.6$ and spacing
-$a=6.0$~a$_0$. The uniform configuration puts every wall midway between neighbouring cores; the
-defect displaces the \emph{middle} wall by $a/2$ and leaves the rest, so one domain widens and its
-neighbour narrows while everything beyond is untouched --- and the end domains, identical in both,
-cancel exactly in the difference:
-
-\begin{center}
-\small
-\begin{tabular}{@{}lrrr@{}}
-\toprule
-cores & uniform (Ha) & kinked (Ha) & $E(\mathrm{kink})-E(\mathrm{uniform})$\\
-\midrule
-$4$ & $-1.03860$ & $-1.03220$ & $0.00640$~Ha $=174$~meV\\
-$5$ & $-1.29985$ & $-1.29310$ & $0.00675$~Ha $=184$~meV\\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\noindent \textbf{The defect costs $\approx0.0066$~Ha $=179$~meV $\approx7\,k_BT$, and the cost
-does not grow with the chain.} Adding a whole site changes it by $0.00035$~Ha while the chain's total
-energy changes by $0.26$~Ha --- a factor of $750$. That is the property the mechanism turns on:
-rigid sliding costs $54$~meV per electron and obliges all of them at once, so its activation is
-$\sim5\times54=270$~meV at five sites and $5.4$~eV at a hundred, while the kink stays at $179$~meV
-however long the chain. At these short lengths the two are already comparable and the kink is
-lower; at any physical length the comparison is not close.
-
-Two caveats belong with the figure, and a third with its interpretation. Chains of four and five
-sites are short, so the length-independence is demonstrated over a narrow range even though it
-holds to $5\%$ there. The defect profile is the sharpest possible, one wall wide. And the step from
-this quantity to the kink energy proper is not taken here: a kink needs $N$ domains over $N\pm1$
-cores, which an equal-count chain cannot host, so it must be built either on a chain with a vacancy
-or as a kink--antikink pair with the domain counts locally compressed and dilated. A pair
-constructed instead by displacing the walls rigidly by one spacing was tried and rejected: it
-collapses the domain at the antikink to zero width. That construction, and the migration barrier
-with it, remain the open half of the pair of numbers named above.
-
-A third result falls out of the same scan and confirms an earlier one by a different route. Sliding
-all the walls together, the \emph{bond}-centred registry lies $0.064$~Ha below the atom-centred one
-($-1.364$ against $-1.29985$): the electrons prefer to sit between two cores rather than on one.
-That is the interstitial-pocket preference the compression test finds below, obtained here without
-a free boundary anywhere in the calculation.
-
-\paragraph{The barrier scans, and why they are reported only as bounds.} A series of scans was made
-before the difficulty of the preceding paragraphs was understood, all of them by the free-boundary
-method: a compression test on a ring, an unconstrained carrier on a validated geometry, a doping
-series at two concentrations, and a lattice barrier between interstitial sites. Their figures were
-large --- around $5$~eV for a carrier stepping between pockets of a hydrogen lattice at
-$a=2.5\,a_0$, doubling rather than closing under compression, so that no Mott transition appeared
---- and the doping series withdrew its own per-carrier reading when a change of concentration
-falsified the independence it assumed.
-
-None of them can be quoted as determinations. Every one was obtained by letting a boundary find its
-own partition, which \S\ref{sec:conduction} shows returns a stuck point whose energy depends on the
-initial condition, with an ambiguity of $0.005$--$0.05$~Ha against quantities of $0.001$--$0.02$.
-They are retained here as bounds of the stated order and as a record of the density trend, and they
-are superseded by the specified-partition figures below. One of them is preserved in full, since it
-is referred to elsewhere:
-
-
-\begin{table}[h]\centering
-\small
-\begin{tabular}{@{}lrrr@{}}
-\toprule
-lattice spacing & pocket (Ha) & saddle (Ha) & barrier\\
-\midrule
-$a=2.5\,a_0$ & $-16.254$ & $-16.053$ & $0.200\pm0.003$~Ha $=5.46$~eV\\
-$a=1.4\,a_0$ & $-11.824$ & $-11.402$ & $0.421\pm0.015$~Ha $=11.5$~eV\\
-\bottomrule
-\end{tabular}
-\caption{Barrier for a carrier moving between interstitial sites of a hydrogen lattice. Uncertainties
-are from the mirror-symmetry check, the two bond midpoints either side of a pocket being equivalent
-by construction.}
-\label{tab:barrier}
-\end{table}
-\noindent \emph{That table, like the rest of the series, is a bound and not a determination}, for the
-reason given above. What the scans do establish, and what survives the objection, is the direction:
-the cost rises rather than falls under compression, and the framework offers no route to a metallic
-state at higher density --- which is what $U\to\infty$ implies, since compression cannot increase
-overlap when non-overlap is the postulate.
-
+\paragraph{Earlier figures, and why they are not quoted.} A series of barrier scans was made
+before the difficulty above was understood, all of them by the free-boundary route: a compression
+test on a ring, a doping series at two concentrations, a lattice barrier between interstitial
+pockets of order $5$~eV, and a localised interface defect costing $179$~meV independently of chain
+length. Every one specified or evolved a partition that no symmetry fixes, so each is a bound of
+its stated order rather than a determination, and all are superseded by the barrier above. What
+survives from them is the direction of the density trend, which the symmetry-fixed measurement
+confirms.
 
 \paragraph{What is actually transported.} The carrier in this framework is not an electron. An
 electron here is not a particle but a unit of charge density on a domain, and what exists is the
@@ -845,7 +762,7 @@ repulsion $U$, and transfer between neighbours: that is the \textbf{Hubbard mode
 RealQM exactly. As formulated --- one unit of charge per domain, always --- it is the Hubbard model in
 the limit $U\to\infty$, where double occupancy is forbidden outright and every site is singly
 occupied. That limit is a Mott insulator at every density, which is precisely what
-Table~\ref{tab:barrier} found by direct computation, and it explains the density trend as well: no
+the earlier barrier scans found by direct computation, and it explains the density trend as well: no
 finite $U$ can be beaten by a bandwidth that does not exist.
 
 The repair is correspondingly minimal. Keep the partition, keep the geometry, keep the Coulomb
@@ -1012,31 +929,6 @@ tested by lithium. It would be tested on the systems the scope table names, wher
 rather than band structure sets the gap and where density-functional theory is itself in difficulty:
 a doped Mott insulator, an organic semiconductor, a polaronic oxide. Those comparisons are not made
 here.
-
-\section{Three results in brief}\label{sec:metals}\label{sec:plasma}\label{sec:fermi}
-
-Three findings are recorded compactly, none of them bearing on the conduction argument but each
-bounding what the framework is.
-
-\paragraph{Lattice constants, and why they test nothing quantum.} The alkali series Li--Cs is
-reproduced to a mean error of $6.2\%$ against the standard treatment's $5.6\%$, carrying neither
-exchange nor band filling --- a Wigner--Seitz problem the construction already agrees with. The
-agreement is nonetheless \emph{not} a test of the quantum treatment: setting the electronic kinetic
-energy to zero altogether moves the radii by one per cent. The lattice scale of a simple metal is
-electrostatic, and any framework with the right electrostatics will reproduce it.
-
-\paragraph{The high-temperature limit is the easy case, not the hard one.} Degeneracy is not
-required of a classical plasma, and the plasma frequency comes out exactly, $\omega_p^2=4\pi n$, for
-a structural reason: a rigid translation of every domain leaves the localisation term untouched, so
-the restoring force is purely electrostatic. What defeats the framework at zero temperature does not
-arise here.
-
-\paragraph{The Fermi surface, which remains genuinely open.} No arrangement of densities on domains
-appears able to supply a sharp Fermi surface, and with it go the de Haas--van Alphen oscillations, the
-linear electronic specific heat and the positive plasmon dispersion that define a degenerate electron
-gas. This is the substantive cost of the construction rather than a gap in the calculations, and it
-is why metals are excluded in kind. For the dilute, non-degenerate carriers within scope there is no
-Fermi surface to reproduce, so the exclusion bites only where the article does not claim to go.
 
 \section{Conclusion}\label{sec:conclusion}
 
