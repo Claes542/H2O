@@ -463,6 +463,36 @@ $7.0$ & $-1.17275$ & $-1.19527$ & $0.02252$~Ha $=\phantom{0}613$~meV\\
 \end{tabular}
 \end{center}
 
+\paragraph{And the barrier must be minimised over the path, not read off one.} A barrier is the
+lowest saddle connecting two states, not the highest point of whichever path one happens to sample.
+The family above has a second parameter --- the width $W$ over which the slip is spread --- and
+fixing it describes a kink of rigid shape, which a minimum-energy path is under no obligation to be.
+Scanning it:
+
+\begin{center}
+\small
+\begin{tabular}{@{}lrl@{}}
+\toprule
+$W$ (sites) & barrier & \\
+\midrule
+$0.4$ & $929$~meV & \\
+$0.8$ & $818$~meV & \\
+$1.5$ & $\mathbf{555}$~\textbf{meV} & minimum; $552$ at $n=7$, $560$ at $n=11$\\
+$3.0$ & $626$~meV & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The curve has a minimum, which is what a Frenkel--Kontorova kink requires: elastic
+stiffness penalises a wide kink, the lattice's grip penalises a narrow one, and the physical width
+lies between. \textbf{The barrier is $E_a\approx555$~meV $=21\,k_BT$}, and that is the figure
+quoted hereafter --- a minimax over the path family rather than a value at an arbitrary width, and
+independent of chain length to $1.5\%$ at the width where it was checked twice.
+
+The distinction matters for how the earlier numbers are read. Every figure obtained at a fixed $W$
+is an upper bound, since it is the cost along a rigid path; the $818$~meV that this section
+reported before the width was varied is one such, too large by a third.
+
 \noindent Three things follow, and the first is a structural claim rather than a number, though a
 narrower one than it first appeared. On a chain the carrier sits \textbf{between} sites: the
 bond-centred configuration is the minimum at every spacing tested, so the hop is bond to bond
@@ -522,15 +552,15 @@ core radius                 & helps modestly\\
 \end{tabular}
 \end{center}
 
-\noindent The barrier remains between $0.8$ and $2.9$~eV throughout, that is $33$ to
+\noindent The barrier remains between $0.56$ and $2.9$~eV throughout, that is $21$ to
 $113\,k_BT$, against the $10$--$500$~meV of the materials this article hoped to describe. It is not
 one measurement that places the construction outside that class but four attempts to bring it
 inside, none of which succeeds, and two of which make matters worse in the direction one would
 naively expect to help. \emph{No accessible variation reduces the barrier to the range where
 hopping occurs.}
 
-\paragraph{What the barrier says about scope.} At every spacing tested the activation energy lies
-between $613$ and $1723$~meV, that is $24$ to $67\,k_BT$. Hopping semiconductors --- the organic and
+\paragraph{What the barrier says about scope.} Minimised over the path family the activation energy is $555$~meV, and every variation tried
+leaves it between $555$ and $1723$~meV, that is $21$ to $67\,k_BT$. Hopping semiconductors --- the organic and
 molecular solids, the polaronic oxides, the amorphous semiconductors named in \S\ref{sec:scope} ---
 have activation energies of $10$ to $500$~meV. This construction is an order of magnitude above them
 at every accessible density, and shows no sign of approaching them under compression, which makes it
