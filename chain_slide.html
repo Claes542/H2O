@@ -136,7 +136,10 @@ window.onerror = function (msg, url, line) {
     // up unpartnered. The saddle moves the MIDDLE slip half a spacing onto a bond and leaves
     // the others where they are: one carrier hopping in the presence of the rest.
     var cs = [];
-    for (var v = 0; v < NV; v++) cs.push((v + 1) * (N - 1) / (NV + 1) - 0.5);
+    // No offset: the centres land on SITES, matching the single-vacancy convention. With the
+    // -0.5 that was here the localised configuration sat on bonds instead, so the two
+    // configurations swapped names -- nvac=1 "local" returned -1.24957, the original saddle.
+    for (var v = 0; v < NV; v++) cs.push((v + 1) * (N - 1) / (NV + 1));
     if (SAD) cs[Math.floor(NV / 2)] -= 0.5;
     var cen = [];
     for (var m = 0; m < N - NV; m++) {
