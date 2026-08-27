@@ -82,6 +82,11 @@ window.onerror = function (msg, url, line) {
   //                boundary would slide off it.
   //
   // barrier = E(saddle) - E(localised), both configurations admissible.
+  // nvac: number of vacancies, i.e. the carrier concentration NV/N. The barrier is measured
+  // for ONE of them hopping while the others stay put, so this scans the doping dependence --
+  // the only lever with evidence of moving the barrier the right way (1.09 eV at 29% falling
+  // to 0.31 eV at 43%, by the free-boundary route, hence a bound worth remeasuring properly).
+  var NV = parseInt(q.get('nvac') || '1');
   var HOP = q.get('hop') === '1';
   var SAD = q.get('sad') === '1';
   var VK = q.get('vk') === '1' || HOP;
@@ -89,8 +94,9 @@ window.onerror = function (msg, url, line) {
   var x0 = -span / 2;
   for (var m = 0; m < N; m++) {
     var xi = Math.round(N2 + (x0 + m * A) / h);
-    atoms.push({ i: xi, j: N2, k: N2, Z: (VK && m === N - 1) ? 0 : 1, el: 'Li' });
-    Z.push((VK && m === N - 1) ? 0 : 1);
+    var bare = VK && (m >= N - NV);        // NV cores left bare -> NV carriers
+    atoms.push({ i: xi, j: N2, k: N2, Z: bare ? 0 : 1, el: 'Li' });
+    Z.push(bare ? 0 : 1);
     Znuc.push(1.0); zeff.push(ZE); rcs.push(RC); coreI.push(xi);
   }
 
@@ -126,20 +132,25 @@ window.onerror = function (msg, url, line) {
     // unpartnered core is at c -- one of the two central sites. Saddle: the slip is centred
     // exactly between the two central cores, so reflection about the chain midpoint maps the
     // partition to itself.
-    var cD = (N - 1) / 2;
+    // NV slips, evenly spaced; each displaces the pattern by one spacing, so NV cores end
+    // up unpartnered. The saddle moves the MIDDLE slip half a spacing onto a bond and leaves
+    // the others where they are: one carrier hopping in the presence of the rest.
+    var cs = [];
+    for (var v = 0; v < NV; v++) cs.push((v + 1) * (N - 1) / (NV + 1) - 0.5);
+    if (SAD) cs[Math.floor(NV / 2)] -= 0.5;
     var cen = [];
-    for (var m = 0; m < N - 1; m++) {
+    for (var m = 0; m < N - NV; m++) {
       // Both configurations use the SAME tanh profile of width W; only the CENTRE moves --
       // on a site for the localised state, between sites for the saddle. The first version
       // gave the saddle a tanh and the localised state a sharp step, so the two differed in
       // profile width as well as in position, and since spreading lowers the energy on its
       // own the comparison measured mostly that. Same error as the curvature scan: two
       // configurations differing in more than the coordinate of interest.
-      var centre = SAD ? (cD - 0.5) : cD;
-      var f = 0.5 * (1 + Math.tanh((m - centre) / W));
+      var f = 0;
+      for (var v = 0; v < NV; v++) f += 0.5 * (1 + Math.tanh((m - cs[v]) / W));
       cen.push(coreI[m] + (A / h) * f);
     }
-    for (var m = 0; m < N - 2; m++) walls.push(0.5 * (cen[m] + cen[m + 1]));
+    for (var m = 0; m < N - NV - 1; m++) walls.push(0.5 * (cen[m] + cen[m + 1]));
   } else if (VK) {
     // The n-1 domains are placed by their CENTRES, not by their walls, because a kink is a
     // statement about where the charges sit relative to the wells. Domain m sits on core m
@@ -283,7 +294,7 @@ window.onerror = function (msg, url, line) {
             + (parseFloat(q.get('beta') || '0') !== 0 ? '_b' + parseFloat(q.get('beta')).toFixed(3) : '')
             + (q.get('curv') !== null ? '_c' + parseFloat(q.get('curv')).toFixed(2) : '')
             + (parseFloat(q.get('field') || '0') !== 0 ? '_F' + parseFloat(q.get('field')).toFixed(4) : '')
-            + (HOP ? (SAD ? '_HOPsaddle w' + W.toFixed(2) : '_HOPlocal w' + W.toFixed(2))
+            + (HOP ? '_nv' + NV + (SAD ? '_HOPsaddle w' + W.toFixed(2) : '_HOPlocal w' + W.toFixed(2))
                   : VK ? '_VK w' + W.toFixed(2) + '_kc' + KC.toFixed(2)
                   : PAIR ? '_PAIR w' + W.toFixed(2) + '_m' + M1 + '-' + M2
                   : SLIP ? '_SLIP w' + W.toFixed(2) : (KINK ? '_KINK' : '_rigid'));
