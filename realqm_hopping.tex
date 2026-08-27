@@ -109,282 +109,61 @@ then gives.
 
 \section{What kind of conductor this can be}\label{sec:scope}
 
-It is worth settling the target before the measurements, because the framework does not have a free
-choice of one and the wrong choice makes its central results read as failures.
+The construction does not have a free choice of target. One electron per domain,
+non-overlapping, is the Hubbard model at $U\to\infty$: double occupancy forbidden, every site
+singly occupied, a Mott insulator at every density. Metals are therefore out of scope in kind and
+not by degree. Their carriers are extended Bloch states, their transport is band motion, and their
+defining measurements --- de Haas--van Alphen oscillations, a linear electronic specific heat,
+positive plasmon dispersion --- belong to a degenerate electron gas with a sharp Fermi surface,
+which no arrangement of densities on domains appears able to supply. Two results usually read as
+failures follow from the scope rather than against it: $d\sigma/dT>0$ is \emph{correct} for an
+activated conductor and fatal only for a metal, and the absence of a Fermi surface does not bear on
+a dilute carrier gas, which is non-degenerate and has none to reproduce.
 
-The construction localises charge by design: one electron, one domain, non-overlapping. As
-\S\ref{sec:hubbard} sets out, that is the Hubbard model in the limit $U\to\infty$ --- double
-occupancy forbidden, every site singly occupied --- which is a Mott insulator at every density, and
-which the barrier scans found by direct computation before the identification was made. A metal is
-the opposite object. Its carriers are extended Bloch states spanning the crystal, its conduction is
-band motion, and its defining measurements --- de Haas--van Alphen oscillations, a linear electronic
-specific heat, positive plasmon dispersion --- are properties of a degenerate electron gas with a
-sharp Fermi surface. None of that is available here, and this article does not claim it.
+What remains within reach is matter whose carrier is a localised charge on a site, whose gap is
+on-site repulsion rather than band structure, and whose transport is activated hopping. That is a
+real class --- doped Mott insulators, organic and molecular semiconductors, polaronic oxides,
+amorphous semiconductors --- and this article set out to claim it. \S\ref{sec:conduction} measures
+the activation energy and finds $613$--$1723$~meV, against the $10$--$500$~meV those materials
+show. The claim does not survive its own measurement, and what the construction describes is the
+insulating end of the class and not the conducting one. Silicon and the III--Vs were never in
+scope, their gaps being band gaps.
 
-\paragraph{What is within reach.} Matter in which the carrier is a \emph{localised} charge on a site,
-the gap is on-site repulsion rather than a band structure, and transport is thermally activated
-hopping between sites:
+\section{The interface, and the one number that is wrong}\label{sec:coefficient}
 
-\begin{center}
-\small
-\begin{tabular}{@{}ll@{}}
-\toprule
-doped \textbf{Mott insulators} & the gap is $U$; the framework is the $U\to\infty$ limit of their model\\
-\textbf{organic and molecular} semiconductors & hopping is the accepted description, not an approximation\\
-\textbf{polaronic oxides} & the carrier is a self-trapped charge, which is what a domain is\\
-\textbf{amorphous} semiconductors & variable-range hopping, no bands anywhere in the account\\
-\bottomrule
-\end{tabular}
-\end{center}
+The free interface has a defect of its own, recorded here because it conditions everything the
+partition does, though the hopping barrier does not turn on it. Partitioning a gas of density $n$
+gives a kinetic energy density $t(n)=C\,n^{5/3}$ --- the Thomas--Fermi \emph{form}, obtained from
+partition geometry rather than Fermi statistics --- but the flat trial function is admissible on a
+free boundary, so $C=0$ exactly. There is no degeneracy pressure, the screening length vanishes
+rather than being finite, and the plasmon does not disperse. The defect is one number and not the
+construction: $C$ is fixed by the interface condition, and a Robin condition at $\beta a=1.146$
+gives $C=2.871=C_{\rm TF}$ exactly, against Dirichlet's $14.804$, all three carrying the correct
+$n^{5/3}$ scaling.
 
-\paragraph{What is not.} Silicon, germanium and the III--Vs have \emph{band} gaps --- gaps opened by
-a periodic potential acting on delocalised states --- together with effective masses and band
-transport. A theory without bands cannot supply those, and questions of mobility against effective
-mass stay closed to it. The distinction is not a matter of degree: a Mott gap and a band gap have
-different origins, and only the first is available here.
-
-\paragraph{The right class, but not the right regime.} One qualification belongs with this scope
-before anything is claimed for it, and it is quantitative. Activated transport by localised carriers
-is indeed what this construction does. But a hopping semiconductor has an activation energy of some
-$10$--$500$~meV, and the barrier measured in \S\ref{sec:conduction} is $4.9$~eV at $a=2.2\,a_0$,
-rising to $9.0$~eV under compression --- ten to a hundred times too large, and worsening in the
-direction that should help. Those are rigid-lattice figures and therefore upper bounds, the polaron
-correction being unmeasured (\S\ref{sec:conduction}); but the gap to be closed is one to two orders
-of magnitude, and lattice relaxation is not usually worth more than a factor of a few. A material with a $9$~eV activation energy is not a semiconductor but an
-insulator with no accessible transport at any temperature. \emph{As formulated the framework does not conduct} --- though see
-\S\ref{sec:conduction}, where a carrier prevented from re-binding to its donor lowers the
-barrier substantially, though the cost per carrier rises again as the doping is thinned towards
-realistic values. What follows is therefore the
-statement of a class the construction belongs to, not a claim that it describes the materials in it;
-and the repair of \S\ref{sec:hubbard}, finite $U$ in place of infinite, ceases to be one option among
-several and becomes the only route to any conduction at all.
-
-\paragraph{Two consequences, and they run opposite to how these results have been read.} First, the
-prediction $d\sigma/dT>0$ derived in \S\ref{sec:conduction} is \emph{correct} for this target rather
-than fatal to it. Conductivity rising with temperature is what an activated hopping conductor does;
-it is only fatal if the target is copper. Second, and more consequentially, the Fermi surface ceases
-to be an unresolved failure and becomes a scope limit. A Fermi surface is a property of a degenerate
-electron gas; a dilute carrier gas is non-degenerate, Boltzmann rather than Fermi statistics govern
-it, and there is no $E_F$ to reproduce. \emph{The framework's largest lacuna does not bear on the
-material class it can describe.} That is the substantive cost of the construction if one wants metals after
-all.
-
-\section{The interface coefficient, and the one number that is wrong}\label{sec:coefficient}
+Whether that value is tolerable for matter is the open question, and it is sharper than a parameter
+check. Adding the surface term and scanning it, $\mathrm{H}_2$ unbinds by $\beta a\approx0.71$,
+below the $1.146$ the electron gas requires: Teller's theorem, that Thomas--Fermi binds no molecule,
+is met inside the framework rather than inherited from outside it. Double occupancy --- the repair
+conduction would need at half filling --- becomes favourable at $\beta a=0.451$ and is affordable by
+comparison. These figures were obtained at differing densities and are not strictly commensurable;
+the equation of state is pursued elsewhere, and what matters here is only that the interface
+carries no cost of its own unless one is supplied.
 
 \paragraph{A caution about specified partitions, learned by getting it wrong.} The method of
-\S\ref{sec:conduction} evaluates the energy of a \emph{stated} partition. It is sound when the
-stated partition is one the physics admits --- the $\mathrm{H}_2$ midplane, which symmetry
-guarantees is where the densities balance --- and it is not sound otherwise, for a reason worth
-recording because the failure is silent.
-
-The interface here is not a surface one may shape at will. The wavefunction is a single global field
-partitioned by labels, continuous across every interface, with each domain carrying one unit of
-charge, and the free boundary sits where the densities balance. Freezing a partition removes that
-last condition. An attempt was made to measure a bending rigidity by imposing a curvature on the
-interfaces, freezing them, and relaxing the fields: the energy fell, symmetrically and quadratically
-in the imposed curvature, which reads convincingly as a negative rigidity. It is not. Released, a
-boundary started from the curved configuration returns to the flat one, so the flat interface is the
-balance surface and is stable. What the frozen scan measured was the energy gained by \emph{dropping
-the balance condition}, not a response of the physical interface.
-
-The lesson generalises. A specified partition gives a legitimate energy difference between two
-configurations the physics admits; it gives a meaningless one along a direction the physics
-forbids, and nothing in the numbers distinguishes the two cases. The check is to release the
-boundary and see whether it stays.
-
-\paragraph{The second coefficient, which is the one this section is about.}
-
-Equation \eqref{eq:Czero} was introduced above for what it gives conduction. It has a second face,
-and this section is that face: the same vanishing interface cost, read as a statement about the
-\emph{equation of state}, where it is a defect rather than a mechanism, and where --- this being the
-useful part --- it turns out to be a single misvalued number rather than a structural incapacity.
-
-Partitioning a gas of density $n$ into non-overlapping cells of size $a=n^{-1/3}$ gives a
-localisation cost per cell scaling as $a^{-2}$, hence a kinetic energy density $t(n)=C\,n^{5/3}$ ---
-the Thomas--Fermi form, obtained from the geometry of a partition rather than from Fermi statistics.
-Linearising \eqref{eq:E} about the uniform state and substituting into Poisson's equation gives
-Yukawa screening with $k^2=18\pi n^{1/3}/5C$, and setting $C$ to the Thomas--Fermi coefficient
-$C_{\rm TF}=\tfrac{3}{10}(3\pi^2)^{2/3}=2.8712$ reproduces $k_{\rm TF}$ exactly at every density.
-\emph{The form extends without adjustment.}
-
-That last statement should be read for exactly what it is worth, which is less than it sounds.
-Thomas--Fermi screening is itself derived from the Thomas--Fermi kinetic energy by precisely these
-steps --- $\mu=\partial t/\partial n$, then $\partial n/\partial\mu$, then Poisson --- so
-recovering $k_{\rm TF}$ from $C_{\rm TF}$ is an algebraic identity and not a second, independent
-agreement. What it establishes is that the framework's linear response is the correct derivative of
-its own kinetic energy, and what it \emph{provides} is a translation of the abstract coefficient $C$
-into an observable length. That translation is the reason the screening relation is worth carrying:
-it is how the value of $C$ becomes a statement about matter.
-
-The coefficient does not. By \eqref{eq:Czero} the flat trial function is admissible, so $C=0$
-exactly, and neither allowing the interfaces to move nor requiring domains to be connected and singly
-charged alters it.
-
-\paragraph{The coefficient is a boundary condition, and its value is known.} What sets $C$ is the
-condition imposed where one domain meets the next. Solving the cell problem under a Robin condition
-$\partial_n\psi+\beta\psi=0$ at the face, and fitting $\beta$ to the electron gas, gives:
-
-\begin{center}
-\small
-\begin{tabular}{@{}lcc@{}}
-\toprule
- & $C$ & $C/C_{\rm TF}$\\
-\midrule
-Neumann, $\beta a=0$ (the present choice) & $0$ & $0$\\
-Robin, $\beta a=1.146$ & $2.871$ & $\mathbf{1.00}$\\
-Dirichlet, $\beta a\to\infty$ & $14.804$ & $5.16$\\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\noindent All three carry the same, correct, $n^{5/3}$ scaling; \emph{they differ by a pure number},
-and the framework has been using the one value of that number for which confinement is free. This is
-why the Thomas--Fermi comparison is made first and not last: it converts the finding from ``the
-construction has no degeneracy pressure'' into ``the construction has one interface parameter set to
-zero,'' and supplies the value it would need. The structure is not in question. One number is.
-
-\paragraph{Why Neumann is free, and why it went unnoticed.} A constant satisfies Neumann conditions
-on every face, so the ground state of $-\half\grad^2$ in a Neumann cell has energy \emph{exactly}
-zero at any cell size. Confinement costs nothing: halve the cell and the energy is unchanged. That is
-a failure of the uncertainty principle at precisely the place where electron meets electron --- and
-degeneracy pressure is nothing other than the energy cost of confining fermions. The substitute for
-exclusion reproduces its bookkeeping and none of its energy.
-
-It went unnoticed because every previous test of the framework had an attractor in it. Where a
-nucleus shapes the density, $\grad\psi\neq0$ for reasons having nothing to do with the interface, and
-$T$ comes out right; the faces are nearly irrelevant. Remove the attractor and the faces are all that
-is left.
-
-\paragraph{The cost of the mechanism.} Read as a statement about \emph{structure}, the free
-interface is destructive. There is no
-degeneracy pressure; the screening length \emph{vanishes}, since $k^2=18\pi n^{1/3}/5C$ diverges as
-$C\to0$, so the framework does not fail to screen but screens perfectly at zero range, charge piling
-wherever the potential is low at no cost in kinetic energy; the plasmon is dispersionless; there is
-no bandwidth; and no mechanism remains by which a metal could differ from an insulator. Over-screening
-and the over-delocalisation measured in \S\ref{sec:conduction} are the same phenomenon.
-
-Every one of those is the price of the mechanism \S\ref{sec:conduction} runs on. The defect that
-empties out degeneracy is the same one that lets charge flow, which is why the two halves of this
-paper cannot be repaired independently.
-
-\paragraph{What is being matched, and what is not.} Thomas--Fermi is a poor theory and no weight is
-placed on it here. It overbinds helium by about a third, has no shell structure and therefore no
-periodic table, and by Teller's theorem it binds \emph{no molecule at all}: in Thomas--Fermi theory
-separated atoms are always lower in energy than any molecule. What is exact is narrower and is the
-only part used. The coefficient $C_{\rm TF}=\tfrac{3}{10}(3\pi^2)^{2/3}$ is the exact kinetic energy
-density of a \emph{uniform} degenerate electron gas --- a theorem about free fermions rather than a
-model, Thomas--Fermi theory being what results from applying that exact local statement to
-inhomogeneous atoms, which is where it fails. The comparison above uses the one rigorous number in
-it, in the one limit where it is rigorous.
-
-That said, the two constructions stand in a suggestive relation, and it bears on how freely $\beta$
-may be chosen:
-
-\begin{center}
-\small
-\begin{tabular}{@{}lcc@{}}
-\toprule
- & uniform gas & molecular binding\\
-\midrule
-Thomas--Fermi & exact & none at all (Teller)\\
-RealQM as formulated & $C=0$ & its entire record of results\\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\noindent They are mirror images: each is empty exactly where the other is exact. And $\beta a$ is a
-dial running between them, $0$ at the RealQM end and $1.146$ at the Thomas--Fermi end. The question
-of whether the electron gas's value is tolerable for atoms and molecules is therefore not a technical
-check but the substantive one --- \emph{does moving towards the Thomas--Fermi coefficient destroy
-binding, as it does in Thomas--Fermi theory?} Teller's theorem is a standing warning that the far end
-of the dial is hostile to molecules.
-
-\paragraph{One dial, pulling both ways.} It should be said at once that $\beta$ cannot be tuned to
-satisfy both readings independently, because a single parameter governs them. Raising $\beta a$ from
-zero towards $1.146$ buys degeneracy pressure, a finite rather than vanishing screening length, and a
-dispersive plasmon ---
-and in the same movement makes the interface cost energy to move, which is resistance. The value
-that repairs the structure is the value that impedes the transport. Whether some intermediate setting
-serves both, or whether the two demands are simply in conflict, is not settled here, and it is the
-sharpest form of the question this paper leaves open. Whether the single value the electron gas
-requires is even tolerable for atoms and molecules is a second such question; the attempt is reported
-in the numerical note.
-
-\paragraph{The dial, measured: the far end unbinds \texorpdfstring{$\mathrm{H}_2$}{H2}.} That
-question can be answered rather than left open, and the answer is unfavourable. Adding the surface
-term to a two-domain calculation and scanning $\beta$ at fixed separation gives the binding energy
-directly. For $\mathrm{H}_2$ at $R=1.6$~a$_0$ with the interface held at the midplane, against
-$2E(\mathrm{H})=-0.85190$ on the same grid:
-
-\begin{center}
-\small
-\begin{tabular}{@{}rrr@{}}
-\toprule
-$\beta$ (a$_0^{-1}$) & $E(\mathrm{H}_2)$ & $E_{\mathrm{bind}}$\\
-\midrule
-$0$      & $-1.02757$ & $+0.17567$\\
-$0.02$   & $-1.01428$ & $+0.16238$\\
-$0.05$   & $-0.99439$ & $+0.14249$\\
-$0.1$    & $-0.96143$ & $+0.10953$\\
-$0.2$    & $-0.89700$ & $+0.04510$\\
-$0.4$    & $-0.77889$ & $-0.07301$\\
-$1.146$  & $-0.50023$ & $-0.35167$\\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\noindent The response is linear at small $\beta$ --- $\Delta E_{\mathrm{bind}}=-0.665\,\beta$ to four
-figures for $\beta\le0.05$ --- and the bond is gone by $\beta\approx0.28$. To compare against the
-electron gas, which fixes $\beta a$ rather than $\beta$: two electrons at bonding density give
-$a=n^{-1/3}\approx2.55$~a$_0$, so binding survives only to $\beta a\approx0.7$, while the degenerate
-gas requires $\beta a=1.146$. \emph{The two demands are in conflict, not merely in tension}, and
-Teller's warning is confirmed inside this framework rather than inherited from Thomas--Fermi theory.
-The intermediate setting that serves both does not exist for this molecule.
-
-\paragraph{But $\beta$ remains available as a regulariser.} The linearity is worth separating from the
-physics, because it licenses a use of $\beta$ that carries no commitment to any value of it. At
-$\beta=0$ a free interface has no restoring force, and the free-boundary energies scatter: repeated
-runs of $\mathrm{H}_2$ at $R=6$ under identical settings spread over $0.3$~Ha, while $E(\mathrm{H})$,
-which has no interface, held to $10^{-3}$. A small $\beta$ suppresses that scatter, and since its cost
-is linear the physical answer is recovered by fitting two small values and extrapolating to
-$\beta\to0$ --- $0.02$ and $0.05$ cost $0.36$ and $0.90$~eV of binding respectively, and the intercept
-removes both. Used this way $\beta$ is a numerical parameter with a limit, not a material constant,
-and the unbinding above is irrelevant to it. The two roles should not be confused: the dial is a
-physical claim, the regulariser is not.
-
-\paragraph{What the partition supplies, and why it cannot be given up.} Since \eqref{eq:Czero}
-arises from the freedom of the interface, an obvious thought is to drop the partition and let the
-electrons share one territory. The cost of that is fixed by a scaling argument, and it is
-prohibitive. Confining $N$ unit charges to one shared region of volume $V=N/n$ gives a kinetic energy
-density
-\begin{equation}\label{eq:scaling}
-\frac{T}{V}=\frac{3\pi^2}{2}\,n^{5/3}N^{-2/3},
-\end{equation}
-against the $n^{5/3}$ of the partition with no $N$ in it at all. The partition is what makes the
-kinetic energy \emph{extensive}: each electron is localised to a cell whose size is set by the
-density, not by the size of the sample. Sharing makes it depend on how large a piece of metal one
-happens to be considering, and at $N\sim10^{23}$ the density falls by $N^{-2/3}\sim10^{-15}$ ---
-fifteen orders of magnitude. \emph{The partition must be kept}, whatever else is relaxed.
-
-\paragraph{What \eqref{eq:Czero} is, and is not, a statement about.} It concerns a \emph{uniform}
-density and does not transfer to a shaped one. Where a nucleus shapes the profiles --- a two-domain
-shell on one kernel, for instance --- both domains carry real kinetic energy, and the shell is stable
-under the density-balance rule, since compressing the inner domain raises its density at the
-interface and lowers the outer's, pushing the boundary back out. The vanishing is a property of the
-flat case alone.
-
-That also settles how much weight the uniform electron gas should carry. It is electrons plus a
-\emph{smeared, inert, non-responding} positive background --- a construction belonging to a tradition
-in which exchange--correlation energies are fitted to that very system. RealQM contains no inert
-backgrounds anywhere, so asking it to reproduce jellium asks for a system whose central ingredient it
-does not have, and $C=0$ diagnoses that mismatch rather than recording a failed test. Consistently,
-the pathology disappears as soon as real ions are present: the alkali lattice constants are the same framework on the same physics, with
-the background replaced by the charges matter is actually made of.
-
-One physical case does approach the uniform limit closely: degenerate matter in which the ion lattice
-is a small perturbation, as in a white dwarf interior, where the measured mass--radius relation
-depends on precisely the pressure the uniform limit does not supply. That is the one place the result
-might have observable consequences, and it is untested here.
+\S\ref{sec:conduction} evaluates the energy of a \emph{stated} partition, and it is sound only when
+the stated partition is one the physics admits. The interface is not a surface to be shaped at
+will: the wavefunction is a single global field partitioned by labels, continuous across every
+interface, each domain carrying one unit of charge, and the boundary sits where the densities
+balance. Freezing a partition removes that last condition. An attempt to measure a bending rigidity
+by imposing a curvature, freezing it and relaxing the fields gave an energy falling symmetrically
+and quadratically in the imposed curvature, which reads convincingly as a negative rigidity; but
+released, a boundary started from the curved configuration returns to the flat one. The flat
+interface is the balance surface and is stable, and what the frozen scan measured was the energy
+gained by \emph{dropping the balance condition}. A specified partition gives a legitimate energy
+difference between configurations the physics admits --- as symmetry guarantees for the two in
+\S\ref{sec:conduction} --- and a meaningless one along a direction it forbids. Nothing in the
+numbers distinguishes the two cases; the check is to release the boundary and see whether it stays.
 
 \section{Computing with it anyway}\label{sec:conduction}
 
@@ -727,9 +506,9 @@ and if the boundary cannot carry charge cheaply, the difficulty is not in a deta
 construction but in the framework's defining object.
 
 \paragraph{A repair that is not available, and one that is.} An obvious response to the barrier is
-to let valence electrons share a territory, which removes it by construction. Equation
-\eqref{eq:scaling} rules that out: sharing destroys the extensivity the partition supplies, and a
-metal would lose its kinetic energy density by fifteen orders of magnitude.
+to let valence electrons share a territory, which removes it by construction. The $n^{5/3}$
+scaling rules that out: sharing destroys the extensivity the partition supplies, and a metal would
+lose its kinetic energy density by fifteen orders of magnitude.
 
 \paragraph{The interface is a surface tension, and that is why one number governs both problems.}
 The parameter $\beta$ has a physical identity that makes the conflict above intelligible rather than
