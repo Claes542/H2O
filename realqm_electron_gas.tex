@@ -161,7 +161,7 @@ it, and there is no $E_F$ to reproduce. \emph{The framework's largest lacuna doe
 material class it can describe.} \S\ref{sec:fermi} states what that costs if one wants metals after
 all.
 
-\section{The functional is unbounded below}\label{sec:coefficient}
+\section{The flat interface is unstable}\label{sec:coefficient}
 
 \paragraph{The expansion, before the coefficient.} An interface carries energy, and for any physical
 interface that energy has a standard expansion in the local geometry,
@@ -211,9 +211,30 @@ magnitude --- $-0.0136$ at $|{\rm bow}|=0.15$ against $-0.0489$ at $0.30$, a rat
 pure $H^2$ term requires $4$. It is therefore the curvature term of \eqref{eq:helfrich} and not a
 registry effect. And its sign is \emph{negative}: the flat interface is a local \textbf{maximum}.
 
-\textbf{The interface of this construction has negative bending rigidity.} It gains energy by
-corrugating, without limit, so \eqref{eq:E} has no ground state until something supplies positive
-$\kappa$.
+\textbf{The interface of this construction has negative bending rigidity.} The flat configuration
+is not a minimum but a maximum, and the energy falls as the interface corrugates, over the whole
+range measured.
+
+\paragraph{What that does and does not establish.} It establishes instability, and instability is
+enough to invalidate any calculation that lets the boundary find its own place: there is no local
+minimum at the flat configuration for it to settle into, so where it stops is decided by whatever
+limits the descent. It does \emph{not} establish that \eqref{eq:E} is unbounded below, and the
+distinction matters. The gain from corrugation plausibly saturates --- a domain can only reach so
+far toward its neighbours' nuclei before the reach is exhausted --- and nothing measured here
+excludes a floor at finite corrugation.
+
+An argument that the functional has no infimum at all can be constructed by shrinking a domain onto
+a nucleus with a flat trial function, which costs no kinetic energy and gains $-3Z/2\varepsilon$.
+That argument is \emph{wrong}, and it is worth recording why, since the error is natural. The
+wavefunction here is one global field partitioned by labels, not an independent function on each
+domain: the Laplacian at a cell adjacent to an interface reads neighbours belonging to the other
+domain, so $\psi$ is continuous across it and the free-boundary condition is the balance of
+densities. A shrinking domain must therefore match its neighbour at the interface, which forces a
+gradient of order $\varepsilon^{-5/2}$ across a shell of thickness $\varepsilon$ and a kinetic
+energy of order $\varepsilon^{-2}$ --- beating the attraction, exactly as in ordinary quantum
+mechanics. Continuity supplies the confinement cost that $C=0$ appears to remove. What $C=0$ says is
+that a free interface carries no \emph{area} cost, which is what leaves the flat state marginal; it
+does not decouple the domains.
 
 \paragraph{What that explains.} One defect accounts for a list of difficulties that had looked
 separate. An interface that gains by crumpling has no minimum to find, so a search returns wherever
@@ -226,7 +247,8 @@ penalises \emph{area}, and corrugation at fixed area is invisible to it.
 
 Alongside $C=0$ this is a second defect of the free interface, of the same kind and worse in degree.
 $C=0$ is a coefficient that comes out wrong and can be repaired by a boundary condition. $\kappa<0$
-is an energy unbounded below.
+is a configuration that is not even locally stable, so that no free-boundary calculation has a
+well-defined place to stop.
 
 \paragraph{A numerical brake is not a repair.} The solver carries a curvature term in the
 \emph{boundary evolution} --- the interface velocity contains a contribution proportional to the
