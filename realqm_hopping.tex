@@ -290,109 +290,17 @@ of motion at all. The correct machinery exists elsewhere in the programme, in th
 where a real density carries a complex current, and a conduction calculation belongs there rather
 than here.
 
-\paragraph{What the framework actually does with an extra electron.} The clean test is a ring, which
-has no ends and in which every site is equivalent by construction, so the energy must repeat with the
-lattice period --- a validity check the open-chain scans lacked. Six hydrogens on a ring, one extra
-unit of charge in the corona outside them, slid round by angle:
+\paragraph{What the barrier means as a field.} A barrier becomes a threshold field when
+divided by the charge and the hop distance: $E_a/ea=555\,{\rm meV}/6.0\,a_0=1.7\times10^9$~V/m, or
+$0.55$~V per lattice site. Copper carrying an ampere runs at $4\times10^{-12}$~V per site. The
+framework is therefore eleven orders of magnitude from conducting under any field a material
+survives, and the gap is not one a refinement closes.
 
-\begin{center}
-\small
-\begin{tabular}{@{}lccc@{}}
-\toprule
-arc spacing & over an atom & quarter way & between two atoms\\
-\midrule
-$a=2.2\,a_0$ & $-3.51$ & $-3.51$ & $-3.51$\\
-$a=4.0\,a_0$ & $-3.30$ & --- & $-3.30$\\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\noindent The energy is flat to the resolution available, and the reason is visible in the solution
-rather than inferred: the extra charge does not sit anywhere. It relaxes to a \textbf{uniform corona
-around the whole ring}, indifferent to where it was placed. There is no localised carrier to move, so
-there is nothing to corrugate the path and no resistance to measure.
-
-That holds at $a=4.0\,a_0$, nearly three times the $\mathrm{H_2}$ bond length, where a real extra
-electron would occupy a single atom as $\mathrm{H^-}$. \emph{The framework therefore
-over-delocalises: it spreads charge at every separation tested and never localises it.}
-
-\paragraph{The collective mode, which is how a metal actually conducts.} A single carrier is the
-wrong object. Conduction is not one electron moving past stationary others but the whole distribution
-shifting while the ions stay, and the corresponding energy is the \textbf{pinning} of that
-distribution to the lattice --- the quantity that decides whether a charge-density wave slides or
-sticks, and the Frenkel--Kontorova barrier for friction. On a ring it is directly computable: put $n$
-bare ions on an inner ring and $n$ electron domains on an outer one, rotate the electron ring by
-$\phi$ site spacings, and record the energy.
-
-The construction carries its own check, and passes it exactly: a rotation by one full spacing maps
-each electron onto its neighbour's place, so $E(1)$ must equal $E(0)$, and it does to five decimals.
-That also establishes that the solver is \emph{deterministic}, so differences between configurations
-are real rather than scatter.
-
-\begin{center}
-\small
-\begin{tabular}{@{}lr@{}}
-\toprule
-$\phi=0$, electrons over ions & $-3.36796$\\
-$\phi=0.5$, electrons between ions & $-3.35610$\\
-\midrule
-pinning & $0.01186$~Ha $=323$~meV $=12.5\,k_BT$\\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\noindent The sea is \textbf{pinned}, with the electrons preferring to sit over the ions. That it is
-pinned at all is worth pausing on, because \S\ref{sec:coefficient} finds that a free interface should screen perfectly: a sea
-that redistributes at no kinetic cost should flatten the ion potential and pin to nothing. What
-prevents it is that the charge here cannot redistribute continuously --- it is quantised into six
-indivisible units, one to a domain. The framework's own signature postulate is therefore what blocks
-the screening its kinetic functional would otherwise supply, which is once more the tension recorded
-below: the rule that explains why charge comes in units is the rule that forbids a metal. Six
-electrons give $12.5\,k_BT$, so about $2\,k_BT$ each, and a collective barrier scales with the number
-of participants.
-
-\paragraph{What the pinning means as a field.} Six electrons give $12.5\,k_BT$, so $54$~meV each,
-peak to peak, across half a site spacing. Barrier and field-work both scale with the number of
-participants, so the \emph{threshold field} for depinning is intensive, and therefore transferable
-off this small ring: taking the corrugation as sinusoidal, $E_T=\pi\,\Delta E/(NeL)=9\times10^{8}$~V/m.
-
-\begin{center}
-\small
-\begin{tabular}{@{}lr@{}}
-\toprule
-threshold field, rigid sliding & $9\times10^{8}$~V/m\\
-potential drop per lattice site & $0.11$~V\\
-across a centimetre of wire & ${\approx}10^{7}$~V\\
-\midrule
-copper carrying $1$~A, per site & $4\times10^{-12}$~V\\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\noindent Ten orders of magnitude. \emph{Rigid sliding is not conduction}, and that is now a
-quantitative exclusion rather than an impression.
-
-\paragraph{The kink, and why a chain rather than a ring.} Rigid sliding is nevertheless an
-\emph{upper bound} on the cost of transport, since it obliges every electron to crest its barrier at
-once and its cost grows with the number of participants. The cheap path is a \textbf{kink}: advance
-the electrons on one side of a point by one full spacing over some width, leaving one ion
-unpartnered. Only the kink region pays, so the cost is independent of the chain's length, and one
-kink crossing the chain transports exactly one electron. This is how a charge-density wave actually
-depins, and it is the soliton form of hopping.
-
-A kink is native to a chain rather than to a ring, for a reason that also bounds the ring result. No
-electrostatic bias can drive a sea around a closed loop: a conservative field has zero circulation.
-The ring supplies a clean \emph{barrier} --- no ends, every site equivalent, the energy obliged to
-repeat with the lattice period --- but it cannot host the \emph{drive}. A chain has ends, a potential
-drop along it is an ordinary thing to apply, and a single kink may enter at one end and leave at the
-other, which is the transport event itself. On a ring kinks must come in pairs.
-
-Two numbers settle it: the creation energy $E(\mathrm{kink})-E(\mathrm{uniform})$, whether a kink
-exists at all; and the migration barrier, the variation of the energy as the kink is stepped along,
-which is the Peierls--Nabarro barrier and fixes the threshold field for kink motion. If migration
-falls far below the $54$~meV of the rigid mode, the chain conducts at fields the rigid mode could
-never reach. The creation energy is now computed and is reported below; the migration barrier is not, and
-remains the open half of the pair.
+\paragraph{Why a chain rather than a ring.} A ring supplies a clean barrier --- no ends,
+every site equivalent, the energy obliged to repeat with the lattice period --- but it cannot host
+the drive: a conservative field has zero circulation, so no bias drives a sea around a closed loop.
+A chain has ends, a potential drop along it is an ordinary thing to apply, and a single carrier may
+enter at one end and leave at the other, which is the transport event itself.
 
 \paragraph{The partition must be specified, not searched for.} Before the number, the method,
 because the obvious approach fails and the failure is instructive. A kink is \emph{not} the ground
@@ -619,32 +527,6 @@ to let valence electrons share a territory, which removes it by construction. Th
 scaling rules that out: sharing destroys the extensivity the partition supplies, and a metal would
 lose its kinetic energy density by fifteen orders of magnitude.
 
-\paragraph{The interface is a surface tension, and that is why one number governs both problems.}
-The parameter $\beta$ has a physical identity that makes the conflict above intelligible rather than
-coincidental. Adding a surface energy $\tfrac{\beta}{2}\oint_{\partial\Omega}\psi^2\,dS$ to the
-localisation term and varying gives $\partial_n\psi+\beta\psi=0$ as the \emph{natural} boundary
-condition --- the Robin condition exactly. So $\beta$ is a \textbf{surface tension of the
-electron--electron interface}, and $C=0$ says that this surface tension vanishes. A surface tension
-costs energy both to \emph{have} and to \emph{move}: the first is confinement energy, hence
-degeneracy pressure, and the second is resistance to transport. The two faces of $\beta$ are
-therefore one quantity, which is why no value of it supplies the first without incurring the second.
-The hydrodynamic form of the framework, in which this identification is derived along with the
-observation that the localisation term is the von Weizs\"acker functional and its variation is
-Bohm's quantum potential, is treated separately \cite{madelung}.
-
-What may be relaxed instead is the requirement that each domain carry \emph{exactly} one unit of
-charge. Suppose a domain may hold two --- the excess electron is then not a new region competing for
-space, but additional occupation of a region that already exists. Two things follow immediately, and
-neither depends on any coefficient. First, by translational symmetry the energy is the \emph{same}
-wherever the doubly-occupied site sits, so there is no barrier between sites at all. Second,
-electrostatics favours spreading the excess: with the interfaces free, the kinetic energy is
-unchanged at any occupation, so only the Coulomb terms act, and they are lowered monotonically as the
-excess is shared out. A localised double occupancy is therefore not merely mobile but unstable
-against delocalising.
-
-The cost of forming it is the on-site repulsion, of order $10$~eV for hydrogen-like sites --- the
-Hubbard $U$, here \emph{computed} from the geometry rather than fitted.
-
 \paragraph{What the framework then is.}\label{sec:hubbard} Non-overlapping sites, occupation $0$, $1$ or $2$, an on-site
 repulsion $U$, and transfer between neighbours: that is the \textbf{Hubbard model}. Which locates
 RealQM exactly. As formulated --- one unit of charge per domain, always --- it is the Hubbard model in
@@ -666,28 +548,6 @@ indivisibility rather than an assumption. The tension is worth stating plainly: 
 that explains why charge comes in units is the postulate that forbids a metal.} Matter has it both
 ways, quantizing the particles while leaving the amplitude on each site continuous, and a partition
 of real densities has no evident means to do the same.
-
-\paragraph{Where the boundary of the scope actually lies.} It is fair to ask whether all conduction
-might be hopping, band transport being a formalism rather than an observable --- which, if true,
-would remove the scope restriction of \S\ref{sec:scope} altogether. It is not true, and the argument
-that settles it is the same one that fixes the boundary. The idea is not idle: hopping is the correct description of amorphous and organic
-semiconductors, of doped semiconductors and polaronic oxides, and in ``bad metals'' at high
-temperature the mean free path falls to the lattice spacing and the band picture fails there too.
-What settles it is the \emph{low}-temperature behaviour of a pure metal. Hopping is thermally
-activated, so its conductivity vanishes as $T\to0$; the resistivity of pure copper instead falls from
-${\approx}1.7\,\mu\Omega$\,cm at $300$~K to below $0.002\,\mu\Omega$\,cm at $4$~K, a ratio above
-$10^3$ in good samples, with a mean free path reaching millimetres --- $10^7$ lattice spacings, which
-is not a sequence of jumps between neighbours. A hopping framework predicts that copper becomes an
-insulator on cooling, and the measurement runs the other way by three orders of magnitude. The
-Wiedemann--Franz ratio, fixed at $L_0=\pi^2k_B^2/3e^2$ by carriers that convey heat and charge alike,
-is a second such constraint.
-
-The regimes are also the wrong way round for a framework attempting metals: hopping describes matter
-best at high temperature, and it is at low temperature, where band behaviour is cleanest, that it
-would be needed to hold. \emph{That is the boundary, and it is a clean one.} Band transport in a
-pure metal is out of reach and is not claimed; activated transport by localised carriers is the
-regime the construction describes, and there the same features are the correct physics rather than a
-defect.
 
 \section{The same chain, computed the ordinary way}\label{sec:stdqm}
 
