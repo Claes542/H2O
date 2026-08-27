@@ -216,6 +216,18 @@ window.onerror = function (msg, url, line) {
   // destabilise. Consistent with the two-centre geometry, where the seed spread went from
   // 0.031 at beta=0 to 0.040 at beta=0.05.
   window.USER_BETA = parseFloat(q.get('beta') || '0');
+  // field: a uniform E along the chain, V_ext = E*x, entering the wavefunction equation.
+  // With the partition SPECIFIED this gives conduction as a computable criterion rather than
+  // a dynamical one: sweep the vacancy position, and find the field at which E(position)
+  // ceases to have a barrier and becomes monotone. Below it the carrier is trapped; above
+  // it there is nothing to hold it and it slides. That threshold is the conduction result,
+  // and unlike a released-boundary calculation it does not require the energy functional to
+  // possess a minimum -- which, kappa being negative, it does not.
+  //
+  // NOTE the reported energy EXCLUDES the field term, so E(kc) at fixed field is the
+  // zero-field energy of a field-driven configuration; the tilt must be added when reading
+  // the barrier. Differences at one field are meaningful, across fields they are not.
+  window.USER_FIELD_X = parseFloat(q.get('field') || '0');
   window.USER_CURV_REG = parseFloat(q.get('curv') || '0.10');
   window.CONVERGENCE_THRESHOLD = 0.00002;
 
@@ -233,6 +245,7 @@ window.onerror = function (msg, url, line) {
             + (BOW !== 0 ? '_bow' + BOW.toFixed(2) : '')
             + (parseFloat(q.get('beta') || '0') !== 0 ? '_b' + parseFloat(q.get('beta')).toFixed(3) : '')
             + (q.get('curv') !== null ? '_c' + parseFloat(q.get('curv')).toFixed(2) : '')
+            + (parseFloat(q.get('field') || '0') !== 0 ? '_F' + parseFloat(q.get('field')).toFixed(4) : '')
             + (VK ? '_VK w' + W.toFixed(2) + '_kc' + KC.toFixed(2)
                   : PAIR ? '_PAIR w' + W.toFixed(2) + '_m' + M1 + '-' + M2
                   : SLIP ? '_SLIP w' + W.toFixed(2) : (KINK ? '_KINK' : '_rigid'));
