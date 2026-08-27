@@ -723,7 +723,50 @@ rather than band structure sets the gap and where density-functional theory is i
 a doped Mott insulator, an organic semiconductor, a polaronic oxide. Those comparisons are not made
 here.
 
-\section{The interface coefficient, and the one number that is wrong}\label{sec:coefficient}
+\section{The interface energy: two numbers, one fixed and one outstanding}\label{sec:coefficient}
+
+\paragraph{The expansion, before the coefficient.} An interface carries energy, and for any physical
+interface that energy has a standard expansion in the local geometry,
+\begin{equation}\label{eq:helfrich}
+E_{\rm int}=\oint\Big[\beta+\kappa H^2+\dots\Big]\,dS ,
+\end{equation}
+with $\beta$ a surface tension and $\kappa$ a bending rigidity, $H$ the mean curvature. This is the
+Helfrich form, and it describes membranes, domain walls and phase boundaries alike. The article
+below fixes $\beta$ and has hitherto ignored $\kappa$, which is the arbitrary choice --- omitting a
+term is a decision, not a neutrality. Both belong to the physics of the construction for the same
+reason: an interface here is a locus where two densities balance, and both its area and its bending
+change the energy of the densities that meet there.
+
+That $\kappa$ is not free is worth stating, since it is the natural objection. A curved interface
+forces the density to vary along it, and that variation costs kinetic energy through the von
+Weizs\"acker term, which \S\ref{sec:conduction} identifies as this framework's kinetic energy. The
+bending rigidity is therefore in principle computable from the density profile across the interface,
+in the same way that $\beta$ is fixed by matching the electron gas. It is an unevaluated number, not
+an adjustable one, and it is unevaluated here.
+
+\paragraph{Why it cannot be set to zero.} There is direct evidence that $\kappa>0$ is required
+rather than optional. With the curvature term removed and the boundary released, a five-site chain
+of pseudopotential cores runs to $-1.610$~Ha. The isolated pseudo-atom at the same $r_c$ is
+$-0.222$, so five of them give $-1.11$, and the chain figure implies a cohesive energy of
+$2.7$~eV/atom --- against $1.63$~eV/atom for bulk lithium with eight neighbours. A one-dimensional
+chain with two neighbours cannot outbind the bulk metal by two thirds, so this is a runaway and not
+a solution: with nothing resisting fine structure the interface corrugates without limit and the
+energy is unbounded below.
+
+Read as numerics that says a regulariser was propping the calculation up. Read as physics --- which
+is the correct reading, given \eqref{eq:helfrich} --- it says something stronger than the $C=0$
+result that follows. \emph{$\kappa=0$ is not an admissible theory.} The $C=0$ defect concerns a
+coefficient that comes out wrong; this concerns boundedness.
+
+\paragraph{And the coefficient used here was not derived.} The calculations reported above carry
+$\kappa$ at a fixed value chosen for stability rather than by any argument, which is the same
+unsatisfactory position that $r_c$ occupied before it was calibrated against the atom. The
+energies depend on it: removing it entirely moves the chain by $0.18$~Ha. What is not yet known is
+how strongly they depend on it \emph{within} the physical range, and that is the measurement the
+expansion \eqref{eq:helfrich} makes meaningful --- $\kappa$ should be evaluated from the interface
+profile, not selected.
+
+\paragraph{The second coefficient, which is the one this section is about.}
 
 Equation \eqref{eq:Czero} was introduced above for what it gives conduction. It has a second face,
 and this section is that face: the same vanishing interface cost, read as a statement about the
