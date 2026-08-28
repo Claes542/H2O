@@ -8,123 +8,127 @@
 \newcommand{\grad}{\nabla}
 \newcommand{\half}{\tfrac12}
 
-\title{Frenkel--Kontorova Parameters for an Electron Lattice,\\
-       \large computed from Coulomb rather than fitted}
+\title{The Electron Lattice as a Dielectric:\\
+       \large a periodic pinning potential for RealQM, and why it does not
+       become a Frenkel--Kontorova model}
 \author{Claes Johnson}
-\date{PROSPECTUS --- not a draft. Written \today.}
+\date{PROSPECTUS --- not a draft. Revised \today.}
 
 \begin{document}
 \maketitle
 
-\noindent\textbf{Status: this is a plan, not a paper.} It records what the claim would be, which
-two numbers it needs, how to measure them, what controls each must pass, and what is already known.
-Nothing here is established. It exists so the work can be picked up without reconstructing the
-reasoning, and so that the claim is not made before the measurements support it.
+\noindent\textbf{Status: a plan, with two measurements already made and one route already
+closed.} The earlier version of this document proposed measuring the two Frenkel--Kontorova
+coefficients and inferring the hopping barrier from them. One of the two came out cleanly; the
+other does not exist in this construction, for a structural reason set out below. What remains is a
+smaller and better-founded claim.
 
-\section*{The claim, if it survives}
+\section*{What is established}
 
-The Frenkel--Kontorova model takes two parameters as input: the elastic stiffness $\kappa$ of the
-chain and the amplitude of the periodic substrate, entering through $K=V''(u_{\min})$. They are
-normally fitted. RealQM computes both from Coulomb interactions between charge densities, with no
-adjustable coupling, and with extended deformable domains in place of point masses. Applied to the
-\emph{electron} subsystem this is a microscopic charge-density-wave model built from an energy
-functional rather than postulated.
-
-What the two parameters buy is the transport regime, without ever measuring a barrier directly:
-\begin{equation}\label{eq:fk}
-W=\sqrt{\kappa/K},\qquad E_{\rm PN}\sim\exp(-c\,W/a).
-\end{equation}
-$W\gg a$ is a wide kink, exponentially small pinning, a sliding electron lattice. $W\sim a$ is a
-narrow kink and a pinned one. This is the Aubry transition, and it is the question the companion
-article could not answer by differencing energies --- \emph{because} of the exponential in
-\eqref{eq:fk}, which magnifies every error in the two curvatures.
-
-\section*{Why this is worth doing at all}
-
-The honest competitive position: DFT can also supply CDW parameters from first principles, is
-calibrated, and computing Peierls barriers that way is routine. The distinctive element here is
-\textbf{not accuracy}. It is that the Frenkel--Kontorova chain is \emph{literal} in this
-construction --- the domains are the particles, one electron each, rather than a caricature of a
-smooth density. Whether that interpretive advantage is worth a paper is a judgement to make after
-the numbers exist, not before.
-
-\section*{The two measurements}
-
-Both are local curvatures taken between configurations that differ infinitesimally, which is the
-regime where discretisation errors cancel. This is the whole methodological point: the companion
-article failed because it differenced distant configurations.
-
-\paragraph{$K$ --- the substrate curvature.} Rigid shift of every domain wall by $u=d\,a$ against
-fixed kernels, at the energy minimum:
+\paragraph{A geometry in which the control is exact.} A rigid slide of a finite open chain is not a
+symmetry operation --- it drags charge against the box and builds a dipole --- so $E(d)$ is not
+periodic and no chain length repairs it. Lengthening the chain from seven cores to eleven made the
+asymmetry \emph{worse}, not better. The repair is to make the translation cyclic: every electron
+advances one site, the rightmost leaves, a new one enters at the left, and the configuration is
+restored. No periodic Coulomb is needed for this, only a periodic \emph{labelling},
 \[
-K=\frac{2\,[E(u_{\min}+\delta)-E(u_{\min})]}{\delta^2}.
+\mathrm{dom}=\Bigl\lfloor\frac{x-x_0+a/2-d\,a}{a}\Bigr\rfloor+\mathrm{round}(d)
+\quad(\mathrm{mod}\ N),
 \]
-Requires the minimum to be located first; on the chain it is \emph{not} at $d=0$ (see below).
+where the added $\mathrm{round}(d)$ makes the label the index of the core the domain \emph{contains}
+rather than a running counter --- without it the solver seeds each domain's density at the wrong
+nucleus and the energies run below the physical floor.
 
-\paragraph{$\kappa$ --- the chain stiffness.} Not yet attempted. Impose a uniform \emph{strain} on
-the electron spacing with the kernels held fixed --- the domains compressed or dilated relative to
-the lattice --- and fit the quadratic. This is a different deformation from the rigid slide: the
-slide is $u(x)=\mathrm{const}$, the strain is $u(x)\propto x$.
-
-\section*{Controls each must pass}
-
-\begin{enumerate}\itemsep2pt
-\item \textbf{Translation.} $E(d{=}0)=E(d{=}1)$ exactly; the two configurations are related by a
-relabelling. Verified exactly on a ring: $0.56101$ at both ends, and two symmetry pairs identical
-to five decimals.
-\item \textbf{Reflection.} $E(d)=E(-d)$ through a core, hence symmetry about $d=\half$. The
-seven-core chain \emph{fails} this --- its minimum sits beyond $d=0.5$ --- because two end domains
-are $29\%$ of the system. This is the outstanding obstacle.
-\item \textbf{Constancy of the curvature} across the smallest few displacements. A drift in $K$
-with $\delta$ means the quadratic regime has not been reached.
-\item \textbf{Reproducibility} to five decimals on repeated runs, which the frozen-partition method
-delivers when the diagnostic poller is off.
-\end{enumerate}
-
-\section*{What is already known}
+\paragraph{The resulting scan, and its controls.} Seven cores at the calibrated $r_c=1.93$ and its
+own equilibrium spacing $a=5.5$~a$_0$, the pattern slid through one full period:
 
 \begin{center}
 \small
-\begin{tabular}{@{}lll@{}}
+\begin{tabular}{@{}rrrrrrrrr@{}}
 \toprule
-quantity & value & status\\
-\midrule
-$K$ at the commensurate registry $d=0$ & $-0.089$~Ha/a$_0^2$ & four displacements agree to $10\%$\\
-$K$ at the energy minimum & $\approx+0.27$~Ha/a$_0^2$ & contaminated by chain ends\\
-implied polarisability $1/K$ & $\approx3.8$~a$_0^3$/electron & hydrogen-like, plausible\\
-equilibrium at $r_c=1.93$ & $a=5.43$~a$_0$ & five-point scan, clean\\
-$\kappa$ & --- & not attempted\\
+$d$ & $0.000$ & $0.125$ & $0.250$ & $0.375$ & $0.500$ & $0.625$ & $0.750$ & $1.000$\\
+$E$ & $-1.63252$ & $-1.66402$ & $-1.71667$ & $-1.78418$ & $-1.84151$ & $-1.78416$ & $-1.71666$
+    & $-1.63252$\\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\noindent The negative $K$ at $d=0$ is the more solid of the two and is itself a result: the
-commensurate registry, every domain centred on its own kernel, is \emph{unstable} to a uniform
-shift. The stable configuration is bond-centred, which agrees with the registry preference found
-independently in the companion article.
+\noindent $E(1)=E(0)$ to every digit stored, and all three reflection pairs agree to
+$1$--$2\times10^{-5}$~Ha. The noise floor is therefore about $0.5$~meV against an amplitude of
+$5687$~meV: the control passes by four orders of magnitude, where the best attempt in the companion
+article managed $24\times$ and six of eight failed outright.
 
-\section*{The next run, concretely}
+\paragraph{The two numbers.} The minimum is at $d=\half$ --- walls on cores, the bond-centred
+registry, independently reproducing the preference found by another route --- and the maxima are at
+the commensurate registry:
+\begin{align*}
+\text{amplitude } V_0 &= E(0)-E(\half) = 0.20899~\mathrm{Ha} = 812~\mathrm{meV\ per\ electron},\\
+K = \frac{E(0.375)-2E(0.5)+E(0.625)}{\delta u^2}
+  &= 0.2426~\mathrm{Ha/a_0^2\ (total)} = 0.0347~\mathrm{Ha/a_0^2\ per\ electron}.
+\end{align*}
 
-Rigid slide at $n=11$, $r_c=1.93$, $a=5.5$, $h\approx0.35$ (a $186^3$ grid), sampling
-$d=0.375,\,0.4375,\,0.5,\,0.5625,\,0.625$. The question is whether the minimum returns to
-$d=\half$ once the end domains fall from $29\%$ to $18\%$ of the system. If it does, the end effect
-is confirmed, $K$ follows there, and $n=15$ gives the extrapolation. If it does not, the asymmetry
-is something else and the programme stops until that is understood.
+\noindent $K>0$ is a restoring force: a field produces a bounded polarisation rather than a growing
+displacement, so there is no DC current. \emph{This is an insulator established by a computed
+response rather than by a failed barrier.} The polarisability follows, $\alpha=1/K\approx29$~a$_0^3$
+per electron, between hydrogen's $4.5$ and lithium's $164$ --- the right neighbourhood for a valence
+electron on a soft core, which is the only external check available.
 
-\section*{Known limitations, to be stated in any paper}
+\section*{What is closed, and why}
 
-\begin{itemize}\itemsep2pt
-\item \textbf{Staircase floor.} The partition assigns whole cells, so displacements below one cell
-flip no labels: $K$ cannot be evaluated nearer the minimum than $u\approx0.3$~a$_0$ without
-sub-cell interface resolution. Two configurations $0.125$ and $0.250$ of a spacing apart returned
-\emph{identical} energies to five decimals, which is this effect caught directly.
-\item \textbf{Long-range coupling.} Equation \eqref{eq:fk} assumes nearest-neighbour springs.
-Coulomb is long-ranged, giving power-law rather than exponential kink tails and shifting the
-transition. A guide to the regime, not a formula good to three figures.
-\item \textbf{No zero-point motion.} Static RealQM has no quantum fluctuation of the electron
-chain, so it returns the \emph{classical} FK parameters and necessarily over-pins relative to the
-real system. This is the same over-localisation that exact diagonalisation exposes on the same
-chains, where the hole occupies four or five sites and this construction admits one.
-\end{itemize}
+Frenkel--Kontorova needs a second coefficient, the stiffness $\kappa$ against non-uniform
+displacement, after which $W=\sqrt{\kappa/K}$ would give the kink width and $E_{\rm
+PN}\sim\exp(-cW/a)$ the barrier without ever differencing distant configurations. That was the point
+of the exercise. It fails.
+
+A sinusoidal displacement $u_m=A\sin(2\pi m/N)$, which closes periodically on the wrapped chain,
+gives $\Delta E<0$ growing with $A$: $-0.0085$, $-0.0099$, $-0.0152$, $-0.0265$~Ha at
+$A=0.25,\,0.30,\,0.35,\,0.40$. Fitting and subtracting the known substrate part leaves
+$\kappa\approx-0.049$~Ha/a$_0^2$, so $W$ is imaginary and the model does not apply.
+
+The cause is structural. In Frenkel--Kontorova $u_m$ is a particle \emph{position} and the spring
+acts between particles. Here the particles are slabs, and position and width are not independent:
+with walls at $w_m$, domain $m$ has centre $\half(w_{m-1}+w_m)$ and width $w_m-w_{m-1}$, so holding
+the widths equal forces $w_m=ma+\mathrm{const}$ --- a rigid slide. \emph{Any non-uniform
+displacement necessarily changes domain sizes}, and a wider domain lets its electron spread and
+lower its kinetic energy. That gain --- the delocalisation the companion article measures at
+$0.112$~Ha for a vacancy --- exceeds the Coulomb elastic cost.
+
+So the negative $\kappa$ is not a chain that resists stretching in reverse. It is the system
+preferring \textbf{unequal domains}, which also accounts for something already documented: free
+boundaries never settle to a uniform partition, because the uniform partition is not stable.
+
+\paragraph{Honest limits on that number.} The staircase noise is $\sim0.01$~Ha, so $\Delta E$ at the
+largest amplitude is only $2.7$ times it, and the four ratios scatter between $-0.11$ and $-0.17$.
+The \emph{sign} is consistent across all four amplitudes; the magnitude is one significant figure at
+best. What is established is that $\kappa$ is not positive, hence that the mapping does not close ---
+not the value of a negative $\kappa$.
+
+\section*{What the paper would therefore claim}
+
+Not a barrier, and not a Frenkel--Kontorova parameterisation. A \textbf{dielectric response computed
+from Coulomb}: a periodic pinning potential of $812$~meV per electron with curvature
+$K=0.0347$~Ha/a$_0^2$ and polarisability $29$~a$_0^3$, measured on a geometry whose translation
+control is exact, together with the structural finding that the electron lattice is unstable to
+non-uniform distortion and therefore admits no Frenkel--Kontorova description.
+
+The competitive position is unchanged and should be stated plainly: DFT supplies dielectric
+constants from first principles and is calibrated to do it. What is distinctive here is that the
+pinning potential is a property of an explicit partition of space into unit charges, not of a smooth
+density --- an interpretive difference, not an accuracy one.
+
+\section*{Open, in order of value}
+
+\begin{enumerate}\itemsep2pt
+\item \textbf{Sub-cell interface resolution.} Everything above is limited by the staircase: the
+partition assigns whole cells, so displacements below one cell flip no labels and $K$ cannot be
+taken nearer the minimum than $u\approx0.34$~a$_0$. Two configurations $0.125$ and $0.250$ of a
+spacing apart returned identical energies to five decimals --- the effect caught directly. This is
+the one solver change that would improve every measurement in both papers.
+\item \textbf{$K$ at a second spacing and a second $r_c$}, to see whether the dielectric response is
+stable under the parameters, which no barrier ever was.
+\item \textbf{The instability characterised.} At what wavelength is the uniform chain most unstable,
+and does the distortion saturate? That is a Peierls-like question and the wrapped geometry can
+now ask it properly.
+\end{enumerate}
 
 \end{document}

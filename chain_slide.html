@@ -236,9 +236,77 @@ window.onerror = function (msg, url, line) {
   // rather than merely assumed; if it gains a lot, the one-coordinate description is too
   // crude and the hierarchy needs another rung before the numbers mean anything.
   var BOW = parseFloat(q.get('bow') || '0');
+  // wrap=1: whatever leaves at the right re-enters at the left.
+  //
+  // A rigid slide of a finite open chain is not a symmetry -- it drags charge against the box
+  // and builds a dipole, so E(d) is not periodic and no chain length repairs it (n=11 was worse
+  // than n=7, not better). The transport event is not a displacement but a CYCLE: every electron
+  // advances one site, the rightmost leaves, a new one enters at the left, and the configuration
+  // is restored. Since the energy depends on the partition and not on labels, that end state IS
+  // the start state.
+  //
+  // No periodic Coulomb is needed for this, only a periodic LABELLING: assign each point by its
+  // position modulo the lattice, folded into the N domains,
+  //
+  //     dom = floor((x - x0 + a/2 - d*a)/a)  mod  N
+  //
+  // so d -> d+1 shifts every label by one, a pure relabelling, and the partition is identical.
+  // E(d+1) = E(d) EXACTLY, by construction rather than by hope -- which is the control every
+  // rigid-slide scan in this project has lacked. The two end domains each acquire an extra slab
+  // in the vacuum beyond the chain, where the density is negligible and which is in any case the
+  // same at both ends of the period.
+  var WRAP = q.get('wrap') === '1';
+  var SMODE = parseFloat(q.get('smode') || '0');   // sinusoidal displacement amplitude, in units of a
+  var c0cell = N2 + x0 / h;                      // cell coordinate of core 0
   window.CUSTOM_LABEL_INIT = function (S, hGrid, nucPos, NELEC) {
     var lab = new Uint32Array(S * S * S), S2 = S * S;
     var c = (S - 1) / 2, aG = A / h;              // axis centre and spacing, in cells
+    if (WRAP) {
+      // The label must be the index of the core the domain CONTAINS, not a running counter.
+      // molecule.js seeds each domain's psi at atoms[label], so a counter puts electron 6 five
+      // spacings from the region it owns -- it starts at zero density there and relaxes into
+      // something unphysical. Adding round(d) tracks which core the shifted domain has picked
+      // up, so at d = 1 the labelling is identical to d = 0 cell for cell, and E(1) = E(0) is
+      // then true of the construction rather than hoped for.
+      var kshift = Math.round(DFRAC);
+      // smode: a NON-uniform displacement, u_m = A sin(2 pi m / N), which closes periodically on
+      // the wrapped chain for any N. The rigid slide gives K, the substrate curvature; this gives
+      // kappa, the chain's stiffness against being stretched, and Frenkel-Kontorova needs both:
+      //   E(A) - E(0) = A^2 N [ kappa sin^2(pi/N) + K_pe/4 ]
+      // so fitting the A^2 coefficient and subtracting the known substrate part leaves kappa.
+      // Domain m spans from wall m-1 to wall m, and wall m sits at the midpoint displaced by the
+      // mean of its two neighbours' displacements.
+      if (SMODE !== 0) {
+        var uu = [];
+        for (var m2 = 0; m2 < N; m2++) uu.push(SMODE * Math.sin(2 * Math.PI * m2 / N));
+        // wall positions in cells, for lattice indices -1 .. N, wrapping u
+        var wpos = [], widx = [];
+        for (var m2 = -1; m2 <= N; m2++) {
+          var ua = uu[((m2 % N) + N) % N], ub = uu[(((m2 + 1) % N) + N) % N];
+          wpos.push(c0cell + (m2 + 0.5 - DFRAC) * aG + 0.5 * (ua + ub) * aG);
+          widx.push(((( m2 + 1 + kshift) % N) + N) % N);   // domain to the RIGHT of this wall
+        }
+        for (var i = 0; i < S; i++) {
+          var q2 = 0;
+          while (q2 < wpos.length && i >= wpos[q2]) q2++;
+          var dmS = (q2 === 0) ? widx[0] : widx[q2 - 1];
+          for (var j = 0; j < S; j++) {
+            var baseS = i * S2 + j * S;
+            for (var k = 0; k < S; k++) lab[baseS + k] = dmS;
+          }
+        }
+        return lab;
+      }
+      for (var i = 0; i < S; i++) {
+        var m = Math.floor((i - c0cell + 0.5 * aG - DFRAC * aG) / aG) + kshift;
+        var dm = ((m % N) + N) % N;
+        for (var j = 0; j < S; j++) {
+          var base = i * S2 + j * S;
+          for (var k = 0; k < S; k++) lab[base + k] = dm;
+        }
+      }
+      return lab;
+    }
     for (var j = 0; j < S; j++) {
       for (var k = 0; k < S; k++) {
         var dy = j - c, dz = k - c;
@@ -428,6 +496,8 @@ window.onerror = function (msg, url, line) {
     var cfg = 'n' + N + '_a' + A.toFixed(1) + '_rc' + RC.toFixed(2) + '_ze' + ZE.toFixed(2)
             + '_h' + h.toFixed(3)
             + (q.get('free') === '1' ? '_FREE' : '')
+            + (WRAP ? '_WRAP' : '')
+            + (SMODE !== 0 ? '_S' + SMODE.toFixed(3) : '')
             + (BOW !== 0 ? '_bow' + BOW.toFixed(2) : '')
             + (parseFloat(q.get('beta') || '0') !== 0 ? '_b' + parseFloat(q.get('beta')).toFixed(3) : '')
             + (q.get('curv') !== null ? '_c' + parseFloat(q.get('curv')).toFixed(2) : '')
@@ -675,7 +745,8 @@ window.onerror = function (msg, url, line) {
     // the panels were indistinguishable and the wrong one got read.
     var what = (HOP && q.get('hc') !== null) ? 'HC SCAN (frozen, full period)'
              : (q.get('free') === '1') ? 'DEPINNING RAMP (free boundary)'
-             : HOP ? 'HOP ENDPOINTS (frozen)' : 'RIGID SLIDE';
+             : HOP ? 'HOP ENDPOINTS (frozen)'
+             : WRAP ? 'WRAPPED SLIDE (periodic labelling)' : 'RIGID SLIDE';
     document.getElementById('status').innerHTML =
       '<span style="color:#9f9">' + what + '</span><br>'
       + 'n=' + N + ' a=' + A + ' rc=' + RC.toFixed(2)
@@ -685,7 +756,8 @@ window.onerror = function (msg, url, line) {
       + '<br>h=' + h.toFixed(3) + ' grid ' + gridN + '^3'
       + (pos ? '<br><span style="color:#ff9">' + pos + '</span>' : '');
   })();
-  console.log('chain_slide: n=' + N + ' a=' + A + ' rc=' + RC + ' d=' + DFRAC + 'a grid=' + gridN);
+  console.log('chain_slide: n=' + N + ' a=' + A + ' rc=' + RC + ' d=' + DFRAC + 'a grid=' + gridN
+              + (WRAP ? '  WRAP=on (periodic labelling)' : ''));
 })();
 var s = document.createElement('script');
 s.src = 'molecule.js?t=' + Date.now();
