@@ -36,20 +36,23 @@ material crosses the sample. Single occupancy makes the construction the Hubbard
 $U\to\infty$, so metals are out of scope in kind and not by degree, their carriers being extended
 Bloch states; doped Mott insulators, molecular semiconductors and polaronic oxides are not.
 
-The activation energy for that boundary to advance one site can be computed, and it decides the
-question. Two configurations of a doped chain are fixed by \emph{symmetry} --- the carrier centred
-on a site, and centred between two --- so both are stationary points at which the interface
-condition holds without being imposed, and their difference is the hopping barrier. The path itself carries a
-free parameter --- the width over which the slip is spread --- so the barrier is the minimum over
-that family and not a value at one width: $E_a=555$~meV $=21\,k_BT$, at a kink width of about one
-and a half sites, independent of chain length to $1.5\%$. The width dependence has a genuine
-minimum, elastic stiffness penalising a wide kink and the lattice's grip a narrow one, and every
-figure computed at a fixed width is an upper bound accordingly. The barrier \emph{rises} under
-compression, to $1723$~meV at two-thirds the spacing, so no metallic state appears at higher
-density. The carrier sits between sites rather than on one. At
-$24$ to $67\,k_BT$ across the range tested, against the $10$--$500$~meV of real hopping
-semiconductors, the construction describes a \textbf{Mott insulator} and not the semiconducting
-class this article set out to claim.
+The activation energy for that boundary to advance one site would decide the question, and it is
+computable in principle: two configurations of a doped chain are fixed by \emph{symmetry} --- the
+carrier centred on a site, and centred between two --- so both are stationary points at which the
+interface condition holds without being imposed, and their difference is the hopping barrier, the
+width of the slip being minimised over rather than chosen. What that measurement yields is
+\textbf{a sign and a decade but not a value}. Transport is activated, the carrier sits at a
+definite registry and must leave it to advance, and the cost is of order a tenth to a whole
+electron-volt: every configuration computed, over four meshes, three chain lengths, four path
+widths and two dimensions, falls between $68$ and $929$~meV. Within that range the grid decides.
+The barrier is a difference of about $0.01$~Ha between two totals each carrying a discretisation
+error twenty-five times larger, the cancellation such a difference needs does not occur, and
+refining the mesh alone moves it $315\to552\to265$~meV without converging. Since the
+$10$--$500$~meV window of real hopping semiconductors \emph{overlaps} that range, the construction
+is neither placed in that class nor excluded from it. What it resembles is small-polaron or ionic
+conduction rather than a metal. A resolution-limited null result is the honest outcome, and the
+convergence study that establishes it is reported in full, since it bounds what any calculation of
+this kind can currently claim.
 
 A second obstacle is computational, and it conditions everything else. A free boundary
 evolves by \emph{local} rules and so descends to the nearest configuration no single cell change
@@ -291,10 +294,12 @@ where a real density carries a complex current, and a conduction calculation bel
 than here.
 
 \paragraph{What the barrier means as a field.} A barrier becomes a threshold field when
-divided by the charge and the hop distance: $E_a/ea=555\,{\rm meV}/6.0\,a_0=1.7\times10^9$~V/m, or
-$0.55$~V per lattice site. Copper carrying an ampere runs at $4\times10^{-12}$~V per site. The
-framework is therefore eleven orders of magnitude from conducting under any field a material
-survives, and the gap is not one a refinement closes.
+divided by the charge and the hop distance. Taking the range of \S\ref{sec:mesh} rather than any
+single value, $E_a/ea$ runs from $0.07$ to $0.9$~V per lattice site at $a=6.0$; copper carrying an
+ampere runs at $4\times10^{-12}$~V per site. The comparison spans an order of magnitude and is
+uncertain by that much, but ten orders separate the two either way, so the conclusion --- that no
+field a material survives will drive this by direct depinning --- does not depend on where in the
+range the barrier falls.
 
 \paragraph{Why a chain rather than a ring.} A ring supplies a clean barrier --- no ends,
 every site equivalent, the energy obliged to repeat with the lattice period --- but it cannot host
@@ -389,7 +394,7 @@ $W$ (sites) & barrier & \\
 \midrule
 $0.4$ & $929$~meV & \\
 $0.8$ & $818$~meV & \\
-$1.5$ & $\mathbf{555}$~\textbf{meV} & minimum; $552$ at $n=7$, $560$ at $n=11$\\
+$1.5$ & $552$~meV & minimum over $W$\\
 $3.0$ & $626$~meV & \\
 \bottomrule
 \end{tabular}
@@ -397,13 +402,14 @@ $3.0$ & $626$~meV & \\
 
 \noindent The curve has a minimum, which is what a Frenkel--Kontorova kink requires: elastic
 stiffness penalises a wide kink, the lattice's grip penalises a narrow one, and the physical width
-lies between. \textbf{The barrier is $E_a\approx555$~meV $=21\,k_BT$}, and that is the figure
-quoted hereafter --- a minimax over the path family rather than a value at an arbitrary width, and
-independent of chain length to $1.5\%$ at the width where it was checked twice.
+lies between. Every figure obtained at a fixed $W$ is an upper bound, since it is the cost along a
+rigid path; the $818$~meV that this section reported before the width was varied is one such.
 
-The distinction matters for how the earlier numbers are read. Every figure obtained at a fixed $W$
-is an upper bound, since it is the cost along a rigid path; the $818$~meV that this section
-reported before the width was varied is one such, too large by a third.
+These four figures share one mesh, $h=0.348$, and the minimum over $W$ is therefore a minimum at
+that mesh. \S\ref{sec:mesh} varies $h$ and finds that the barrier does not survive it. The width
+scan is reported here because the shape of the curve --- a genuine minimum, for the reason
+Frenkel--Kontorova gives --- is what one wants to know about the path family, and that shape is not
+what fails. The number attached to it is.
 
 \noindent Three things follow, and the first is a structural claim rather than a number, though a
 narrower one than it first appeared. On a chain the carrier sits \textbf{between} sites: the
@@ -415,11 +421,12 @@ on a square lattice --- identical carrier, identical slip, one dimension more --
 The bond-centred result is a property of the chain and not of the construction, and it is recorded
 here as such.
 
-Second, the barrier is a property of the hop and not of the chain. At $a=6.0$ it is $0.03006$~Ha for
-seven sites and $0.03247$~Ha for nine --- $8\%$ apart, while the total energy moves by $0.59$~Ha
-between them, a factor of $245$ in sensitivity.
+Second, the barrier looked like a property of the hop rather than of the chain: at $a=6.0$ and
+$W=0.8$ it is $0.03006$~Ha for seven sites and $0.03247$~Ha for nine, $8\%$ apart, while the total
+energy moves by $0.59$~Ha between them. \S\ref{sec:mesh} withdraws this. The two figures were
+computed at different meshes, and at matched mesh the same comparison spreads by a factor of five.
 
-Third, and this is the substantive result, \textbf{compression raises the barrier}. It is
+Third, \textbf{compression raises the barrier}. It is
 $818$~meV at the equilibrium spacing and $1723$~meV compressed to $a=4.0$, a doubling rather than a
 closing. That is the conclusion the compression scans of this article reached by the free-boundary
 route, and it is worth stating plainly that those scans are the ones \S\ref{sec:conduction} shows to
@@ -471,40 +478,98 @@ inside, none of which succeeds, and two of which make matters worse in the direc
 naively expect to help. \emph{No accessible variation reduces the barrier to the range where
 hopping occurs.}
 
-\paragraph{How far $555$~meV can be pushed, and what it therefore cannot decide.} The figure
-sits ten per cent above the upper edge of the range real hopping semiconductors occupy, and that
-margin is smaller than the systematic uncertainties, which should be set out rather than left
-implicit.
+\section{The mesh, and why no barrier is quoted}\label{sec:mesh}
 
-The mesh was not held fixed: the spacing $h$ ranged over $0.348$--$0.449$ across the runs that
-produced the width curve, varying together with chain length, and the control at matched resolution
-was not made. The path was minimised over its \emph{width} only, while a full minimum-energy path
-relaxes the kink's shape as well --- an error that is one-sided, since the true saddle can only lie
-below the minimum of any restricted family. And the core radius used throughout, $r_c=1.6$, is not
-the value calibrated against the isolated atom's ionisation energy, which is $1.93$; no barrier was
-computed at the calibrated radius, and $r_c$ demonstrably moves the barrier.
+Every barrier above is a difference of two total energies, each computed on a finite grid. Whether
+such a difference means anything depends on whether the two discretisation errors cancel, and that
+is a question about the mesh, not about the physics. It was asked late, and the answer withdraws the
+numbers.
 
-Taken together the figure is $E_a\approx0.5$--$0.6$~eV with a systematic uncertainty of tens of per
-cent and a one-sided bias downward. \emph{This article therefore cannot distinguish a barrier just
-above the hopping range from one just inside it}, and the reader should not take the comparison
-with $500$~meV as settling anything. What the measurement does establish is the order --- half an
-electron-volt, not the tens of meV of a good conductor nor the several eV a first fixed-width
-calculation suggested --- and that no variation tried reduces it.
+Holding chain length, spacing, core radius and path width fixed at $n=7$, $a=6.0$, $r_c=1.6$,
+$W=1.5$, and varying only the grid:
 
-\paragraph{What the barrier says about scope.} Minimised over the path family the activation energy is $555$~meV, and every variation tried
-leaves it between $555$ and $1723$~meV, that is $21$ to $67\,k_BT$. Hopping semiconductors --- the organic and
-molecular solids, the polaronic oxides, the amorphous semiconductors named in \S\ref{sec:scope} ---
-have activation energies of $10$ to $500$~meV. This construction is an order of magnitude above them
-at every accessible density, and shows no sign of approaching them under compression, which makes it
-worse rather than better.
+\begin{center}
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+$h$ (a$_0$) & on site (Ha) & between sites (Ha) & barrier & slope of total\\
+\midrule
+$0.451$ & $-1.34727$ & $-1.35882$ & $315$~meV & \\
+$0.397$ & $-1.31216$ & $-1.32578$ & $371$~meV & $0.650$\\
+$0.348$ & $-1.26709$ & $-1.28739$ & $552$~meV & $0.920$\\
+$0.299$ & $-1.22260$ & $-1.23234$ & $265$~meV & $0.908$\\
+\bottomrule
+\end{tabular}
+\end{center}
 
-The honest reading is that the scope claim of \S\ref{sec:scope} is not established, and given the
-uncertainties above it is not refuted either. What the framework looks most like is a
-\textbf{Mott insulator}: a carrier localised on a site, a gap set by on-site
-repulsion, and a barrier too large for the carrier to move at any temperature at which the lattice
-survives. The threshold field tells the same story --- $E_a/ea=2.7\times10^9$~V/m, or $0.85$~V per
-site against copper's $4\times10^{-12}$. Semiconduction was the class this article hoped to belong
-to; the measurement places it outside.
+\noindent \textbf{The barrier does not converge.} It rises, then falls below where it started:
+$315\to371\to552\to265$~meV, a factor of $2.1$ across four meshes with no monotone trend and nothing
+to extrapolate. The scatter is not noise --- three independent runs of the same configuration agree
+to all five decimals recorded, as everywhere else in this article once the partition is specified.
+It is exact, reproducible dependence on the grid.
+
+The totals, by contrast, behave. Their increments settle to a constant slope in $h$ of about
+$0.91$~Ha per unit $h$, which is first-order convergence, expected for a sharp-interface method.
+That is what makes the failure legible: at $h=0.30$ the discretisation error in each total is still
+about $0.27$~Ha, some twenty per cent of the total, while the barrier extracted from the pair is
+$0.010$~Ha. \emph{The quantity sought is under four per cent of the error in each quantity it is
+differenced from.} For it to survive, the two errors would have to cancel to better than
+ninety-six per cent, and they do not: the on-site slope settles at $0.91$ while the between-sites
+slope is still climbing through $0.61$, $0.78$, $1.12$. Extrapolating the two separately to $h=0$
+gives a difference near $2$~eV, inconsistent with every raw value in the table --- which is another
+way of exhibiting the same non-cancellation.
+
+Chain length behaves no better once the mesh is matched, which retracts a claim made above. At
+$h\approx0.45$, seven sites give $315$~meV and eleven give $560$; at $h\approx0.40$, seven give
+$371$ and nine give $68$. The agreement between $552$ at $n=7$ and $560$ at $n=11$ that earlier
+sections read as length-independence compared $h=0.348$ against $h=0.449$: two errors cancelling by
+coincidence. \emph{No length-independence has been established.}
+
+The same caveat reaches the other two length-independence claims of this article --- the
+$179$~meV wall defect and the delocalisation gain of $0.112$~Ha, each reported constant to a few
+per cent across chain length. Both were obtained the same way, at fixed requested spacing on a box
+that grows with the chain, so the mesh varied with the length there too. Neither has been rechecked
+at matched resolution. They are larger quantities than the hop barrier and so less exposed --- the
+delocalisation gain by a factor of eleven --- but the constancy should be read as untested rather
+than as confirmed.
+
+\paragraph{What is therefore withdrawn, and what stands.} The figure $E_a=555$~meV is withdrawn.
+So is $265$~meV, and every other entry in these tables taken as a measurement: they are samples from
+a range $68$--$929$~meV set by the grid, and the calculation cannot distinguish among them. The
+earlier paragraphs of this section, which compare barriers across spacing, dimension and carrier
+concentration, all rest on differences of the same size computed at a single mesh, and inherit the
+same limitation; their \emph{trends} may well be right, since the configurations compared are alike
+and their errors more likely to cancel, but no weight can be put on the factors of two.
+
+Two things do stand. The \textbf{sign} is robust: in every configuration computed --- four meshes,
+three chain lengths, four widths, both dimensions --- the on-site configuration lies above the
+bond-centred one on a chain. A barrier exists, and the carrier has a preferred registry it must
+leave to advance. And the \textbf{decade} is robust: every value obtained lies between $68$ and
+$929$~meV. That is not the meV scale of a metal, and not the ${\sim}13$~eV of the on-site repulsion
+$U$; it is the tenth-of-an-electron-volt scale of small-polaron and ionic conduction. The framework
+produces activated transport of that order.
+
+What it cannot do is decide whether the barrier lies inside the $10$--$500$~meV window of hopping
+semiconductors. That was to have been the verdict of this article, in one direction or the other,
+and it is not available at this discretisation. Resolving it needs error cancellation the present
+sharp-interface treatment does not provide --- a finer grid by a factor of two or more, a
+higher-order interface, or a formulation in which the barrier is computed directly rather than as a
+difference of large totals.
+
+\paragraph{What the barrier says about scope.} Less than this article set out to establish. The
+activation energy is of order a tenth to a whole electron-volt, every value obtained falling between
+$68$ and $929$~meV, and the grid rather than the physics decides where in that range any particular
+figure lands. Hopping semiconductors --- the organic and molecular solids, the polaronic oxides, the
+amorphous semiconductors named in \S\ref{sec:scope} --- have activation energies of $10$ to
+$500$~meV. That window overlaps the range computed here and is not separated from it, so the
+comparison does not decide the question either way.
+
+The scope claim of \S\ref{sec:scope} is therefore neither established nor refuted. What can be said
+is that the construction gives \emph{activated} transport at the tenth-of-an-eV scale, with a
+carrier that has a definite preferred registry and must leave it to advance --- the phenomenology of
+small-polaron and ionic conduction rather than of a metal. Whether it also reaches the
+semiconducting window is a question this discretisation is too coarse to answer, and it is left open
+rather than decided by a number the mesh study does not support.
 
 \paragraph{Earlier figures, and why they are not quoted.} A series of barrier scans was made
 before the difficulty above was understood, all of them by the free-boundary route: a compression
@@ -734,15 +799,28 @@ $C$ is a statement about a \emph{uniform} density and does not transfer to a sha
 \section{Conclusion}\label{sec:conclusion}
 
 The question was whether a construction of non-overlapping unit charge densities, meeting at free
-boundaries, conducts. The answer is a number: the activation energy for its carrier to advance one
-site is $E_a=555$~meV $=21\,k_BT$, obtained from two configurations that symmetry fixes and
-minimised over the width of the path connecting them, independent of chain length to $1.5\%$. That
-is above the $10$--$500$~meV of the hopping semiconductors this article set out to describe, though
-not by the order of magnitude a single fixed-width calculation would have suggested, and no
-variation tried --- compression, a second dimension, carrier concentration, core radius --- reduces
-it. \emph{The construction does not conduct at any temperature at which a lattice survives.}
+boundaries, conducts. The answer is not a number, and the most useful thing this article can report
+is why.
 
-Three things stand behind that number, and they are of different kinds.
+Transport here is activated: the carrier has a preferred registry and must leave it to advance,
+and the cost of doing so is of order a tenth to a whole electron-volt --- every configuration
+computed, across four meshes, three chain lengths, four path widths and two dimensions, falling
+between $68$ and $929$~meV, and every one of them putting the same configuration on top. The sign
+and the decade are solid. The value is not. It is a difference of order $0.01$~Ha taken between two
+total energies each carrying a discretisation error some twenty-five times larger, and
+\S\ref{sec:mesh} shows the required cancellation does not occur: refining the grid alone moves the
+barrier from $315$ to $552$ to $265$~meV without converging. An earlier draft of this article quoted
+$E_a=555$~meV and drew a verdict from its position relative to $500$; that figure was one sample
+from a grid-dependent range, and it is withdrawn.
+
+The consequence is that the question the article set out to settle stays open. The
+$10$--$500$~meV window of hopping semiconductors overlaps the range computed here rather than
+sitting outside it, so the construction is not shown to belong to that class and is not excluded
+from it either. What it does resemble, on the evidence that survives, is small-polaron or ionic
+conduction: activated, tenth-of-an-eV, with a carrier dragging a lattice distortion rather than
+propagating freely.
+
+Three things stand independently of the number, and they are of different kinds.
 
 \paragraph{The carrier is a free boundary, and that picture holds.} An electron here is a unit of
 charge density on a domain; what exists is the partition of space. Transport is therefore the

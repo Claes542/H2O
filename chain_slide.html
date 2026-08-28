@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html><body style="margin:0;background:#000">
-<div id="info" style="position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.85);color:#fff;font-family:monospace;font-size:12px;padding:10px;border:1px solid #4fc3f7;border-radius:6px;max-width:600px;z-index:100">
+<div id="status" style="position:fixed;top:10px;left:10px;background:#111;color:#4fc3f7;font-family:monospace;font-size:15px;font-weight:bold;padding:10px 14px;border:2px solid #4fc3f7;border-radius:6px;z-index:200"></div>
+<div id="info" style="position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.85);color:#fff;font-family:monospace;font-size:12px;padding:10px;border:1px solid #4fc3f7;border-radius:6px;max-width:600px;max-height:92vh;overflow-y:auto;z-index:100">
   <div style="color:#4fc3f7;font-weight:bold">Sliding the partition through the lattice</div>
   A chain of pseudopotential cores, one valence electron each, and the domain walls placed
   <b>by hand</b> as planes between neighbouring cores. The walls are then shifted together by
@@ -284,6 +285,8 @@ window.onerror = function (msg, url, line) {
 
   var SWEEP = q.get('sweep');                                   // parameter to sweep
   var VALS  = (q.get('vals') || '').split(',').filter(Boolean);  // its values, in order
+  var SWEEP2 = q.get('sweep2');                                  // outer parameter, optional
+  var VALS2  = (q.get('vals2') || '').split(',').filter(Boolean);
 
   var KEY = 'realqm_chainslide';
   if (q.get('reset') !== null) localStorage.setItem(KEY, '{}');
@@ -313,21 +316,44 @@ window.onerror = function (msg, url, line) {
     // its next value; localStorage carries the table across the reload. Nothing is lost and
     // no run has to be launched by hand.
     //   ?sweep=w&vals=0.4,0.8,1.5,2.0,3.0&w=0.4
+    //
+    // A barrier is a DIFFERENCE of two runs, so a barrier-versus-something scan is a grid,
+    // not a line. A second, outer parameter may be swept as well: when the inner list is
+    // exhausted it rewinds to its first value and the outer advances one step.
+    //   ?sweep=sad&vals=0,1&sweep2=h&vals2=0.45,0.40,0.35,0.30
+    // walks both endpoints of the hop at each mesh in turn, unattended.
     if (SWEEP && VALS.length) {
       var cur = q.get(SWEEP);
       var idx = VALS.indexOf(cur);
+      var u = new URL(location.href);
+      u.searchParams.delete('reset');              // never wipe the accumulating table
+      u.searchParams.set('cb', String(Date.now()));
+      var msg = null;
       if (idx >= 0 && idx < VALS.length - 1) {
-        var u = new URL(location.href);
         u.searchParams.set(SWEEP, VALS[idx + 1]);
-        u.searchParams.delete('reset');            // never wipe the accumulating table
-        u.searchParams.set('cb', String(Date.now()));
+        msg = 'sweep: ' + SWEEP + '=' + cur + ' done, next ' + VALS[idx + 1]
+            + ' (' + (idx + 2) + '/' + VALS.length + ')';
+      } else if (SWEEP2 && VALS2.length) {
+        var cur2 = q.get(SWEEP2), idx2 = VALS2.indexOf(cur2);
+        if (idx2 >= 0 && idx2 < VALS2.length - 1) {
+          u.searchParams.set(SWEEP, VALS[0]);      // rewind the inner list
+          u.searchParams.set(SWEEP2, VALS2[idx2 + 1]);
+          msg = 'inner sweep done at ' + SWEEP2 + '=' + cur2 + ', advancing to '
+              + VALS2[idx2 + 1] + ' (' + (idx2 + 2) + '/' + VALS2.length + ')';
+        }
+      }
+      if (msg) {
         document.getElementById('out').innerHTML +=
-          '<br><b style="color:#4fc3f7">sweep: ' + SWEEP + '=' + cur + ' done, next '
-          + VALS[idx + 1] + ' (' + (idx + 2) + '/' + VALS.length + ')</b>';
+          '<br><b style="color:#4fc3f7">' + msg + '</b>';
+        document.getElementById('status').innerHTML =
+          '<span style="color:#9f9">converged ' + Number(E).toFixed(5) + '</span><br>' + msg;
         setTimeout(function () { location.href = u.toString(); }, 1200);
       } else {
         document.getElementById('out').innerHTML +=
           '<br><b style="color:#9f9">sweep complete</b>';
+        document.getElementById('status').innerHTML =
+          '<span style="color:#9f9">SWEEP COMPLETE</span><br>last E = '
+          + Number(E).toFixed(5);
       }
     }
   };
@@ -374,6 +400,30 @@ window.onerror = function (msg, url, line) {
                  + (dE / 0.00095).toFixed(1) + ' kT</span></b>');
       });
     });
+    // The hop barrier is E(saddle) - E(local), two separate cfg keys differing only in that
+    // word. Pair them up automatically: with a grid sweeping mesh or core radius there are
+    // too many to difference by eye, and reading them off two rounded displays loses the
+    // third digit exactly where the verdict is decided.
+    var hop = {};
+    Object.keys(st).forEach(function (cfg) {
+      var m = cfg.match(/^(.*)_HOP(saddle|local)( w[\d.]+)$/);
+      if (!m) return;
+      var g = m[1] + m[3];
+      (hop[g] = hop[g] || {})[m[2]] = Math.min.apply(null, st[cfg]['0.000'] || [1e9]);
+    });
+    var gs = Object.keys(hop).filter(function (g) {
+      return hop[g].saddle !== undefined && hop[g].local !== undefined;
+    }).sort();
+    if (gs.length) {
+      out.push('<b style="color:#4fc3f7">hop barriers</b>'
+               + '  &mdash; hopping semiconductors run 10&ndash;500 meV');
+      gs.forEach(function (g) {
+        var d = hop[g].saddle - hop[g].local;
+        out.push('&nbsp; ' + g + ' : <b><span style="color:'
+                 + (d * 27211 < 500 ? '#9f9' : '#ff9') + '">'
+                 + (d * 27211).toFixed(0) + ' meV</span></b>  (' + d.toFixed(5) + ' Ha)');
+      });
+    }
     document.getElementById('out').innerHTML = out.join('<br>');
   }
   table();
@@ -381,6 +431,26 @@ window.onerror = function (msg, url, line) {
   document.getElementById('out').innerHTML +=
     '<br>grid ' + gridN + '^3, h=' + h.toFixed(3) + ', walls at i = '
     + walls.map(function (w) { return w.toFixed(1); }).join(', ') + ' &mdash; running&hellip;';
+
+  // The accumulating table pushed the live line off the bottom of the panel, so the current
+  // case gets its own box in the opposite corner: what is running, and where in the grid.
+  (function () {
+    var pos = '';
+    if (SWEEP && VALS.length) {
+      var i1 = VALS.indexOf(q.get(SWEEP));
+      pos = SWEEP + '=' + q.get(SWEEP) + ' (' + (i1 + 1) + '/' + VALS.length + ')';
+      if (SWEEP2 && VALS2.length) {
+        var i2 = VALS2.indexOf(q.get(SWEEP2));
+        pos += ' &middot; ' + SWEEP2 + '=' + q.get(SWEEP2)
+             + ' (' + (i2 + 1) + '/' + VALS2.length + ')';
+      }
+    }
+    document.getElementById('status').innerHTML =
+      'RUNNING &nbsp; n=' + N + ' a=' + A + ' rc=' + RC.toFixed(2)
+      + (HOP ? ' w=' + W.toFixed(2) + ' ' + (SAD ? 'sad' : 'loc') : '')
+      + '<br>h=' + h.toFixed(3) + ' grid ' + gridN + '^3'
+      + (pos ? '<br><span style="color:#ff9">' + pos + '</span>' : '');
+  })();
   console.log('chain_slide: n=' + N + ' a=' + A + ' rc=' + RC + ' d=' + DFRAC + 'a grid=' + gridN);
 })();
 var s = document.createElement('script');
