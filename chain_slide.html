@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html><body style="margin:0;background:#000">
 <div id="status" style="position:fixed;top:10px;left:10px;background:#111;color:#4fc3f7;font-family:monospace;font-size:15px;font-weight:bold;padding:10px 14px;border:2px solid #4fc3f7;border-radius:6px;z-index:200"></div>
+<div id="slip" style="position:fixed;top:130px;left:10px;background:#111;color:#ff9;font-family:monospace;font-size:14px;padding:10px 14px;border:2px solid #ff9;border-radius:6px;z-index:200;max-width:460px"></div>
 <div id="info" style="position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.85);color:#fff;font-family:monospace;font-size:12px;padding:10px;border:1px solid #4fc3f7;border-radius:6px;max-width:600px;max-height:92vh;overflow-y:auto;z-index:100">
   <div style="color:#4fc3f7;font-weight:bold">Sliding the partition through the lattice</div>
   A chain of pseudopotential cores, one valence electron each, and the domain walls placed
@@ -141,7 +142,16 @@ window.onerror = function (msg, url, line) {
     // -0.5 that was here the localised configuration sat on bonds instead, so the two
     // configurations swapped names -- nvac=1 "local" returned -1.24957, the original saddle.
     for (var v = 0; v < NV; v++) cs.push((v + 1) * (N - 1) / (NV + 1));
-    if (SAD) cs[Math.floor(NV / 2)] -= 0.5;
+    // sad=0 and sad=1 are the two ends of a continuum: the slip centre displaced by 0 or by
+    // half a site. &hc=x sets that displacement directly, so the whole period 0..1 can be
+    // scanned instead of sampled at two points. Two things follow that two points cannot give.
+    // The barrier is then the AMPLITUDE of E(c) rather than a difference of endpoints, so it
+    // does not depend on having guessed where the extrema are. And hc=0 against hc=1 is a
+    // translation by one full spacing, which on an infinite chain must return the same energy
+    // exactly -- so their mismatch bounds the error floor from finite size and discretisation
+    // together. An amplitude smaller than that mismatch is not a measurement, whatever it is.
+    var HC = (q.get('hc') !== null) ? parseFloat(q.get('hc')) : (SAD ? 0.5 : 0);
+    cs[Math.floor(NV / 2)] -= HC;
     var cen = [];
     for (var m = 0; m < N - NV; m++) {
       // Both configurations use the SAME tanh profile of width W; only the CENTRE moves --
@@ -290,8 +300,130 @@ window.onerror = function (msg, url, line) {
 
   var KEY = 'realqm_chainslide';
   if (q.get('reset') !== null) localStorage.setItem(KEY, '{}');
+  // Clear one experiment without wiping the mesh ladder that took all afternoon.
+  if (q.get('clearhc') !== null) {
+    var _st = JSON.parse(localStorage.getItem(KEY) || '{}');
+    Object.keys(_st).forEach(function (k) { if (k.indexOf('_HCSCAN') >= 0) delete _st[k]; });
+    localStorage.setItem(KEY, JSON.stringify(_st));
+  }
 
-  window.onSweepDone = function (E) {
+  // Where the pattern actually sits, in units of the lattice spacing.
+  //
+  // Domain d nominally belongs to core d. If the slip has passed it, it sits on core d+1
+  // instead, so f_d = (x_d - core_d)/a runs from 0 to 1 across the kink and the sum
+  //
+  //     slip = sum_d f_d
+  //
+  // counts how many domains have advanced -- a continuous coordinate for the pattern's
+  // position. Below depinning the field polarises the domains and slip creeps up by a
+  // fraction; when the carrier lets go, slip jumps by ONE. That jump is the measurement:
+  // an event in a geometric quantity, not a difference of two total energies, so the 0.27 Ha
+  // discretisation error that defeats the direct barrier is irrelevant to it.
+  var SLIPKEY = 'realqm_depin';
+  async function measureSlip() {
+    if (typeof window.readDomainCentroids !== 'function') return null;
+    try {
+      var cen = await window.readDomainCentroids();
+      var f = [], tot = 0;
+      for (var d = 0; d < cen.length; d++) {
+        if (!cen[d].n || d >= atoms.length) continue;
+        var coreX = (atoms[d].i - N2) * h;
+        var fd = (cen[d].x - coreX) / A;
+        f.push(Number(fd.toFixed(4)));
+        tot += fd;
+      }
+      return { slip: Number(tot.toFixed(4)), f: f };
+    } catch (err) { console.warn('slip readout failed: ' + err); return null; }
+  }
+
+  // Poll it while the run proceeds rather than only at the end. Two reasons. With the boundary
+  // released the energy need not settle at all, so the convergence hook may never fire and a
+  // frozen-boundary habit of reporting only at convergence would report nothing. And depinning
+  // is an event in time: the informative thing is whether slip moves and when, which a single
+  // endpoint value cannot show. slip0 is the seeded value, so the running display shows the
+  // DISPLACEMENT, which is what has to reach 1.
+  var slipBusy = false, slip0 = null, slipMax = null, slipT0 = null;
+  var slipPrev = null, slipQuiet = 0, E0seen = null, hasMoved = false;
+  // Only poll where the answer depends on it -- a released boundary, where the pattern's
+  // position IS the measurement. On frozen runs the partition cannot move, so the poll buys
+  // nothing and costs a GPU buffer copy every three seconds inside the relaxation loop.
+  // Frozen runs reproduced to 0.00000 before this poller existed and to 0.00993 after it, so
+  // it is a suspect in its own right and does not belong in a run that has no use for it.
+  var POLL = (q.get('free') === '1');
+  setInterval(async function () {
+    if (!POLL || slipBusy || typeof window.readDomainCentroids !== 'function') return;
+    slipBusy = true;
+    try {
+      var sl = await measureSlip();
+      if (sl) {
+        if (slip0 === null) { slip0 = sl.slip; slipT0 = Date.now(); }
+        var dsl = sl.slip - slip0;
+        if (slipMax === null || Math.abs(dsl) > Math.abs(slipMax)) slipMax = dsl;
+        var mono = sl.f.every(function (v, i) { return i === 0 || v >= sl.f[i - 1] - 0.02; });
+        // Moving is not the question -- SETTLING is. A pattern that slides once and stops has
+        // relaxed to the neighbouring registry and is pinned there; one that never stops is
+        // either genuinely sliding or drifting, and the energy tells which: relaxation runs
+        // downhill and stops, drift wanders.
+        var rate = (slipPrev === null) ? 0 : (sl.slip - slipPrev);
+        slipPrev = sl.slip;
+        slipQuiet = (Math.abs(rate) < 0.004) ? slipQuiet + 1 : 0;
+        var Enow = (window._prevE !== undefined) ? window._prevE : null;
+        var dE = (E0seen === null || Enow === null) ? null : (Enow - E0seen);
+        if (Enow !== null && E0seen === null) E0seen = Enow;
+        document.getElementById('slip').innerHTML =
+          'F = ' + (parseFloat(q.get('field') || '0')).toFixed(4) + ' au'
+          + ' &nbsp; t = ' + ((Date.now() - slipT0) / 1000).toFixed(0) + ' s<br>'
+          + 'slip = <b>' + sl.slip.toFixed(3) + '</b>'
+          + ' &nbsp; shift = <b style="color:'
+          + (Math.abs(dsl) > 0.5 ? '#9f9' : '#ff9') + '">'
+          + (dsl >= 0 ? '+' : '') + dsl.toFixed(3) + '</b>'
+          + ' &nbsp; rate = ' + (rate >= 0 ? '+' : '') + rate.toFixed(4) + '/poll<br>'
+          + (Enow !== null ? 'E = ' + Enow.toFixed(5)
+              + (dE !== null ? ' &nbsp; dE = ' + (dE >= 0 ? '+' : '') + dE.toFixed(5)
+                 + (dE < -0.0005 ? ' <span style="color:#9f9">downhill</span>'
+                    : dE > 0.0005 ? ' <span style="color:#f77">UPHILL</span>' : '') : '')
+              + '<br>' : '')
+          + (slipQuiet >= 4 ? '<b style="color:#9f9">SETTLED</b> at shift '
+                              + (dsl >= 0 ? '+' : '') + dsl.toFixed(3) + '<br>'
+             : '<b style="color:#ff9">still moving</b><br>')
+          + 'f = [' + sl.f.map(function (v) { return v.toFixed(2); }).join(' ') + ']'
+          + (mono ? '' : ' <b style="color:#f77">non-monotone</b>');
+        // A released boundary does not drive the energy to 2e-5, so the energy-convergence
+        // hook never fires and a sweep would stall for ever. What HAS converged is the thing
+        // being measured: the pattern has stopped moving. Advance on that instead.
+        // "Stopped moving" and "has not started" produce the same rate. The first version of
+        // this check could not tell them apart and advanced the sweep 18 s into every run,
+        // recording the seeded slip and E = 0 six times over. Require evidence that the run is
+        // actually under way -- an energy from the solver, and motion having been seen at all --
+        // before quiescence is allowed to mean convergence.
+        if (hasMoved || Math.abs(dsl) > 0.02) hasMoved = true;
+        if (SWEEP && VALS.length && slipQuiet >= 6 && !runFinished
+            && hasMoved && Enow !== null) {
+          console.log('settled at shift ' + dsl.toFixed(3) + ', advancing sweep');
+          window.onSweepDone(Enow);
+        }
+      }
+    } catch (e) { /* buffers not up yet */ }
+    finally { slipBusy = false; }
+  }, 3000);
+
+  var runFinished = false;
+  window.onSweepDone = async function (E) {
+    if (runFinished) return;          // settle-detector and energy-convergence both call this
+    runFinished = true;
+    var sl = await measureSlip();
+    if (sl) {
+      var ds = JSON.parse(localStorage.getItem(SLIPKEY) || '{}');
+      var dcfg = 'n' + N + '_a' + A.toFixed(1) + '_rc' + RC.toFixed(2) + '_h' + h.toFixed(3)
+               + (q.get('free') === '1' ? '_FREE' : '_frozen')
+               + (HOP ? '_w' + W.toFixed(2) : '');
+      ds[dcfg] = ds[dcfg] || {};
+      ds[dcfg][parseFloat(q.get('field') || '0').toFixed(5)] =
+        { E: Number(Number(E).toFixed(6)), slip: sl.slip, f: sl.f };
+      localStorage.setItem(SLIPKEY, JSON.stringify(ds));
+      console.log('SLIP field=' + (q.get('field') || '0') + ' slip=' + sl.slip
+                  + ' f=[' + sl.f.join(', ') + ']');
+    }
     var st = JSON.parse(localStorage.getItem(KEY) || '{}');
     var cfg = 'n' + N + '_a' + A.toFixed(1) + '_rc' + RC.toFixed(2) + '_ze' + ZE.toFixed(2)
             + '_h' + h.toFixed(3)
@@ -300,12 +432,15 @@ window.onerror = function (msg, url, line) {
             + (parseFloat(q.get('beta') || '0') !== 0 ? '_b' + parseFloat(q.get('beta')).toFixed(3) : '')
             + (q.get('curv') !== null ? '_c' + parseFloat(q.get('curv')).toFixed(2) : '')
             + (parseFloat(q.get('field') || '0') !== 0 ? '_F' + parseFloat(q.get('field')).toFixed(4) : '')
-            + (HOP ? '_nv' + NV + (SAD ? '_HOPsaddle w' + W.toFixed(2) : '_HOPlocal w' + W.toFixed(2))
+            + (HOP && q.get('hc') !== null ? '_HCSCAN w' + W.toFixed(2)
+              : HOP ? '_nv' + NV + (SAD ? '_HOPsaddle w' + W.toFixed(2) : '_HOPlocal w' + W.toFixed(2))
                   : VK ? '_VK w' + W.toFixed(2) + '_kc' + KC.toFixed(2)
                   : PAIR ? '_PAIR w' + W.toFixed(2) + '_m' + M1 + '-' + M2
                   : SLIP ? '_SLIP w' + W.toFixed(2) : (KINK ? '_KINK' : '_rigid'));
     st[cfg] = st[cfg] || {};
-    var dk = DFRAC.toFixed(3);
+    // The hc scan varies the slip centre, not the wall shift, so it keys on that instead --
+    // otherwise every point of the scan lands in the d = 0.000 bucket and reads as repeats.
+    var dk = (HOP && q.get('hc') !== null) ? HC.toFixed(4) : DFRAC.toFixed(3);
     if (!Array.isArray(st[cfg][dk])) st[cfg][dk] = [];
     st[cfg][dk].push(Number(E));
     localStorage.setItem(KEY, JSON.stringify(st));
@@ -327,6 +462,7 @@ window.onerror = function (msg, url, line) {
       var idx = VALS.indexOf(cur);
       var u = new URL(location.href);
       u.searchParams.delete('reset');              // never wipe the accumulating table
+      u.searchParams.delete('clearhc');            // ... and that goes for the targeted clear too
       u.searchParams.set('cb', String(Date.now()));
       var msg = null;
       if (idx >= 0 && idx < VALS.length - 1) {
@@ -361,7 +497,23 @@ window.onerror = function (msg, url, line) {
   function table() {
     var st = JSON.parse(localStorage.getItem(KEY) || '{}');
     var out = [];
-    Object.keys(st).forEach(function (cfg) {
+    // Show the experiment being run, not every experiment ever run on this page. The table had
+    // grown long enough that the live block was indistinguishable from twenty stale ones.
+    var HCRUN = (HOP && q.get('hc') !== null);
+    // Match the current chain and core radius as well as the experiment type. Spacing and
+    // mesh are deliberately NOT matched: a scan over a changes h with it, and those are the
+    // rows one wants side by side. Without this the panel showed twenty stale blocks and the
+    // live ones were unfindable.
+    var wantRc = '_rc' + RC.toFixed(2), wantN = 'n' + N + '_a';
+    var keys = Object.keys(st).filter(function (cfg) {
+      if (HCRUN !== (cfg.indexOf('_HCSCAN') >= 0)) return false;
+      return cfg.indexOf(wantN) === 0 && cfg.indexOf(wantRc) >= 0;
+    });
+    var hidden = Object.keys(st).length - keys.length;
+    if (hidden > 0) out.push('<i style="color:#888">(' + hidden
+                             + ' other configuration' + (hidden > 1 ? 's' : '')
+                             + ' hidden)</i>');
+    keys.forEach(function (cfg) {
       out.push('<b>' + cfg + '</b>');
       var ds = Object.keys(st[cfg]).sort(function (x, y) { return parseFloat(x) - parseFloat(y); });
       var lo = 1e9, hi = -1e9;
@@ -373,11 +525,55 @@ window.onerror = function (msg, url, line) {
                  + (v.length > 1 ? '  <span style="color:' + (sp < 1e-4 ? '#9f9' : '#f77')
                     + '">(' + v.length + ' runs, spread ' + sp.toFixed(5) + ')</span>' : ''));
       });
+      // For a RIGID slide, d is a uniform displacement of the electron distribution against
+      // fixed nuclei: u = d*a, the polarisation coordinate. What decides conduction is not the
+      // amplitude of E(u) but its CURVATURE at the origin -- K = d2E/du2 at u = 0. K > 0 is a
+      // restoring force, so the shift saturates and gives polarisation without DC current: an
+      // insulator. K near zero means the distribution slides freely: a conductor.
+      //
+      // E(u) is even about u = 0 (reflection), so E(-d) = E(d) and the second derivative needs
+      // only two points:  K = 2[E(d) - E(0)] / (d*a)^2.
+      // Evaluated at the smallest few d it should be CONSTANT if the quadratic regime holds --
+      // drift in K with d is the signal that it does not, and is worth more than any one value.
+      if (cfg.indexOf('_rigid') >= 0 && st[cfg]['0.000']) {
+        var E0 = Math.min.apply(null, st[cfg]['0.000']), krows = [];
+        ds.forEach(function (dd) {
+          var dv = parseFloat(dd);
+          if (dv <= 0 || dv > 0.30) return;
+          var Ed = Math.min.apply(null, st[cfg][dd]);
+          var uu = dv * A;
+          krows.push('&nbsp;&nbsp; d=' + dd + ' (u=' + uu.toFixed(3) + ' a0) : K = '
+                     + (2 * (Ed - E0) / (uu * uu)).toFixed(5) + ' Ha/a0^2');
+        });
+        if (krows.length) {
+          out.push('&nbsp; <b style="color:#4fc3f7">curvature K = 2[E(u)-E(0)]/u^2</b>'
+                   + '  &mdash; constant across rows means the quadratic regime is real');
+          krows.forEach(function (r) { out.push(r); });
+        }
+      }
       if (ds.length > 1) {
         var bar = hi - lo;
         out.push('&nbsp; <b>pinning barrier = ' + bar.toFixed(5) + ' Ha = '
                  + (bar * 27211).toFixed(0) + ' meV = ' + (bar / 0.00095).toFixed(1)
                  + ' kT</b>  (ring_slide gave 0.01186 Ha by rigid rotation)');
+        // The control that makes the amplitude interpretable: hc = 0 and hc = 1 differ by a
+        // translation through one full lattice spacing. Their mismatch is error -- finite size
+        // and discretisation together -- and the amplitude has to clear it to mean anything.
+        if (cfg.indexOf('_HCSCAN') >= 0) {
+          var z0 = st[cfg]['0.0000'], z1 = st[cfg]['1.0000'];
+          if (z0 && z1) {
+            var err = Math.abs(Math.min.apply(null, z1) - Math.min.apply(null, z0));
+            var ok = bar > 3 * err;
+            out.push('&nbsp; <b>control (hc=1 must equal hc=0): '
+                     + '<span style="color:' + (ok ? '#9f9' : '#f77') + '">'
+                     + err.toFixed(5) + ' Ha = ' + (err * 27211).toFixed(0) + ' meV</span></b>'
+                     + ' &mdash; ' + (ok ? 'amplitude clears it by '
+                                            + (bar / err).toFixed(1) + 'x'
+                                     : '<b>amplitude does NOT clear the error floor</b>'));
+          } else {
+            out.push('&nbsp; <i>control pending: need both hc=0 and hc=1</i>');
+          }
+        }
       }
     });
     // The number actually wanted is E(kink) - E(uniform), which spans two cfg keys, so the
@@ -405,7 +601,7 @@ window.onerror = function (msg, url, line) {
     // too many to difference by eye, and reading them off two rounded displays loses the
     // third digit exactly where the verdict is decided.
     var hop = {};
-    Object.keys(st).forEach(function (cfg) {
+    keys.forEach(function (cfg) {
       var m = cfg.match(/^(.*)_HOP(saddle|local)( w[\d.]+)$/);
       if (!m) return;
       var g = m[1] + m[3];
@@ -424,6 +620,36 @@ window.onerror = function (msg, url, line) {
                  + (d * 27211).toFixed(0) + ' meV</span></b>  (' + d.toFixed(5) + ' Ha)');
       });
     }
+    // The depinning ramp: field against the pattern's position. The barrier is read from the
+    // field at which slip jumps by one, not from any energy. For a corrugation of amplitude
+    // E_a the tilt depins when the work per site q*F*a reaches the maximum slope of E(x),
+    // which for a sinusoid is pi*E_a -- so E_a = F_dep*a/pi, with the shape factor of order
+    // pi the one real approximation in the method.
+    var ds = HCRUN ? {} : JSON.parse(localStorage.getItem(SLIPKEY) || '{}');
+    Object.keys(ds).sort().forEach(function (dcfg) {
+      var fs = Object.keys(ds[dcfg]).sort(function (x, y) { return parseFloat(x) - parseFloat(y); });
+      if (fs.length < 2) return;
+      out.push('<b style="color:#4fc3f7">depinning ramp &mdash; ' + dcfg + '</b>');
+      var prev = null, jumpAt = null;
+      fs.forEach(function (fk) {
+        var r = ds[dcfg][fk], mark = '';
+        if (prev !== null && Math.abs(r.slip - prev) > 0.5) {
+          mark = '  <b style="color:#9f9">&larr; JUMP ' + (r.slip - prev).toFixed(2) + '</b>';
+          if (jumpAt === null) jumpAt = parseFloat(fk);
+        }
+        out.push('&nbsp; F = ' + fk + ' au :  slip = ' + r.slip.toFixed(3)
+                 + '   E = ' + r.E.toFixed(5) + mark);
+        prev = r.slip;
+      });
+      if (jumpAt !== null) {
+        var Ea = jumpAt * A / Math.PI;
+        out.push('&nbsp; <b>F_dep &le; ' + jumpAt.toFixed(5) + ' au &rArr; E_a &asymp; '
+                 + (Ea * 27211).toFixed(0) + ' meV</b>  (sinusoid shape factor)');
+      } else {
+        out.push('&nbsp; <i>no jump yet &mdash; still pinned at F = ' + fs[fs.length - 1]
+                 + ', raise the ramp</i>');
+      }
+    });
     document.getElementById('out').innerHTML = out.join('<br>');
   }
   table();
@@ -445,9 +671,17 @@ window.onerror = function (msg, url, line) {
              + ' (' + (i2 + 1) + '/' + VALS2.length + ')';
       }
     }
+    // Name the experiment, not just the parameters. With several tabs open on the same page
+    // the panels were indistinguishable and the wrong one got read.
+    var what = (HOP && q.get('hc') !== null) ? 'HC SCAN (frozen, full period)'
+             : (q.get('free') === '1') ? 'DEPINNING RAMP (free boundary)'
+             : HOP ? 'HOP ENDPOINTS (frozen)' : 'RIGID SLIDE';
     document.getElementById('status').innerHTML =
-      'RUNNING &nbsp; n=' + N + ' a=' + A + ' rc=' + RC.toFixed(2)
-      + (HOP ? ' w=' + W.toFixed(2) + ' ' + (SAD ? 'sad' : 'loc') : '')
+      '<span style="color:#9f9">' + what + '</span><br>'
+      + 'n=' + N + ' a=' + A + ' rc=' + RC.toFixed(2)
+      + (HOP && q.get('hc') !== null ? ' hc=' + HC.toFixed(3)
+         : HOP ? ' w=' + W.toFixed(2) + ' ' + (SAD ? 'sad' : 'loc') : '')
+      + (HOP && q.get('hc') !== null ? ' w=' + W.toFixed(2) : '')
       + '<br>h=' + h.toFixed(3) + ' grid ' + gridN + '^3'
       + (pos ? '<br><span style="color:#ff9">' + pos + '</span>' : '');
   })();

@@ -2604,6 +2604,47 @@ async function initGPU() {
     }
     labelBuf = device.createBuffer({ size: bs, usage: usage | GPUBufferUsage.COPY_SRC });
     label2Buf = device.createBuffer({ size: bs, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST });
+
+    // Where each domain actually sits, read back from the partition itself.
+    //
+    // A barrier obtained by differencing two total energies is hopeless here: the totals carry
+    // a discretisation error some twenty-five times the barrier and the errors do not cancel.
+    // The way round it is to stop measuring energies and measure a POSITION -- ramp an external
+    // field and find where the carrier lets go. That threshold is a geometric event, immune to
+    // an error in the absolute energy, and this is the readout it needs.
+    //
+    // Returns one entry per domain: the centroid of the cells carrying its label, in au relative
+    // to the box centre. Unweighted by density on purpose -- what translates in this framework is
+    // the partition, so the partition is what is measured.
+    window.readDomainCentroids = async function () {
+      const rb = device.createBuffer({ size: bs, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+      const enc = device.createCommandEncoder();
+      enc.copyBufferToBuffer(labelBuf, 0, rb, 0, bs);
+      device.queue.submit([enc.finish()]);
+      await rb.mapAsync(GPUMapMode.READ);
+      const lab = new Uint32Array(rb.getMappedRange().slice(0));
+      rb.unmap(); rb.destroy();
+      const sx = new Float64Array(NELEC), sy = new Float64Array(NELEC),
+            sz = new Float64Array(NELEC), cnt = new Float64Array(NELEC);
+      const S2 = S * S, c = (S - 1) / 2;
+      for (let i = 0; i < S; i++) for (let j = 0; j < S; j++) {
+        const base = i * S2 + j * S;
+        for (let k = 0; k < S; k++) {
+          const d = lab[base + k];
+          if (d >= NELEC) continue;
+          sx[d] += i; sy[d] += j; sz[d] += k; cnt[d]++;
+        }
+      }
+      const out = [];
+      for (let d = 0; d < NELEC; d++) {
+        out.push(cnt[d] ? { d: d, n: cnt[d],
+                            x: (sx[d] / cnt[d] - c) * hGrid,
+                            y: (sy[d] / cnt[d] - c) * hGrid,
+                            z: (sz[d] / cnt[d] - c) * hGrid }
+                        : { d: d, n: 0, x: NaN, y: NaN, z: NaN });
+      }
+      return out;
+    };
     W_buf = device.createBuffer({ size: bs, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
     PotherBuf = device.createBuffer({ size: bs, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
     PselfScratchBuf = device.createBuffer({ size: bs, usage });

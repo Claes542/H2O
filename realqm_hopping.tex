@@ -12,7 +12,7 @@
 \newcommand{\half}{\tfrac12}
 
 
-\title{On Conduction by Hopping in RealQM:\\ \large the Free Boundary as Carrier}
+\title{The Free Boundary as Carrier:\\ \large why static RealQM cannot compute conduction}
 
 \author[1]{Claes Johnson}
 \affil[1]{KTH Royal Institute of Technology, SE-100 44 Stockholm, Sweden \\
@@ -27,57 +27,48 @@
 \begin{abstract}
 \noindent RealQM models matter as non-overlapping unit charge densities in ordinary
 three-dimensional space, one per electron, meeting at free boundaries and minimising the Coulomb
-energy. This article asks whether such a construction \textbf{conducts}.
+energy. This article asks whether such a construction \textbf{conducts}, and reports that the
+question cannot be answered in this formulation --- for reasons that turn out to be structural
+rather than numerical, and that locate the boundary of the framework's scope.
 
-What moves is not an electron. An electron here is a unit of charge density on a domain; what
+What would move is not an electron. An electron here is a unit of charge density on a domain; what
 exists is the \emph{partition} of space, and the carrier is a \textbf{free boundary} --- in the
 relation a dislocation bears to the slip it produces, charge arriving at the far end while nothing
-material crosses the sample. Single occupancy makes the construction the Hubbard model at
-$U\to\infty$, so metals are out of scope in kind and not by degree, their carriers being extended
-Bloch states; doped Mott insulators, molecular semiconductors and polaronic oxides are not.
+material crosses the sample. That identification is the article's positive content: it accounts for
+every null result reported below, each of which had imposed a carrier obliged to translate bodily
+through occupied space, and it is why the framework's one successful transport calculation is
+Grotthuss conduction, where the carrier is a proton.
 
-The activation energy for that boundary to advance one site would decide the question, and it is
-computable in principle: two configurations of a doped chain are fixed by \emph{symmetry} --- the
-carrier centred on a site, and centred between two --- so both are stationary points at which the
-interface condition holds without being imposed, and their difference is the hopping barrier, the
-width of the slip being minimised over rather than chosen. What that measurement yields is
-\textbf{a sign and a decade but not a value}. Transport is activated, the carrier sits at a
-definite registry and must leave it to advance, and the cost is of order a tenth to a whole
-electron-volt: every configuration computed, over four meshes, three chain lengths, four path
-widths and two dimensions, falls between $68$ and $929$~meV. Within that range the grid decides.
-The barrier is a difference of about $0.01$~Ha between two totals each carrying a discretisation
-error twenty-five times larger, the cancellation such a difference needs does not occur, and
-refining the mesh alone moves it $315\to552\to265$~meV without converging. Since the
-$10$--$500$~meV window of real hopping semiconductors \emph{overlaps} that range, the construction
-is neither placed in that class nor excluded from it. What it resembles is small-polaron or ionic
-conduction rather than a metal. A resolution-limited null result is the honest outcome, and the
-convergence study that establishes it is reported in full, since it bounds what any calculation of
-this kind can currently claim.
+The activation energy for such a boundary to advance one site is not extractable here, and the
+demonstration is the methodological contribution. Scanning the carrier through a \emph{full lattice
+period} rather than sampling two configurations supplies a control that costs nothing: translation
+by one spacing must return the same energy, so the mismatch is a per-run noise floor measured
+alongside the quantity it bounds. Of eight such scans, varying core radius and lattice spacing,
+\textbf{six fail that control}, and the two that pass survive no change of either parameter. The one
+scan in which both parameters are determined rather than chosen --- $r_c$ from the atom's ionisation
+energy, the spacing from that radius's own equilibrium --- fails by the widest margin. An earlier
+draft quoted $E_a=555$~meV and drew a verdict from its position relative to $500$; that figure is
+withdrawn, along with the length-independence and the comparisons built on it. Two artifacts are
+identified in its place: a drift of the carrier toward a chain end, and grid-locking of a staircase
+interface, each of order an electron-volt and each exactly reproducible, which is why they passed
+so long for signal.
 
-A second obstacle is computational, and it conditions everything else. A free boundary
-evolves by \emph{local} rules and so descends to the nearest configuration no single cell change
-improves --- a stuck point, not a minimum --- and which one depends on where the run started. Four
-independent geometries spread $0.005$--$0.05$~Ha across seeds and builds, against the
-$0.001$--$0.02$~Ha barriers sought; the ambiguity exceeds the quantity by one to two orders, and is
-unrepaired by surface tension, by step size, by freezing the labels, and by changing system. It is a
-failure of the \emph{search}, not of the energy functional. The repair is to specify the partition
-rather than find it: place the domain walls, freeze them, relax only the wavefunctions. Repeated
-runs then agree to all five decimals recorded. On that footing a misplaced domain wall costs
-$179$~meV, independent of chain length to $5\%$; a chain carrying a vacancy gains $0.112$~Ha by
-delocalising its mismatch, also length-independent; and the barrier to sliding a pattern through its
-lattice is tunable through zero by density and by core radius. The activation energy for a kink to
-\emph{move}, which is what governs conductivity, is not among them and is left open with a stated
-route rather than estimated.
+Underneath the arithmetic lies the structural obstacle. Non-overlap makes the transfer integral
+vanish identically, so band conduction is absent in kind and not by degree; and in this scheme
+nuclei move while electrons \emph{relax to a static minimum}, so there is no electron equation of
+motion and hence no object corresponding to a current. A minimisation has no time in it. Attempting
+to infer transport from an energy landscape is a proxy, and it is the proxy that breaks. Electronic
+conduction therefore lies outside static RealQM, while protonic and ionic conduction lie inside it;
+a conduction calculation belongs in the time-dependent form where a real density carries a complex
+current.
 
 Two further results bound the framework. The interface coefficient vanishes exactly, $C=0$, removing
 degeneracy pressure and leaving a vanishing screening length and a dispersionless plasmon; a Robin
 condition at $\beta a=1.146$ restores $C=C_{\rm TF}$, but $\beta$ that large \emph{unbinds}
-$\mathrm{H}_2$, which fails by $\beta a\approx0.71$ --- so the equation of state and molecular
-binding appear not to be repairable together, while double occupancy, the repair conduction needs
-at half filling, becomes favourable at $\beta a=0.451$. And against density-functional
-theory and exact full configuration interaction on the same chains, the framework errs by
-\textbf{over-localising} --- in bond length and in pinning alike --- which is the direction
-$U\to\infty$ implies, so it fails as its own analysis says it should rather than arbitrarily.
+$\mathrm{H}_2$, which fails by $\beta a\approx0.71$. And on the same chains, exact diagonalisation
+in a minimal basis puts the carrier on four or five sites where this construction pins it to one ---
+the framework errs by \textbf{over-localising}, which is the direction $U\to\infty$ implies, so it
+fails as its own analysis says it should rather than arbitrarily.
 \end{abstract}
 
 \setstretch{1.15}
@@ -348,228 +339,131 @@ question asked is no longer ``where does the boundary go'' but ``what does this 
 cost'' --- which is the question a barrier actually poses. It is the device that makes the
 $\mathrm{H}_2$ midplane exact, applied to a coordinate instead of a symmetry.
 
-\paragraph{The hopping barrier, from two configurations neither of which was chosen.} The
-quantity conduction depends on is the activation energy for a carrier to advance one site, and it
-can be had without choosing any partition, because \emph{symmetry fixes both ends}. Take a chain
-with an odd number of sites carrying one vacancy, and let the carrier hop between the two central
-sites. Two configurations are then distinguished:
 
-\begin{itemize}\itemsep2pt
-\item the carrier centred \textbf{on} a site --- invariant under reflection about that site;
-\item the carrier centred \textbf{between} the two sites --- invariant under reflection about the
-bond midpoint.
-\end{itemize}
+\section{The barrier is not extractable, and the control that shows it}\label{sec:mesh}
 
-\noindent Each is invariant under a reflection, hence a stationary point of the energy over
-partitions, hence a configuration at which the balance condition holds without being imposed. This
-is the footing that makes the $\mathrm{H}_2$ midplane exact, and it is the only footing on which a
-specified partition is legitimate. The profile connecting the two is given the same width in both,
-so that position is the only thing that differs.
+A barrier taken as the difference of two configurations is only as good as the cancellation between
+their errors, and that cancellation is not something one may assume. The check is available and
+costs nothing conceptually: scan the carrier's position through a \emph{full lattice period} rather
+than sampling two configurations, and require the scan to return to where it began. On an infinite
+chain $E(c{=}0)$ and $E(c{=}1)$ are the same configuration translated by one spacing and must agree
+exactly. Their mismatch is therefore a per-run noise floor --- finite size and discretisation
+together --- measured in the same run as the quantity it has to be compared against.
+
+Two further benefits come with it. The barrier becomes the \emph{amplitude} of $E(c)$, so nothing
+depends on having guessed where the extrema lie; and the shape of $E(c)$ is visible, so a genuine
+corrugation can be told from a monotone drift. Both matter, as it turns out: the maximum is
+generally not at the half-way point that a two-configuration measurement assumes.
+
+Applying it is decisive. Eight scans, each nine configurations over one period, with the core
+radius and the lattice spacing varied:
 
 \begin{center}
 \small
-\begin{tabular}{@{}lrrr@{}}
+\begin{tabular}{@{}rrrrrl@{}}
 \toprule
-spacing $a$ (a$_0$) & on site (Ha) & between sites (Ha) & barrier\\
+$a$ (a$_0$) & $r_c$ & amplitude & control & ratio & \\
 \midrule
-$4.0$ & $-1.00761$ & $-1.07092$ & $0.06331$~Ha $=1723$~meV\\
-$5.0$ & $-1.14835$ & $-1.17695$ & $0.02860$~Ha $=\phantom{0}778$~meV\\
-$6.0$ & $-1.21951$ & $-1.24957$ & $0.03006$~Ha $=\phantom{0}818$~meV\\
-$7.0$ & $-1.17275$ & $-1.19527$ & $0.02252$~Ha $=\phantom{0}613$~meV\\
+$6.0$ & $1.60$ & $\phantom{0}770$~meV & $699$~meV & $\phantom{0}1.1$ & fails\\
+$6.0$ & $1.60$ & $1087$ & $535$ & $\phantom{0}2.0$ & fails\\
+$4.5$ & $0.80$ & $1854$ & $1524$ & $\phantom{0}1.2$ & fails\\
+$4.5$ & $1.20$ & $1735$ & $936$ & $\phantom{0}1.9$ & fails\\
+$4.5$ & $1.60$ & $1900$ & $\phantom{00}78$ & $24.4$ & passes\\
+$4.5$ & $1.93$ & $2597$ & $584$ & $\phantom{0}4.4$ & passes\\
+$5.5$ & $1.93$ & $1949$ & $1192$ & $\phantom{0}1.6$ & fails\\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\paragraph{And the barrier must be minimised over the path, not read off one.} A barrier is the
-lowest saddle connecting two states, not the highest point of whichever path one happens to sample.
-The family above has a second parameter --- the width $W$ over which the slip is spread --- and
-fixing it describes a kink of rigid shape, which a minimum-energy path is under no obligation to be.
-Scanning it:
+\noindent \textbf{Six of the eight fail their own control}, and the two that pass do not survive a
+change of either parameter. Worse for any attempt to rescue a number from them, the passes cluster
+at one spacing, $a=4.5$, across three different core radii --- including one for which $4.5$ is not
+the equilibrium. Had the control been passing because a bound chain holds the carrier, the
+calibrated radius at \emph{its own} equilibrium would have passed; it fails by the widest margin in
+the table.
 
-\begin{center}
-\small
-\begin{tabular}{@{}lrl@{}}
-\toprule
-$W$ (sites) & barrier & \\
-\midrule
-$0.4$ & $929$~meV & \\
-$0.8$ & $818$~meV & \\
-$1.5$ & $552$~meV & minimum over $W$\\
-$3.0$ & $626$~meV & \\
-\bottomrule
-\end{tabular}
-\end{center}
+The last row is the one that settles the matter. Everywhere else in this article at least one
+parameter was chosen for convenience: $r_c=1.6$ because it was to hand, $a=6.0$ because the first
+scans used it. In that row both are determined --- $r_c=1.93$ from the isolated atom's ionisation
+energy, and $a=5.5$ from that radius's own equilibrium, located by a five-point scan of the
+defect-free chain with a minimum at $5.43$~a$_0$. \emph{At parameters the framework does not get to
+choose, no barrier can be quoted.}
 
-\noindent The curve has a minimum, which is what a Frenkel--Kontorova kink requires: elastic
-stiffness penalises a wide kink, the lattice's grip penalises a narrow one, and the physical width
-lies between. Every figure obtained at a fixed $W$ is an upper bound, since it is the cost along a
-rigid path; the $818$~meV that this section reported before the width was varied is one such.
+\paragraph{Why, in one line of arithmetic.} The totals converge only to first order in the mesh, at
+about $0.91$~Ha per unit $h$, so at $h=0.30$ each still carries some $0.27$~Ha of discretisation
+error --- a fifth of the total --- while the barrier differenced from the pair is $0.01$~Ha. The
+quantity sought is under four per cent of the error in each quantity it is subtracted from, and
+would need better than ninety-six per cent cancellation to survive. It does not get it: refining the
+mesh alone at fixed everything else moves the value $315\to371\to552\to265$~meV, without converging
+and without monotonicity. Brute force cannot close this. Reducing the error merely to the size of
+the barrier needs $h\approx0.011$, a $4200^3$ grid; reaching ten per cent of it needs $42000^3$.
 
-These four figures share one mesh, $h=0.348$, and the minimum over $W$ is therefore a minimum at
-that mesh. \S\ref{sec:mesh} varies $h$ and finds that the barrier does not survive it. The width
-scan is reported here because the shape of the curve --- a genuine minimum, for the reason
-Frenkel--Kontorova gives --- is what one wants to know about the path family, and that shape is not
-what fails. The number attached to it is.
+\paragraph{Two artifacts, both identified.} What the scans do contain is a monotone drift of
+$0.5$--$1.5$~eV per site, the carrier being attracted to a chain end, superposed on a deterministic
+wiggle of similar size. The wiggle is grid-locking, and it can be caught in the act: at $h=0.348$
+the configurations $c=0.125$ and $c=0.250$ return \emph{identical} energies to five decimals,
+because the cell-by-cell assignment did not flip between them. The partition is a staircase pinned
+to the grid, and the interface energy jumps as the staircase does. Neither artifact is noise ---
+repeated runs of one configuration agree to all five decimals recorded --- which is precisely why
+scatter of this kind survived so long undetected: it is exactly reproducible, and reproducibility
+was taken for correctness.
 
-\noindent Three things follow, and the first is a structural claim rather than a number, though a
-narrower one than it first appeared. On a chain the carrier sits \textbf{between} sites: the
-bond-centred configuration is the minimum at every spacing tested, so the hop is bond to bond
-through the on-site saddle, which reproduces by an independent route the registry preference found
-above. That preference does \emph{not} survive a second dimension. Repeating the same construction
-on a square lattice --- identical carrier, identical slip, one dimension more --- the hole sits on a
-\emph{site} and the bond becomes the saddle, which is the conventional picture for vacancy hopping.
-The bond-centred result is a property of the chain and not of the construction, and it is recorded
-here as such.
+\paragraph{A caution about spacing, from the exact side.} Every barrier first computed here used
+$a=6.0$. On a hydrogen chain of the same geometry, full configuration interaction puts the binding
+at $0.8$~mHa --- $21$~meV for six atoms, against the same atoms separated. \emph{The chain is not
+bound at that spacing.} A lattice that does not hold together cannot pin a carrier, so the absence
+of a periodic corrugation there is the expected result and not a finding about RealQM. This
+invalidates the original comparison with hopping semiconductors on its own, before any question of
+numerical resolution arises: those materials are bound solids.
 
-Second, the barrier looked like a property of the hop rather than of the chain: at $a=6.0$ and
-$W=0.8$ it is $0.03006$~Ha for seven sites and $0.03247$~Ha for nine, $8\%$ apart, while the total
-energy moves by $0.59$~Ha between them. \S\ref{sec:mesh} withdraws this. The two figures were
-computed at different meshes, and at matched mesh the same comparison spreads by a factor of five.
+\paragraph{What would be needed instead.} Not a finer grid. The failure is structural to the method
+of differencing large totals, so the routes out change what is computed. Either the barrier is
+obtained as a path integral of the interface force, $dE/d\lambda=\oint_\Gamma[w]\,v_n\,dS$,
+whose error scales with the interface rather than with the volume; or the partition is given
+sub-cell resolution so that $E$ becomes a smooth function of where the walls lie instead of a rough
+one. Both are projects rather than adjustments, and neither was attempted here.
 
-Third, \textbf{compression raises the barrier}. It is
-$818$~meV at the equilibrium spacing and $1723$~meV compressed to $a=4.0$, a doubling rather than a
-closing. That is the conclusion the compression scans of this article reached by the free-boundary
-route, and it is worth stating plainly that those scans are the ones \S\ref{sec:conduction} shows to
-be unreliable. The result survives the discrediting of the method that first found it.
+\paragraph{The control is sound, and a ring shows it.} Lest the failures above be read as a defect
+of the specified-partition method itself, the control was checked on a geometry whose symmetry is
+exact. A ring of six kernels carrying six electrons, the partition rotated rigidly by $\phi$ in
+units of the spacing, must return the same energy at $\phi=1$ as at $\phi=0$ --- the two are related
+by a relabelling --- and must be symmetric about $\phi=\tfrac12$. It is, to every digit recorded:
+$E(0)=E(1)=0.56101$, $E(0.125)=E(0.875)=0.35258$, $E(0.375)=E(0.625)=-0.21304$, with one pair
+disagreeing by $0.011$~Ha and thereby setting the noise floor. So the method reproduces exact
+translations exactly, and the chain's asymmetry --- its minimum displaced from $d=\tfrac12$, which a
+reflection through a core forbids --- is the finite chain's two end domains, $29\%$ of a seven-core
+system, and not the partition. That ring is not otherwise usable: its angular sectors widen with
+radius, most of each domain lies far from its kernel, and the total energy comes out
+\emph{positive} for a system six hydrogen atoms would bind at $-3$~Ha. It settles the control and
+nothing else.
 
-\paragraph{Nor does doping, which was the last candidate.} Carrier concentration was the one
-variable with evidence of moving the barrier downward: the free-boundary series of this article has
-$1.09$~eV at $29\%$ falling to $0.31$~eV at $43\%$, a factor of $3.5$. Repeating the measurement
-with symmetry-fixed endpoints --- two vacancies in a seven-site chain, one hopping while the other
-stays --- gives $1525$~meV at $29\%$ against $818$~meV at $14\%$. The barrier \emph{rises}, and the
-earlier trend is not reproduced. It belongs with the other figures obtained by that route.
+\paragraph{Why this quantity in particular resists measurement.} The construction is a
+Frenkel--Kontorova system, and saying so explains the difficulty rather than merely naming it. The
+electron domains are a chain with elastic stiffness $\kappa$ supplied by Coulomb repulsion between
+neighbours; the kernels are a periodic substrate of amplitude set by $V$. Every configuration in
+this article is a displacement field $u(x)$ of electrons against kernels: the rigid slide is its
+uniform mode, and a kink is the localised profile carrying $u$ from $0$ to one spacing. In that
+model the width of the kink and the barrier to moving it are
+\begin{equation}\label{eq:fk}
+W=\sqrt{\kappa/K},\qquad K=V''(u_{\min}),\qquad E_{\rm PN}\sim\exp(-c\,W/a),
+\end{equation}
+so \emph{the barrier is exponentially sensitive to a ratio of two curvatures}. That is the worst
+possible form for direct measurement --- an exponential magnifies every error in $\kappa$ and $K$ ---
+and it is why differencing total energies was never going to work, whatever the mesh. It also
+indicates the route: $\kappa$ and $K$ are local curvatures, taken between configurations differing
+infinitesimally, where discretisation errors cancel instead of competing. Measuring those and
+inferring $E_{\rm PN}$ from \eqref{eq:fk} is a different calculation from the one attempted here,
+and it is left to a separate study. A caution belongs with it: \eqref{eq:fk} assumes
+nearest-neighbour coupling, while Coulomb is long-ranged, which changes kink profiles from
+exponential to power-law and shifts the transition. It is a guide to the regime, not a formula to
+trust to three figures.
 
-One qualification belongs with the comparison. The carrier's preferred position changes with
-concentration: at $14\%$ it sits at a bond and the site is the saddle, at $29\%$ the reverse. The
-two hops are therefore not the same process, and $818\to1525$ should not be read as a clean trend.
-What matters for the conclusion is that both lie between one and one and a half electron-volts.
-
-\paragraph{Two dimensions raise it further.} The chain forces the carrier along one route, and
-one might expect a lattice to offer a cheaper one --- an earlier scan of this framework found an
-\emph{excess electron} threading between two atoms to cost $5.46$~eV against $31.5$~eV through one,
-a factor of $5.8$. A hole has no such option. Built identically on a square lattice, the barrier is
-$2072$~meV at $3\times3$ and $2911$~meV at $5\times5$; the smaller lattice has a single interior
-site and is dominated by its edges, which is also where the bond-centred preference of the chain
-survives and then fails. Taking the larger figure, two dimensions make the hop \emph{harder} by a
-factor of $3.6$, not easier: a missing electron at a site disturbs four neighbours rather than two,
-and there is no route that avoids them.
-
-\paragraph{The conclusion is therefore robust rather than provisional.} Four variables have been
-tried, each of which could have produced a hopping semiconductor:
-
-\begin{center}
-\small
-\begin{tabular}{@{}ll@{}}
-\toprule
-variable & effect on the barrier\\
-\midrule
-lattice spacing, compressed & doubles it, $818\to1723$~meV\\
-a second dimension          & triples it, $818\to2911$~meV\\
-carrier concentration       & doubles it, $818\to1525$~meV\\
-core radius                 & helps modestly\\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\noindent The barrier remains between $0.56$ and $2.9$~eV throughout, that is $21$ to
-$113\,k_BT$, against the $10$--$500$~meV of the materials this article hoped to describe. It is not
-one measurement that places the construction outside that class but four attempts to bring it
-inside, none of which succeeds, and two of which make matters worse in the direction one would
-naively expect to help. \emph{No accessible variation reduces the barrier to the range where
-hopping occurs.}
-
-\section{The mesh, and why no barrier is quoted}\label{sec:mesh}
-
-Every barrier above is a difference of two total energies, each computed on a finite grid. Whether
-such a difference means anything depends on whether the two discretisation errors cancel, and that
-is a question about the mesh, not about the physics. It was asked late, and the answer withdraws the
-numbers.
-
-Holding chain length, spacing, core radius and path width fixed at $n=7$, $a=6.0$, $r_c=1.6$,
-$W=1.5$, and varying only the grid:
-
-\begin{center}
-\small
-\begin{tabular}{@{}lrrrr@{}}
-\toprule
-$h$ (a$_0$) & on site (Ha) & between sites (Ha) & barrier & slope of total\\
-\midrule
-$0.451$ & $-1.34727$ & $-1.35882$ & $315$~meV & \\
-$0.397$ & $-1.31216$ & $-1.32578$ & $371$~meV & $0.650$\\
-$0.348$ & $-1.26709$ & $-1.28739$ & $552$~meV & $0.920$\\
-$0.299$ & $-1.22260$ & $-1.23234$ & $265$~meV & $0.908$\\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\noindent \textbf{The barrier does not converge.} It rises, then falls below where it started:
-$315\to371\to552\to265$~meV, a factor of $2.1$ across four meshes with no monotone trend and nothing
-to extrapolate. The scatter is not noise --- three independent runs of the same configuration agree
-to all five decimals recorded, as everywhere else in this article once the partition is specified.
-It is exact, reproducible dependence on the grid.
-
-The totals, by contrast, behave. Their increments settle to a constant slope in $h$ of about
-$0.91$~Ha per unit $h$, which is first-order convergence, expected for a sharp-interface method.
-That is what makes the failure legible: at $h=0.30$ the discretisation error in each total is still
-about $0.27$~Ha, some twenty per cent of the total, while the barrier extracted from the pair is
-$0.010$~Ha. \emph{The quantity sought is under four per cent of the error in each quantity it is
-differenced from.} For it to survive, the two errors would have to cancel to better than
-ninety-six per cent, and they do not: the on-site slope settles at $0.91$ while the between-sites
-slope is still climbing through $0.61$, $0.78$, $1.12$. Extrapolating the two separately to $h=0$
-gives a difference near $2$~eV, inconsistent with every raw value in the table --- which is another
-way of exhibiting the same non-cancellation.
-
-Chain length behaves no better once the mesh is matched, which retracts a claim made above. At
-$h\approx0.45$, seven sites give $315$~meV and eleven give $560$; at $h\approx0.40$, seven give
-$371$ and nine give $68$. The agreement between $552$ at $n=7$ and $560$ at $n=11$ that earlier
-sections read as length-independence compared $h=0.348$ against $h=0.449$: two errors cancelling by
-coincidence. \emph{No length-independence has been established.}
-
-The same caveat reaches the other two length-independence claims of this article --- the
-$179$~meV wall defect and the delocalisation gain of $0.112$~Ha, each reported constant to a few
-per cent across chain length. Both were obtained the same way, at fixed requested spacing on a box
-that grows with the chain, so the mesh varied with the length there too. Neither has been rechecked
-at matched resolution. They are larger quantities than the hop barrier and so less exposed --- the
-delocalisation gain by a factor of eleven --- but the constancy should be read as untested rather
-than as confirmed.
-
-\paragraph{What is therefore withdrawn, and what stands.} The figure $E_a=555$~meV is withdrawn.
-So is $265$~meV, and every other entry in these tables taken as a measurement: they are samples from
-a range $68$--$929$~meV set by the grid, and the calculation cannot distinguish among them. The
-earlier paragraphs of this section, which compare barriers across spacing, dimension and carrier
-concentration, all rest on differences of the same size computed at a single mesh, and inherit the
-same limitation; their \emph{trends} may well be right, since the configurations compared are alike
-and their errors more likely to cancel, but no weight can be put on the factors of two.
-
-Two things do stand. The \textbf{sign} is robust: in every configuration computed --- four meshes,
-three chain lengths, four widths, both dimensions --- the on-site configuration lies above the
-bond-centred one on a chain. A barrier exists, and the carrier has a preferred registry it must
-leave to advance. And the \textbf{decade} is robust: every value obtained lies between $68$ and
-$929$~meV. That is not the meV scale of a metal, and not the ${\sim}13$~eV of the on-site repulsion
-$U$; it is the tenth-of-an-electron-volt scale of small-polaron and ionic conduction. The framework
-produces activated transport of that order.
-
-What it cannot do is decide whether the barrier lies inside the $10$--$500$~meV window of hopping
-semiconductors. That was to have been the verdict of this article, in one direction or the other,
-and it is not available at this discretisation. Resolving it needs error cancellation the present
-sharp-interface treatment does not provide --- a finer grid by a factor of two or more, a
-higher-order interface, or a formulation in which the barrier is computed directly rather than as a
-difference of large totals.
-
-\paragraph{What the barrier says about scope.} Less than this article set out to establish. The
-activation energy is of order a tenth to a whole electron-volt, every value obtained falling between
-$68$ and $929$~meV, and the grid rather than the physics decides where in that range any particular
-figure lands. Hopping semiconductors --- the organic and molecular solids, the polaronic oxides, the
-amorphous semiconductors named in \S\ref{sec:scope} --- have activation energies of $10$ to
-$500$~meV. That window overlaps the range computed here and is not separated from it, so the
-comparison does not decide the question either way.
-
-The scope claim of \S\ref{sec:scope} is therefore neither established nor refuted. What can be said
-is that the construction gives \emph{activated} transport at the tenth-of-an-eV scale, with a
-carrier that has a definite preferred registry and must leave it to advance --- the phenomenology of
-small-polaron and ionic conduction rather than of a metal. Whether it also reaches the
-semiconducting window is a question this discretisation is too coarse to answer, and it is left open
-rather than decided by a number the mesh study does not support.
+\paragraph{What this says about scope.} Less than this article set out to establish, and in a
+different direction. No activation energy is available, so the construction is neither placed in
+the hopping-semiconductor class nor excluded from it by measurement. The scope claim of
+\S\ref{sec:scope} stands or falls on the structural argument instead --- non-overlap, a vanishing
+transfer integral, and the absence of any electron equation of motion --- which is where it should
+have rested from the beginning, since those follow from the postulate and need no grid at all.
 
 \paragraph{Earlier figures, and why they are not quoted.} A series of barrier scans was made
 before the difficulty above was understood, all of them by the free-boundary route: a compression
@@ -754,6 +648,41 @@ As a scope check it passes, in the specific sense that matters: the framework er
 therefore the direction the identification predicts. It fails as it was said it would, rather than
 arbitrarily.
 
+\paragraph{The carrier itself, against exact diagonalisation.} The sharpest form of the comparison
+does not use energies at all. Take the same object this article hops --- $n$ protons, $n-1$
+electrons, nuclei clamped --- and diagonalise it exactly in a minimal basis. The Loewdin site
+populations then say directly whether the carrier is localised:
+
+\begin{center}
+\small
+\begin{tabular}{@{}rrrrl@{}}
+\toprule
+$a$ (a$_0$) & $E_{\rm corr}$ (eV) & $4t$ (eV) & max hole/site & \\
+\midrule
+$3.0$ & $-6.43$ & $11.11$ & $0.223$ & delocalised\\
+$4.0$ & $-11.97$ & $4.65$ & $0.215$ & delocalised\\
+$4.5$ & $-14.64$ & $2.96$ & $0.226$ & delocalised\\
+$6.0$ & $-19.86$ & $0.71$ & $0.253$ & delocalised\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent A hole spread evenly over seven sites reads $0.143$; one sitting on a single site reads
+$1.000$. At every spacing the exact ground state puts it on four or five sites. \emph{There is no
+localised carrier, and therefore no barrier for one to cross.} Note that this is not because
+correlation is weak --- $E_{\rm corr}$ reaches $19.9$~eV --- but because strong correlation and
+localisation are different things: a one-dimensional Mott insulator doped with a single hole
+conducts, the holon propagating freely, which is what the calculation reproduces.
+
+So the disagreement with this construction is about the state and not about a number, which is the
+harder kind to explain away. Two qualifications keep it honest. A minimal basis is not the exact
+solution of Schroedinger's equation but exact diagonalisation within a deliberately crude span ---
+STO-6G misses the hydrogen atom by six per cent before any chemistry begins --- and attempts to
+repeat the calculation in larger bases did not converge for the stretched chains. So no exact
+reference exists for these configurations, and nothing here can declare RealQM's pinning wrong for
+them. What can be said is that two independent approximate treatments and the known behaviour of the
+one-dimensional Hubbard model all point the same way, and this construction points the other.
+
 \paragraph{Where the comparison would actually bite.} The corollary is uncomfortable and is recorded
 plainly: nothing computed here is a quantity the standard treatment does not already supply more
 accurately. The case for the construction rests instead on the real-space mechanism --- a registry,
@@ -799,90 +728,52 @@ $C$ is a statement about a \emph{uniform} density and does not transfer to a sha
 \section{Conclusion}\label{sec:conclusion}
 
 The question was whether a construction of non-overlapping unit charge densities, meeting at free
-boundaries, conducts. The answer is not a number, and the most useful thing this article can report
-is why.
+boundaries, conducts. The answer is that in this formulation it cannot be computed, and the reasons
+are worth more than the number would have been.
 
-Transport here is activated: the carrier has a preferred registry and must leave it to advance,
-and the cost of doing so is of order a tenth to a whole electron-volt --- every configuration
-computed, across four meshes, three chain lengths, four path widths and two dimensions, falling
-between $68$ and $929$~meV, and every one of them putting the same configuration on top. The sign
-and the decade are solid. The value is not. It is a difference of order $0.01$~Ha taken between two
-total energies each carrying a discretisation error some twenty-five times larger, and
-\S\ref{sec:mesh} shows the required cancellation does not occur: refining the grid alone moves the
-barrier from $315$ to $552$ to $265$~meV without converging. An earlier draft of this article quoted
-$E_a=555$~meV and drew a verdict from its position relative to $500$; that figure was one sample
-from a grid-dependent range, and it is withdrawn.
+\paragraph{The carrier is a free boundary, and that identification holds.} An electron here is a
+unit of charge density on a domain; what exists is the partition of space. Transport is therefore
+the partition pattern travelling, in the relation a dislocation bears to slip: charge arrives at the
+far end while nothing material crosses the sample. That picture accounts for every null result
+reported above --- each had imposed a carrier obliged to translate bodily through occupied space ---
+and it is why the one transport calculation this framework performs successfully is Grotthuss
+conduction, where the carrier is a proton and the framework does have an equation of motion for it.
 
-The consequence is that the question the article set out to settle stays open. The
-$10$--$500$~meV window of hopping semiconductors overlaps the range computed here rather than
-sitting outside it, so the construction is not shown to belong to that class and is not excluded
-from it either. What it does resemble, on the evidence that survives, is small-polaron or ionic
-conduction: activated, tenth-of-an-eV, with a carrier dragging a lattice distortion rather than
-propagating freely.
+\paragraph{Costing that motion defeats the method, and the control is what shows it.} A barrier of
+$0.01$~Ha differenced from totals of $1.3$~Ha carrying $0.27$~Ha of first-order discretisation error
+requires a cancellation it does not get, and brute force cannot supply it: reaching ten per cent of
+the barrier needs a $42000^3$ grid. Scanning a full lattice period instead of sampling two
+configurations supplies the diagnosis for free, since translation by one spacing must return the
+same energy. Six of eight such scans fail that control, the two that pass survive no change of
+parameter, and the only scan at parameters the framework does not choose fails by the widest margin.
+What the scans do contain is a drift of the carrier toward a chain end and grid-locking of a
+staircase interface --- both of order an electron-volt, both exactly reproducible, which is why they
+were mistaken for signal for as long as they were.
 
-Three things stand independently of the number, and they are of different kinds.
+\paragraph{Beneath that lies a structural obstacle no refinement touches.} Non-overlap makes the
+transfer integral vanish identically, so band conduction is absent in kind: there are no extended
+states to carry it. And in this scheme nuclei move under classical equations of motion while
+electrons relax to a static minimum --- so there is no electron dynamics, and hence no object in the
+theory corresponding to a current. \emph{A minimisation has no time in it.} Every attempt above
+infers transport from an energy landscape, which is a proxy, and it is the proxy that breaks. The
+missing ingredient is not a better barrier calculation but an equation of motion, and it exists
+elsewhere in the programme: the time-dependent form in which a real density carries a complex
+current is where a conduction calculation belongs.
 
-\paragraph{The carrier is a free boundary, and that picture holds.} An electron here is a unit of
-charge density on a domain; what exists is the partition of space. Transport is therefore the
-partition pattern travelling, in the relation a dislocation bears to slip: charge arrives at the far
-end while nothing material crosses the sample. That diagnosis accounts for the null results reported
-above, each of which had imposed a carrier obliged to translate bodily through occupied space, and
-it was confirmed directly --- given a geometry that permits it, the boundary migrates and the charge
-goes with it. The picture is not in question.
+\paragraph{What the framework is, and is not.} Single occupancy with long-range Coulomb is
+\emph{not} the Hubbard atomic limit, whose degeneracy over carrier position would give a barrier of
+exactly zero; the Coulomb interaction between extended densities breaks that degeneracy, placing the
+construction closer to an extended Hubbard model where charge ordering is genuine physics. Within
+bound matter --- structure, binding, geometry --- it works, and the transport regimes it reaches are
+those with nuclear carriers. Electronic transport is outside, and against exact diagonalisation on
+the same chains the reason is visible directly: the exact carrier occupies four or five sites where
+this construction admits only one.
 
-\paragraph{Costing it defeats a minimisation, and that is the article's principal result.} A free
-boundary evolves by local rules, so a run descends to the nearest configuration no single cell
-change improves. That is a stuck point and not a minimum, and which one is reached depends on the
-initial condition. Measured across four independent geometries the ambiguity is $0.005$--$0.05$~Ha
-against barriers of $0.001$--$0.02$: one to two orders larger than the quantity being sought,
-unrepaired by the surface tension, by the boundary step, by freezing the labels, or by changing to a
-system without the first one's pathologies. It is a failure of the search and not of the energy
-functional, which is why nothing in the functional touches it, and it invalidates transport energies
-obtained this way --- including, by its own logic, the rigid-sliding figure of this article, which
-moved under a recompilation that altered no physics.
+\paragraph{The result is therefore a boundary, not a barrier.} A method with a mapped edge is more
+usable than one claimed to be universal, and the edge established here is sharp: static RealQM
+describes bound matter and nuclear transport, and cannot represent electronic conduction at all.
+Everything this article originally set out to measure lay on the far side of it.
 
-The repair is not a better minimiser but none. Domain walls are surfaces and can be placed:
-specify the partition, freeze it, relax only the wavefunctions, and ask what a stated configuration
-costs rather than where a boundary goes. Repeated runs then agree to every decimal recorded. What
-that yields is modest but real --- a misplaced domain wall at $179$~meV, independent of chain length
-to $5\%$; a vacancy's mismatch gaining $0.112$~Ha by delocalising, also length-independent; a
-sliding barrier tunable through zero by density and by core radius. What it does not yet yield is
-the activation energy for a kink to \emph{move}, which is the quantity conductivity depends on, and
-which is left open here with a construction stated rather than a number estimated.
-
-\paragraph{What the postulate buys, and what it costs.} The results here say something about
-non-overlap itself, and it is worth stating separately from any of them. Overlap is not an optional
-feature of quantum mechanics; it is the mechanism by which amplitude passes between places.
-Forbidding it makes the electrons objects with disjoint supports --- distinguishable, in the way
-classical charges are --- and leaves a theory of \emph{static} charge distributions carrying a
-quantum-derived kinetic penalty.
-
-That division predicts where the framework succeeds and where it does not, and the prediction is
-borne out across its whole corpus. Ground-state energies, bond lengths, lattice constants, binding
-curves: quantities set by electrostatics against a localisation cost, and it does them well.
-Tunnelling, exchange, dispersion, transport, a Fermi surface: quantities that exist only because
-amplitude is shared, and it has none of them. The failure recorded in this article is not a
-shortfall in accuracy but an absence of the ingredient, and it could have been predicted from the
-postulate without any computation --- which is the strongest form of the result, and the least
-comfortable.
-
-\paragraph{The construction is $U\to\infty$, and this sets both its scope and its errors.} Single
-occupancy is the Hubbard limit in which double occupancy is forbidden, so metals are excluded in
-kind --- no extended states, no band transport, no Fermi surface --- and what remains in scope is
-matter whose gap is on-site repulsion. The same fact fixes the direction of every discrepancy
-measured against standard treatments: the framework \emph{over-localises}, in bond length and in
-pinning alike. It fails as its own analysis says it should, which is worth more than an accidental
-agreement, but it does not yet produce a quantity that established methods do not supply more
-accurately. Its case rests on the mechanism being a clearer account of activated hopping than a
-model Hamiltonian with fitted parameters --- a claim tested not by simple metals, where
-density-functional theory is at its best, but by the systems where on-site repulsion sets the gap
-and that theory is itself in difficulty.
-
-Two repairs were identified and priced. Finite $U$ in place of infinite, which conduction at half
-filling requires, becomes favourable at $\beta a=0.451$ and leaves molecules bound. Restoring the
-interface coefficient to its Thomas--Fermi value requires $\beta a=1.146$, and $\mathrm{H}_2$
-unbinds by $\beta a\approx0.71$. Teller's theorem is thereby met inside the framework rather than
-inherited from outside it.
 
 \begin{thebibliography}{9}
 \bibitem{realqm} C.~Johnson, \emph{Real Quantum Mechanics}, \texttt{https://realqm.com}.

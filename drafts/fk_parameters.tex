@@ -1,0 +1,130 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace}
+
+\newcommand{\grad}{\nabla}
+\newcommand{\half}{\tfrac12}
+
+\title{Frenkel--Kontorova Parameters for an Electron Lattice,\\
+       \large computed from Coulomb rather than fitted}
+\author{Claes Johnson}
+\date{PROSPECTUS --- not a draft. Written \today.}
+
+\begin{document}
+\maketitle
+
+\noindent\textbf{Status: this is a plan, not a paper.} It records what the claim would be, which
+two numbers it needs, how to measure them, what controls each must pass, and what is already known.
+Nothing here is established. It exists so the work can be picked up without reconstructing the
+reasoning, and so that the claim is not made before the measurements support it.
+
+\section*{The claim, if it survives}
+
+The Frenkel--Kontorova model takes two parameters as input: the elastic stiffness $\kappa$ of the
+chain and the amplitude of the periodic substrate, entering through $K=V''(u_{\min})$. They are
+normally fitted. RealQM computes both from Coulomb interactions between charge densities, with no
+adjustable coupling, and with extended deformable domains in place of point masses. Applied to the
+\emph{electron} subsystem this is a microscopic charge-density-wave model built from an energy
+functional rather than postulated.
+
+What the two parameters buy is the transport regime, without ever measuring a barrier directly:
+\begin{equation}\label{eq:fk}
+W=\sqrt{\kappa/K},\qquad E_{\rm PN}\sim\exp(-c\,W/a).
+\end{equation}
+$W\gg a$ is a wide kink, exponentially small pinning, a sliding electron lattice. $W\sim a$ is a
+narrow kink and a pinned one. This is the Aubry transition, and it is the question the companion
+article could not answer by differencing energies --- \emph{because} of the exponential in
+\eqref{eq:fk}, which magnifies every error in the two curvatures.
+
+\section*{Why this is worth doing at all}
+
+The honest competitive position: DFT can also supply CDW parameters from first principles, is
+calibrated, and computing Peierls barriers that way is routine. The distinctive element here is
+\textbf{not accuracy}. It is that the Frenkel--Kontorova chain is \emph{literal} in this
+construction --- the domains are the particles, one electron each, rather than a caricature of a
+smooth density. Whether that interpretive advantage is worth a paper is a judgement to make after
+the numbers exist, not before.
+
+\section*{The two measurements}
+
+Both are local curvatures taken between configurations that differ infinitesimally, which is the
+regime where discretisation errors cancel. This is the whole methodological point: the companion
+article failed because it differenced distant configurations.
+
+\paragraph{$K$ --- the substrate curvature.} Rigid shift of every domain wall by $u=d\,a$ against
+fixed kernels, at the energy minimum:
+\[
+K=\frac{2\,[E(u_{\min}+\delta)-E(u_{\min})]}{\delta^2}.
+\]
+Requires the minimum to be located first; on the chain it is \emph{not} at $d=0$ (see below).
+
+\paragraph{$\kappa$ --- the chain stiffness.} Not yet attempted. Impose a uniform \emph{strain} on
+the electron spacing with the kernels held fixed --- the domains compressed or dilated relative to
+the lattice --- and fit the quadratic. This is a different deformation from the rigid slide: the
+slide is $u(x)=\mathrm{const}$, the strain is $u(x)\propto x$.
+
+\section*{Controls each must pass}
+
+\begin{enumerate}\itemsep2pt
+\item \textbf{Translation.} $E(d{=}0)=E(d{=}1)$ exactly; the two configurations are related by a
+relabelling. Verified exactly on a ring: $0.56101$ at both ends, and two symmetry pairs identical
+to five decimals.
+\item \textbf{Reflection.} $E(d)=E(-d)$ through a core, hence symmetry about $d=\half$. The
+seven-core chain \emph{fails} this --- its minimum sits beyond $d=0.5$ --- because two end domains
+are $29\%$ of the system. This is the outstanding obstacle.
+\item \textbf{Constancy of the curvature} across the smallest few displacements. A drift in $K$
+with $\delta$ means the quadratic regime has not been reached.
+\item \textbf{Reproducibility} to five decimals on repeated runs, which the frozen-partition method
+delivers when the diagnostic poller is off.
+\end{enumerate}
+
+\section*{What is already known}
+
+\begin{center}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+quantity & value & status\\
+\midrule
+$K$ at the commensurate registry $d=0$ & $-0.089$~Ha/a$_0^2$ & four displacements agree to $10\%$\\
+$K$ at the energy minimum & $\approx+0.27$~Ha/a$_0^2$ & contaminated by chain ends\\
+implied polarisability $1/K$ & $\approx3.8$~a$_0^3$/electron & hydrogen-like, plausible\\
+equilibrium at $r_c=1.93$ & $a=5.43$~a$_0$ & five-point scan, clean\\
+$\kappa$ & --- & not attempted\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The negative $K$ at $d=0$ is the more solid of the two and is itself a result: the
+commensurate registry, every domain centred on its own kernel, is \emph{unstable} to a uniform
+shift. The stable configuration is bond-centred, which agrees with the registry preference found
+independently in the companion article.
+
+\section*{The next run, concretely}
+
+Rigid slide at $n=11$, $r_c=1.93$, $a=5.5$, $h\approx0.35$ (a $186^3$ grid), sampling
+$d=0.375,\,0.4375,\,0.5,\,0.5625,\,0.625$. The question is whether the minimum returns to
+$d=\half$ once the end domains fall from $29\%$ to $18\%$ of the system. If it does, the end effect
+is confirmed, $K$ follows there, and $n=15$ gives the extrapolation. If it does not, the asymmetry
+is something else and the programme stops until that is understood.
+
+\section*{Known limitations, to be stated in any paper}
+
+\begin{itemize}\itemsep2pt
+\item \textbf{Staircase floor.} The partition assigns whole cells, so displacements below one cell
+flip no labels: $K$ cannot be evaluated nearer the minimum than $u\approx0.3$~a$_0$ without
+sub-cell interface resolution. Two configurations $0.125$ and $0.250$ of a spacing apart returned
+\emph{identical} energies to five decimals, which is this effect caught directly.
+\item \textbf{Long-range coupling.} Equation \eqref{eq:fk} assumes nearest-neighbour springs.
+Coulomb is long-ranged, giving power-law rather than exponential kink tails and shifting the
+transition. A guide to the regime, not a formula good to three figures.
+\item \textbf{No zero-point motion.} Static RealQM has no quantum fluctuation of the electron
+chain, so it returns the \emph{classical} FK parameters and necessarily over-pins relative to the
+real system. This is the same over-localisation that exact diagonalisation exposes on the same
+chains, where the hole occupies four or five sites and this construction admits one.
+\end{itemize}
+
+\end{document}
