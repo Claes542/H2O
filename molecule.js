@@ -2616,6 +2616,45 @@ async function initGPU() {
     // Returns one entry per domain: the centroid of the cells carrying its label, in au relative
     // to the box centre. Unweighted by density on purpose -- what translates in this framework is
     // the partition, so the partition is what is measured.
+    // The CHARGE centroid, which is what a polarisability needs. readDomainCentroids returns
+    // the partition's geometry; with a frozen boundary that cannot move at all under a field,
+    // so it would report zero response. What shifts is the density INSIDE each domain, and
+    // rhoTotal holds it.
+    //
+    //   p = sum_a Z_a x_a  -  integral rho x dV        (nuclei minus electrons, in au)
+    //
+    // Under a small field, alpha = p / F, and for an atom that is a measured quantity: helium
+    // 1.383 a0^3, neon 2.669, argon 11.08. It is the one number in this whole programme with an
+    // experimental value waiting on the other side of it.
+    window.readChargeDipole = async function () {
+      // Read the WAVEFUNCTION, not rhoTotal. rhoTotal is filled by computeRho, which sits in
+      // the else branch of the direct-Poisson switch -- so on the verified USER_DIRECT_POTHER
+      // path it is never written and integrates to zero. U_buf[cur] holds psi on every path,
+      // and rho = psi^2. The returned `charge` is the check: it must come out at NELEC.
+      const rb = device.createBuffer({ size: bs, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+      const enc = device.createCommandEncoder();
+      enc.copyBufferToBuffer(U_buf[cur], 0, rb, 0, bs);
+      device.queue.submit([enc.finish()]);
+      await rb.mapAsync(GPUMapMode.READ);
+      const psi = new Float32Array(rb.getMappedRange().slice(0));
+      rb.unmap(); rb.destroy();
+      const S2 = S * S, c = (S - 1) / 2, dV = hGrid * hGrid * hGrid;
+      let q = 0, px = 0, py = 0, pz = 0;
+      for (let i = 0; i < S; i++) for (let j = 0; j < S; j++) {
+        const base = i * S2 + j * S;
+        for (let k = 0; k < S; k++) {
+          const w = psi[base + k];
+          const r = w * w;
+          if (!(r > 0)) continue;
+          q  += r;
+          px += r * (i - c); py += r * (j - c); pz += r * (k - c);
+        }
+      }
+      // electronic contribution, in au; nuclei added by the caller from their known positions
+      return { charge: q * dV,
+               ex: px * dV * hGrid, ey: py * dV * hGrid, ez: pz * dV * hGrid };
+    };
+
     window.readDomainCentroids = async function () {
       const rb = device.createBuffer({ size: bs, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
       const enc = device.createCommandEncoder();

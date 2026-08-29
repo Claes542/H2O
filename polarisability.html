@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html><body style="margin:0;background:#000">
+<div id="status" style="position:fixed;top:10px;left:10px;background:#111;color:#4fc3f7;font-family:monospace;font-size:15px;font-weight:bold;padding:10px 14px;border:2px solid #4fc3f7;border-radius:6px;z-index:200"></div>
+<div id="info" style="position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.85);color:#fff;font-family:monospace;font-size:12px;padding:10px;border:1px solid #4fc3f7;border-radius:6px;max-width:620px;max-height:92vh;overflow-y:auto;z-index:100">
+  <div style="color:#4fc3f7;font-weight:bold">Polarisability: the one number with an experiment on the other side</div>
+  A single atom in a uniform field. The induced dipole divided by the field is the static
+  polarisability &alpha;, and for the noble gases it is known to four figures.
+
+  <div style="margin-top:6px">
+  <b>Why this and not a barrier.</b> Everything else measured in this project is a difference
+  between configurations, compared against another calculation. &alpha; is a response, compared
+  against <i>spectroscopy</i>. It is also the same quantity that decides conduction: a bound
+  electron has &omega;<sub>0</sub><sup>2</sup>=K/m and a finite &epsilon;=1+&omega;<sub>p</sub><sup>2</sup>/&omega;<sub>0</sub><sup>2</sup>;
+  a free one has &omega;<sub>0</sub>=0, &epsilon; divergent, and &sigma;&ne;0. A finite
+  polarisability <i>is</i> the statement that the system does not conduct, quantified.
+  </div>
+
+  <div style="margin-top:6px">
+  <b>Reference values</b> (a<sub>0</sub><sup>3</sup>): He 1.383, Ne 2.669, Ar 11.08, H 4.50,
+  Li 164.1. The spread across that list is a factor of 100, so agreement to a factor of two
+  would already be meaningful and disagreement by ten would be decisive.
+  </div>
+
+  <div style="margin-top:6px">
+  <b>What is measured.</b> The electronic charge centroid from the density itself, not from the
+  partition &mdash; with the boundary frozen the partition cannot move at all, so a partition
+  centroid would report zero response no matter what the field did. p = &minus;&int;&rho;x dV
+  relative to the nucleus, and &alpha; = p/F fitted over several fields, which also tests
+  linearity: &alpha; must be the same at every F or the response is not yet in the linear regime.
+  </div>
+
+  <div style="margin-top:6px">
+  URL: <code>?Z=2</code> nuclear charge, <code>&amp;ne=2</code> electrons,
+  <code>&amp;rc=0</code> core radius, <code>&amp;F=0.005</code> field in au,
+  <code>&amp;h=0.15</code>, <code>&amp;box=16</code>, <code>&amp;reset</code>.
+  Sweep with <code>&amp;sweep=F&amp;vals=0,0.002,0.005,0.01</code>.
+  </div>
+  <div id="out" style="margin-top:8px;color:#ff9"></div>
+</div>
+<script>
+window.onerror = function (msg, url, line) {
+  var o = document.getElementById('out');
+  if (o) o.innerHTML = '<b style="color:#f77">ERROR line ' + line + ': ' + msg + '</b>';
+  return false;
+};
+(function () {
+  var q = new URLSearchParams(location.search);
+  var Z    = parseFloat(q.get('Z')  || '2');       // nuclear charge
+  var NE   = parseInt  (q.get('ne') || '2');       // electrons
+  var RC   = parseFloat(q.get('rc') || '0');       // 0 = bare kernel
+  var F    = parseFloat(q.get('F')  || '0');       // uniform field, au
+  var scr  = parseFloat(q.get('box') || '16');
+  var hReq = parseFloat(q.get('h') || '0.15');
+  var gridN = 2 * Math.round(scr / hReq / 2);
+  var N2 = gridN / 2;
+  var h = scr / gridN;
+
+  // One nucleus at the box centre. The electrons are given separate domains by a plane split,
+  // which is the standard two-electron arrangement in this solver; for NE=1 there is one domain.
+  var SPLITQ = q.get('split') || 'plane';
+  var atoms, uz, uzn, uze, urc;
+  if (SPLITQ === 'homog') {
+    // The inner shell HOMOGENIZED: one spherical domain carrying charge 2, not two electrons
+    // divided by a plane. This is available because the solver normalises each domain to
+    // atoms[label].Z rather than to unity -- so a domain may hold two electrons, which is
+    // exactly a closed shell treated as one density.
+    //
+    //   domain 0 : charge 2, carries the nucleus (+3)   -- the 1s pair, spherically averaged
+    //   domain 1 : charge 1, no kernel of its own       -- the valence electron
+    //
+    // and the boundary between them is FREE, so the shell radius is found by the energy rather
+    // than fitted. Nothing here is calibrated: unlike the pseudopotential run, there is no r_c.
+    var ZIN = parseFloat(q.get('zin') || '2');
+    atoms = [{ i: N2, j: N2, k: N2, Z: ZIN, el: 'Li' },
+             { i: N2, j: N2, k: N2, Z: NE - ZIN, el: 'X' }];
+    uz  = [ZIN, NE - ZIN];
+    uzn = [Z, 0];
+    uze = [Math.max(Z - 0.6, 1.0), Math.max(Z - ZIN, 0.6)];
+    urc = [0, 0];
+  } else {
+    atoms = [{ i: N2, j: N2, k: N2, Z: NE, el: 'X' }];
+    uz  = [NE];
+    uzn = [Z];
+    uze = [Math.max(Z - 0.3, 0.5)];
+    urc = [RC];
+  }
+  window.USER_ATOMS = atoms;
+  window.USER_Z = uz;
+  window.USER_Z_NUC = uzn;
+  window.USER_INIT_ZEFF = uze;
+  window.USER_RC = urc;
+  window.USER_NN = gridN;
+  window.USER_SCREEN = scr;
+  window.USER_STEPS = 1000000;
+  window.USER_DYNAMICS = false;
+  window.USER_DIRECT_POTHER = true;
+  window.USER_FIELD_X = F;
+  window.FREEZE_BOUNDARY = (q.get('free') !== '1');
+  // Settable: a FREE boundary keeps moving, so the energy need not settle to 5e-6 at all and
+  // the run hangs on its first point. Loosen it for free-boundary runs; the dipole is a far
+  // less sensitive quantity than the total energy and does not need that precision.
+  window.CONVERGENCE_THRESHOLD = parseFloat(q.get('conv') || '0.000005');
+
+  // split=radial: nest the two domains as a ball and a shell instead of two hemispheres.
+  //
+  // The split is an artefact of the postulate -- two electrons may not share a domain, so
+  // something arbitrary must be imposed -- and alpha ought not to depend on which arbitrary
+  // thing. That is the test. For helium specifically the plane is the better-motivated choice,
+  // since its two electrons are both 1s and physically EQUIVALENT, which two mirror hemispheres
+  // respect and an inner/outer pair does not; for lithium or neon, where shells are real, the
+  // nesting is the natural one. Run both and compare.
+  var SPLIT = q.get('split') || 'plane';
+  // split=shell (ne=3): the atom as NESTED SHELLS with a free boundary between them --
+  // an inner pair inside radius R0, the valence electron outside it. This is the version with
+  // no fitted parameter: the pseudopotential radius r_c was calibrated to the ionisation
+  // energy, whereas here the shell radius is found by the boundary going where the energy is
+  // least. The inner pair is still divided by a plane, since two electrons may not share a
+  // domain; spherically averaging them into one -2 density would be the closer model of a
+  // closed shell but is not available in this solver.
+  if (SPLIT === 'homog') {
+    window.CUSTOM_LABEL_INIT = function (S, hGrid) {
+      var lab = new Uint32Array(S * S * S), S2 = S * S, c = (S - 1) / 2;
+      var rg = parseFloat(q.get('R0') || '1.10') / hGrid;
+      for (var i = 0; i < S; i++) for (var j = 0; j < S; j++) {
+        var di = i - c, dj = j - c, base = i * S2 + j * S;
+        for (var k = 0; k < S; k++) {
+          var dk = k - c;
+          lab[base + k] = (di * di + dj * dj + dk * dk < rg * rg) ? 0 : 1;
+        }
+      }
+      return lab;
+    };
+  }
+  if (SPLIT === 'shell' && NE === 3) {
+    window.CUSTOM_LABEL_INIT = function (S, hGrid) {
+      var lab = new Uint32Array(S * S * S), S2 = S * S, c = (S - 1) / 2;
+      var rg = parseFloat(q.get('R0') || '1.10') / hGrid;
+      for (var i = 0; i < S; i++) for (var j = 0; j < S; j++) {
+        var di = i - c, dj = j - c, base = i * S2 + j * S;
+        for (var k = 0; k < S; k++) {
+          var dk = k - c, r2 = di * di + dj * dj + dk * dk;
+          lab[base + k] = (r2 < rg * rg) ? (di < 0 ? 0 : 1) : 2;
+        }
+      }
+      return lab;
+    };
+  }
+  var R0 = parseFloat(q.get('R0') || '1.10');     // initial shell radius, au
+  if (SPLIT === 'radial' && NE === 2) {
+    window.CUSTOM_LABEL_INIT = function (S, hGrid) {
+      var lab = new Uint32Array(S * S * S), S2 = S * S, c = (S - 1) / 2;
+      var rg = R0 / hGrid;
+      for (var i = 0; i < S; i++) for (var j = 0; j < S; j++) {
+        var di = i - c, dj = j - c, base = i * S2 + j * S;
+        for (var k = 0; k < S; k++) {
+          var dk = k - c;
+          lab[base + k] = (di * di + dj * dj + dk * dk < rg * rg) ? 0 : 1;
+        }
+      }
+      return lab;
+    };
+  }
+
+  var KEY = 'realqm_polaris';
+  if (q.get('reset') !== null) localStorage.setItem(KEY, '{}');
+
+  window.onSweepDone = async function (E) {
+    var dip = null;
+    if (typeof window.readChargeDipole === 'function') {
+      try { dip = await window.readChargeDipole(); } catch (e) { console.warn(e); }
+    }
+    var st = JSON.parse(localStorage.getItem(KEY) || '{}');
+    var cfg = 'Z' + Z + '_ne' + NE + '_rc' + RC.toFixed(2) + '_h' + h.toFixed(3)
+            + '_box' + scr + (SPLIT === 'radial' ? '_RADIAL' : SPLIT === 'shell' ? '_SHELL' : SPLIT === 'homog' ? '_HOMOG' : '')
+            + (q.get('free') === '1' ? '_free' : '');
+    st[cfg] = st[cfg] || {};
+    // p_electronic = -integral rho x dV ; the nucleus sits at the origin so adds nothing.
+    st[cfg][F.toFixed(5)] = { E: Number(Number(E).toFixed(6)),
+                              px: dip ? Number((-dip.ex).toFixed(6)) : null,
+                              qtot: dip ? Number(dip.charge.toFixed(4)) : null };
+    localStorage.setItem(KEY, JSON.stringify(st));
+    console.log('CONVERGED F=' + F + ' E=' + Number(E).toFixed(6)
+                + (dip ? '  p_x=' + (-dip.ex).toFixed(6) + '  q=' + dip.charge.toFixed(4) : ''));
+    table();
+    var SW = q.get('sweep'), VALS = (q.get('vals') || '').split(',').filter(Boolean);
+    if (SW && VALS.length) {
+      var cur = q.get(SW), idx = VALS.indexOf(cur);
+      if (idx >= 0 && idx < VALS.length - 1) {
+        var u = new URL(location.href);
+        u.searchParams.set(SW, VALS[idx + 1]);
+        u.searchParams.delete('reset');
+        u.searchParams.set('cb', String(Date.now()));
+        setTimeout(function () { location.href = u.toString(); }, 1200);
+      } else {
+        document.getElementById('out').innerHTML += '<br><b style="color:#9f9">sweep complete</b>';
+      }
+    }
+  };
+
+  // A pseudopotential core is not its bare Z, so the reference cannot be looked up by Z.
+  // &ref= states it explicitly: a Li-like core (Znuc=1, rc=1.93 calibrated to the ionisation
+  // energy) should give lithium's 164.1, not hydrogen's 4.50.
+  var REF = { 2: 1.383, 10: 2.669, 18: 11.08, 1: 4.50, 3: 164.1 };
+  var REFV = q.get('ref') !== null ? parseFloat(q.get('ref')) : REF[Z];
+
+  function table() {
+    var st = JSON.parse(localStorage.getItem(KEY) || '{}');
+    var out = [];
+    Object.keys(st).forEach(function (cfg) {
+      out.push('<b>' + cfg + '</b>');
+      var fs = Object.keys(st[cfg]).sort(function (a, b) { return parseFloat(a) - parseFloat(b); });
+      var p0 = (st[cfg]['0.00000'] || {}).px;
+      fs.forEach(function (fk) {
+        var r = st[cfg][fk], Fv = parseFloat(fk);
+        var line = '&nbsp; F = ' + fk + ' :  E = ' + r.E.toFixed(6)
+                 + (r.px !== null ? '   p_x = ' + r.px.toFixed(5) : '')
+                 + (r.qtot !== null ? '   q = ' + r.qtot.toFixed(3) : '');
+        // alpha from the field-free reference, so any residual dipole at F=0 cancels
+        if (r.px !== null && p0 !== undefined && p0 !== null && Fv > 0) {
+          var alpha = (r.px - p0) / Fv;
+          line += '   <b>alpha = ' + alpha.toFixed(3) + ' a0^3</b>';
+        }
+        out.push(line);
+      });
+      var ref = REFV;
+      if (ref) out.push('&nbsp; <i>experiment: ' + ref
+                        + ' a0^3 &mdash; alpha must be the same at every F, or the response is'
+                        + ' not linear yet</i>');
+    });
+    document.getElementById('out').innerHTML = out.join('<br>');
+  }
+  table();
+
+  document.getElementById('status').innerHTML =
+    '<span style="color:#9f9">POLARISABILITY</span><br>Z=' + Z + ' ne=' + NE
+    + ' rc=' + RC.toFixed(2) + '<br>F=' + F.toFixed(5) + ' au<br>h=' + h.toFixed(3)
+    + ' grid ' + gridN + '^3';
+  document.getElementById('out').innerHTML +=
+    '<br>grid ' + gridN + '^3, h=' + h.toFixed(3) + ', F=' + F + ' &mdash; running&hellip;';
+  console.log('polarisability: Z=' + Z + ' ne=' + NE + ' F=' + F + ' grid=' + gridN);
+})();
+var s = document.createElement('script');
+s.src = 'molecule.js?t=' + Date.now();
+s.onload = function () {
+  var p5s = document.createElement('script');
+  p5s.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js';
+  document.body.appendChild(p5s);
+};
+document.body.appendChild(s);
+</script>
+</body></html>
