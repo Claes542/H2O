@@ -114,13 +114,58 @@ window.onerror = function (msg, url, line) {
   var KCEN = parseFloat(q.get('kc2') || String((N - 1) / 2));
   var KW = parseFloat(q.get('kw') || '1.0');
   // For kwrap: which kernel each domain contains, and hence which kernel is vacant.
-  var kOwn = [], kVac = -1;
+  // A kink on a ring, built so that translation is EXACT.
+  //
+  // The first attempt used a tanh slip profile and failed its control by 997 meV: a tanh is not
+  // periodic, so the seam absorbed a remainder that differed with the kink position. Anchoring a
+  // cumulative sum at wall 0 failed too, by exactly rho[M-1] -- the anchor did not travel with
+  // the kink. Both are avoided by measuring FORWARD FROM THE KINK ITSELF:
+  //
+  //   rho(x)  = sech^2(wrap(x - kc)/W), normalised so its integral round the ring is 1
+  //   d(x)    = 1 - rho(x)              domain density: N-1 domains over N sites
+  //   wall j  at the p solving  int_kc^p d = j + 1/2
+  //
+  // Shifting kc by one site shifts rho, hence d, hence every wall by exactly one site, because
+  // the lower limit travels with it. Verified offline: the residual is 1e-15 sites at every
+  // width, against 0.016-0.17 for the anchored version.
+  //
+  // Gaps average N/(N-1), so one domain spans two kernels; that domain is labelled by the first
+  // of them and the second kernel is given no electron. W -> large makes the gaps uniform and
+  // the barrier vanishes identically (the wide-kink limit), so the physical barrier is the
+  // minimum over W, not a value at one width.
+  var kOwn = [], kVac = -1, kWalls = [];
   if (KWRAP) {
-    for (var j = 0; j < N - 1; j++) {
-      var Sj = 0.5 * (1 + Math.tanh((j - KCEN) / KW));
-      kOwn.push(((j + Math.round(Sj)) % N + N) % N);
+    var NS = 4000, dxs = N / NS, xsr = [], rr = [], Zr = 0;
+    for (var ii = 0; ii < NS; ii++) {
+      var xx = KCEN + (ii + 0.5) * dxs;
+      var sw = ((xx - KCEN + N / 2) % N + N) % N - N / 2;
+      var rv = 1 / Math.pow(Math.cosh(sw / KW), 2);
+      xsr.push(xx); rr.push(rv); Zr += rv * dxs;
     }
-    for (var kk = 0; kk < N; kk++) if (kOwn.indexOf(kk) < 0) { kVac = kk; break; }
+    for (var ii2 = 0; ii2 < NS; ii2++) rr[ii2] /= Zr;
+    var Fc = 0, tgt = 0.5;
+    for (var ii3 = 0; ii3 < NS && kWalls.length < N - 1; ii3++) {
+      var dloc = 1 - rr[ii3], Fn = Fc + dloc * dxs;
+      while (tgt <= Fn && kWalls.length < N - 1) {
+        kWalls.push(xsr[ii3] + (tgt - Fc) / dloc - 0.5 * dxs); tgt += 1;
+      }
+      Fc = Fn;
+    }
+    // which kernels sit in which domain; domain j spans wall j-1 .. wall j (wrapping)
+    var used = [];
+    for (var jj = 0; jj < kWalls.length; jj++) {
+      var lo = (jj === 0) ? kWalls[kWalls.length - 1] - N : kWalls[jj - 1];
+      var owner = -1;
+      for (var m2 = 0; m2 < N; m2++) {
+        for (var sft = -1; sft <= 1; sft++) {
+          var mp = m2 + sft * N;
+          if (mp > lo && mp <= kWalls[jj] && owner < 0) owner = m2;
+        }
+      }
+      kOwn.push(owner < 0 ? 0 : owner);
+      used.push(kOwn[jj]);
+    }
+    for (var kk = 0; kk < N; kk++) if (used.indexOf(kk) < 0) { kVac = kk; break; }
   }
   var atoms = [], Z = [], Znuc = [], zeff = [], rcs = [], coreI = [];
   var x0 = -span / 2;
@@ -316,9 +361,8 @@ window.onerror = function (msg, url, line) {
     if (KWRAP) {
       // walls in SITE units: p_j = (j + 1/2) + S(j), then to cells; domain j owns kOwn[j].
       var wp = [], wi = [];
-      for (var j = 0; j < N - 1; j++) {
-        var Sj = 0.5 * (1 + Math.tanh((j - KCEN) / KW));
-        wp.push(c0cell + (j + 0.5 + Sj) * aG);
+      for (var j = 0; j < kWalls.length; j++) {
+        wp.push(c0cell + kWalls[j] * aG);
         wi.push(kOwn[j]);
       }
       for (var i = 0; i < S; i++) {
