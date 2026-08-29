@@ -124,6 +124,68 @@ matter, with an attractor always present. A plasma is the first case in which la
 charges of both signs are free to arrange themselves, and it is a fair question what the framework
 then gives.
 
+\section{What conduction asks of a theory}\label{sec:bar}
+
+Before asking whether this construction conducts it is worth being exact about what the question
+demands, because the obvious standard is one that no framework meets.
+
+\textbf{Conduction is not derived from Schr\"odinger's equation.} The equation is unitary and its
+evolution is time-reversible; resistance is dissipative. A closed quantum system in a perfect
+periodic potential, placed in a constant field, does not settle into a steady current at all. The
+semiclassical equation of motion is $\hbar\dot k=-eE$, so $k$ runs to the zone boundary,
+Bragg-reflects, and returns: the system undergoes \emph{Bloch oscillations}. It rings rather than
+conducts, and the effect is observed in semiconductor superlattices where the period is engineered
+short enough to complete before scattering intervenes.
+
+A steady current therefore requires irreversibility, and irreversibility is always imported rather
+than derived:
+
+\begin{center}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+route & mechanism & where the irreversibility enters\\
+\midrule
+Boltzmann transport & collision term & added by hand\\
+open quantum system & couple to phonons, trace out & the partial trace\\
+Landauer & thermalising reservoirs & the boundaries\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Even the Landauer conductance $2e^2/h$ per channel, which follows from scattering theory
+with no collisions anywhere, places its irreversibility in reservoirs assumed to thermalise. In
+practice conductivities are computed from $\sigma=ne^2\tau/m$ with $\tau$ an input; obtaining it
+from first principles means electron--phonon coupling and approximation at every stage.
+
+\textbf{What Schr\"odinger's equation does supply is the states.} Bloch's theorem gives extended
+solutions in a periodic potential --- and this is not a quantum mystery but ordinary wave physics,
+with classical counterparts in photonic and phononic crystals. Add Pauli filling and one obtains
+the metal--insulator \emph{classification}: a partly filled band conducts, a filled band with a gap
+does not. That much is a theorem plus a counting argument, and it correctly identifies sodium as a
+metal and diamond as an insulator before any transport theory is invoked.
+
+So the honest question comes in two tiers, and only the first is a fair test of a structural theory:
+
+\begin{center}
+\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+tier & status\\
+\midrule
+the classification: which materials conduct & from bands and filling; \emph{this is the fair bar}\\
+the value of $\sigma$ & needs added statistical machinery in every framework\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent This article asks the first question of RealQM. It does not ask the second, and no
+comparison here should be read as faulting the construction for failing to supply a conductivity,
+since nothing supplies one unaided. What it does examine is whether the framework can reach the
+classification at all --- whether it possesses states of the kind that fill into bands --- and the
+answer, developed below, is that it does not, for reasons that are structural and that the
+framework's own postulate makes explicit.
+
 \section{What kind of conductor this can be}\label{sec:scope}
 
 The construction does not have a free choice of target, and identifying it correctly settles most
