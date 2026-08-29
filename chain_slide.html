@@ -92,11 +92,42 @@ window.onerror = function (msg, url, line) {
   var HOP = q.get('hop') === '1';
   var SAD = q.get('sad') === '1';
   var VK = q.get('vk') === '1' || HOP;
+  // ndim: DIMERISATION of the cores, core m displaced by (-1)^m * ndim * a.
+  //
+  // Every energy in this project is computed with the nuclei clamped, so every barrier is the
+  // RIGID-LATTICE corrugation -- an upper bound. In real matter the lattice relaxes around the
+  // carrier, and that relaxation is what makes small polarons work: E_a = lambda/4, with
+  // lambda ~ 0.1-0.3 eV giving 25-75 meV in organic semiconductors, far below the bare
+  // electronic corrugation of the same materials.
+  //
+  // For a RIGID slide the relaxation is degenerate -- moving every core with the electrons is a
+  // translation, which costs nothing and transports nothing -- so it has to be measured on a
+  // LOCAL distortion. With the electrons bond-centred (d = 0.5) the cores want to pair toward
+  // them, which is a dimerisation, and the energy it releases is the reorganisation energy:
+  //
+  //     lambda = E(ndim = 0) - min_ndim E(ndim)
+  //
+  // This is a difference between configurations sharing a partition and an electron count,
+  // differing only in nuclear positions, so it is far better conditioned than any barrier here.
+  var NDIM = parseFloat(q.get('ndim') || '0');
+  var KWRAP = q.get('kwrap') === '1';
+  var KCEN = parseFloat(q.get('kc2') || String((N - 1) / 2));
+  var KW = parseFloat(q.get('kw') || '1.0');
+  // For kwrap: which kernel each domain contains, and hence which kernel is vacant.
+  var kOwn = [], kVac = -1;
+  if (KWRAP) {
+    for (var j = 0; j < N - 1; j++) {
+      var Sj = 0.5 * (1 + Math.tanh((j - KCEN) / KW));
+      kOwn.push(((j + Math.round(Sj)) % N + N) % N);
+    }
+    for (var kk = 0; kk < N; kk++) if (kOwn.indexOf(kk) < 0) { kVac = kk; break; }
+  }
   var atoms = [], Z = [], Znuc = [], zeff = [], rcs = [], coreI = [];
   var x0 = -span / 2;
   for (var m = 0; m < N; m++) {
-    var xi = Math.round(N2 + (x0 + m * A) / h);
-    var bare = VK && (m >= N - NV);        // NV cores left bare -> NV carriers
+    var xd = x0 + m * A + ((m % 2 === 0) ? 1 : -1) * NDIM * A;
+    var xi = Math.round(N2 + xd / h);
+    var bare = KWRAP ? (m === kVac) : (VK && (m >= N - NV));
     atoms.push({ i: xi, j: N2, k: N2, Z: bare ? 0 : 1, el: 'Li' });
     Z.push(bare ? 0 : 1);
     Znuc.push(1.0); zeff.push(ZE); rcs.push(RC); coreI.push(xi);
@@ -256,11 +287,52 @@ window.onerror = function (msg, url, line) {
   // in the vacuum beyond the chain, where the density is negligible and which is in any case the
   // same at both ends of the period.
   var WRAP = q.get('wrap') === '1';
+  // kwrap=1: a single KINK on the wrapped ring -- the dilute-carrier case.
+  //
+  // Everything measured so far is the RIGID slide: every electron moving at once, at half
+  // filling, where the conducting electrons are also the binding electrons. That is the
+  // expensive path, and its cost grows with chain length. The cheap path is one carrier moving
+  // while the rest stay put, which is what governs conduction and what real doped materials do:
+  // a supporting lattice that binds, and a dilute carrier that conducts.
+  //
+  // N kernels, N-1 domains. On a ring that count mismatch IS the kink -- the walls must carry
+  // one unit of slip around the loop, which is its topological charge. Wall j sits at
+  //
+  //     p_j = (j + 1/2) + S(j),      S(j) = (1/2)(1 + tanh((j - kc)/W))
+  //
+  // so S runs 0 -> 1 across the ring and the N-1 walls divide a circumference of N. Domain j
+  // then contains kernel j + round(S(j)), and the one kernel no domain contains is the vacancy.
+  // Labelling each domain by the kernel it CONTAINS is essential: the solver seeds a domain's
+  // density at atoms[label], and a running index would seed it at the wrong nucleus.
+  //
+  // Scanning kc through one site must return the same configuration relabelled, so E(kc+1) =
+  // E(kc) exactly -- the same control that made the rigid scan trustworthy.
+
   var SMODE = parseFloat(q.get('smode') || '0');   // sinusoidal displacement amplitude, in units of a
   var c0cell = N2 + x0 / h;                      // cell coordinate of core 0
   window.CUSTOM_LABEL_INIT = function (S, hGrid, nucPos, NELEC) {
     var lab = new Uint32Array(S * S * S), S2 = S * S;
     var c = (S - 1) / 2, aG = A / h;              // axis centre and spacing, in cells
+    if (KWRAP) {
+      // walls in SITE units: p_j = (j + 1/2) + S(j), then to cells; domain j owns kOwn[j].
+      var wp = [], wi = [];
+      for (var j = 0; j < N - 1; j++) {
+        var Sj = 0.5 * (1 + Math.tanh((j - KCEN) / KW));
+        wp.push(c0cell + (j + 0.5 + Sj) * aG);
+        wi.push(kOwn[j]);
+      }
+      for (var i = 0; i < S; i++) {
+        // domain j spans wall j-1 .. wall j, wrapping; so find the first wall at or beyond i
+        var qj = 0;
+        while (qj < wp.length && i >= wp[qj]) qj++;
+        var dmK = (qj < wi.length) ? wi[qj] : wi[0];   // beyond the last wall wraps to the first
+        for (var jj = 0; jj < S; jj++) {
+          var bK = i * S2 + jj * S;
+          for (var kk2 = 0; kk2 < S; kk2++) lab[bK + kk2] = dmK;
+        }
+      }
+      return lab;
+    }
     if (WRAP) {
       // The label must be the index of the core the domain CONTAINS, not a running counter.
       // molecule.js seeds each domain's psi at atoms[label], so a counter puts electron 6 five
@@ -496,7 +568,9 @@ window.onerror = function (msg, url, line) {
     var cfg = 'n' + N + '_a' + A.toFixed(1) + '_rc' + RC.toFixed(2) + '_ze' + ZE.toFixed(2)
             + '_h' + h.toFixed(3)
             + (q.get('free') === '1' ? '_FREE' : '')
-            + (WRAP ? '_WRAP' : '')
+            + (KWRAP ? '_KWRAP kc' + KCEN.toFixed(3) + '_w' + KW.toFixed(2)
+               : WRAP ? '_WRAP' : '')
+            + (NDIM !== 0 ? '_D' + NDIM.toFixed(4) : '')
             + (SMODE !== 0 ? '_S' + SMODE.toFixed(3) : '')
             + (BOW !== 0 ? '_bow' + BOW.toFixed(2) : '')
             + (parseFloat(q.get('beta') || '0') !== 0 ? '_b' + parseFloat(q.get('beta')).toFixed(3) : '')
