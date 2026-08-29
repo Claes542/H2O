@@ -151,18 +151,24 @@ window.onerror = function (msg, url, line) {
       }
       Fc = Fn;
     }
-    // which kernels sit in which domain; domain j spans wall j-1 .. wall j (wrapping)
-    var used = [];
+    // Owners, seam-free. Two rules matter and both were got wrong before:
+    //   * express walls AND kernels in the one interval [p0, p0+N) -- never wrap the walls,
+    //     since a wall at the seam lands at 6.9999 or 0.0001 by rounding and reorders the list;
+    //   * pick each domain's owner as the first kernel by POSITION, not the lowest index.
+    //     Index order wraps and position order does not, which is the whole seam problem.
+    // Verified offline: own(kc+1) and the vacancy are own(kc) and vacancy shifted by exactly
+    // one site. Gaps average N/(N-1), so one domain holds two kernels; the second is the one
+    // left without an electron.
+    var base = kWalls[0], used = [];
     for (var jj = 0; jj < kWalls.length; jj++) {
-      var lo = (jj === 0) ? kWalls[kWalls.length - 1] - N : kWalls[jj - 1];
-      var owner = -1;
+      var lo2 = kWalls[jj];
+      var hi2 = (jj + 1 < kWalls.length) ? kWalls[jj + 1] : kWalls[0] + N;
+      var best = -1, bestPos = 1e18;
       for (var m2 = 0; m2 < N; m2++) {
-        for (var sft = -1; sft <= 1; sft++) {
-          var mp = m2 + sft * N;
-          if (mp > lo && mp <= kWalls[jj] && owner < 0) owner = m2;
-        }
+        var qm = base + (((m2 - base) % N) + N) % N;
+        if (qm > lo2 && qm <= hi2 && qm < bestPos) { bestPos = qm; best = m2; }
       }
-      kOwn.push(owner < 0 ? 0 : owner);
+      kOwn.push(best < 0 ? 0 : best);
       used.push(kOwn[jj]);
     }
     for (var kk = 0; kk < N; kk++) if (used.indexOf(kk) < 0) { kVac = kk; break; }
@@ -201,6 +207,7 @@ window.onerror = function (msg, url, line) {
   // against V_ee = 1/R; the SIC path used above 5 electrons oscillates over 0.05 Ha with the
   // partition frozen, which is what blocked the original kink attempt.
   if (q.get('direct') !== '0') window.USER_DIRECT_POTHER = true;
+  window.USER_FULL_RC = (q.get('fullrc') === '1');   // exclude from EVERY core, not just own
   var dGrid = DFRAC * A / h;
   var mid = Math.floor((N - 1) / 2);
   var walls = [];
@@ -360,16 +367,19 @@ window.onerror = function (msg, url, line) {
     var c = (S - 1) / 2, aG = A / h;              // axis centre and spacing, in cells
     if (KWRAP) {
       // walls in SITE units: p_j = (j + 1/2) + S(j), then to cells; domain j owns kOwn[j].
-      var wp = [], wi = [];
-      for (var j = 0; j < kWalls.length; j++) {
-        wp.push(c0cell + kWalls[j] * aG);
-        wi.push(kOwn[j]);
-      }
+      // Label in the SAME frame the owners were computed in: walls are left unwrapped in
+      // [p0, p0+N), so each cell's site coordinate must be mapped into that interval too.
+      // Wrapping the walls instead would reorder them at the seam, which is the bug this
+      // construction has already been through twice.
+      var wbase = kWalls[0];
       for (var i = 0; i < S; i++) {
-        // domain j spans wall j-1 .. wall j, wrapping; so find the first wall at or beyond i
+        var site = (i - c0cell) / aG;
+        var qsite = wbase + (((site - wbase) % N) + N) % N;
         var qj = 0;
-        while (qj < wp.length && i >= wp[qj]) qj++;
-        var dmK = (qj < wi.length) ? wi[qj] : wi[0];   // beyond the last wall wraps to the first
+        while (qj < kWalls.length && qsite > kWalls[qj]) qj++;
+        // qsite lies in (kWalls[qj-1], kWalls[qj]]; before the first wall it belongs to the
+        // last domain, which spans kWalls[M-1] .. kWalls[0]+N.
+        var dmK = (qj > 0) ? kOwn[qj - 1] : kOwn[kOwn.length - 1];
         for (var jj = 0; jj < S; jj++) {
           var bK = i * S2 + jj * S;
           for (var kk2 = 0; kk2 < S; kk2++) lab[bK + kk2] = dmK;
@@ -612,7 +622,8 @@ window.onerror = function (msg, url, line) {
     var cfg = 'n' + N + '_a' + A.toFixed(1) + '_rc' + RC.toFixed(2) + '_ze' + ZE.toFixed(2)
             + '_h' + h.toFixed(3)
             + (q.get('free') === '1' ? '_FREE' : '')
-            + (KWRAP ? '_KWRAP kc' + KCEN.toFixed(3) + '_w' + KW.toFixed(2)
+            + (q.get('fullrc') === '1' ? '_FULLRC' : '')
+            + (KWRAP ? '_KWRAPv3 kc' + KCEN.toFixed(3) + '_w' + KW.toFixed(2)
                : WRAP ? '_WRAP' : '')
             + (NDIM !== 0 ? '_D' + NDIM.toFixed(4) : '')
             + (SMODE !== 0 ? '_S' + SMODE.toFixed(3) : '')

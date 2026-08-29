@@ -233,6 +233,30 @@ const INTERIOR = (NN - 1) * (NN - 1) * (NN - 1);
 const R_SING = 2 * hGrid;  // exclude 2 grid spacings from nucleus
 const W_CUTOFF = window.USER_W_CUTOFF || 0;  // smooth ψ cutoff near other nuclei (au), 0 = off
 // Detect if any bare nuclei exist (Z=0, Z_nuc>0) at compile time
+// Exclude a cell from EVERY pseudopotential core, not just its own domain's.
+//
+// isInsideRc originally tested only atoms[lbl] plus bare nuclei, so a cell belonging to domain
+// A but lying inside neighbouring core B (which carries an electron, Z>0) was NOT excluded --
+// A's density flowed into B's core and collected its attraction. That is invisible in a
+// configuration where every domain contains its own core, and decisive in one where a wall
+// passes THROUGH a core: at d = 0.5 every core is split between two domains, the "own atom" is
+// a full spacing away, and the exclusion never fires on either half. It is very likely why the
+// bond-centred registry came out below the atom-centred one.
+//
+// Note what this means for the controls: a systematic error that respects the lattice symmetry
+// passes translation covariance, reflection pairs and mesh convergence alike. Those controls
+// verify self-consistency, never correctness.
+//
+// Off by default so the change can be MEASURED against the old behaviour rather than assumed.
+const FULL_RC = !!window.USER_FULL_RC;
+const rcAllLoopWGSL = FULL_RC ? `
+  for (var nrc: u32 = 0u; nrc < ${NELEC}u; nrc++) {
+    if (atoms[nrc].rc > 0.0 && atoms[nrc].Z_nuc > 0.0) {
+      if (distToAtom(ci, cj, ck, nrc) < atoms[nrc].rc) { return true; }
+    }
+  }
+` : '';
+
 const HAS_BARE_NUCLEI = (function() {
   const zn = window.USER_Z_NUC || _uz.map(z => z);
   for (let i = 0; i < _uz.length; i++) {
@@ -423,7 +447,8 @@ fn distToAtom(ci: u32, cj: u32, ck: u32, n: u32) -> f32 {
 fn isInsideRc(ci: u32, cj: u32, ck: u32, lbl: u32) -> bool {
   let rc = atoms[lbl].rc;
   if (rc > 0.0 && distToAtom(ci, cj, ck, lbl) < rc) { return true; }
-${HAS_BARE_NUCLEI ? `
+${rcAllLoopWGSL}
+${(!FULL_RC && HAS_BARE_NUCLEI) ? `
   // Check bare nuclei (Z=0, Z_nuc>0) — only compiled when they exist
   for (var n: u32 = 0u; n < ${NELEC}u; n++) {
     if (atoms[n].Z <= 0.0 && atoms[n].Z_nuc > 0.0 && atoms[n].rc > 0.0) {
@@ -560,8 +585,9 @@ fn distToAtom(ci: u32, cj: u32, ck: u32, n: u32) -> f32 {
 
 fn isInsideRc(ci: u32, cj: u32, ck: u32, lbl: u32) -> bool {
   let rc = atoms[lbl].rc;
-  if (rc <= 0.0) { return false; }
-  return distToAtom(ci, cj, ck, lbl) < rc;
+  if (rc > 0.0 && distToAtom(ci, cj, ck, lbl) < rc) { return true; }
+${rcAllLoopWGSL}
+  return false;
 }
 
 fn isInsideAnalytical(ci: u32, cj: u32, ck: u32, lbl: u32) -> bool {
@@ -1798,8 +1824,9 @@ fn distToAtom(ci: u32, cj: u32, ck: u32, n: u32) -> f32 {
 
 fn isInsideRc(ci: u32, cj: u32, ck: u32, lbl: u32) -> bool {
   let rc = atoms[lbl].rc;
-  if (rc <= 0.0) { return false; }
-  return distToAtom(ci, cj, ck, lbl) < rc;
+  if (rc > 0.0 && distToAtom(ci, cj, ck, lbl) < rc) { return true; }
+${rcAllLoopWGSL}
+  return false;
 }
 
 fn isInsideAnalytical(ci: u32, cj: u32, ck: u32, lbl: u32) -> bool {
