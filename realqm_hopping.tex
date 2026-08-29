@@ -349,6 +349,64 @@ for the slope of a single curve, sampled at points a fraction of a spacing apart
 whose control passes by four orders of magnitude. It is the same physics, asked in the form the
 discretisation can answer.
 
+\paragraph{The corrugation is bounded below, at every density.} The same scan repeated across
+lattice spacings, with the translation control exact ($0.0$~meV) at every one and reflection pairs
+agreeing to $2$--$3\times10^{-5}$~Ha:
+
+\begin{center}
+\small
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+$a$ (a$_0$) & $3.5$ & $4.5$ & $5.5$ & $6.5$ & $8.0$\\
+$V_0$ per electron (meV) & $1513$ & $972$ & $812$ & $\mathbf{783}$ & $816$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent $V_0$ has a \emph{minimum} near the equilibrium spacing and rises on both sides:
+compressed, the cores crowd the electron; expanded, sharing a kernel at the bond-centred registry
+costs more than owning one. So the corrugation is bounded below at ${\approx}783$~meV per electron
+across a factor of $2.3$ in lattice constant, never approaches zero, and the registry preference
+never flips --- there is \textbf{no free-sliding point at any density}.
+
+That settles a question the structural argument leaves open. A framework that could reach $V_0\to0$
+would produce both phases and could decide conduction on its own terms; this one produces only the
+pinned phase. And the trend runs the wrong way: real matter \emph{metallises} under pressure, as
+screening flattens the corrugation, whereas here compression makes the pinning worse. This also
+restores the compression result reported earlier by the free-boundary route which
+\S\ref{sec:mesh} discredits --- a ratio between configurations sharing partition family and mesh is
+far more robust than $V_0$'s absolute value.
+
+\paragraph{What is bounded, and what is not.} Everything measured here is the \emph{rigid} slide:
+all $N$ electrons displaced together, at half filling, where the conducting electrons are also the
+binding electrons. That is the expensive path, and its cost grows with chain length. The cheap path
+is a single carrier moving while the rest hold still --- a kink, whose cost is length-independent
+--- and that is the configuration real conductors use, a supporting lattice that binds and a dilute
+carrier that conducts. \emph{The carrier barrier is not measured in this article.} A kink on the
+cyclic geometry requires the slip to accumulate to exactly one unit around the loop,
+$f(j+N)=f(j)+1$, which the profile used here does not satisfy; the attempt fails its own control by
+$997$~meV and is not reported as a result. Note also that the maximally delocalised limit of such a
+profile gives evenly spaced walls and a barrier of exactly zero, so the kink barrier is a function
+of its localisation and the physical value is the minimum over that --- a two-parameter
+determination, not a single number. \textbf{The figures above are therefore upper bounds on the
+quantity conduction depends on}, and the verdict rests on them together with the structural
+argument, not on a measured carrier barrier.
+
+\paragraph{A third qualification, and the largest.} Every energy in this article is computed
+with the \textbf{nuclei clamped} at their lattice sites. So $V_0=812$~meV is the rigid-lattice
+corrugation, and \eqref{eq:Fdep} the rigid-lattice threshold --- both upper bounds, because in real
+matter the lattice relaxes around the carrier and that relaxation is the dominant term. It is what
+makes small polarons work at all: the Marcus--Holstein barrier is $E_a=\lambda/4$ with $\lambda$ the
+reorganisation energy, and $\lambda\approx0.1$--$0.3$~eV in organic semiconductors gives
+$25$--$75$~meV, far below the bare electronic corrugation of those same materials. Nothing here
+tests it, and the framework is not prevented from doing so --- nuclei move in this scheme under
+classical equations of motion, which is the half of the dynamics it possesses and the reason the
+Grotthuss calculation works. If lattice relaxation reduced the corrugation by the factor it does in
+polaronic materials, $812$~meV would fall toward $100$~meV and the threshold with it, from
+${\sim}8$ to ${\sim}1$~GV/m: still above dielectric breakdown, but no longer by three orders. This
+is the one accessible variation that could move the verdict rather than confirm it, and it is
+untested.
+
 \paragraph{Two qualifications, both real.} This is \emph{rigid} sliding, every electron moving at
 once, which is the expensive path; a kink depins at a lower field, so \eqref{eq:Fdep} is an upper
 bound. And the chain is unstable to non-uniform distortion --- a sinusoidal displacement
