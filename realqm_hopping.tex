@@ -349,6 +349,31 @@ for the slope of a single curve, sampled at points a fraction of a spacing apart
 whose control passes by four orders of magnitude. It is the same physics, asked in the form the
 discretisation can answer.
 
+\paragraph{And it is converged.} The amplitude was checked on three grids at fixed geometry,
+$a=5.5$, $r_c=1.93$, with the translation control exact and the reflection pairs identical to five
+decimals at each:
+
+\begin{center}
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+$h$ (a$_0$) & $0.448$ & $0.352$ & $0.299$\\
+$V_0$ per electron (meV) & $812$ & $820$ & $815$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent $V_0=816\pm4$~meV, a spread of half a per cent across a fifty per cent refinement. What
+makes that possible is worth stating, because the same solver produced scatter of a factor of two
+in \S\ref{sec:mesh}: over this range the \emph{totals} drift by $1572$~meV while the amplitude moves
+by $7$. The cancellation is $99.5\%$, against roughly $89\%$ for the open-chain barrier --- and
+$89\%$ left a residual comparable to the signal, where $99.5\%$ leaves one per cent of it. The
+improvement comes from the geometry alone: $d=0$ and $d=\tfrac12$ lie on one periodic curve on an
+identical grid with identical topology, so their discretisation errors track each other, whereas the
+open chain's two configurations differed in their end domains as well as their registry and the
+errors were independent. \emph{A difference is only as good as the symmetry relating the two
+configurations}, which is the transferable lesson of this article.
+
 \paragraph{The corrugation is bounded below, at every density.} The same scan repeated across
 lattice spacings, with the translation control exact ($0.0$~meV) at every one and reflection pairs
 agreeing to $2$--$3\times10^{-5}$~Ha:
