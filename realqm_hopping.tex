@@ -56,6 +56,22 @@ identified in its place: a drift of the carrier toward a chain end, and grid-loc
 interface, each of order an electron-volt and each exactly reproducible, which is why they passed
 so long for signal.
 
+\textbf{The question has a form that avoids barriers entirely, and in that form it is answerable.}
+Under a field every electron shifts; if the shift reaches one lattice spacing each has taken over
+its neighbour's kernel and, the electrons being identical, the configuration is \emph{restored}.
+That restoration is what distinguishes a current from a polarisation, and the threshold for it is
+not an activation energy but the maximum \emph{gradient} of the periodic energy $E(u)$. Made
+cyclic --- what leaves at one end enters at the other, so translation by one spacing is an exact
+relabelling --- the chain gives that curve with $E(u{+}a)=E(u)$ to every digit and reflection pairs
+agreeing to $1$--$2\times10^{-5}$~Ha, a control passing by four orders of magnitude. Its steepest
+slope gives a depinning field of $7$--$9\times10^{9}$~V/m, or $2.1$--$2.6$~V per lattice site,
+against copper's $4\times10^{-12}$~V per site: \textbf{twelve orders of magnitude}, with dielectric
+breakdown intervening two to three orders below. The same curve gives a periodic pinning potential
+of $812$~meV per electron and a curvature $K=0.035$~Ha/a$_0^2$, hence a polarisability of
+$29$~a$_0^3$ per electron --- a restoring force, so a field produces bounded polarisation and no DC
+current. \emph{This construction is a dielectric, established by a computed response rather than by
+a failed barrier.}
+
 Underneath the arithmetic lies the structural obstacle. Non-overlap makes the transfer integral
 vanish identically, so band conduction is absent in kind and not by degree; and in this scheme
 nuclei move while electrons \emph{relax to a static minimum}, so there is no electron equation of
@@ -287,13 +303,59 @@ of motion at all. The correct machinery exists elsewhere in the programme, in th
 where a real density carries a complex current, and a conduction calculation belongs there rather
 than here.
 
-\paragraph{What the barrier means as a field.} A barrier becomes a threshold field when
-divided by the charge and the hop distance. Taking the range of \S\ref{sec:mesh} rather than any
-single value, $E_a/ea$ runs from $0.07$ to $0.9$~V per lattice site at $a=6.0$; copper carrying an
-ampere runs at $4\times10^{-12}$~V per site. The comparison spans an order of magnitude and is
-uncertain by that much, but ten orders separate the two either way, so the conclusion --- that no
-field a material survives will drive this by direct depinning --- does not depend on where in the
-range the barrier falls.
+\section{The threshold field, measured}\label{sec:threshold}
+
+The question this article asks has a form that avoids barriers altogether, and it is the form in
+which the answer can actually be obtained.
+
+Put the chain in a field. Every electron shifts to the right. If the shift reaches one full lattice
+spacing, each electron has taken over its neighbour's kernel --- and since the electrons are
+identical and the energy depends on the partition and not on labels, \emph{the configuration is
+restored}. That restoration is exactly what separates a current from a polarisation:
+\begin{center}
+\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+tilt below the steepest slope of $E(u)$ & $u$ saturates: bounded polarisation, no DC current\\
+tilt above it & $u$ runs: the state cycles, charge flows steadily\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent So the threshold is not an activation energy and not a saddle. It is the \textbf{maximum
+gradient} of the periodic energy $E(u)$, and \S\ref{sec:mesh} has measured that curve on the wrapped
+chain, where $E(u{+}a)=E(u)$ holds to every digit and the three reflection pairs agree to
+$1$--$2\times10^{-5}$~Ha. Nothing here differences distant configurations.
+
+From the measured curve at $r_c=1.93$, $a=5.5$~a$_0$ --- both parameters determined rather than
+chosen --- the steepest segment gives $|dE/du|=0.0982$~Ha/a$_0$ for seven electrons, and a
+sinusoidal fit, which recovers the peak a chord underestimates, gives $0.1194$. Per electron:
+\begin{equation}\label{eq:Fdep}
+F_{\rm dep}=0.014\text{--}0.017~\text{au}
+ =7\text{--}9\times10^{9}~\mathrm{V/m}
+ =2.1\text{--}2.6~\mathrm{V\ per\ lattice\ site}.
+\end{equation}
+
+Copper carrying an ampere runs at $4\times10^{-12}$~V per site. The separation is \textbf{twelve
+orders of magnitude}, and it is not a number any refinement moves. Nor is such a field available:
+dielectric breakdown occurs two to three orders of magnitude below $10^{10}$~V/m, so the lattice is
+destroyed long before the electron distribution depins. \emph{The construction does not conduct
+under any field a material survives.}
+
+\paragraph{Why this supersedes the barrier attempts.} Every earlier route asked for a difference
+between two configurations far apart in the energy landscape --- and \S\ref{sec:mesh} shows why that
+could not work, six of eight scans failing their own control. Equation \eqref{eq:Fdep} asks instead
+for the slope of a single curve, sampled at points a fraction of a spacing apart, on a geometry
+whose control passes by four orders of magnitude. It is the same physics, asked in the form the
+discretisation can answer.
+
+\paragraph{Two qualifications, both real.} This is \emph{rigid} sliding, every electron moving at
+once, which is the expensive path; a kink depins at a lower field, so \eqref{eq:Fdep} is an upper
+bound. And the chain is unstable to non-uniform distortion --- a sinusoidal displacement
+\emph{lowers} the energy, giving an effective stiffness $\kappa<0$, because domains here cannot
+change position without changing width and a wider domain lets its electron spread. What the
+distorted state does under a field is not determined here. Both qualifications point the same way,
+toward a lower threshold, and neither is remotely capable of closing twelve orders of magnitude.
 
 \paragraph{Why a chain rather than a ring.} A ring supplies a clean barrier --- no ends,
 every site equivalent, the energy obliged to repeat with the lattice period --- but it cannot host
@@ -760,6 +822,15 @@ parameter, and the only scan at parameters the framework does not choose fails b
 What the scans do contain is a drift of the carrier toward a chain end and grid-locking of a
 staircase interface --- both of order an electron-volt, both exactly reproducible, which is why they
 were mistaken for signal for as long as they were.
+
+\emph{But the question does not require that quantity.} Asked as a threshold field rather than as a
+barrier --- and on a cyclic chain, where translation by one spacing is an exact relabelling and the
+control holds by construction --- it becomes the maximum gradient of a measured periodic curve, and
+\S\ref{sec:threshold} gives $7$--$9\times10^{9}$~V/m, twelve orders above the field at which copper
+carries an ampere and two to three orders above dielectric breakdown. The same curve yields a
+pinning potential of $812$~meV per electron and a positive curvature, hence bounded polarisation and
+no DC current. The verdict the article set out to reach is therefore available after all; what was
+never available was the number it first tried to reach it with.
 
 \paragraph{Beneath that lies a structural obstacle no refinement touches.} Non-overlap makes the
 transfer integral vanish identically, so band conduction is absent in kind: there are no extended
