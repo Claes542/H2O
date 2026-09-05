@@ -271,8 +271,13 @@ far below the resolution of any conduction measurement: scattering times are fem
 picoseconds and a conductivity is an average over many of them, so the phase evolution is integrated
 out before an ammeter sees anything. What it supplies is not the rate but the \emph{object} --- a
 current, $J\propto\Im(\psi^*\grad\psi)$, which is identically zero for a real density and cannot be
-made nonzero by any refinement of a minimisation. The rate still comes from the dissipation of the
-table above.
+made nonzero by any refinement of a minimisation. What is absent is a \emph{velocity} variable, and
+that is a weaker requirement than a complex amplitude: in Madelung's hydrodynamic form
+\cite{madelung} the same content is carried by a real density together with a real velocity field,
+with $J=\rho v$ and a continuity equation in place of the phase. The vanishing of
+$\Im(\psi^*\grad\psi)$ is therefore a statement about a minimisation, which has no velocity in it at
+all, and not about real densities, which can perfectly well flow. The rate still comes from the
+dissipation of the table above.
 
 These two absences are one. A real non-negative density has no phase, and the same lack makes the
 theory a minimisation rather than an evolution \emph{and} makes the current within a domain vanish
@@ -1192,9 +1197,12 @@ change --- but it has not been made, and a partition with more neighbours to sli
 the corrugation would next be tested.
 
 \paragraph{What the time-dependent form would have to supply.} That the framework is static here is
-a fact about this article, not about RealQM, and the route out is specific enough to state. A
-complex density has a phase, so $J\propto\Im(\psi^*\grad\psi)$ ceases to vanish and a current exists
-as an object; that removes the first obstacle. It does not remove the second, since a Hamiltonian
+a fact about this article, not about RealQM, and the route out is specific enough to state. What has
+to be supplied is a velocity, and it need not arrive as a complex phase: a real density carrying a
+real velocity field is Madelung's form of the same equation \cite{madelung}, and in this framework
+the natural variables are the densities together with the velocities of the boundaries that bound
+them, with $J=\rho v$ and continuity. Either way a current exists as an object, and the first
+obstacle goes. It does not remove the second, since a Hamiltonian
 dynamics under a constant field rings rather than settles, exactly as the $3N$ equation does, and a
 steady current needs dissipation. But the dissipation is already in the scheme and need not be
 imported: the nuclei move under classical equations of motion, so energy can leave the electrons
