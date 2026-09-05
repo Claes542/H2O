@@ -223,12 +223,10 @@ Landauer & thermalising reservoirs & the boundaries\\
 irreversibility in reservoirs assumed to thermalise; in practice $\sigma=ne^2\tau/m$ is used with
 $\tau$ an input.
 
-\textbf{What Schr\"odinger's equation does supply is the states.} Bloch's theorem gives extended
-solutions in a periodic potential --- and this is not a quantum mystery but ordinary wave physics,
-with classical counterparts in photonic and phononic crystals. Add Pauli filling and one obtains
-the metal--insulator \emph{classification}: a partly filled band conducts, a filled band with a gap
-does not. That much is a theorem plus a counting argument, and it correctly identifies sodium as a
-metal and diamond as an insulator before any transport theory is invoked.
+\textbf{What it does supply is the states.} Bloch's theorem gives extended solutions in a periodic
+potential, and Pauli filling then gives the metal--insulator \emph{classification} directly: a
+partly filled band conducts, a filled band with a gap does not. That is the standing of the question
+below --- whether this framework possesses states of the kind that fill.
 
 So the honest question comes in two tiers, and only the first is a fair test of a structural theory:
 
@@ -291,8 +289,10 @@ physical, and each way of calibrating it either inserts the answer or returns th
 
 The construction does not have a free choice of target, and identifying it correctly settles most
 of what follows. Non-overlap fixes two things at once, and they happen to be the two parameters of the Hubbard
-Hamiltonian: two electrons may not share a domain, so $U=\infty$; and the transfer integral
-\emph{is} the overlap of neighbouring orbitals, of which there is none, so $t=0$ exactly. In that
+Hamiltonian. The on-site repulsion $U$ --- what it costs to put two electrons on one site --- is
+infinite, since two electrons may not share a domain at all; and the transfer integral $t$ --- the
+amplitude to hop to a neighbour --- is exactly zero, since it \emph{is} the overlap of neighbouring
+orbitals and there is none. In that
 language the construction is the \textbf{atomic limit} and not the Mott limit --- the reading it is
 usually given --- and the difference is not a refinement:
 
@@ -315,12 +315,9 @@ produces a conductor, which is what the cuprates are. The atomic limit is a coll
 electrostatics between them. This accounts for every negative result below, and for one in
 particular: doping a Mott insulator works \emph{through} $t$, so at $t=0$ there is nothing for
 doping to activate --- which is exactly what the measurement shows, the barrier rising with carrier
-concentration rather than falling. Metals are therefore out of scope in kind and
-not by degree. Their carriers are extended Bloch states, their transport is band motion, and their
-defining measurements --- de Haas--van Alphen oscillations, a linear electronic specific heat,
-positive plasmon dispersion --- belong to a degenerate electron gas with a sharp Fermi surface,
-which no arrangement of densities on domains appears able to supply. Two results usually read as
-failures follow from the scope rather than against it: $d\sigma/dT>0$ is \emph{correct} for an
+concentration rather than falling. Metals are therefore out of scope in kind and not by degree, their carriers being extended states
+and their transport band motion, neither of which an arrangement of densities on domains appears
+able to supply. Two results usually read as failures follow from that scope rather than against it: $d\sigma/dT>0$ is \emph{correct} for an
 activated conductor and fatal only for a metal, and the absence of a Fermi surface does not bear on
 a dilute carrier gas, which is non-degenerate and has none to reproduce.
 
@@ -1012,128 +1009,11 @@ that explains why charge comes in units is the postulate that forbids a metal.} 
 ways, quantizing the particles while leaving the amplitude on each site continuous, and a partition
 of real densities has no evident means to do the same.
 
-\section{The same chain, computed the ordinary way}\label{sec:stdqm}
+\section{The carrier itself, against exact diagonalisation}\label{sec:stdqm}
 
-Everything above is internal to the framework. It is worth putting the same system beside the
-standard treatment, on quantities both can produce, and the result is a check on the scope claim of
-\S\ref{sec:scope} rather than a contest.
-
-Kohn--Sham DFT, PBE/6-31G, all electrons, a straight chain of lithium atoms at the spacings used
-above, with the geometry held uniform so that the comparison is like for like --- a Peierls
-distortion is not permitted on either side:
-
-\begin{center}
-\small
-\begin{tabular}{@{}lrrr@{}}
-\toprule
- & RealQM & PBE/6-31G & experiment\\
-\midrule
-equilibrium spacing (a$_0$)      & $4.5$              & $6.0$    & $5.7$ (bcc n.n.)\\
-verdict at $a=6.0$               & pinned, $184$~meV  & metallic & lithium conducts\\
-verdict at its own equilibrium   & depinned, $\approx0$ & metallic & ---\\
-cohesive energy (eV/atom)        & $\sim1.7$          & $0.486$  & $1.63$ (bulk, 8 n.n.)\\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\paragraph{And it is not one functional's answer.} Density-functional theory is not the
-Schr\"odinger equation: it replaces the interacting problem with fictitious non-interacting
-electrons in an effective potential, exact in principle by Hohenberg--Kohn but resting in practice
-on a \emph{constructed} exchange--correlation functional and a finite basis --- two uncontrolled
-approximations. The comparison above is therefore model against model, not model against exact, and
-would normally be qualified accordingly. On the quantity at issue it need not be. Repeating the
-scan with Hartree--Fock, which carries no correlation whatever, and with MP2, which carries it
-perturbatively, moves the total energy by some $0.3$~Ha between methods and leaves the equilibrium
-spacing at $6.0$~a$_0$ in all three:
-
-\begin{center}
-\small
-\begin{tabular}{@{}lrrr@{}}
-\toprule
-$a$ (a$_0$) & HF & PBE & MP2\\
-\midrule
-$4.5$ & $-51.97126$ & $-52.29669$ & $-52.02861$\\
-$5.0$ & $-52.01844$ & $-52.33386$ & $-52.06750$\\
-$6.0$ & $\mathbf{-52.04726}$ & $\mathbf{-52.34332}$ & $\mathbf{-52.08273}$\\
-$7.0$ & $-52.04089$ & $-52.31653$ & $-52.06476$\\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\noindent The twenty per cent is thus a disagreement with standard quantum chemistry rather than
-with a choice of functional.
-
-\paragraph{But the objection cuts the other way, and harder.} If one may choose the approximation to
-suit the problem then one will always win, and that is not a comparison. Applied evenly, the charge
-falls on \emph{this} side of the table. The standard column used a non-empirical functional, a
-general-purpose basis, and three treatments of correlation that were not selected after the fact ---
-but the RealQM column carries a free parameter, the pseudopotential radius $r_c$, and it was set to
-$1.6$~a$_0$ by choice rather than by any independent criterion. At $r_c=2.4$ the equilibrium spacing
-of the same chain moves out beyond $6.0$~a$_0$, which \emph{agrees} with the standard result. The
-twenty per cent is therefore a statement about $r_c=1.6$ and not about the framework, and the
-framework could have been made to agree as easily as to disagree.
-
-A comparison is only worth making if the parameters are fixed by something other than the quantity
-being compared. The proper protocol is to calibrate $r_c$ on the \emph{isolated} lithium atom ---
-requiring the single pseudo-atom to reproduce the measured first ionisation energy,
-$0.198$~Ha --- and then to compute the chain with that value and no further adjustment. The chain is
-then a prediction rather than a fit, and stands on the same footing as the standard column, in which
-nothing was tuned to lithium chains. Until that is done the table above should be read as
-establishing the \emph{method-independence of the standard answer} and nothing about the size of any
-discrepancy.
-
-\noindent The metallic verdict is not read off a single gap, which any finite chain has, but off its
-scaling: $0.432$, $0.346$, $0.291$, $0.247$, $0.173$~eV at $n=5,7,9,11,13$, with $n\times{\rm gap}$
-constant near $2.4$~eV, so the gap closes as $1/n$ and is finite-size rather than a band gap.
-
-\paragraph{That verdict is weaker than it looks, and in a direction that matters.} What was compared
-are Kohn--Sham eigenvalue differences, and Kohn--Sham eigenvalues are not excitation energies. They
-belong to a fictitious system of \emph{non-interacting} particles introduced to reproduce a density;
-the true gap differs from theirs by the derivative discontinuity of the exchange--correlation
-functional, which PBE does not possess at all. Approximate functionals are known to underestimate
-gaps for exactly this reason, often by a factor of two. A small Kohn--Sham gap is therefore what the
-method returns whether or not a gap is present.
-
-The bias has a direction, and it is the one at issue here. Approximate functionals carry a
-self-interaction error --- an electron repelled in part by its own density --- whose consequence is
-\textbf{delocalisation error}: densities spread too far, localised solutions are penalised, and
-metallic answers are favoured. So the standard column calling this chain metallic is that treatment
-erring in its characteristic direction, not a neutral measurement. Against it, the framework of this
-article over-localises, by construction, being $U\to\infty$. \emph{Both are biased and in opposite
-senses}, and lithium is simply a case where the standard bias does no damage, because the chain
-really is metallic. On a system where it does damage --- an oxide, a doped Mott insulator, anything
-whose gap is on-site repulsion --- the delocalisation error is the well-known failure and the
-localisation is the correct instinct.
-
-Two further asymmetries belong in the record. Density-functional theory admits no convergence path:
-wavefunction methods form a hierarchy, Hartree--Fock through MP2, CCSD, CCSD(T) to full
-configuration interaction, which converges to the exact answer within a basis, whereas no procedure
-refines PBE towards the true functional. And the quantities are not of the same kind. What is
-computed here are total energies of \emph{specified configurations} --- differences between states
-of one system, which are observables --- where the gap above is an eigenvalue difference in an
-auxiliary system that was never claimed to have physical states. Where this framework is less
-accurate it is at least computing something that means what it says.
-
-\paragraph{What this establishes, and what it does not.} On this system the standard treatment is
-better and cheaply so: the equilibrium spacing within a few per cent of the measured
-nearest-neighbour distance, the right conduction verdict, a sensible cohesive energy, in seconds.
-RealQM places the atoms some twenty per cent too close, and at the spacing lithium actually adopts
-it predicts a pinning barrier of $184$~meV where the metal has none.
-
-That is not a surprise and should not be read as one, because \emph{lithium is outside the scope
-this article claims}. \S\ref{sec:scope} excludes metals in kind and not by degree: extended Bloch
-states, band transport, a Fermi surface, none of which the construction possesses. A simple metal is
-the standard treatment's best case and this framework's declared worst, so the table is a scope check
-and not a competition.
-
-As a scope check it passes, in the specific sense that matters: the framework errs by
-\emph{over-localising}, in bond length and in pinning alike, which is what $U\to\infty$ implies and
-therefore the direction the identification predicts. It fails as it was said it would, rather than
-arbitrarily.
-
-\paragraph{The carrier itself, against exact diagonalisation.} The sharpest form of the comparison
-does not use energies at all. Take the same object this article hops --- $n$ protons, $n-1$
-electrons, nuclei clamped --- and diagonalise it exactly in a minimal basis. The Loewdin site
+Everything above is internal to the framework. One external check is worth keeping, and the sharpest
+form of it does not compare energies at all. Take the same object this article hops --- $n$ protons,
+$n-1$ electrons, nuclei clamped --- and diagonalise it exactly in a minimal basis. The Loewdin site
 populations then say directly whether the carrier is localised:
 
 \begin{center}
@@ -1151,30 +1031,23 @@ $6.0$ & $-19.86$ & $0.71$ & $0.253$ & delocalised\\
 \end{center}
 
 \noindent A hole spread evenly over seven sites reads $0.143$; one sitting on a single site reads
-$1.000$. At every spacing the exact ground state puts it on four or five sites. \emph{There is no
-localised carrier, and therefore no barrier for one to cross.} Note that this is not because
-correlation is weak --- $E_{\rm corr}$ reaches $19.9$~eV --- but because strong correlation and
-localisation are different things: a one-dimensional Mott insulator doped with a single hole
-conducts, the holon propagating freely, which is what the calculation reproduces.
+$1.000$. At every spacing the ground state puts it on four or five. \emph{There is no localised
+carrier, and therefore no barrier for one to cross.} Not because correlation is weak ---
+$E_{\rm corr}$ reaches $19.9$~eV --- but because strong correlation and localisation are different
+things: a one-dimensional Mott insulator doped with a single hole conducts, the holon propagating
+freely.
 
-So the disagreement with this construction is about the state and not about a number, which is the
-harder kind to explain away. Two qualifications keep it honest. A minimal basis is not the exact
-solution of Schroedinger's equation but exact diagonalisation within a deliberately crude span ---
-STO-6G misses the hydrogen atom by six per cent before any chemistry begins --- and attempts to
-repeat the calculation in larger bases did not converge for the stretched chains. So no exact
-reference exists for these configurations, and nothing here can declare RealQM's pinning wrong for
-them. What can be said is that two independent approximate treatments and the known behaviour of the
-one-dimensional Hubbard model all point the same way, and this construction points the other.
+The disagreement is therefore about the \emph{state} and not about a number, which is the harder
+kind to explain away. Two qualifications keep it honest: a minimal basis is exact diagonalisation
+within a deliberately crude span --- STO-6G misses the hydrogen atom by six per cent before any
+chemistry begins --- and larger bases did not converge for the stretched chains, so no exact
+reference exists for these configurations and nothing here declares the pinning wrong for them. What
+it does establish is the direction of the error. The construction over-localises, by construction,
+being $U\to\infty$: it fails as \S\ref{sec:scope} said it would rather than arbitrarily, and where
+the mechanism of this article would actually be tested --- a doped Mott insulator, an organic
+semiconductor, a polaronic oxide, where on-site repulsion and not band structure sets the gap --- no
+comparison is made here.
 
-\paragraph{Where the comparison would actually bite.} The corollary is uncomfortable and is recorded
-plainly: nothing computed here is a quantity the standard treatment does not already supply more
-accurately. The case for the construction rests instead on the real-space mechanism --- a registry,
-a sliding partition, a carrier that is a boundary rather than a particle --- being a more transparent
-account of activated hopping than a model Hamiltonian with fitted parameters. That claim is not
-tested by lithium. It would be tested on the systems the scope table names, where on-site repulsion
-rather than band structure sets the gap and where density-functional theory is itself in difficulty:
-a doped Mott insulator, an organic semiconductor, a polaronic oxide. Those comparisons are not made
-here.
 
 \section*{A note on what was tested numerically}
 
