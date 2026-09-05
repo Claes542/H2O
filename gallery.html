@@ -129,7 +129,7 @@ footer a { color: #4fc3f7; text-decoration: none; }
     <a href="#mat" style="color:#80cbc4">Materials (NaCl, ice, dispersion, melting)</a><br>
 
     <b style="color:#9ccdf5">Conduction</b> ·
-    <a href="#conduction" style="color:#9ccdf5">Conduction in RealQM &mdash; the free boundary as charge carrier (article &amp; sims)</a><br>
+    <a href="#conduction" style="color:#9ccdf5">RealQM: insulation vs conduction &mdash; the free boundary as carrier (article &amp; sims)</a><br>
 
     <b style="color:#9fa8da">Cosmology</b> ·
     <a href="#news-web" style="color:#ffa726">A Coulomb&ndash;Newton Cosmology (RealUniv) &mdash; sim, article, essay &amp; PDF</a> ·
@@ -175,11 +175,13 @@ footer a { color: #4fc3f7; text-decoration: none; }
   <h2 id="news">News</h2>
   <div class="grid">
     <div id="conduction" class="card" style="border-color:#9ccdf5;background:#0a1016;grid-column:1/-1;padding:18px">
-      <h3 style="color:#9ccdf5">Conduction &middot; Conduction in RealQM &mdash; the Free Boundary as Charge Carrier</h3>
+      <h3 style="color:#9ccdf5">Conduction &middot; RealQM: Insulation vs Conduction &mdash; the Free Boundary as Carrier</h3>
       <div class="desc" style="margin-top:6px">
-        RealQM extended from atoms and molecules to <b>two-component systems</b> &mdash; ions and
-        electrons, both charged and both free to move, which is what a metal is. The question is the
-        elementary one: does it <b>conduct</b>, and what carries the charge?
+        Can the difference between a conductor and an insulator be <b>explained from scratch</b> &mdash;
+        derived from the charges present and their Coulomb interaction, with nothing further supplied?
+        Textbook quantum mechanics costs exponentially in the number of electrons and cannot deliver an
+        answer at the size where the question exists. RealQM is polynomial, so it can be asked &mdash;
+        and on a regular chain of atoms with one valence electron each, it answers.
         <div style="margin-top:8px">
         <b>What is carried &mdash; and it is not an electron.</b> An electron here is a unit of charge
         density on a domain; what exists is the <i>partition</i> of space, and transport is the
@@ -196,16 +198,32 @@ footer a { color: #4fc3f7; text-decoration: none; }
         (&rho;<sub>i</sub>&minus;&rho;<sub>j</sub>)/(&rho;<sub>i</sub>+&rho;<sub>j</sub>).
         </div>
         <div style="margin-top:8px">
-        <b>What the rings measure.</b> An extra electron on a ring of hydrogens <i>does not sit
-        anywhere</i>: it relaxes to a uniform corona, at 2.2&nbsp;a<sub>0</sub> and still at
-        4.0&nbsp;a<sub>0</sub> where a real electron would be H<sup>&minus;</sup>. The framework
-        <b>over-delocalises and never localises charge</b>. A full electron ring against bare kernels
-        is by contrast <b>pinned</b>: 0.01186&nbsp;Ha = <b>323&nbsp;meV</b> for six electrons &mdash;
-        54&nbsp;meV each, a threshold field of 9&times;10<sup>8</sup>&nbsp;V/m, or
-        <b>0.11&nbsp;V per lattice site</b> against copper's 4&times;10<sup>&minus;12</sup>&nbsp;V.
-        Rigid sliding is excluded as a conduction mechanism <b>by ten orders of magnitude</b> &mdash;
-        but it is an upper bound, since it makes every electron crest its barrier at once. The cheap
-        path is a <b>kink</b>, whose cost is independent of chain length.
+        <b>The threshold field, measured.</b> Put the chain in a field and ask not for a barrier but
+        for the <i>maximum gradient</i> of the periodic energy E(u) &mdash; on a wrapped chain, where
+        translation by one spacing is an exact relabelling and the control holds by construction. That
+        gives <b>7&ndash;9&times;10<sup>9</sup>&nbsp;V/m</b> = <b>2.1&ndash;2.6&nbsp;V per lattice
+        site</b>, against copper carrying an ampere at 4&times;10<sup>&minus;12</sup>&nbsp;V per site:
+        <b>twelve orders of magnitude</b>, converged on three grids. The same curve gives a pinning
+        potential of <b>812&nbsp;meV per electron</b>. Dielectric breakdown intervenes two to three
+        orders below that field, so <b>the construction does not conduct under any field a material
+        survives</b>.
+        </div>
+        <div style="margin-top:8px">
+        <b>The same verdict from scaling.</b> One electron per domain pins the monopole of every
+        domain, so no charge passes between sites and the polarisability must be extensive. Measured on
+        chains of three to seven atoms: <b>&alpha; = 27.4N</b>, flat to <b>1% per atom</b>. The one
+        escape is a vanishing corrugation, and it is not taken &mdash; 182 to 461&nbsp;meV per electron
+        over spacings 3.5 to 8.0&nbsp;a<sub>0</sub>, and 379 / 721 / 949&nbsp;meV under three different
+        boundary treatments. A closed sample always saturates, so what carries the classification is
+        the <i>scaling</i>, not the boundedness.
+        </div>
+        <div style="margin-top:8px">
+        <b>What could not be measured, and is withdrawn.</b> The kink barrier itself. It is
+        0.01&nbsp;Ha differenced from totals of 1.3&nbsp;Ha carrying 0.27&nbsp;Ha of discretisation
+        error &mdash; ten per cent of it would need a 42000<sup>3</sup> grid. Six of eight period scans
+        fail their own translation control; what they contain instead is carrier drift to a chain end
+        and grid-locking of a staircase interface, both of order an electron-volt and both exactly
+        reproducible, which is why they were mistaken for signal.
         </div>
         <div style="margin-top:8px">
         <b>What it costs.</b> The same free interface that supplies the mechanism damages the equation
@@ -218,10 +236,11 @@ footer a { color: #4fc3f7; text-decoration: none; }
         molecule at all, so the far end of the dial is hostile to what this framework does best.
         </div>
         <div style="margin-top:10px">
-          <a href="realqm_electron_gas.pdf" style="display:inline-block;padding:8px 18px;background:#9ccdf5;color:#000;text-decoration:none;font-weight:bold;border-radius:4px">article (PDF)</a>
-          &middot; <a href="ring_slide.html" style="color:#9ccdf5"><b>ring slide</b> &mdash; the pinning energy (323 meV)</a>
+          <a href="realqm_hopping.pdf" style="display:inline-block;padding:8px 18px;background:#9ccdf5;color:#000;text-decoration:none;font-weight:bold;border-radius:4px">article (PDF)</a>
+          &middot; <a href="realqm_electron_gas.pdf" style="color:#9ccdf5">companion: the electron gas &amp; the interface coefficient (PDF)</a>
+          &middot; <a href="ring_slide.html" style="color:#9ccdf5">ring slide &mdash; pinning on a 6-ring (323 meV, superseded by the wrapped chain)</a>
           &middot; <a href="ring_corrugation.html" style="color:#9ccdf5">ring corrugation &mdash; the corona result</a>
-          &middot; <a href="chain_kink.html" style="color:#9ccdf5"><b>chain kink</b> &mdash; the cheap path</a>
+          &middot; <a href="chain_kink.html" style="color:#9ccdf5">chain kink &mdash; barrier not extractable at achievable resolution</a>
           &middot; <a href="ring_incommensurate.html" style="color:#9ccdf5">incommensurate rings &mdash; registry vs filling</a>
           &middot; <a href="proton_wire.html" style="color:#ffa726">proton conduction (Grotthuss) &mdash; the transport that works</a>
           <div style="margin-top:6px;font-size:12px;color:#777">

@@ -12,7 +12,7 @@
 \newcommand{\half}{\tfrac12}
 
 
-\title{RealQM vs Conduction:\\ \large the Free Boundary as Carrier}
+\title{RealQM: Insulation vs Conduction\\ \large the Free Boundary as Carrier}
 
 \author[1]{Claes Johnson}
 \affil[1]{KTH Royal Institute of Technology, SE-100 44 Stockholm, Sweden \\
@@ -25,81 +25,39 @@
 \maketitle
 
 \begin{abstract}
-\noindent RealQM models matter as non-overlapping unit charge densities in ordinary
-three-dimensional space, one per electron, meeting at free boundaries and minimising the Coulomb
-energy. This article asks whether such a construction \textbf{conducts}, and reports that the
-question cannot be answered in this formulation --- for reasons that turn out to be structural
-rather than numerical, and that locate the boundary of the framework's scope.
+\noindent Can the difference between a conductor and an insulator be \emph{explained} from scratch
+--- derived from the charges present and their Coulomb interaction, with nothing further supplied?
 
-What would move is not an electron. An electron here is a unit of charge density on a domain; what
-exists is the \emph{partition} of space, and the carrier is a \textbf{free boundary} --- in the
-relation a dislocation bears to the slip it produces, charge arriving at the far end while nothing
-material crosses the sample. That identification is the article's positive content: it accounts for
-every null result reported below, each of which had imposed a carrier obliged to translate bodily
-through occupied space, and it is why the framework's one successful transport calculation is
-Grotthuss conduction, where the carrier is a proton. It is not, however, the mechanism of ordinary
-conduction: perfect crystals conduct \emph{best}, and a defect-mediated carrier would predict the
-opposite. The free boundary is what a formalism with real densities is restricted to, not what
-carries current in a metal.
+Two formulations offer themselves. Textbook quantum mechanics represents the system by one
+wavefunction on $3N$ dimensions, at a cost exponential in the number of electrons $N$; it cannot deliver
+an answer at the size where the question exists, since the distinction is a property of an extended
+system. RealQM represents it by $N$ non-negative unit charge densities in ordinary three-dimensional
+space, one per electron, meeting at free boundaries and minimising the Coulomb energy, at polynomial
+cost. It is computable, and it delivers the following.
 
-The activation energy for such a boundary to advance one site is not extractable here, and the
-demonstration is the methodological contribution. Scanning the carrier through a \emph{full lattice
-period} rather than sampling two configurations supplies a control that costs nothing: translation
-by one spacing must return the same energy, so the mismatch is a per-run noise floor measured
-alongside the quantity it bounds. Of eight such scans, varying core radius and lattice spacing,
-\textbf{six fail that control}, and the two that pass survive no change of either parameter. The one
-scan in which both parameters are determined rather than chosen --- $r_c$ from the atom's ionisation
-energy, the spacing from that radius's own equilibrium --- fails by the widest margin. An earlier
-draft quoted $E_a=555$~meV and drew a verdict from its position relative to $500$; that figure is
-withdrawn, along with the length-independence and the comparisons built on it. Two artifacts are
-identified in its place: a drift of the carrier toward a chain end, and grid-locking of a staircase
-interface, each of order an electron-volt and each exactly reproducible, which is why they passed
-so long for signal.
+\textbf{Polarisation, measured; sliding, not found.} On a regular chain of atoms with one valence
+electron each, the polarisability $\alpha$ is extensive in the number of electrons: $\alpha=27.4N$, flat to $1\%$ per atom --- the response of charge fixed per
+site, not of charge free to move between sites. And no sliding of the partition could be identified:
+the corrugation it would have to pass through vanishes at no spacing, filling or boundary treatment
+tested, placing the threshold field beyond dielectric breakdown. Both point to insulation.
 
-\textbf{The question has a form that avoids barriers entirely, and in that form it is answerable.}
-Under a field every electron shifts; if the shift reaches one lattice spacing each has taken over
-its neighbour's kernel and, the electrons being identical, the configuration is \emph{restored}.
-That restoration is what distinguishes a current from a polarisation, and the threshold for it is
-not an activation energy but the maximum \emph{gradient} of the periodic energy $E(u)$. Made
-cyclic --- what leaves at one end enters at the other, so translation by one spacing is an exact
-relabelling --- the chain gives that curve with $E(u{+}a)=E(u)$ to every digit and reflection pairs
-agreeing to $1$--$2\times10^{-5}$~Ha, a control passing by four orders of magnitude. Its steepest
-slope gives a depinning field of $7$--$9\times10^{9}$~V/m, or $2.1$--$2.6$~V per lattice site,
-against copper's $4\times10^{-12}$~V per site: \textbf{twelve orders of magnitude}, with dielectric
-breakdown intervening two to three orders below. The same curve gives a periodic pinning potential
-of $812$~meV per electron and a curvature $K=0.035$~Ha/a$_0^2$, hence a polarisability of
-$29$~a$_0^3$ per electron --- a restoring force, so a field produces bounded polarisation and no DC
-current. \emph{This construction is a dielectric, established by a computed response rather than by
-a failed barrier.}
-
-Underneath the arithmetic lies the structural obstacle. Non-overlap makes the transfer integral
-vanish identically, so band conduction is absent in kind and not by degree; and in this scheme
-nuclei move while electrons \emph{relax to a static minimum}, so there is no electron equation of
-motion and hence no object corresponding to a current. A minimisation has no time in it. Attempting
-to infer transport from an energy landscape is a proxy, and it is the proxy that breaks. Electronic
-conduction therefore lies outside static RealQM, while protonic and ionic conduction lie inside it;
-a conduction calculation belongs in the time-dependent form where a real density carries a complex
-current.
-
-Two further results bound the framework. The interface coefficient vanishes exactly, $C=0$, removing
-degeneracy pressure and leaving a vanishing screening length and a dispersionless plasmon; a Robin
-condition at $\beta a=1.146$ restores $C=C_{\rm TF}$, but $\beta$ that large \emph{unbinds}
-$\mathrm{H}_2$, which fails by $\beta a\approx0.71$. And on the same chains, exact diagonalisation
-in a minimal basis puts the carrier on four or five sites where this construction pins it to one ---
-the framework errs by \textbf{over-localising}, which is the direction $U\to\infty$ implies, so it
-fails as its own analysis says it should rather than arbitrarily.
+\textbf{The carrier, identified.} What moves is not a particle but a \emph{free boundary}, in the
+relation a dislocation bears to slip --- which places protonic and ionic conduction inside the
+framework and the electronic \emph{rate} --- a conductivity $\sigma$ --- outside it, in the
+time-dependent form: a minimisation has no time in it.
 \end{abstract}
 
 \setstretch{1.15}
 
-\section{The extension, and the object it is made for}
+\section{The question, and the two formulations}
 
-In this article we extend RealQM, developed for atoms and molecules, to \textbf{two-component
-systems}: ions and electrons, both charged, both free to move, interacting by Coulomb forces and
-nothing else. A metal is such a system, and the question pursued here is the elementary one such a
-system poses --- whether it \emph{conducts}, and if so what carries the charge. The same
-construction covers a stellar interior and the recombination era of a Coulomb cosmology, which are
-treated as the classical plasma, where $\omega_p^2=4\pi n$ comes out exactly.
+Can the difference between a conductor and an insulator be \emph{explained} from scratch --- derived
+from the charges present and their Coulomb interaction, with nothing further supplied?
+
+Two formulations are available to be asked it, and they should be put side by side before either
+is judged. The first is the one in every textbook: a single wavefunction on $3N$ dimensions
+satisfying Schr\"odinger's equation, antisymmetric under exchange, from which everything else
+follows. The second is RealQM.
 
 RealQM \cite{realqm,realqmbook} represents an $N$-electron system by $N$ non-negative densities
 $\psi_i$, each carrying unit charge on its own domain $\Omega_i$, the domains non-overlapping and
@@ -115,6 +73,63 @@ requirement that domains do not overlap. And --- of particular relevance here --
 continuum anywhere in the construction: everything in it is a discrete unit charge occupying a region
 of ordinary space.
 
+Minimising \eqref{eq:E} gives stationarity conditions that take the form of Schr\"odinger's
+equation --- $N$ of them in three dimensions, coupled through the Coulomb potential and through the
+free boundaries --- together with a condition fixing where each domain ends. This is not the
+$3N$-dimensional problem rewritten or restricted: the minimisation runs over the partition
+$\{\Omega_i\}$ as well as over the densities, and a condition fixing a domain's edge has no
+counterpart in a formulation that has no domains. The two share their physical content --- kinetic
+energy and the Coulomb interaction, no other force and nothing fitted --- and differ in what a
+solution \emph{is}: one function on $3N$ dimensions, or $N$ functions on three with free
+boundaries. Neither is a special case of the other.
+
+The contrast is often compressed to ``$3$ dimensions against $3N$'', which is the most consequential
+difference but not the only one, and on its own it invites the reading that one equation has simply
+been rewritten in fewer variables. The physics entering is the same; four things differ:
+
+\begin{center}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+ & textbook quantum mechanics & RealQM \\
+\midrule
+the physics    & \multicolumn{2}{l}{Coulomb interaction $+$ kinetic energy --- the same for both} \\
+\midrule
+the solution   & one function on $3N$ dimensions & $N$ functions on three \\
+the object     & complex antisymmetric amplitude & real non-negative density \\
+               & whose square is a probability   & which \emph{is} a charge density \\
+the equation   & one, linear, unitary            & $N$ coupled, nonlinear \\
+the domains    & none                            & free boundaries, found by the minimisation \\
+\midrule
+the cost       & exponential in $N$              & polynomial in $N$ \\
+its reach      & a molecule                      & a solid \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The last two rows are what decides whether either can be brought to the question this
+article asks. The cost of the $3N$ equation grows exponentially in $N$, so its reach is a molecule
+and never a crystal: at the size where conduction is a meaningful question it is uncomputable, and
+only the second column is available at all.
+
+Hartree and Kohn--Sham theory work with a drastic reduction of dimensionality, and so are no longer
+\emph{ab initio}: what they compute is not settled by Coulomb's law and kinetic energy alone.
+
+One further difference decides how the next section's argument applies here. The $3N$ equation is
+\emph{linear} in $\Psi$ and its evolution unitary; \eqref{eq:E}'s stationarity conditions are
+\emph{nonlinear}, since each density moves in the field of the others. That matters because the
+argument of \S\ref{sec:bar} --- that a closed system rings rather than conducts, so irreversibility
+must be imported --- is an argument about linear unitary evolution. Nonlinearity is where
+irreversibility can arise without being inserted, which is what is claimed below for the friction a
+driven partition feels.
+
+So when conduction is said not to be derivable from Schr\"odinger's equation, what is at issue is
+the linear $3N$ formulation and what can be extracted from it, not the equation itself, which
+appears here too. Whether the nonlinear form escapes the same argument is not settled here for a
+simpler reason: as used below it is a \emph{minimisation}, with no time in it at all, so it cannot
+ring or conduct or dissipate. That is a statement about this article's method, not about the
+framework's prospects.
+
 A two-component system of ions and electrons is therefore not an idealisation the theory must be
 adapted to describe. It is what the theory is already made of, in a new arrangement.
 
@@ -123,6 +138,61 @@ binding, nuclear binding by dual Coulomb confinement \cite{realnucleus} --- has 
 matter, with an attractor always present. A plasma is the first case in which large numbers of
 charges of both signs are free to arrange themselves, and it is a fair question what the framework
 then gives.
+
+\section{Which of them can answer it}
+
+Textbook quantum mechanics gives no answer to it. Not one that is merely out of reach for now ---
+none at all, and not in principle either. Kohn established that the conductor/insulator distinction
+follows from the ground state alone, with no transport theory required; what that does is convert
+the question into a second one, produce the ground state. Solving the many-electron Schr\"odinger equation for that ground state costs
+\textbf{exponentially} in the number of electrons, so its reach is a molecule and never a crystal,
+and no growth in computing changes an exponent. Nor does the question live where the equation can be
+solved: whether a response is bounded or unbounded is a statement about how it grows as the system
+does --- an isolated finite sample polarises and stops whatever it is made of --- so the distinction
+exists only for an extended system. The systems the exact equation can reach are not ones in which
+the question can be posed, and the systems in which it can be posed are not ones it can reach. The
+two domains do not overlap. A criterion whose input can never be supplied, for any system to which
+the criterion applies, is not an answer held in reserve; it is a description of what an answer would
+look like.
+
+What is used at the size of a solid therefore answers a different question. Band theory supplies the
+periodic potential instead of computing it and counts fillings; it places sodium and diamond
+correctly and NiO wrongly, a partly filled band there belonging to an excellent insulator. Density
+functional theory supplies an exchange--correlation functional. A Hubbard treatment supplies $U$ and
+$t$. Each returns a verdict about a model that was put in, and the distinction that was to be
+explained is among its inputs.
+
+The second formulation is not blocked in the same way. RealQM costs \textbf{polynomially} in the
+number of electrons and carries no fitted quantity, so the question can be put to it at the size at
+which it is meaningful, and put from scratch. That is the whole of its claim at this point: not that
+it answers correctly, but that it is the one of the two that can be asked.
+
+The rest of the article asks it. Sections~\ref{sec:bar} and~\ref{sec:scope} fix what would count as
+an answer and what kind of conductor this construction could be; the remainder puts the question to
+it and reports what comes back --- which is a clean verdict on one half and an obstacle on the
+other.
+
+\section{The extension, and the object it is made for}
+
+In this article we extend RealQM, developed for atoms and molecules, to \textbf{two-component
+systems}: ions and electrons, both charged, both free to move, interacting by Coulomb forces and
+nothing else. A metal is such a system, and the question pursued here is the elementary one such a
+system poses --- whether it \emph{conducts}, and if so what carries the charge. The same
+construction covers a stellar interior and the recombination era of a Coulomb cosmology, treated as
+a classical plasma.
+
+There the one exact result is the \textbf{plasma frequency}, and it is worth saying what it is.
+Displace the whole electron population rigidly by $u$ against its neutralising ion background: charge
+$neu$ per unit area is exposed at the two faces, the field between them is $4\pi neu$, and the
+restoring force per electron is $-4\pi ne^2u$. The population therefore oscillates at
+$\omega_p^2=4\pi ne^2/m$, or $4\pi n$ in atomic units, and the construction returns it exactly.
+
+That is a check on the Coulomb bookkeeping of a two-component system, not evidence for the quantum
+structure: the derivation is electrostatics and Newton's law, and any theory with the same
+electrostatics returns the same number. It is quoted here to establish that the extension to ions
+and electrons is set up correctly before anything harder is asked of it. The quantities that
+\emph{would} test the quantum structure --- the screening length and the dispersion of that
+oscillation --- are where the construction is found wanting, in \S\ref{sec:coefficient}.
 
 \section{What conduction asks of a theory}\label{sec:bar}
 
@@ -185,6 +255,42 @@ since nothing supplies one unaided. What it does examine is whether the framewor
 classification at all --- whether it possesses states of the kind that fill into bands --- and the
 answer, developed below, is that it does not, for reasons that are structural and that the
 framework's own postulate makes explicit.
+
+\paragraph{Which clock is missing.} ``Static'' is too blunt a word for what is absent, since a wire
+contains three time scales, twenty orders of magnitude apart, and the construction lacks them for
+three different reasons:
+
+\begin{center}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+what moves & its scale & why this framework does not have it\\
+\midrule
+the signal, hence the energy & $\sim c$ & \eqref{eq:E} is instantaneous: no retardation, no Maxwell\\
+the carriers & mm/s drift & this \emph{is} $\sigma$: inserting it assumes the answer\\
+the electron state & $\hbar/E_h\approx24$~as & a real $\psi$ has no phase to evolve\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Only the last is intrinsic --- $c$ arrives by coupling to Maxwell and drift is a transport
+coefficient --- but restoring it does not by itself produce a conductivity. Attosecond variation is
+far below the resolution of any conduction measurement: scattering times are femtoseconds to
+picoseconds and a conductivity is an average over many of them, so the phase evolution is integrated
+out before an ammeter sees anything. What it supplies is not the rate but the \emph{object} --- a
+current, $J\propto\Im(\psi^*\grad\psi)$, which is identically zero for a real density and cannot be
+made nonzero by any refinement of a minimisation. The rate still comes from the dissipation of the
+table above.
+
+\paragraph{And a pseudo-time is not a clock.} The solver already advances the interfaces, by the
+local density balance $(\rho_i-\rho_j)/(\rho_i+\rho_j)$: first order, monotone in the energy, no
+inertia. That is gradient descent, and it can be promoted to a dynamics in exactly two ways, neither
+of which answers the question. Overdamped, $\partial_t\Omega=-M\,\delta E/\delta\Omega$, gives a
+boundary velocity proportional to the driving force --- Ohm's law with the correct structure, except
+that the mobility $M$ is put in by hand and is the conductivity up to geometry. Inertial, giving the
+moving interface a mass, gives oscillation: the chain rings, as any closed system does, and carries
+no steady current. The descent rate is a numerical parameter with no calibration to anything
+physical, and each way of calibrating it either inserts the answer or returns the ringing.
 
 \section{What kind of conductor this can be}\label{sec:scope}
 
@@ -404,6 +510,16 @@ dielectric breakdown occurs two to three orders of magnitude below $10^{10}$~V/m
 destroyed long before the electron distribution depins. \emph{The construction does not conduct
 under any field a material survives.}
 
+\paragraph{Above the threshold, and why the rate there is not a result.} Drive harder than
+\eqref{eq:Fdep} and the partition does run: the tilt exceeds every slope of $E(u)$, no configuration
+is stationary, and the solver will advance the interfaces without stopping. It will also report a
+speed, and that speed is worth naming as an artifact before anyone quotes it. What sets it is the
+descent parameter of the relaxation scheme, not the physics --- as \S\ref{sec:bar} sets out, the
+pseudo-time carries no calibration --- so the same chain under the same field yields whatever current
+the numerical mobility is set to. The threshold is a property of the measured curve $E(u)$ and
+survives refinement; the current above it is a property of the scheme and does not --- and the
+regime is in any case the one just excluded.
+
 \paragraph{Why this supersedes the barrier attempts.} Every earlier route asked for a difference
 between two configurations far apart in the energy landscape --- and \S\ref{sec:mesh} shows why that
 could not work, six of eight scans failing their own control. Equation \eqref{eq:Fdep} asks instead
@@ -548,6 +664,158 @@ only the wavefunctions. Nothing is searched for, the same input returns the same
 question asked is no longer ``where does the boundary go'' but ``what does this configuration
 cost'' --- which is the question a barrier actually poses. It is the device that makes the
 $\mathrm{H}_2$ midplane exact, applied to a coordinate instead of a symmetry.
+
+
+\section{The same verdict from scaling}\label{sec:scaling}
+
+The measurements in this section are on a \emph{different chain} from \S\ref{sec:threshold}, and
+that should be said before any of its numbers appear. It is a model atom of nuclear charge $+1$
+with core radius $r_c=1.0\,a_0$ and one valence electron, seven of them in a row at spacings from
+$3.5$ to $8.0\,a_0$ --- parameters chosen to define a system rather than to represent an element.
+The row is an arrangement of kernels, not a property of the construction: the domains are regions of
+ordinary three-dimensional space, and the same computation runs unchanged on a square or cubic
+lattice of the same atoms. Its corrugation runs from
+$182$ to $461$~meV per electron across that range, and is $379$~meV at $a=4.5\,a_0$, the spacing at
+which the polarisabilities below are computed. Nothing here is a second determination of the
+quantities of \S\ref{sec:threshold}; what is claimed is a statement about \emph{scaling}, which is
+independent of which chain it is made on.
+
+The threshold field settles the question by driving the pattern. It can also be settled without
+driving anything, by asking how the response grows with the size of the sample --- an independent
+route, resting on different assumptions, and worth having because the two can be checked against
+each other.
+
+One point about what is being asked deserves stating before any of it, because it decides which
+part of the measurement carries the weight. An isolated finite system cannot conduct, whatever it is
+made of. Place a piece of copper in a box and apply a static field: the charge redistributes to the
+surfaces, the interior field cancels, and everything stops. Copper polarises and stops. So the fact
+that a response \emph{saturates} is never evidence of insulation --- it is what any closed system
+does, and no calculation on a bounded sample can conclude otherwise.
+
+What distinguishes the two cases is not whether the response saturates but how the saturated value
+\emph{scales}. A metal's polarisability grows faster than the number of atoms; an insulator's is
+extensive. That is what Kohn's argument supplies and what makes a closed, static calculation
+capable of answering the question at all. The measurement that carries the classification here is
+therefore $\alpha = 27.4N$ --- the extensivity, not the boundedness --- and the corrugation enters
+only because a vanishing $K$ is the one way extensivity could fail.
+
+\subsection{Why the scaling is fixed before it is measured}
+
+Nor is the outcome fixed in advance by the postulate. At full filling the domains tile space, but
+transport does not require a vacancy: every boundary may shift at once, translating the whole
+partition. That collective mode has a polarisability. Writing $K$ for the per-electron curvature
+of the corrugation the partition slides through,
+\begin{equation}
+E(u) = \tfrac12 K_{\text{tot}}u^2 - NeFu
+\quad\Longrightarrow\quad
+\alpha_{\text{slide}} = \frac{N^2e^2}{K_{\text{tot}}} = \frac{Ne^2}{K},
+\label{eq:slide}
+\end{equation}
+since the stiffness is extensive, $K_{\text{tot}}=NK$.
+
+Each domain carries exactly one electron. The constraint $\int_{\Omega_i}\psi_i^2 = 1$ is imposed,
+not obtained, so the monopole of every domain is pinned and \textbf{no charge passes between
+sites}. That removes the mechanism which gives extended systems their large polarisability, and
+leaves exactly two responses to a field: the density deforming within each fixed domain, and the
+domain boundaries displacing. Write $\alpha_{\text{intra}}$ for the first --- the polarisability an
+atom would have with its domain held rigid, the electron leaning toward the field while its walls
+stay put --- and use \eqref{eq:slide} for the second:
+\begin{equation}
+\alpha = N\Big(\alpha_{\text{intra}} + \frac{e^2}{K}\Big),
+\label{eq:extensive}
+\end{equation}
+which is proportional to $N$ exactly. Allowing the walls to move differentially does not change
+this: with elastic coupling $\kappa$ between walls and substrate stiffness $K$ per site, the
+displacement profile satisfies $\kappa u'' - K u = -f$ and returns $u \simeq f/K$ through the bulk
+with corrections over a length $\sqrt{\kappa/K}$ at the ends, so the total dipole remains
+proportional to $N$.
+
+The one escape is $K \to 0$. Only when the corrugation vanishes is the displacement limited by the
+chain length rather than by a restoring force, and only then does $\alpha$ grow faster than $N$.
+
+\subsection{Polarisability against chain length}
+
+Computed for a model chain --- one-valence-electron atoms of core
+radius $r_c=1.0\,a_0$ at spacing $a=4.5\,a_0$, frozen partition, from the induced dipole at two
+field strengths well below the depinning threshold:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{rrrr}
+\toprule
+$N$ & $\alpha$ & per atom & linearity \\
+\midrule
+3 & 81.57 & 27.19 & 4.3\% \\
+5 & 137.26 & 27.45 & 5.5\% \\
+7 & 192.50 & 27.50 & 4.8\% \\
+\bottomrule
+\end{tabular}
+\caption{Polarisability against chain length. The last column is the spread between the two field
+strengths. It is the precision of the measurement rather than a departure from linearity: the
+fields are already at a tenth of the depinning threshold, and lowering them further puts the
+induced energy below the solver's own convergence noise, so $5\%$ is the floor available here.}
+\label{tab:chainN}
+\end{table}
+
+The polarisability per atom is constant to $1\%$ across the three lengths, so
+\begin{equation}
+\alpha = 27.4\,N,
+\label{eq:alphafit}
+\end{equation}
+reproducing all three entries to better than $1\%$ with no intercept required. The response is
+extensive, with $\alpha_{\text{bulk}} = 27.4\,a_0^3$ per atom.
+
+A surface term is not resolved. At the $5\%$ precision of these values an intercept anywhere
+between roughly $\pm 10$ is admissible, so the ends of the chain cannot be shown to differ from its
+interior --- which is consistent with the derivation, since a constraint that fixes the charge on
+every domain makes no distinction between an end site and a middle one, but it should be read as
+an absence of evidence rather than evidence of absence.
+
+This is \eqref{eq:extensive} with its coefficient supplied, and it confirms rather than tests the
+derivation: extensivity follows from the postulate, and what the measurement adds is the size of
+the coefficient and the fact that nothing anomalous happens as the chain lengthens.
+
+One caution belongs with that coefficient, and it is not small. The partition is frozen, so
+$e^2/K$ drops out of \eqref{eq:extensive} entirely and what is measured is $\alpha_{\text{intra}}$
+alone. Taking $K$ from the corrugation at the same spacing gives $e^2/K = 73.6\,a_0^3$,
+nearly three times $\alpha_{\text{bulk}}$. Releasing the partition would therefore roughly triple
+the response: the wall displacement is the \emph{larger} part of it, and the numbers above are a
+lower bound on the polarisability rather than an estimate of it.
+
+\subsection{What the boundary treatment fixes, and what it does not}
+
+$V_0$ is a difference between two \emph{wall placements}, so of every quantity reported here it is
+the one most exposed to how boundaries enter the kinetic energy. That exposure was measured rather
+than assumed. Reassembling the same converged states with the surface condition changed --- the
+default Neumann at walls and cores, then Dirichlet at the walls, then Dirichlet at the cores ---
+gives $+379$, $+721$ and $-949$~meV per electron at $a=4.5\,a_0$.
+
+Two readings follow, and they point opposite ways. The corrugation is \emph{surface-dominated}: the
+bulk kinetic energy is nearly unchanged while $V_0$ moves by $1300$~meV and reverses, which is
+direct support for the steric character argued below, since a quantity fixed at the exclusion
+surfaces is by definition not an electronic one. But it also means neither the magnitude nor the
+sign of $V_0$ can be read as a property of the model alone. The Dirichlet variants are a stress
+test rather than a rival physics --- forcing the density to vanish across one cell adds a large and
+mesh-dependent surface term --- yet the sensitivity they expose is real.
+
+What survives is what the classification needs. $|V_0|$ is $379$, $721$ and $949$~meV in the three
+treatments; it approaches zero in none of them, so $K$ stays finite and the polarisation bounded
+however the surfaces are handled. The verdict is robust where the numbers are not.
+
+\subsection{Two routes, one verdict}
+
+These are different chains, as stated at the head of the section, so the agreement claimed is
+qualitative --- that both give a bounded response and a positive curvature --- and not a numerical
+coincidence between two determinations of one quantity.
+
+The threshold field of \S\ref{sec:threshold} and the extensivity measured here are independent. One
+drives the partition and reports the field at which it would run; the other never applies a field
+large enough to move anything and reports how the bounded response scales. They rest on different
+assumptions --- the first on a periodic energy curve and its steepest gradient, the second on the
+Kohn--Resta criterion and the growth of $\alpha$ with $N$ --- and they agree: the polarisation is
+bounded, the curvature is positive, and there is no DC current. That agreement is the strongest
+statement this article makes about the classification, because neither measurement could have
+produced it alone.
 
 
 \section{The barrier is not extractable, and the control that shows it}\label{sec:mesh}
@@ -938,8 +1206,15 @@ $C$ is a statement about a \emph{uniform} density and does not transfer to a sha
 \section{Conclusion}\label{sec:conclusion}
 
 The question was whether a construction of non-overlapping unit charge densities, meeting at free
-boundaries, conducts. The answer is that in this formulation it cannot be computed, and the reasons
-are worth more than the number would have been.
+boundaries, conducts. It comes in the two tiers of \S\ref{sec:bar}, and the formulation answers one
+of them.
+
+The \textbf{classification} it settles, and settles from a static calculation, which is what Kohn's
+result licenses: the polarisation is bounded, the curvature positive, the threshold field beyond
+dielectric breakdown, and $\alpha$ extensive in the number of atoms. This is an insulator, and not
+by a near miss. What cannot be reached is the \textbf{rate} --- a conductivity, or the activation
+energy that would set one --- and the reasons for that are worth more than the number would have
+been.
 
 \paragraph{The carrier is a free boundary, and that identification holds.} An electron here is a
 unit of charge density on a domain; what exists is the partition of space. Transport is therefore
@@ -985,7 +1260,8 @@ theory corresponding to a current. \emph{A minimisation has no time in it.} Ever
 infers transport from an energy landscape, which is a proxy, and it is the proxy that breaks. The
 missing ingredient is not a better barrier calculation but an equation of motion, and it exists
 elsewhere in the programme: the time-dependent form in which a real density carries a complex
-current is where a conduction calculation belongs.
+current is where a conduction calculation belongs --- and it supplies the current, not its rate,
+which needs the dissipation no framework derives unaided.
 
 \paragraph{What the framework is, and is not.} Single occupancy with long-range Coulomb is
 \emph{not} the Hubbard atomic limit, whose degeneracy over carrier position would give a barrier of
@@ -995,6 +1271,12 @@ bound matter --- structure, binding, geometry --- it works, and the transport re
 those with nuclear carriers. Electronic transport is outside, and against exact diagonalisation on
 the same chains the reason is visible directly: the exact carrier occupies four or five sites where
 this construction admits only one.
+
+\paragraph{On the system tested.} Every measurement reported here is on a regular chain of atoms
+carrying one valence electron each. The extension to a regular two- or three-dimensional lattice
+needs nothing new --- the machinery is three-dimensional already and only the kernel positions
+change --- but it has not been made, and a partition with more neighbours to slide against is where
+the corrugation would next be tested.
 
 \paragraph{The result is therefore a boundary, not a barrier.} A method with a mapped edge is more
 usable than one claimed to be universal, and the edge established here is sharp: static RealQM
