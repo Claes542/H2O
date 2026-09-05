@@ -792,6 +792,15 @@ nearly three times $\alpha_{\text{bulk}}$. Releasing the partition would therefo
 the response: the wall displacement is the \emph{larger} part of it, and the numbers above are a
 lower bound on the polarisability rather than an estimate of it.
 
+It was frozen for a reason of resolution and not of convenience. The solver moves an interface by
+transferring ownership of whole cells, so a wall sits at a cell boundary, while a sub-threshold field
+asks it to move by a fraction of one: it stays put, or jumps the full cell. A released measurement
+returns a staircase rather than a linear response. That is also why \S\ref{sec:threshold} imposes
+$u$ rigidly instead of letting a field find it --- an imposed displacement can be set to any value
+and checked exactly, since translation by one spacing must return the same energy. Releasing the
+partition and re-measuring $\alpha$ directly, which would test the factor of three above, needs a
+sub-cell representation of the interface and has not been done.
+
 \subsection{What the boundary treatment fixes, and what it does not}
 
 $V_0$ is a difference between two \emph{wall placements}, so of every quantity reported here it is
