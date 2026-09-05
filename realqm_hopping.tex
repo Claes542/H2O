@@ -289,10 +289,23 @@ driving the system and reading a current; this one cannot, so the question is re
 \S\ref{sec:threshold} and \S\ref{sec:scaling} do. The missing clock does not supply the verdict; it
 determines the form in which a verdict is available at all.
 
-\paragraph{And a pseudo-time is not a clock.} The solver already advances the interfaces, by the
-local density balance $(\rho_i-\rho_j)/(\rho_i+\rho_j)$: first order, monotone in the energy, no
-inertia. That is gradient descent, and it can be promoted to a dynamics in exactly two ways, neither
-of which answers the question. Overdamped, $\partial_t\Omega=-M\,\delta E/\delta\Omega$, gives a
+\paragraph{And a pseudo-time is not a clock.} There is a time parameter in the solver, and it is
+worth saying why it is not this one. The fields relax in \emph{imaginary} time, $\tau=it$, under
+which $e^{-H\tau}$ damps every excited component as $e^{-(E_n-E_0)\tau}$: a filter that finds the
+ground state, not a dynamics that evolves a state, and the oscillation is not lost by accident but
+removed on purpose. Charge conservation goes with it. In real time $\partial_t\rho+\grad\cdot J=0$
+holds exactly; continued to imaginary time the same equation becomes a diffusion with a source, with
+no flux to conserve and the norm restored by a renormalisation that is global. The relaxation is
+therefore not an underpowered dynamics that a smaller step would repair --- it is the branch of the
+equation from which the current has been removed.
+
+What does conserve charge locally, in the scheme as it stands, is the interface rule: cells change
+ownership between neighbouring domains by the local density balance
+$(\rho_i-\rho_j)/(\rho_i+\rho_j)$, so what leaves one domain arrives in the next. That is a genuine
+local flux, and it is the reason the boundary and not the electron is the carrier here. It is also
+where a time-dependent formulation should begin --- a continuity law with the boundary velocity as
+the transport variable --- rather than in promoting a descent that was never a conservation law. The
+descent itself can be promoted in exactly two ways, neither of which answers the question. Overdamped, $\partial_t\Omega=-M\,\delta E/\delta\Omega$, gives a
 boundary velocity proportional to the driving force --- Ohm's law with the correct structure, except
 that the mobility $M$ is put in by hand and is the conductivity up to geometry. Inertial, giving the
 moving interface a mass, gives oscillation: the chain rings, as any closed system does, and carries
