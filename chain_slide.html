@@ -59,8 +59,28 @@ window.onerror = function (msg, url, line) {
   var ZE   = parseFloat(q.get('zeff') || '1.0');
 
   var span = (N - 1) * A;
-  var scr  = span + parseFloat(q.get('pad') || '10.0');
-  var hReq = parseFloat(q.get('h') || '0.30');
+  // box=<L>: fix the TOTAL box extent, instead of adding a fixed pad to the chain span.
+  //
+  // With a fixed pad the box is span + pad and therefore grows with the spacing, so a scan in a
+  // changes the grid, the mesh h and the amount of surrounding vacuum at every point -- the same
+  // error class as tying R_SING to h. On the Li2 binding curve that produced a non-monotonic
+  // kink exactly where the grid stepped 62^3 -> 64^3, and 0.228 eV of spurious binding at
+  // R = 14 a0, where the atoms cannot interact: the reference atom had been computed in a
+  // 14 a0 box while each atom of the dimer sat in a 28 a0 one, so the dimer simply had more room.
+  // Fixing the box makes h identical at every separation and for the isolated-atom reference.
+  var scr  = (q.get('box') !== null) ? parseFloat(q.get('box'))
+                                     : span + parseFloat(q.get('pad') || '10.0');
+  // cps=<k>: fix the mesh at k CELLS PER SPACING rather than at an absolute h.
+  //
+  // A scan in a with h held fixed does not hold the discretisation fixed: the earlier series
+  // ran 7.7 cells per spacing at a=3.5 and 22 at a=10, so the mesh error varied along the very
+  // axis being scanned. That was tolerable over a factor of 3 in a; compressing to a=1.2 with
+  // h=0.45 would leave under three cells per spacing, which cannot resolve a corrugation whose
+  // period IS the spacing. Setting h = a/k makes the lattice-relative mesh a constant of the
+  // scan, so E(a) is being compared at like resolution throughout. The box still grows with a,
+  // so the cost is carried by the vacuum padding rather than by the physics.
+  var CPS = parseFloat(q.get('cps') || '0');
+  var hReq = (CPS > 0) ? (A / CPS) : parseFloat(q.get('h') || '0.30');
   var gridN = 2 * Math.round(scr / hReq / 2);
   var N2 = gridN / 2;
   var h = scr / gridN;
@@ -109,6 +129,32 @@ window.onerror = function (msg, url, line) {
   //
   // This is a difference between configurations sharing a partition and an electron count,
   // differing only in nuclear positions, so it is far better conditioned than any barrier here.
+  // nel=M: PARTIAL FILLING. M electrons on N kernels of charge M/N, so each domain spans
+  // w = N/M kernels instead of one. The point is that a wider domain loses proportionally less
+  // when the pattern slides: at half filling the wall passes through the single kernel an
+  // electron owns and all of its binding is disrupted, whereas a domain holding three kernels
+  // has walls through only its two end kernels and keeps the middle one untouched. So the
+  // corrugation per electron should fall as the domain widens -- which is the question.
+  // Commensurate M/N gives an exact control: shifting by w spacings maps the domain pattern
+  // onto itself and the kernels by an integer, so E(d=w) = E(d=0) as a relabelling.
+  // super=1: ONE domain spanning the whole chain, carrying all N electrons -- the "super electron".
+  //
+  // This is the only shape a delocalised carrier can take in this framework. Extensivity follows
+  // from the charge on each domain being FIXED, not from its being one, so a doubly or triply
+  // charged site is exactly as insulating as a singly charged one; what would escape the theorem
+  // is a domain spanning many kernels, inside which the density is free to redistribute with no
+  // wall to stop it.
+  //
+  // The repulsion that spreads it is the homogenised one already used by dbl: normalisation sets
+  // the integral to Z_eff = N, and subtractPself removes P_self/Z_eff, leaving (1 - 1/N)V_H[rho]
+  // -- the q(q-1)/2 pair energy rather than the q^2/2 self-energy. That path needs the SIC route,
+  // since the direct per-electron Poisson returns zero when there is only one domain.
+  var SUPER = q.get('super') === '1';
+  var NEL = parseInt(q.get('nel') || '0');
+  var WFILL = (NEL > 0) ? (N / NEL) : 1;
+  var ZNUC = (NEL > 0) ? (NEL / N) : parseFloat(q.get('znuc') || '1.0');
+  var DBL  = (q.get('dbl')  !== null) ? parseInt(q.get('dbl'))  : -1;
+  var HOLE = (q.get('hole') !== null) ? parseInt(q.get('hole')) : -1;
   var NDIM = parseFloat(q.get('ndim') || '0');
   var KWRAP = q.get('kwrap') === '1';
   var KCEN = parseFloat(q.get('kc2') || String((N - 1) / 2));
@@ -173,15 +219,71 @@ window.onerror = function (msg, url, line) {
     }
     for (var kk = 0; kk < N; kk++) if (used.indexOf(kk) < 0) { kVac = kk; break; }
   }
-  var atoms = [], Z = [], Znuc = [], zeff = [], rcs = [], coreI = [];
+  var atoms = [], Z = [], Znuc = [], zeff = [], rcs = [], coreI = [], kernelX = [];
   var x0 = -span / 2;
+  // kmove=<m>&kdx=<u>: displace kernel m along the axis by u, in units of the spacing.
+  //
+  // Every displacement available until now moved the kernels COLLECTIVELY -- ndim alternating,
+  // smode sinusoidal -- because the quantity being measured was always a registry slide. Transfer
+  // of a single nucleus between two neighbours is a different coordinate and the one that matters
+  // for hopping conduction: ionic and protonic carriers ARE nuclei, and the small-polaron barrier
+  // is a lattice relaxation. Stepping one kernel along the path and re-minimising at each position
+  // gives the barrier directly, with no dynamics -- the same construction a nudged-elastic-band
+  // calculation uses, and available now, where mobile nuclei are not.
+  // vhop=<s>: a vacancy hopping between the two CENTRAL kernels of an EVEN chain.
+  //
+  // N kernels, N-1 electrons. At s=0 the vacancy is on kernel v0 = N/2-1, at s=1 on v0+1, and the
+  // walls interpolate linearly between the two, so s=0.5 is the saddle. Both endpoints are
+  // configurations of one electron per remaining kernel, walls at the midpoints between
+  // consecutive occupied kernels.
+  //
+  // N must be EVEN. Reflection about the midpoint between the two central kernels maps the chain
+  // onto itself only then, and that reflection is the only exact control available: an open chain
+  // has no translational symmetry, so E(s=0) = E(s=1) by mirror image is the one identity a
+  // vacancy calculation can be held to. Two earlier constructions failed for want of it -- kwrap,
+  // where the vacancy was a by-product of where walls fell relative to integer kernel positions
+  // and jumped between sites as the kink moved; and vk, where the vacancy is pinned at the chain
+  // end and kc moves only the walls.
+  var VHOP = (q.get('vhop') !== null) ? parseFloat(q.get('vhop')) : -1;
+  var vhopWalls = [], vhopOwn = [], vhopBare = -1;
+  if (VHOP >= 0) {
+    var v0 = N / 2 - 1;
+    var occA = [], occB = [];
+    for (var vm = 0; vm < N; vm++) { if (vm !== v0) occA.push(vm); if (vm !== v0 + 1) occB.push(vm); }
+    var wA = [], wB = [];
+    for (var vw = 0; vw + 1 < occA.length; vw++) wA.push((occA[vw] + occA[vw + 1]) / 2);
+    for (var vw2 = 0; vw2 + 1 < occB.length; vw2++) wB.push((occB[vw2] + occB[vw2 + 1]) / 2);
+    for (var vi = 0; vi < wA.length; vi++) vhopWalls.push((1 - VHOP) * wA[vi] + VHOP * wB[vi]);
+    vhopOwn = (VHOP < 0.5) ? occA : occB;
+    vhopBare = (VHOP < 0.5) ? v0 : v0 + 1;
+  }
+  var KMOVE = (q.get('kmove') !== null) ? parseInt(q.get('kmove')) : -1;
+  var KDX   = parseFloat(q.get('kdx') || '0');
   for (var m = 0; m < N; m++) {
-    var xd = x0 + m * A + ((m % 2 === 0) ? 1 : -1) * NDIM * A;
+    var xd = x0 + m * A + ((m % 2 === 0) ? 1 : -1) * NDIM * A
+           + ((m === KMOVE) ? KDX * A : 0);
     var xi = Math.round(N2 + xd / h);
-    var bare = KWRAP ? (m === kVac) : (VK && (m >= N - NV));
-    atoms.push({ i: xi, j: N2, k: N2, Z: bare ? 0 : 1, el: 'Li' });
-    Z.push(bare ? 0 : 1);
-    Znuc.push(1.0); zeff.push(ZE); rcs.push(RC); coreI.push(xi);
+    // dbl=<i>&hole=<j>: a doublon-holon pair on an otherwise half-filled chain. Site i holds
+    // TWO electrons in one domain -- the construction validated on helium today, where a
+    // charge-2 density and two hemispheres agreed to 6e-5 -- and site j holds none. The energy
+    // against the uniform chain is the CHARGE GAP, which is what decides conduction at half
+    // filling by the Hubbard mechanism, as distinct from dragging a localised carrier.
+    var bare = (VHOP >= 0) ? (m === vhopBare)
+              : KWRAP ? (m === kVac) : (VK && (m >= N - NV));
+    if (DBL >= 0 && m === HOLE) bare = true;
+    if (NEL > 0) bare = (m % WFILL !== 0);          // only every w-th kernel carries an electron
+    var zq = bare ? 0 : ((DBL >= 0 && m === DBL) ? 2 : 1);
+    if (SUPER) zq = (m === 0) ? N : 0;   // one domain holds every electron
+    atoms.push({ i: xi, j: N2, k: N2, Z: zq, el: 'Li' });
+    Z.push(zq);
+    // znuc=<q>: fractional kernel charge, so M electrons neutralise N kernels with M/N < 1.
+    // This is how a partially filled band is represented here (the same device ring_fixed uses).
+    // It does not create empty space -- the domains still tile -- it makes each domain cover
+    // 1/q sites, so the electron lattice and the kernel lattice acquire DIFFERENT PERIODS.
+    // At an incommensurate ratio the sliding costs of neighbouring electrons partly cancel,
+    // which is the Aubry sliding phase and the mechanism by which charge-density waves conduct.
+    Znuc.push(ZNUC); zeff.push(ZE); rcs.push(RC); coreI.push(xi);
+    kernelX.push(xi);   // cell index actually used, so E_nn uses the SNAPPED positions
   }
 
   // The walls: plane m sits between core m and core m+1, shifted by d*a. Domain m owns the
@@ -206,8 +308,66 @@ window.onerror = function (msg, url, line) {
   // Force the per-electron Poisson path regardless of electron count. It is the path checked
   // against V_ee = 1/R; the SIC path used above 5 electrons oscillates over 0.05 Ha with the
   // partition frozen, which is what blocked the original kink attempt.
-  if (q.get('direct') !== '0') window.USER_DIRECT_POTHER = true;
-  window.USER_FULL_RC = (q.get('fullrc') === '1');   // exclude from EVERY core, not just own
+  // bc=<wall><core>, each n|d|x -- the boundary treatment used when assembling the kinetic
+  // energy. Default 'nn' is Neumann at both, which is what the solver applies.
+  // buf=<k>: BUFFER DOMAINS. Pin the k outermost domains at each end, free the interior.
+  // Neither setting of the global freeze is what a corrugation wants: frozen never imposes the
+  // free-boundary condition, free lets the terminal domains expand into the vacuum past the end
+  // kernels (2.25 eV on n=7, six times the corrugation, and it does not cancel between registries).
+  // With buf=k the walls move where the measurement happens and are held only at the ends.
+  var BUF = parseInt(q.get('buf') || '0');
+  var BC = (q.get('bc') || 'nn');
+  window.USER_BC_WALL = BC[0] || 'n';
+  window.USER_BC_CORE = BC[1] || 'n';
+  // wlo/whi=<x in units of a>: set the free window DIRECTLY, overriding the symmetric buf.
+  // Drive-and-measure needs asymmetry: one wall held at a displaced position (the drive), one
+  // free (the link), and the far side held (so its kernel carries the reaction). A symmetric
+  // buffer cannot express that -- both its ends do the same job and neither drives.
+  var WLO = q.get('wlo'), WHI = q.get('whi');
+  if (WLO !== null && WHI !== null) {
+    window.USER_FREE_WINDOW = { lo: Math.max(1, Math.round(N2 + parseFloat(WLO) * A / h)),
+                                hi: Math.min(gridN - 2, Math.round(N2 + parseFloat(WHI) * A / h)) };
+    window.FREEZE_BOUNDARY = false;
+  } else if (BUF > 0) {
+    // free window in CELL indices along x: from the buf-th kernel to the (N-1-buf)-th
+    // Window edges sit BETWEEN walls, not on them. Walls are at x0+(m+0.5)a, so putting the edge
+    // at x0+BUF*a falls between wall BUF-1 and wall BUF: the first BUF walls are outside and pinned.
+    // The previous form (BUF*a - 0.5a) landed exactly ON wall BUF-1, which then rounded inside the
+    // window and pinned nothing at all -- n=9 buf=1 left every wall free and the chain translated
+    // rigidly as a result.
+    var xLoA = x0 + BUF * A, xHiA = x0 + (N - 1 - BUF) * A;
+    window.USER_FREE_WINDOW = { lo: Math.max(1, Math.round(N2 + xLoA / h)),
+                                hi: Math.min(gridN - 2, Math.round(N2 + xHiA / h)) };
+    window.FREEZE_BOUNDARY = false;   // buffer domains replace the global freeze
+  }
+  if (q.get('direct') !== '0' && !SUPER) window.USER_DIRECT_POTHER = true;
+  // Exclude from EVERY core, not only the domain's own. This is the default because it is the
+  // model: the inner shells occupy those regions and no valence domain may overlap any of them.
+  //
+  // Excluding from atoms[lbl] alone breaks the corrugation measurement outright. At d = 0 each
+  // domain contains its own kernel, the sphere lies inside it and the exclusion is complete. At
+  // d = 0.5 the wall sits ON a kernel and the sphere straddles it: cells on one side carry that
+  // kernel's label and are excluded, cells on the other belong to the neighbouring domain whose
+  // own kernel is a spacing away, so density is admitted right up to the nucleus. The two
+  // registries being differenced are then not treated alike, and V0 measures the asymmetry of the
+  // exclusion rule as much as the sliding. fullrc=0 restores the old behaviour for comparison.
+  window.USER_FULL_RC = (q.get('fullrc') !== '0');
+  // rsing=<r>: pin the bare-nucleus singularity cutoff to an ABSOLUTE radius rather than to 2h.
+  // Without this the nuclear well deepens as the mesh refines, and the error fails to cancel
+  // between wall-on-nucleus and wall-between-nuclei configurations -- which is the difference every
+  // corrugation number here is made of. Must be >= 2h at the coarsest mesh in the ladder.
+  window.USER_R_SING = parseFloat(q.get('rsing') || '0');
+  // jac=<n>, p5=0|1: the two knobs on the direct Pother relaxation, exposed because the
+  // two-atom check found V_ee essentially ZERO at R = 8-16 -- the fully developed form of the
+  // under-counting already recorded in molecule.js (54% short at R=2, 71% at R=6, growing with
+  // separation). The residual is small at the same time, so psi really is the solution of an
+  // operator with no inter-electron repulsion: the defect is in the potential, not the solve.
+  //
+  // molecule.js states the experiment that isolates it: the direct initialisation alone,
+  // P = sum 0.5/r, is already exact at large separation, so jac=0 should give V_ee = 1/R. If it
+  // does and jac=10 does not, the relaxation is destroying a correct starting value.
+  if (q.get('jac') !== null) window.USER_JACOBI_DIRECT = parseInt(q.get('jac'));
+  if (q.get('p5')  !== null) window.USER_P5_RELAX = (q.get('p5') === '1');
   var dGrid = DFRAC * A / h;
   var mid = Math.floor((N - 1) / 2);
   var walls = [];
@@ -338,6 +498,13 @@ window.onerror = function (msg, url, line) {
   // rigid-slide scan in this project has lacked. The two end domains each acquire an extra slab
   // in the vacuum beyond the chain, where the density is negligible and which is in any case the
   // same at both ends of the period.
+  // onedom=1: ONE domain covering all space, over however many kernels.
+  //
+  // With a single electron there is a single domain and nothing to partition, so it may span
+  // every kernel -- H2+ is exactly that, and the postulate permits it. What the postulate
+  // forbids is TWO electrons spanning the same region. So delocalisation is available at LOW
+  // filling and forbidden at half filling, which is where every chain in this project has sat.
+  var ONEDOM = q.get('onedom') === '1' || SUPER;
   var WRAP = q.get('wrap') === '1';
   // kwrap=1: a single KINK on the wrapped ring -- the dilute-carrier case.
   //
@@ -365,6 +532,35 @@ window.onerror = function (msg, url, line) {
   window.CUSTOM_LABEL_INIT = function (S, hGrid, nucPos, NELEC) {
     var lab = new Uint32Array(S * S * S), S2 = S * S;
     var c = (S - 1) / 2, aG = A / h;              // axis centre and spacing, in cells
+    if (NEL > 0) {
+      var aGf = A / h;
+      for (var i = 0; i < S; i++) {
+        var site = (i - c0cell) / aGf;
+        var idx = Math.floor((site - DFRAC + WFILL / 2) / WFILL);
+        var car = (((idx * WFILL) % N) + N) % N;
+        for (var j = 0; j < S; j++) {
+          var bF = i * S2 + j * S;
+          for (var k = 0; k < S; k++) lab[bF + k] = car;
+        }
+      }
+      return lab;
+    }
+    if (VHOP >= 0) {
+      // domain i spans wall i-1 .. wall i and is LABELLED by the kernel it contains, since
+      // molecule.js seeds each domain at atoms[label].
+      for (var i = 0; i < S; i++) {
+        var site = (i - c0cell) / aG;
+        var wi = 0;
+        while (wi < vhopWalls.length && site > vhopWalls[wi]) wi++;
+        var dmV = vhopOwn[Math.min(wi, vhopOwn.length - 1)];
+        for (var j = 0; j < S; j++) {
+          var bV = i * S2 + j * S;
+          for (var k = 0; k < S; k++) lab[bV + k] = dmV;
+        }
+      }
+      return lab;
+    }
+    if (ONEDOM) { return lab; }   // all zeros: one domain, all space
     if (KWRAP) {
       // walls in SITE units: p_j = (j + 1/2) + S(j), then to cells; domain j owns kOwn[j].
       // Label in the SAME frame the owners were computed in: walls are left unwrapped in
@@ -536,6 +732,7 @@ window.onerror = function (msg, url, line) {
   // is an event in time: the informative thing is whether slip moves and when, which a single
   // endpoint value cannot show. slip0 is the seeded value, so the running display shows the
   // DISPLACEMENT, which is what has to reach 1.
+  var wallTrace = [], wallCfg = null;
   var slipBusy = false, slip0 = null, slipMax = null, slipT0 = null;
   var slipPrev = null, slipQuiet = 0, E0seen = null, hasMoved = false;
   // Only poll where the answer depends on it -- a released boundary, where the pattern's
@@ -549,6 +746,46 @@ window.onerror = function (msg, url, line) {
     slipBusy = true;
     try {
       var sl = await measureSlip();
+      // The wall pattern, sampled alongside slip. Positions are stored in units of the spacing,
+      // so an even tiling reads as consecutive integers-plus-a-half and any departure is visible
+      // directly. This is the readout a travelling compression would show up in; slip cannot
+      // show it, being a sum that a rigid slide and a local squeeze move identically.
+      if (typeof window.readWallPositions === 'function') {
+        try {
+          var wp = await window.readWallPositions();
+          if (slipT0 === null) slipT0 = Date.now();
+          wallTrace.push({ t: Math.round((Date.now() - slipT0) / 1000),
+                           w: wp.map(function (x) { return Number((x / A).toFixed(4)); }) });
+          if (wallCfg === null) wallCfg = 'n' + N + '_a' + A.toFixed(1) + '_rc' + RC.toFixed(2)
+            + '_h' + h.toFixed(3) + '_F' + parseFloat(q.get('field') || '0').toFixed(4)
+            + (q.get('wlo') !== null ? '_W' + q.get('wlo') + 'to' + q.get('whi') : BUF > 0 ? '_BUF' + BUF : '')
+            + (KINK ? '_KINK' + 'd' + DFRAC.toFixed(3) : '')
+            + (q.get('curv') !== null ? '_CV' + parseFloat(q.get('curv')).toFixed(2) : '')
+            + (q.get('free') === '1' ? '_FREE' : '_frozen');
+          // Keyed BY CONFIG, not a single slot: two tabs running different fields wrote to the
+          // same key and the later poll silently replaced the earlier run's trace.
+          var wts = JSON.parse(localStorage.getItem('realqm_walltrace') || '{}');
+          wts[wallCfg] = wallTrace;
+          localStorage.setItem('realqm_walltrace', JSON.stringify(wts));
+          // AXIAL FORCE on each kernel, recorded beside the wall positions.
+          //
+          // Displacement and force are different observables and the interesting cases are the
+          // ones where they disagree. A stiff chain with held ends transmits a push perfectly
+          // while nothing moves at all -- the rigid-rod limit, which is the TRANSMITTING case.
+          // Static walls are therefore consistent both with domains independently pinned and
+          // with a chain so stiff nothing needs to give. Only the force separates them.
+          if (window._nucForceElec) {
+            var fx = [];
+            for (var q2 = 0; q2 < N; q2++) {
+              var v = window._nucForceElec[q2];
+              fx.push(Number(((v && v[0]) || 0).toPrecision(6)));
+            }
+            var fs = JSON.parse(localStorage.getItem('realqm_force') || '{}');
+            fs[wallCfg] = { t: wallTrace[wallTrace.length - 1].t, fx: fx };
+            localStorage.setItem('realqm_force', JSON.stringify(fs));
+          }
+        } catch (e) { }
+      }
       if (sl) {
         if (slip0 === null) { slip0 = sl.slip; slipT0 = Date.now(); }
         var dsl = sl.slip - slip0;
@@ -605,6 +842,110 @@ window.onerror = function (msg, url, line) {
   window.onSweepDone = async function (E) {
     if (runFinished) return;          // settle-detector and energy-convergence both call this
     runFinished = true;
+    // Store the density spread HERE, in the page, because localStorage is the only channel a
+    // reader outside the page can see: AppleScript's execute-javascript runs in an isolated
+    // world that shares the DOM and localStorage but NOT page globals. Probing
+    // window.readChargeDipole from outside always returns undefined even when the page is
+    // running perfectly, which cost several runs today that were wrongly called failures.
+    var spread = null;
+    if (typeof window.readChargeDipole === 'function') {
+      try { var dp = await window.readChargeDipole();
+            spread = { q: Number(dp.charge.toFixed(4)), rms: Number(dp.rmsx.toFixed(3)),
+                       cx: Number(dp.ex.toFixed(4)) }; }
+      catch (e) { /* not available */ }
+    }
+    if (spread) {
+      var sp = JSON.parse(localStorage.getItem('realqm_spread') || '{}');
+      // d and rsing MUST be in this key. Without them a bond-centred run silently overwrites the
+      // site-centred one at the same spacing, and the polarisability series in the article was
+      // computed at d = 0 -- the higher-energy registry -- with no way to tell from the store.
+      sp['n' + N + '_a' + A.toFixed(1) + '_rc' + RC.toFixed(2) + '_nv' + NV
+         + (SUPER ? '_SUPER' : ONEDOM ? '_ONEDOM' : '')
+         + (parseFloat(q.get('rsing') || '0') > 0
+            ? '_RS' + parseFloat(q.get('rsing')).toFixed(2) : '')
+         + (q.get('fullrc') !== '0' ? '_FULLRC' : '_ownrc')
+         + '_d' + DFRAC.toFixed(3)
+         + '_F' + parseFloat(q.get('field') || '0').toFixed(4)] = spread;
+      localStorage.setItem('realqm_spread', JSON.stringify(sp));
+    }
+    // The Euler-Lagrange residual, recorded for every run.
+    //
+    // Until now a run was declared converged when its ENERGY stopped changing, which cannot
+    // distinguish a converged iteration from a stalled one. The clamped-kernel hydrogen test made
+    // the difference matter: with the model held fixed the error against the exact answer did not
+    // fall with mesh refinement -- 63, 68, 58, 69 mHa at h = 0.143 down to 0.080 -- and an error
+    // that does not refine is not a discretisation error. The residual is what tells the two
+    // apart, so it is stored beside every energy from here on and no number should be quoted
+    // without it.
+    //
+    // Written to localStorage rather than left on the page: AppleScript's execute-javascript runs
+    // in an isolated world that shares the DOM and localStorage but NOT page globals, so
+    // window.readELResidual is invisible from outside and this is the only channel that works.
+    if (typeof window.readELResidual === 'function') {
+      try {
+        var res = await window.readELResidual();
+        // Assemble the total energy here rather than trust the solver's own.
+        //
+        // A symmetry test caught the reason: three protons with the middle one displaced by
+        // +-u are mirror images, so E(+u) must equal E(-u), and the reported energy broke that
+        // by up to 35 mHa while eps broke it by under 1. The fault is configuration-dependent,
+        // which is worse than the constant offset seen on one atom -- a constant cancels in a
+        // difference, and every corrugation and barrier in this project IS a difference.
+        //
+        //   E = [T + V_en]/(1+d) + (1/2) V_ee/(1+d)^2 + E_nn,     d = norm/NELEC - 1
+        //
+        // The two scalings differ because T and V_en are linear in the density and V_ee is
+        // quadratic, so the normalisation defect (0.9-1.9% high, and worsening under refinement)
+        // propagates differently through them. E_nn uses the SNAPPED kernel positions, since
+        // those are the ones the electronic terms actually saw.
+        var Enn = 0;
+        for (var _m = 0; _m < kernelX.length; _m++)
+          for (var _n = _m + 1; _n < kernelX.length; _n++) {
+            var _d = Math.abs(kernelX[_m] - kernelX[_n]) * h;
+            if (_d > 0) Enn += Znuc[_m] * Znuc[_n] / _d;
+          }
+        var _t = res.terms;
+        var _nel = res.perDomain.length || 1;
+        var _s = _t.norm / _nel;
+        var Etot = (_t.Tlap + _t.Ven) / _s + 0.5 * _t.Vee / (_s * _s) + Enn;
+        var rs = JSON.parse(localStorage.getItem('realqm_resid') || '{}');
+        rs['n' + N + '_a' + A.toFixed(1) + '_rc' + RC.toFixed(2) + '_h' + h.toFixed(3)
+           + (parseFloat(q.get('rsing') || '0') > 0
+              ? '_RS' + parseFloat(q.get('rsing')).toFixed(2) : '')
+           + '_F' + parseFloat(q.get('field') || '0').toFixed(4)
+           + (q.get('box') !== null ? '_BX' + parseFloat(q.get('box')).toFixed(0) : '')
+           + (q.get('fullrc') !== '0' ? '_FULLRC' : '_ownrc')
+           + (SUPER ? '_SUPER' : ONEDOM ? '_ONEDOM' : '')
+           + (BUF > 0 ? '_BUF' + BUF : '')
+           + (NEL > 0 ? '_FILL' + NEL + 'of' + N : '')
+           + (BC !== 'nn' ? '_BC' + BC : '')
+           + (ZNUC !== 1.0 && NEL === 0 ? '_Zn' + ZNUC.toFixed(3) : '')
+           + (KMOVE >= 0 ? '_KM' + KMOVE + '_' + KDX.toFixed(3) : '')
+           + (WRAP ? '_WRAP' : '')
+           + (SMODE !== 0 ? '_SM' + SMODE.toFixed(3) : '')
+           + (q.get('jac') !== null ? '_jac' + q.get('jac') : '')
+           + (q.get('p5') !== null ? '_p5' + q.get('p5') : '')
+           + '_d' + DFRAC.toFixed(3) + '_dg3'] = {
+          rMax: Number(res.rMax.toPrecision(4)),
+          rInfMax: Number((res.rInfMax || 0).toPrecision(4)),
+          eps: res.perDomain.map(function (d) { return Number(d.eps.toPrecision(6)); }),
+          r: res.perDomain.map(function (d) { return Number(d.r.toPrecision(4)); }),
+          rInf: res.perDomain.map(function (d) { return Number((d.rInf || 0).toPrecision(4)); }),
+          intFrac: Number(res.interiorFrac.toFixed(3)),
+          // 9 decimals, not 6. A polarisability is read off a DIFFERENCE of these: the strain
+          // energy at F = 5e-4 is about 1e-5 Ha, so rounding to 1e-6 quantised the measured
+          // quantity at the 10% level and the alpha(N) linearity check was reporting that
+          // rounding rather than any departure from linear response.
+          E_reported: Number(Number(E).toFixed(9)),
+          terms: res.terms,
+          E_nn: Number(Enn.toFixed(9)),
+          E_total: Number(Etot.toFixed(9))
+        };
+        localStorage.setItem('realqm_resid', JSON.stringify(rs));
+        console.log('EL residual rMax=' + res.rMax.toExponential(3)
+                    + '  interior=' + (res.interiorFrac * 100).toFixed(1) + '%');
+      } catch (e) { console.log('EL residual unavailable: ' + e); }
+    }
     var sl = await measureSlip();
     if (sl) {
       var ds = JSON.parse(localStorage.getItem(SLIPKEY) || '{}');
@@ -622,7 +963,15 @@ window.onerror = function (msg, url, line) {
     var cfg = 'n' + N + '_a' + A.toFixed(1) + '_rc' + RC.toFixed(2) + '_ze' + ZE.toFixed(2)
             + '_h' + h.toFixed(3)
             + (q.get('free') === '1' ? '_FREE' : '')
-            + (q.get('fullrc') === '1' ? '_FULLRC' : '')
+            + (DBL >= 0 ? '_DBL' + DBL + 'H' + HOLE : '')
+            + (NEL > 0 ? '_FILL' + NEL + 'of' + N : '')
+            + (ZNUC !== 1.0 && NEL === 0 ? '_Zn' + ZNUC.toFixed(3) : '')
+            + (SUPER ? '_SUPER' : ONEDOM ? '_ONEDOM' : '')
+            + (q.get('fullrc') !== '0' ? '_FULLRC' : '_ownrc')
+            + (parseFloat(q.get('rsing') || '0') > 0 ? '_RS' + parseFloat(q.get('rsing')).toFixed(2) : '')
+            + (q.get('box') !== null ? '_BX' + parseFloat(q.get('box')).toFixed(0) : '')
+            + (KMOVE >= 0 ? '_KM' + KMOVE + '_' + KDX.toFixed(3) : '')
+            + (VHOP >= 0 ? '_VHOP' + VHOP.toFixed(3) : '')
             + (KWRAP ? '_KWRAPv3 kc' + KCEN.toFixed(3) + '_w' + KW.toFixed(2)
                : WRAP ? '_WRAP' : '')
             + (NDIM !== 0 ? '_D' + NDIM.toFixed(4) : '')
