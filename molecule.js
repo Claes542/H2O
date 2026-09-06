@@ -230,7 +230,26 @@ let dtv = dv * h2v, half_dv = 0.5 * dv;
 const CANVAS_SIZE = window.USER_CANVAS || 700;
 const PX = CANVAS_SIZE / NN;
 const INTERIOR = (NN - 1) * (NN - 1) * (NN - 1);
-const R_SING = 2 * hGrid;  // exclude 2 grid spacings from nucleus
+// R_SING: the radius at which a bare -Z/r well is clamped, since 1/r cannot be represented at the
+// origin on a finite grid. There are no analytical inner-sphere corrections, so whatever is
+// excluded here is simply absent from the energy.
+//
+// Tying the radius to the mesh -- the default 2*hGrid below -- makes the NUCLEAR POTENTIAL ITSELF
+// a function of the discretisation: refine the grid and every well deepens. Absolute energies then
+// drift with h, which is visible and easy to allow for. Less obviously, so do energy DIFFERENCES
+// between configurations that place domain boundaries differently with respect to the nuclei: a
+// wall lying ON a nucleus samples the clamped region, a wall lying BETWEEN nuclei does not, so the
+// clamping error does not cancel between them. That is exactly the difference every corrugation
+// measurement here is built on. Measured on the H7 chain at a = 2.0, E(d=0) - E(d=0.5) came out
+// -0.1277 Ha at h = 0.143 and -0.0482 Ha at h = 0.125 -- a factor of 2.65 from a 12% change in
+// mesh, with no physics in it.
+//
+// window.USER_R_SING pins the radius to an absolute value instead, so the potential is the same
+// physical object at every mesh and a mesh ladder tests convergence rather than redefining the
+// problem at each rung. It is still floored at two cells, below which the clamp is unresolved.
+// Pseudopotential atoms (rc > 0) are unaffected either way: their cutoff is rc, already absolute,
+// which is why the lithium-chain corrugation passed a mesh ladder where the bare-proton one does not.
+const R_SING = Math.max(2 * hGrid, window.USER_R_SING || 0);
 const W_CUTOFF = window.USER_W_CUTOFF || 0;  // smooth ψ cutoff near other nuclei (au), 0 = off
 // Detect if any bare nuclei exist (Z=0, Z_nuc>0) at compile time
 // Exclude a cell from EVERY pseudopotential core, not just its own domain's.
@@ -373,6 +392,7 @@ const inSplitWGSL = `
 fn inSplitAtom(dx: f32, dy: f32, dz: f32, r: f32, n: u32) -> bool {
   let st = atoms[n].splitType;
   if (st <= 1u || r < 1e-6) { return true; }
+  if (st == 6u) { return true; }   // absolute half-space: enforced in cellSectorOK, not here
   let axL = max(sqrt(atoms[n].splitAxX*atoms[n].splitAxX + atoms[n].splitAxY*atoms[n].splitAxY + atoms[n].splitAxZ*atoms[n].splitAxZ), 1e-12);
   let a0 = atoms[n].splitAxX/axL; let a1 = atoms[n].splitAxY/axL; let a2 = atoms[n].splitAxZ/axL;
   let dotp = dx*a0 + dy*a1 + dz*a2;
@@ -689,6 +709,16 @@ fn cellSectorOK(i: u32, j: u32, k: u32, n: u32) -> bool {
     let pr = sqrt(qx*qx + qy*qy + qz*qz);
     if (atoms[n].splitIdx == 0u) { return pr < atoms[n].splitRot; }
     return pr >= atoms[n].splitRot;
+  }
+  // splitType 6: ABSOLUTE HALF-SPACE about the plane j = box centre. splitIdx 0 = this domain may
+  // own only cells ABOVE the plane, 1 = only below. Unlike splitType 2 (hemi), the plane does NOT
+  // pass through the domain's own nucleus, which is what a chain of domains held above and below a
+  // shared axis needs: their seeds sit off the plane and the plane is common to all of them.
+  if (atoms[n].splitType == 6u) {
+    let cc = f32(p.NN) * 0.5;
+    let cy = (f32(j) - cc) * p.h;
+    if (atoms[n].splitIdx == 0u) { return cy >= 0.0; }
+    return cy < 0.0;
   }
   return inSplitAtom(dx, dy, dz, sqrt(dx*dx + dy*dy + dz*dz), n);
 }
@@ -1424,6 +1454,39 @@ fn main(@builtin(local_invocation_index) lid: u32) {
 }
 `;
 
+// Buffer domains: pin the partition OUTSIDE an interior window, leave it free inside.
+//
+// FREEZE_BOUNDARY is all-or-nothing, and neither setting is what a corrugation measurement wants.
+// Frozen, the free-boundary stationarity condition is never imposed. Free, a finite chain relaxes
+// its two terminal domains into the vacuum beyond the end kernels -- worth 2.25 eV on seven atoms,
+// six times the corrugation itself, and it does not cancel between registries. (The same effect
+// costs a lone H atom ~0.1 Ha; see the note at the evolution gate.)
+//
+// Restoring the initial labels outside [lo, hi] after each evolution step holds the ends while the
+// interior boundaries move, so the measurement region satisfies the condition the model states.
+const restoreOuterLabelsWGSL = `
+${paramStructWGSL}
+struct Win { lo: u32, hi: u32, _p1: u32, _p2: u32 }
+@group(0) @binding(0) var<uniform> p: P;
+@group(0) @binding(1) var<storage, read> labelInit: array<u32>;
+@group(0) @binding(2) var<storage, read_write> label: array<u32>;
+@group(0) @binding(3) var<uniform> win: Win;
+
+${cellIdxWGSL}
+@compute @workgroup_size(256)
+fn main(@builtin(global_invocation_id) g: vec3<u32>) {
+  let NM = p.NN - 1u;
+  let tot = NM * NM * NM;
+  let cell = cellIdx(g);
+  if (cell >= tot) { return; }
+  let k = (cell % NM) + 1u;
+  let j = ((cell / NM) % NM) + 1u;
+  let i = (cell / (NM * NM)) + 1u;
+  let id = i * p.S2 + j * p.S + k;
+  if (i < win.lo || i > win.hi) { label[id] = labelInit[id]; }
+}
+`;
+
 const normalizeWGSL = `
 ${paramStructWGSL}
 ${atomStructWGSL}
@@ -2082,6 +2145,7 @@ let U_buf = [], P_buf = [], labelBuf, label2Buf, W_buf;
 let rhoTotalBuf, residualBuf, Pc_buf = [], coarseRhsBuf;
 let PotherBuf, PselfScratchBuf, sicBuf, sicResidualBuf, domainBufs = [];
 let updatePL, evolveBoundaryPL, fixBoundaryUPL, jacobiSmoothPL;
+let restoreOuterPL, restoreOuterBG, labelInitBuf, winBuf;
 let reduceEnergyPL, finalizeEnergyPL, accumNormsPL, decodeNormsPL, normalizePL, extractPL;
 let gpuInitAccumPL, gpuInitFinalPL;
 let computeRhoPL, computeResidualPL, restrictPL, coarseSmoothPL, prolongCorrectPL;
@@ -2448,6 +2512,7 @@ async function uploadInitialData() {
   cpEnc.copyBufferToBuffer(U_buf[0], 0, U_buf[1], 0, S3 * 4);
   cpEnc.copyBufferToBuffer(P_buf[0], 0, P_buf[1], 0, S3 * 4);
   cpEnc.copyBufferToBuffer(labelBuf, 0, label2Buf, 0, S3 * 4);
+  cpEnc.copyBufferToBuffer(labelBuf, 0, labelInitBuf, 0, S3 * 4);   // buffer-domain reference
   cpEnc.copyBufferToBuffer(P_buf[0], 0, PotherBuf, 0, S3 * 4);
   device.queue.submit([cpEnc.finish()]);
 
@@ -2631,6 +2696,8 @@ async function initGPU() {
     }
     labelBuf = device.createBuffer({ size: bs, usage: usage | GPUBufferUsage.COPY_SRC });
     label2Buf = device.createBuffer({ size: bs, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST });
+    labelInitBuf = device.createBuffer({ size: bs, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+    winBuf = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
 
     // Where each domain actually sits, read back from the partition itself.
     //
@@ -2666,7 +2733,7 @@ async function initGPU() {
       const psi = new Float32Array(rb.getMappedRange().slice(0));
       rb.unmap(); rb.destroy();
       const S2 = S * S, c = (S - 1) / 2, dV = hGrid * hGrid * hGrid;
-      let q = 0, px = 0, py = 0, pz = 0;
+      let q = 0, px = 0, py = 0, pz = 0, pxx = 0;
       for (let i = 0; i < S; i++) for (let j = 0; j < S; j++) {
         const base = i * S2 + j * S;
         for (let k = 0; k < S; k++) {
@@ -2675,11 +2742,282 @@ async function initGPU() {
           if (!(r > 0)) continue;
           q  += r;
           px += r * (i - c); py += r * (j - c); pz += r * (k - c);
+          pxx += r * (i - c) * (i - c);          // second moment along the chain axis
         }
       }
       // electronic contribution, in au; nuclei added by the caller from their known positions
-      return { charge: q * dV,
+      // rms spread along x: the discriminator between a delocalised density and a
+      // self-trapped one. A cloud spread over a chain of length L has rms ~ L/sqrt(12);
+      // one bound to a single kernel has rms of order the orbital size.
+      const mx = px / (q || 1), mxx = pxx / (q || 1);
+      const rmsx = Math.sqrt(Math.max(mxx - mx * mx, 0)) * hGrid;
+      return { charge: q * dV, rmsx: rmsx,
                ex: px * dV * hGrid, ey: py * dV * hGrid, ez: pz * dV * hGrid };
+    };
+
+    // The Euler-Lagrange residual: whether the equations were actually solved, and to what.
+    //
+    // Every run in this project has been declared converged on the criterion that the ENERGY
+    // stopped changing. That is weak: a stalled iteration and a converged one look identical by
+    // it, and it says nothing about how well the stationarity conditions
+    //
+    //     -1/2 lap psi_i + ( -K + 2 Pother + V_ext ) psi_i = eps_i psi_i     on Omega_i
+    //
+    // are satisfied. This returns the thing that does say it -- the norm of the defect, per
+    // domain, relative to the norm of psi, so it is dimensionless and comparable across runs:
+    //
+    //     eps_i = <psi_i, H psi_i> / <psi_i, psi_i>,     r_i = ||H psi_i - eps_i psi_i|| / ||psi_i||
+    //
+    // Computed on the CPU from a readback rather than in a new shader, deliberately: it runs
+    // once at convergence, not every step, and a diagnostic that is itself hard to verify is
+    // worth nothing.
+    //
+    // INTERIOR ONLY. Cells whose six neighbours do not all carry the same label are skipped.
+    // The equation above holds in the interior of a domain; on the boundary it is the free
+    // boundary condition that applies instead, which is a separate check and needs the wall
+    // normal. Replicating the shader's exclusion and neighbour logic here would risk reporting
+    // a large residual that is an artefact of getting that logic subtly wrong -- the interior
+    // is the part where the answer is unambiguous, and it is where a stalled iteration shows.
+    window.readELResidual = async function () {
+      const readBuf = async function (src, asU32) {
+        const rb = device.createBuffer({ size: bs, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+        const enc = device.createCommandEncoder();
+        enc.copyBufferToBuffer(src, 0, rb, 0, bs);
+        device.queue.submit([enc.finish()]);
+        await rb.mapAsync(GPUMapMode.READ);
+        const a = asU32 ? new Uint32Array(rb.getMappedRange().slice(0))
+                        : new Float32Array(rb.getMappedRange().slice(0));
+        rb.unmap(); rb.destroy();
+        return a;
+      };
+      const psi = await readBuf(U_buf[cur], false);
+      const K   = await readBuf(K_buf, false);
+      const lab = await readBuf(labelBuf, true);
+
+      // The inter-domain potential must be gathered from the PER-DOMAIN buffers, not from
+      // PotherBuf.
+      //
+      // PotherBuf is scratch: it is rewritten for one domain at a time inside the update loop and
+      // holds nothing meaningful once the loop has finished. Reading it here returned exactly zero,
+      // which made a two-atom test look as though the solver had run with no electron-electron
+      // repulsion at all -- eps came out short by precisely 1/R at R = 8, 12 and 16. It had not:
+      // the solver's own total energy was R-independent to 3 mHa across that range, which is what
+      // two neutral atoms must give and is impossible without V_ee. The fault was in this readback.
+      //
+      // P_directBuf[m] is persistent and holds the potential from every electron except m, over the
+      // whole grid, so the correct Pother at a cell is P_directBuf[label(cell)] evaluated there.
+      // Gathered one domain at a time to avoid holding NELEC full grids at once.
+      const Pot = new Float32Array(psi.length);
+      if (typeof P_directBuf !== 'undefined' && P_directBuf.length) {
+        for (let m = 0; m < NELEC; m++) {
+          if (!P_directBuf[m]) continue;
+          const Pm = await readBuf(P_directBuf[m], false);
+          for (let id = 0; id < Pot.length; id++) if (lab[id] === m) Pot[id] = Pm[id];
+        }
+      } else {
+        const Pf = await readBuf(PotherBuf, false);
+        Pot.set(Pf);
+      }
+      const S2 = S * S, inv_h2 = 1 / (hGrid * hGrid);
+      const F = window.USER_FIELD_X || 0;
+      const num = {}, den = {}, eps = {}, cnt = {};
+      // two passes: eps_i needs <psi,Hpsi> before the defect can be formed
+      const Hpsi = new Float32Array(psi.length);
+      const interior = new Uint8Array(psi.length);
+      // Cells inside a pseudocore are excluded from the domain by the solver, so the stationarity
+      // condition does not hold there and neither do the energy integrals. Testing labels alone is
+      // not enough: on lithium (r_c = 1.93) that omission put the sums over the core spheres and
+      // returned rMax = 2-3 against 0.001-0.02 on every case with r_c = 0, together with
+      // corrugations of 10-16 eV. The diagnostic flagged its own invalidity rather than returning
+      // plausible numbers, which is the one thing it must do; this makes it correct instead.
+      //
+      // A cell is interior only if it AND all six neighbours share a label and lie outside the
+      // excluded region.
+      //
+      // Which region that is depends on the exclusion rule, and the diagnostic must use the SAME
+      // rule as the solver or it grades cells the solver never solved. Under USER_FULL_RC the
+      // shader (see rcAllLoopWGSL) removes a cell lying inside ANY core, not merely its own label's;
+      // testing only core L then admitted cells sitting inside a NEIGHBOUR's core, where psi is
+      // whatever the exclusion left and the stationarity condition does not hold. That inflated the
+      // residual by three orders -- rMax 0.16-1.63 on the r_c = 1.0 chain against 3-9e-4 with
+      // own-core exclusion -- and inflated it most at small spacing, falling monotonically with a
+      // because that is how the foreign-core overlap falls. The corrugation itself was never in
+      // doubt; the grader was.
+      const inCoreN = function (ci, cj, ck, n) {
+        const rc = r_cut[n] || 0;
+        if (rc <= 0) return false;
+        const a = _atoms[n];
+        if (!a) return false;
+        const dx = (ci - a.i) * hGrid, dy = (cj - (a.j !== undefined ? a.j : N2)) * hGrid,
+              dz = (ck - (a.k !== undefined ? a.k : N2)) * hGrid;
+        return dx * dx + dy * dy + dz * dz < rc * rc;
+      };
+      const FULL_RC_DIAG = !!window.USER_FULL_RC;
+      // Label-independent under full exclusion, so it is built once as a bitmap rather than
+      // recomputed per cell per neighbour.
+      let exclAny = null;
+      if (FULL_RC_DIAG) {
+        exclAny = new Uint8Array(psi.length);
+        for (let n = 0; n < NELEC; n++) {
+          const rc = r_cut[n] || 0;
+          if (!(rc > 0 && (Z_nuc[n] || 0) > 0)) continue;
+          const a = _atoms[n];
+          if (!a) continue;
+          const ai = a.i, aj = (a.j !== undefined ? a.j : N2), ak = (a.k !== undefined ? a.k : N2);
+          const w = Math.ceil(rc / hGrid) + 1;
+          const i0 = Math.max(0, ai - w), i1 = Math.min(S - 1, ai + w);
+          const j0 = Math.max(0, aj - w), j1 = Math.min(S - 1, aj + w);
+          const k0 = Math.max(0, ak - w), k1 = Math.min(S - 1, ak + w);
+          for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) for (let k = k0; k <= k1; k++) {
+            const dx = (i - ai) * hGrid, dy = (j - aj) * hGrid, dz = (k - ak) * hGrid;
+            if (dx * dx + dy * dy + dz * dz < rc * rc) exclAny[i * S2 + j * S + k] = 1;
+          }
+        }
+      }
+      const inCore = function (ci, cj, ck, L) {
+        if (FULL_RC_DIAG) return exclAny[ci * S2 + cj * S + ck] === 1;
+        return inCoreN(ci, cj, ck, L);
+      };
+      for (let i = 1; i < S - 1; i++) for (let j = 1; j < S - 1; j++) {
+        const base = i * S2 + j * S;
+        for (let k = 1; k < S - 1; k++) {
+          const id = base + k, L = lab[id];
+          if (lab[id + S2] !== L || lab[id - S2] !== L || lab[id + S] !== L ||
+              lab[id - S] !== L || lab[id + 1] !== L || lab[id - 1] !== L) continue;
+          if (inCore(i, j, k, L) ||
+              inCore(i + 1, j, k, L) || inCore(i - 1, j, k, L) ||
+              inCore(i, j + 1, k, L) || inCore(i, j - 1, k, L) ||
+              inCore(i, j, k + 1, L) || inCore(i, j, k - 1, L)) continue;
+          const uc = psi[id];
+          const lap = psi[id + S2] + psi[id - S2] + psi[id + S] + psi[id - S]
+                    + psi[id + 1] + psi[id - 1] - 6 * uc;
+          const vExt = F * (i - S * 0.5) * hGrid;
+          Hpsi[id] = -0.5 * lap * inv_h2 + (-K[id] + 2 * Pot[id] + vExt) * uc;
+          interior[id] = 1;
+          eps[L] = (eps[L] || 0) + uc * Hpsi[id];
+          den[L] = (den[L] || 0) + uc * uc;
+          cnt[L] = (cnt[L] || 0) + 1;
+        }
+      }
+      for (const L of Object.keys(den)) eps[L] /= (den[L] || 1);
+      // r is an L2 relative residual and cannot say WHERE the defect sits. A max-cell figure
+      // alongside it separates the two failure modes that matter: a residual spread through the
+      // domain means the equation is not solved, while one concentrated on a few cells at a
+      // boundary means the discrete operator disagrees with the continuum one only there.
+      const mx = {};
+      for (let id = 0; id < psi.length; id++) {
+        if (!interior[id]) continue;
+        const L = lab[id], d = Hpsi[id] - eps[L] * psi[id], ad = Math.abs(d);
+        num[L] = (num[L] || 0) + d * d;
+        if (ad > (mx[L] || 0)) mx[L] = ad;
+      }
+      const out = [];
+      for (const L of Object.keys(den)) {
+        const nrm = Math.sqrt((den[L] || 1) / (cnt[L] || 1));   // rms psi, to scale the max
+        out.push({ dom: Number(L), eps: eps[L],
+                   r: Math.sqrt(num[L] / (den[L] || 1)),
+                   rInf: (mx[L] || 0) / (nrm || 1), cells: cnt[L] });
+      }
+      out.sort((a, b) => a.dom - b.dom);
+
+      // Term-by-term energy, computed here from the same psi rather than taken from the
+      // solver's own energy routine. A single reported total can only say that it is wrong;
+      // the decomposition says which term is wrong.
+      //
+      // T_lap and T_grad are equal in the continuum for a decaying psi and differ on a grid by
+      // a boundary term plus discretisation error, so their difference is a reference-free
+      // measure of how well the kinetic energy is represented -- and if the solver assembles
+      // its total using one form where eps above uses the other, that difference IS the
+      // discrepancy. V_ee must vanish identically for a single electron; any residue there is
+      // unsubtracted self-interaction, which enters with a positive sign.
+      // The ENERGY is summed over EVERY cell of every domain, not over the interior subset used
+      // for the residual, and the Laplacian uses the solver's own neighbour rule: mirror the
+      // centre value whenever the neighbour carries a different label or lies inside a core.
+      //
+      // Restricting the energy to the interior was wrong and wrong asymmetrically. A seven-atom
+      // chain has six internal walls, every wall-adjacent cell fails the interior test, and those
+      // cells carry real density -- the norm came out at 4.34 and 5.04 for the two registries of
+      // one spacing where it must be 7.000 in both. Normalising by norm/N then applied scalings of
+      // 1/0.620 and 1/0.721 to the two energies whose DIFFERENCE is the whole measurement.
+      // One-electron systems were unaffected, having no internal walls, which is why this survived
+      // every earlier check.
+      const dV = hGrid * hGrid * hGrid;
+      let norm = 0, Tlap = 0, Tgrad = 0, Ven = 0, Vee = 0;
+      // Boundary treatment at domain walls and at core surfaces, exposed separately so the
+      // corrugation can be tested against it rather than assumed independent of it. V0 is a
+      // difference between two WALL PLACEMENTS, so it is the quantity most exposed to this choice;
+      // bulk energies are nearly blind to it. If V0 moves under these variations it is reporting
+      // the boundary condition, not the model.
+      //   'n' Neumann   -- mirror the centre value, zero normal derivative (the validated default)
+      //   'd' Dirichlet -- the density vanishes at the surface
+      //   'x' none      -- take the neighbour's value, i.e. no boundary at all
+      const BC_WALL = window.USER_BC_WALL || 'n';
+      const BC_CORE = window.USER_BC_CORE || 'n';
+      const nb = function (id, off, L, ci, cj, ck) {
+        const idn = id + off;
+        if (lab[idn] !== L) {
+          return BC_WALL === 'd' ? 0 : BC_WALL === 'x' ? psi[idn] : psi[id];
+        }
+        if (inCore(ci, cj, ck, L)) {
+          return BC_CORE === 'd' ? 0 : BC_CORE === 'x' ? psi[idn] : psi[id];
+        }
+        return psi[idn];
+      };
+      for (let i = 1; i < S - 1; i++) for (let j = 1; j < S - 1; j++) {
+        const base = i * S2 + j * S;
+        for (let k = 1; k < S - 1; k++) {
+          const id = base + k, L = lab[id];
+          if (inCore(i, j, k, L)) continue;          // no density inside its own core
+          const uc = psi[id];
+          const xp = nb(id,  S2, L, i + 1, j, k), xm = nb(id, -S2, L, i - 1, j, k);
+          const yp = nb(id,   S, L, i, j + 1, k), ym = nb(id,  -S, L, i, j - 1, k);
+          const zp = nb(id,   1, L, i, j, k + 1), zm = nb(id,  -1, L, i, j, k - 1);
+          const lap = xp + xm + yp + ym + zp + zm - 6 * uc;
+          const gx = (xp - xm) * 0.5, gy = (yp - ym) * 0.5, gz = (zp - zm) * 0.5;
+          norm  += uc * uc;
+          Tlap  += -0.5 * uc * lap * inv_h2;
+          Tgrad +=  0.5 * (gx * gx + gy * gy + gz * gz) * inv_h2;
+          Ven   += -K[id] * uc * uc;
+          Vee   += 2 * Pot[id] * uc * uc;
+        }
+      }
+      const terms = {
+        norm: norm * dV,
+        Tlap: Tlap * dV, Tgrad: Tgrad * dV,
+        Ven: Ven * dV, Vee: Vee * dV,
+        E_lap: (Tlap + Ven + 0.5 * Vee) * dV,
+        E_grad: (Tgrad + Ven + 0.5 * Vee) * dV
+      };
+      return { perDomain: out, rMax: out.reduce((m, o) => Math.max(m, o.r), 0),
+               rInfMax: out.reduce((m, o) => Math.max(m, o.rInf), 0),
+               interiorFrac: out.reduce((s, o) => s + o.cells, 0) / (S * S * S),
+               terms: terms };
+    };
+
+    // The wall pattern along the axis, which is what transport looks like in a tiling.
+    //
+    // Per-domain centroids measured against each domain's OWN kernel become meaningless once a
+    // domain moves past a kernel, which is how the depinning readout failed. The walls do not have
+    // that defect: they are just the places where the label changes along the axis, and their
+    // SPACING is the observable. A rigid slide moves every wall together and leaves the spacings
+    // unchanged; a travelling compression shows as a local departure from even spacing that moves
+    // along the chain from step to step.
+    window.readWallPositions = async function () {
+      const rb = device.createBuffer({ size: bs, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+      const enc = device.createCommandEncoder();
+      enc.copyBufferToBuffer(labelBuf, 0, rb, 0, bs);
+      device.queue.submit([enc.finish()]);
+      await rb.mapAsync(GPUMapMode.READ);
+      const lab = new Uint32Array(rb.getMappedRange().slice(0));
+      rb.unmap(); rb.destroy();
+      const S2 = S * S, c = Math.round((S - 1) / 2), c0 = (S - 1) / 2;
+      const walls = [];
+      let prev = lab[1 * S2 + c * S + c];
+      for (let i = 2; i < S - 1; i++) {
+        const l = lab[i * S2 + c * S + c];
+        if (l !== prev) { walls.push((i - 0.5 - c0) * hGrid); prev = l; }
+      }
+      return walls;
     };
 
     window.readDomainCentroids = async function () {
@@ -2848,6 +3186,14 @@ async function initGPU() {
 
     updatePL = await device.createComputePipelineAsync({ layout: 'auto', compute: { module: updateMod, entryPoint: 'main' } });
     evolveBoundaryPL = await device.createComputePipelineAsync({ layout: 'auto', compute: { module: evolveBoundaryMod, entryPoint: 'main' } });
+    try {
+      localStorage.setItem('__bufstate', 'entered:' + (window.USER_FREE_WINDOW ? JSON.stringify(window.USER_FREE_WINDOW) : 'NO_WINDOW'));
+    } catch (e) {}
+    if (window.USER_FREE_WINDOW) {
+      const restoreOuterMod = await compileShader('restoreOuterLabels', restoreOuterLabelsWGSL);
+      restoreOuterPL = await device.createComputePipelineAsync({ layout: 'auto', compute: { module: restoreOuterMod, entryPoint: 'main' } });
+      try { localStorage.setItem('__bufstate', 'PL_OK'); } catch (e) {}
+    }
     // fixBoundaryU no longer needed (U stays continuous, normalization handles ∫U²=Z_eff)
     // const fixBoundaryUMod = await compileShader('fixBoundaryU', fixBoundaryU_WGSL);
     // fixBoundaryUPL = await device.createComputePipelineAsync({ layout: 'auto', compute: { module: fixBoundaryUMod, entryPoint: 'main' } });
@@ -2960,6 +3306,19 @@ async function initGPU() {
         { binding: 5, resource: { buffer: atomBuf } },
       ]});
       // fixBoundaryU no longer needed — U stays continuous, normalization handles ∫U²=Z_eff
+    }
+    if (restoreOuterPL) {
+      const fw = window.USER_FREE_WINDOW;
+      const wa = new Uint32Array([fw.lo | 0, fw.hi | 0, 0, 0]);
+      device.queue.writeBuffer(winBuf, 0, wa);
+      restoreOuterBG = device.createBindGroup({ layout: restoreOuterPL.getBindGroupLayout(0), entries: [
+        { binding: 0, resource: { buffer: paramsBuf } },
+        { binding: 1, resource: { buffer: labelInitBuf } },
+        { binding: 2, resource: { buffer: labelBuf } },
+        { binding: 3, resource: { buffer: winBuf } },
+      ]});
+      console.log('Buffer domains: partition free for cells i in [' + fw.lo + ', ' + fw.hi + '], pinned outside');
+      try { localStorage.setItem('__bufstate', 'BG_OK lo=' + fw.lo + ' hi=' + fw.hi); } catch (e) {}
     }
     // Residual (cur-independent now — single field P)
     residualBG[0] = device.createBindGroup({ layout: computeResidualPL.getBindGroupLayout(0), entries: [
@@ -3309,7 +3668,24 @@ async function doSteps(n) {
     // --- Direct per-electron Pother: solve ∇²P_m = -2π·ρ_other_m for each electron ---
     // Jacobi sweeps per step on the per-electron Poisson solve for P_other.
     //
-    // *** THIS IS TOO FEW, AND IT UNDER-COUNTS V_ee. ***
+    // *** THE WARNING BELOW IS STALE -- MEASURED AGAIN AND V_ee IS NOW CORRECT. ***
+    //
+    // Two clamped-kernel H atoms, r0 = 0.30, h = 0.143, read through the per-domain P_direct
+    // buffers (see readELResidual -- reading PotherBuf instead returns zero and makes it look as
+    // though V_ee were missing entirely):
+    //
+    //     R = 12   V_ee 0.16947  vs  0.16667 exact     1.7% high
+    //     R = 16   V_ee 0.12676  vs  0.12500 exact     1.4% high
+    //
+    // and the excess is the normalisation defect propagating, not a V_ee error: with the density
+    // 0.91% high per electron and V_ee ~ rho_1 rho_2, 1.8% is expected. The eigenvalues recover
+    // the isolated-atom value to 0.5-0.8 mHa at the same time. The shortfall described below --
+    // and in particular its GROWING with separation -- is the opposite of what is now measured,
+    // so it belongs to a state of the code that the p5 relaxation has since fixed. Kept for the
+    // record rather than deleted, because the reasoning about Jacobi propagation is still the
+    // right way to think about the short-separation regime, which has not been re-measured.
+    //
+    // *** HISTORICAL, NO LONGER OBSERVED: ***
     //
     // Jacobi propagates information about one cell per sweep, so building P across a
     // separation of many cells takes hundreds of sweeps. The iteration is persistent across
@@ -3645,6 +4021,16 @@ async function doSteps(n) {
     bp.end();
     // U stays continuous at domain flips — normalization handles ∫U²=Z_eff
     enc.copyBufferToBuffer(label2Buf, 0, labelBuf, 0, S3 * 4);
+    if (restoreOuterBG) {
+      if (!window.__rc) { window.__rc = 0; }
+      if ((++window.__rc % 200) === 1) { try { localStorage.setItem('__bufdispatch', String(window.__rc)); } catch (e) {} }
+      let rp = enc.beginComputePass();
+      rp.setPipeline(restoreOuterPL);
+      rp.setBindGroup(0, restoreOuterBG);
+      dispatchLinear(rp, INTERIOR);
+      rp.end();
+      enc.copyBufferToBuffer(labelBuf, 0, label2Buf, 0, S3 * 4);
+    }
   }
 
   const ep = enc.beginComputePass();
@@ -4248,6 +4634,18 @@ async function doLOBPCGStep() {
       dispatchLinear(bp, INTERIOR);
       bp.end();
       enc.copyBufferToBuffer(label2Buf, 0, labelBuf, 0, S3 * 4);
+      // The buffer restore must run on BOTH evolution paths. It was added only to the doSteps
+      // loop, so this one silently undid it every frame: the instrumentation showed the pipeline
+      // built, the window correct and the dispatch firing, while walls outside the window moved
+      // regardless.
+      if (restoreOuterBG) {
+        let rp2 = enc.beginComputePass();
+        rp2.setPipeline(restoreOuterPL);
+        rp2.setBindGroup(0, restoreOuterBG);
+        dispatchLinear(rp2, INTERIOR);
+        rp2.end();
+        enc.copyBufferToBuffer(labelBuf, 0, label2Buf, 0, S3 * 4);
+      }
     }
     }
 

@@ -219,9 +219,19 @@ window.onerror = function (msg, url, line) {
     }
     for (var kk = 0; kk < N; kk++) if (used.indexOf(kk) < 0) { kVac = kk; break; }
   }
-  var ROWS = parseInt(q.get('rows') || '1');       // 2 = double layer, electrons in the channel
+  var EROWS = parseInt(q.get('erows') || '1');    // 2 = ELECTRONS in two rows round a kernel chain
+  var ESEP  = parseFloat(q.get('esep') || '3.0'); // electron-row separation, a0
+  var ESTAG = (q.get('estag') !== null) ? parseFloat(q.get('estag')) : 0.5;  // row offset, spacings
+  var ESEED = parseFloat(q.get('eseed') || '0');  // seed offset WITHIN the brick, in spacings
+  var EZIG  = (q.get('ezig') === '1');            // one electron per kernel, alternating up/down
+  var NK    = parseInt(q.get('nk') || '0');       // kernel CHAINS round the axis (0 = off)
+  var KQ    = parseFloat(q.get('kq') || '0.5');   // charge per kernel
+  var KRAD  = parseFloat(q.get('krad') || '2.5'); // kernel-chain radius, a0
+  var ERAD  = parseFloat(q.get('erad') || '1.5'); // electron-row offset, a0
+  var ROWS = parseInt(q.get('rows') || '1');       // >=2: rows of kernels round an electron channel
   var SEP  = parseFloat(q.get('sep') || '3.0');   // row separation, a0
-  var STAG = parseFloat(q.get('stag') || '0.5');  // upper-row offset, in spacings
+  var STAG = (q.get('stag') !== null) ? parseFloat(q.get('stag'))
+                                      : (ROWS >= 2 ? 1 / ROWS : 0);  // row-to-row offset, spacings
   var atoms = [], Z = [], Znuc = [], zeff = [], rcs = [], coreI = [], kernelX = [];
   var x0 = -span / 2;
   // kmove=<m>&kdx=<u>: displace kernel m along the axis by u, in units of the spacing.
@@ -296,16 +306,106 @@ window.onerror = function (msg, url, line) {
   // stag=<f> offsets the upper row along the axis by f spacings: at f = 0.5 the two rows' a-periodic
   // potentials along the channel are in antiphase and partly cancel, which is the point of the
   // arrangement -- a weak substrate reached by geometry instead of by discharging the lattice.
-  if (ROWS === 2) {
-    var jSep = Math.max(1, Math.round(SEP / h / 2));
-    for (var mR = 0; mR < N; mR++) Znuc[mR] = 0;            // on-axis sites: seeds only
-    for (var mR2 = 0; mR2 < N; mR2++) {
-      var xiR = coreI[mR2];
-      var xiU = xiR + Math.round(STAG * A / h);
-      atoms.push({ i: xiR, j: N2 - jSep, k: N2, Z: 0, el: 'Li' });
-      Z.push(0); Znuc.push(ZNUC); zeff.push(ZE); rcs.push(RC);
-      atoms.push({ i: xiU, j: N2 + jSep, k: N2, Z: 0, el: 'Li' });
-      Z.push(0); Znuc.push(ZNUC); zeff.push(ZE); rcs.push(RC);
+  // erows=2: the INVERSE arrangement. One kernel chain stays on the axis carrying the full charge;
+  // the N electrons are seeded in two rows at y = +/- esep/2, each row at DOUBLE spacing 2a, the
+  // lower row offset along the axis by estag spacings. Each row is then commensurate with the
+  // kernel lattice at 1:2, and at estag = 0.5 the two rows sit at OPPOSITE registry phases, so what
+  // one row pays to slide the other partly recovers -- the cancellation the extensivity argument
+  // names as the single escape, reached by geometry instead of by an irrational ratio.
+  // nk=<M>: M kernel chains of N kernels each at charge kq, placed round the axis at radius krad
+  // and angles 45,135,225,315 deg; the electrons in TWO rows of N at y = +/- erad, which sits in
+  // the gap between chains. Neutrality is 4N*kq = 2N at kq = 1/2. This decouples the electron
+  // count from N -- every other construction here assumed one electron per site -- so each
+  // electron faces a HALF-strength kernel array and the two rows can sit at opposite registry
+  // phase without either having to straddle a kernel pair.
+  if (NK > 0) {
+    atoms.length = 0; Z.length = 0; Znuc.length = 0; zeff.length = 0; rcs.length = 0;
+    var jRad = Math.round(ERAD / h), kR = KRAD / h;
+    var eSplitT = [], eSplitI = [];
+    for (var rowN = 0; rowN < 2; rowN++) {
+      for (var mN = 0; mN < N; mN++) {
+        var offN = (rowN === 1) ? ESTAG * A / h : 0;
+        atoms.push({ i: Math.round(coreI[mN] + offN), j: N2 + (rowN === 0 ? jRad : -jRad),
+                     k: N2, Z: 1, el: 'Li' });
+        Z.push(1); Znuc.push(0); zeff.push(ZE); rcs.push(0);
+        eSplitT.push(6); eSplitI.push(rowN);
+      }
+    }
+    for (var cN = 0; cN < NK; cN++) {
+      var thN = 2 * Math.PI * (cN + 0.5) / NK;
+      var djN = Math.round(kR * Math.cos(thN)), dkN = Math.round(kR * Math.sin(thN));
+      for (var mN2 = 0; mN2 < N; mN2++) {
+        atoms.push({ i: coreI[mN2], j: N2 + djN, k: N2 + dkN, Z: 0, el: 'Li' });
+        Z.push(0); Znuc.push(KQ); zeff.push(ZE); rcs.push(RC);
+        eSplitT.push(0); eSplitI.push(0);
+      }
+    }
+    window.USER_SPLIT_TYPE = eSplitT; window.USER_SPLIT_IDX = eSplitI;
+  }
+
+  if (EROWS === 2) {
+    // Domain d is seeded from atoms[d], so the ELECTRON seeds must occupy indices 0..N-1 and the
+    // kernels are appended after -- the same order as the kernel-rows construction. Doing it the
+    // other way round leaves every domain's psi seeded at a chargeless axis site while its region
+    // lies off-axis, and the relaxation goes unstable at step ~1000.
+    var jE = Math.max(1, Math.round(ESEP / h / 2)), halfA = Math.ceil(N / 2);
+    var axisI = coreI.slice();                             // where the kernels will go
+    if (EZIG) {
+      // ZIGZAG: one electron per kernel, alternately above and below the axis, seeded directly
+      // over its own kernel. No brick is imposed -- the partition is left free to find itself,
+      // so this asks where the boundaries GO rather than holding them somewhere chosen.
+      var zSplitT = [], zSplitI = [];
+      for (var mZ = 0; mZ < N; mZ++) {
+        atoms[mZ].j = N2 + ((mZ % 2 === 0) ? jE : -jE);
+        Znuc[mZ] = 0; rcs[mZ] = 0;
+        // splitType 6: hold each domain in its own half-space about the axis plane, so the two
+        // rows cannot merge back into a single chain along the axis -- which is what they did
+        // when left unconstrained.
+        zSplitT.push(6); zSplitI.push((mZ % 2 === 0) ? 0 : 1);
+      }
+      for (var mK1 = 0; mK1 < N; mK1++) { zSplitT.push(0); zSplitI.push(0); }
+      window.USER_SPLIT_TYPE = zSplitT; window.USER_SPLIT_IDX = zSplitI;
+      for (var mK0 = 0; mK0 < N; mK0++) {
+        atoms.push({ i: axisI[mK0], j: N2, k: N2, Z: 0, el: 'Li' });
+        Z.push(0); Znuc.push(1); zeff.push(ZE); rcs.push(RC);
+      }
+    } else
+    for (var mE = 0; mE < N; mE++) {
+      var rowE = (mE < halfA) ? 0 : 1;
+      var idxE = (rowE === 0) ? mE : (mE - halfA);
+      // +0.5: each electron straddles a PAIR of kernels rather than sitting on one, so the four
+      // top domains cover (0,1),(2,3),(4,5),(6,7) and the four bottom ones (1,2),(3,4),(5,6),(7,0).
+      // The stagger is SPLIT between the rows, -estag and +estag, so both stay centred on the
+      // chain: offsetting one row bodily pushed its last domain past the final kernel and left a
+      // gap at the other end. estag is then the RELATIVE offset, in spacings.
+      atoms[mE].i = coreI[0] + Math.round((0.5 + 2 * idxE + (rowE === 0 ? -0.5 * ESTAG : 0.5 * ESTAG) + ESEED) * A / h);
+      atoms[mE].j = N2 + (rowE === 0 ? jE : -jE);
+      Znuc[mE] = 0; rcs[mE] = 0;                           // seeds carry the electron, no charge
+    }
+    for (var mK = 0; mK < N; mK++) {
+      atoms.push({ i: axisI[mK], j: N2, k: N2, Z: 0, el: 'Li' });
+      Z.push(0); Znuc.push(1); zeff.push(ZE); rcs.push(RC);
+    }
+  }
+
+  // ROWS rows are placed symmetrically about the axis at radius sep/2, row r at angle 2*pi*r/ROWS
+  // and offset along the axis by r*stag spacings. With stag = 1/ROWS the rows' a-periodic
+  // potentials along the channel carry phases 0, 2pi/ROWS, ... and the FUNDAMENTAL CANCELS: the
+  // first surviving harmonic has period a/ROWS, and since a Fourier component of wavevector G
+  // decays away from its source as exp(-G R), that harmonic is suppressed at the channel radius by
+  // exp(-2 pi (ROWS-1) R / a) relative to a single row. Four rows at znuc = 1/4 is neutral and
+  // should be smoother than two at 1/2 by orders of magnitude rather than by a factor.
+  if (ROWS >= 2) {
+    var rad = SEP / 2 / h;                                   // channel radius, in cells
+    for (var mR = 0; mR < N; mR++) Znuc[mR] = 0;             // on-axis sites: seeds only
+    for (var r0 = 0; r0 < ROWS; r0++) {
+      var th = 2 * Math.PI * r0 / ROWS;
+      var dj = Math.round(rad * Math.cos(th)), dk = Math.round(rad * Math.sin(th));
+      var dx = Math.round(r0 * STAG * A / h);
+      for (var mR2 = 0; mR2 < N; mR2++) {
+        atoms.push({ i: coreI[mR2] + dx, j: N2 + dj, k: N2 + dk, Z: 0, el: 'Li' });
+        Z.push(0); Znuc.push(ZNUC); zeff.push(ZE); rcs.push(RC);
+      }
     }
   }
 
@@ -562,6 +662,59 @@ window.onerror = function (msg, url, line) {
     // needs: hold walls 0..j-1 where the previous step left them, free wall j alone, converge,
     // and read how far it moved. The ratio of successive displacements is the transfer
     // coefficient; the ORDER of release is a relaxation schedule and carries no time.
+    // erows=2: two interleaved chains of slabs, one per row. Row is decided by j, position within
+    // the row by a slab of width 2a, the lower row shifted by estag spacings. Domain numbering
+    // matches the seed order above so each domain's psi is seeded inside its own region.
+    // nk mode: 2N domains, N per row, each a slab of one spacing in its own half-space.
+    if (NK > 0) {
+      var aK = aG, oK = coreI[0];
+      for (var iK = 0; iK < S; iK++) {
+        for (var jK = 0; jK < S; jK++) {
+          var rowK = (jK >= N2) ? 0 : 1;
+          var offK = (rowK === 1) ? ESTAG * aG : 0;
+          var mK2 = Math.floor((iK - oK - offK + 0.5 * aK - DFRAC * aG) / aK);
+          var dmK = rowK * N + Math.min(N - 1, Math.max(0, mK2));
+          for (var kK = 0; kK < S; kK++) lab[iK * S2 + jK * S + kK] = dmK;
+        }
+      }
+      return lab;
+    }
+    if (EROWS === 2) {
+      var jEcell = Math.max(1, Math.round(ESEP / h / 2));
+      if (EZIG) {                       // nearest-seed start; the boundaries are free to move off it
+        var zx = [], zy = [];
+        for (var mZ2 = 0; mZ2 < N; mZ2++) {
+          zx.push(coreI[mZ2] + DFRAC * aG);
+          zy.push(N2 + ((mZ2 % 2 === 0) ? jEcell : -jEcell));
+        }
+        for (var iZ = 0; iZ < S; iZ++) for (var jZ = 0; jZ < S; jZ++) {
+          var bz = 0, bdz = 1e30;
+          for (var mZ3 = 0; mZ3 < N; mZ3++) {
+            var ax = iZ - zx[mZ3], ay = jZ - zy[mZ3], dz2 = ax * ax + ay * ay;
+            if (dz2 < bdz) { bdz = dz2; bz = mZ3; }
+          }
+          for (var kZ = 0; kZ < S; kZ++) lab[iZ * S2 + jZ * S + kZ] = bz;
+        }
+        return lab;
+      }
+      // CLEAN BRICKS, not Voronoi. Nearest-seed in (x,y) puts a diagonal between a top seed and a
+      // staggered bottom one, so the cells interlock as wedges and no domain sits squarely over its
+      // kernel pair. Here the row is decided by j alone and the position within the row by a slab
+      // of width 2a about that row's seeds, so each domain is a brick spanning exactly two kernels.
+      // Origin is the first kernel, matching the seeds; the index is clamped, since a wrapped one
+      // would give a domain two disconnected bricks at opposite ends of an open chain.
+      var halfE = Math.ceil(N / 2), aE = 2 * aG, oE = coreI[0];
+      for (var iE = 0; iE < S; iE++) {
+        for (var jE2 = 0; jE2 < S; jE2++) {
+          var rowB = (jE2 >= N2) ? 0 : 1;
+          var offB = (rowB === 0 ? -0.5 * ESTAG : 0.5 * ESTAG) * aG;
+          var mE3 = Math.floor((iE - oE - offB + 0.5 * aG - DFRAC * aG) / aE);
+          var dmE = (rowB === 0 ? 0 : halfE) + Math.min(halfE - 1, Math.max(0, mE3));
+          for (var kE = 0; kE < S; kE++) lab[iE * S2 + jE2 * S + kE] = dmE;
+        }
+      }
+      return lab;
+    }
     if (WALLSTR) {
       var wcell = WALLSTR.split(',').map(function (t) { return c + parseFloat(t) * aG; });
       for (var iw = 0; iw < S; iw++) {
@@ -801,7 +954,8 @@ window.onerror = function (msg, url, line) {
           if (wallCfg === null) wallCfg = 'n' + N + '_a' + A.toFixed(1) + '_rc' + RC.toFixed(2)
             + '_h' + h.toFixed(3) + '_F' + parseFloat(q.get('field') || '0').toFixed(4)
             + (q.get('wlo') !== null ? '_W' + q.get('wlo') + 'to' + q.get('whi') : BUF > 0 ? '_BUF' + BUF : '')
-            + (ROWS === 2 ? '_R2s' + SEP.toFixed(1) + 'g' + STAG.toFixed(2) : '')
+            + (EROWS === 2 ? '_E2s' + ESEP.toFixed(1) + 'g' + ESTAG.toFixed(2) : '')
+           + (ROWS >= 2 ? '_R' + ROWS + 's' + SEP.toFixed(1) + 'g' + STAG.toFixed(2) : '')
            + (WALLSTR ? '_WSET' + WALLSTR.length : '')
             + (KINK ? '_KINK' + 'd' + DFRAC.toFixed(3) : '')
             + (q.get('curv') !== null ? '_CV' + parseFloat(q.get('curv')).toFixed(2) : '')
@@ -964,7 +1118,11 @@ window.onerror = function (msg, url, line) {
            + (NEL > 0 ? '_FILL' + NEL + 'of' + N : '')
            + (BC !== 'nn' ? '_BC' + BC : '')
            + (ZNUC !== 1.0 && NEL === 0 ? '_Zn' + ZNUC.toFixed(3) : '')
-           + (ROWS === 2 ? '_R2s' + SEP.toFixed(1) + 'g' + STAG.toFixed(2) : '')
+           + (NK > 0 ? '_NK' + NK + 'q' + KQ.toFixed(2) + 'r' + KRAD.toFixed(1) + 'e' + ERAD.toFixed(1) + 'g' + ESTAG.toFixed(2) : '')
+           + (EZIG ? '_ZIG' : '')
+           + (ESEED !== 0 ? '_ES' + ESEED.toFixed(2) : '')
+           + (EROWS === 2 ? '_E2s' + ESEP.toFixed(1) + 'g' + ESTAG.toFixed(2) : '')
+           + (ROWS >= 2 ? '_R' + ROWS + 's' + SEP.toFixed(1) + 'g' + STAG.toFixed(2) : '')
            + (KMOVE >= 0 ? '_KM' + KMOVE + '_' + KDX.toFixed(3) : '')
            + (WALLSTR ? '_WSET' + WALLSTR.length : '')
            + (WRAP ? '_WRAP' : '')
