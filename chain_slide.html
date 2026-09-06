@@ -527,11 +527,30 @@ window.onerror = function (msg, url, line) {
   // Scanning kc through one site must return the same configuration relabelled, so E(kc+1) =
   // E(kc) exactly -- the same control that made the rigid scan trustworthy.
 
+  var WALLSTR = q.get('walls');                    // explicit wall positions, units of a
   var SMODE = parseFloat(q.get('smode') || '0');   // sinusoidal displacement amplitude, in units of a
   var c0cell = N2 + x0 / h;                      // cell coordinate of core 0
   window.CUSTOM_LABEL_INIT = function (S, hGrid, nucPos, NELEC) {
     var lab = new Uint32Array(S * S * S), S2 = S * S;
     var c = (S - 1) / 2, aG = A / h;              // axis centre and spacing, in cells
+    // walls=<w0,w1,...>: start from an EXPLICIT set of wall positions, in units of the spacing
+    // and measured from the chain centre -- the same units readWallPositions reports in, so the
+    // output of one run can be fed straight into the next. This is what a sequential release
+    // needs: hold walls 0..j-1 where the previous step left them, free wall j alone, converge,
+    // and read how far it moved. The ratio of successive displacements is the transfer
+    // coefficient; the ORDER of release is a relaxation schedule and carries no time.
+    if (WALLSTR) {
+      var wcell = WALLSTR.split(',').map(function (t) { return c + parseFloat(t) * aG; });
+      for (var iw = 0; iw < S; iw++) {
+        var dmW = 0;
+        while (dmW < wcell.length && iw >= wcell[dmW]) dmW++;
+        for (var jw = 0; jw < S; jw++) {
+          var baseW = iw * S2 + jw * S;
+          for (var kw = 0; kw < S; kw++) lab[baseW + kw] = dmW;
+        }
+      }
+      return lab;
+    }
     if (NEL > 0) {
       var aGf = A / h;
       for (var i = 0; i < S; i++) {
@@ -759,6 +778,7 @@ window.onerror = function (msg, url, line) {
           if (wallCfg === null) wallCfg = 'n' + N + '_a' + A.toFixed(1) + '_rc' + RC.toFixed(2)
             + '_h' + h.toFixed(3) + '_F' + parseFloat(q.get('field') || '0').toFixed(4)
             + (q.get('wlo') !== null ? '_W' + q.get('wlo') + 'to' + q.get('whi') : BUF > 0 ? '_BUF' + BUF : '')
+            + (WALLSTR ? '_WSET' + WALLSTR.length : '')
             + (KINK ? '_KINK' + 'd' + DFRAC.toFixed(3) : '')
             + (q.get('curv') !== null ? '_CV' + parseFloat(q.get('curv')).toFixed(2) : '')
             + (q.get('free') === '1' ? '_FREE' : '_frozen');
@@ -921,6 +941,7 @@ window.onerror = function (msg, url, line) {
            + (BC !== 'nn' ? '_BC' + BC : '')
            + (ZNUC !== 1.0 && NEL === 0 ? '_Zn' + ZNUC.toFixed(3) : '')
            + (KMOVE >= 0 ? '_KM' + KMOVE + '_' + KDX.toFixed(3) : '')
+           + (WALLSTR ? '_WSET' + WALLSTR.length : '')
            + (WRAP ? '_WRAP' : '')
            + (SMODE !== 0 ? '_SM' + SMODE.toFixed(3) : '')
            + (q.get('jac') !== null ? '_jac' + q.get('jac') : '')
