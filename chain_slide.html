@@ -219,6 +219,9 @@ window.onerror = function (msg, url, line) {
     }
     for (var kk = 0; kk < N; kk++) if (used.indexOf(kk) < 0) { kVac = kk; break; }
   }
+  var ROWS = parseInt(q.get('rows') || '1');       // 2 = double layer, electrons in the channel
+  var SEP  = parseFloat(q.get('sep') || '3.0');   // row separation, a0
+  var STAG = parseFloat(q.get('stag') || '0.5');  // upper-row offset, in spacings
   var atoms = [], Z = [], Znuc = [], zeff = [], rcs = [], coreI = [], kernelX = [];
   var x0 = -span / 2;
   // kmove=<m>&kdx=<u>: displace kernel m along the axis by u, in units of the spacing.
@@ -284,6 +287,26 @@ window.onerror = function (msg, url, line) {
     // which is the Aubry sliding phase and the mechanism by which charge-density waves conduct.
     Znuc.push(ZNUC); zeff.push(ZE); rcs.push(RC); coreI.push(xi);
     kernelX.push(xi);   // cell index actually used, so E_nn uses the SNAPPED positions
+  }
+
+  // rows=2: a DOUBLE LAYER. The N on-axis sites keep their electrons but lose their nuclear
+  // charge, and 2N kernels are placed in two rows at j = N2 +/- sep/2h, each carrying znuc. With
+  // znuc = 0.5 the chain is exactly neutral -- 2N x 0.5 = N -- which the single-row znuc<1 scan is
+  // not, and the electrons slide in the channel between the rows rather than over the kernels.
+  // stag=<f> offsets the upper row along the axis by f spacings: at f = 0.5 the two rows' a-periodic
+  // potentials along the channel are in antiphase and partly cancel, which is the point of the
+  // arrangement -- a weak substrate reached by geometry instead of by discharging the lattice.
+  if (ROWS === 2) {
+    var jSep = Math.max(1, Math.round(SEP / h / 2));
+    for (var mR = 0; mR < N; mR++) Znuc[mR] = 0;            // on-axis sites: seeds only
+    for (var mR2 = 0; mR2 < N; mR2++) {
+      var xiR = coreI[mR2];
+      var xiU = xiR + Math.round(STAG * A / h);
+      atoms.push({ i: xiR, j: N2 - jSep, k: N2, Z: 0, el: 'Li' });
+      Z.push(0); Znuc.push(ZNUC); zeff.push(ZE); rcs.push(RC);
+      atoms.push({ i: xiU, j: N2 + jSep, k: N2, Z: 0, el: 'Li' });
+      Z.push(0); Znuc.push(ZNUC); zeff.push(ZE); rcs.push(RC);
+    }
   }
 
   // The walls: plane m sits between core m and core m+1, shifted by d*a. Domain m owns the
@@ -778,7 +801,8 @@ window.onerror = function (msg, url, line) {
           if (wallCfg === null) wallCfg = 'n' + N + '_a' + A.toFixed(1) + '_rc' + RC.toFixed(2)
             + '_h' + h.toFixed(3) + '_F' + parseFloat(q.get('field') || '0').toFixed(4)
             + (q.get('wlo') !== null ? '_W' + q.get('wlo') + 'to' + q.get('whi') : BUF > 0 ? '_BUF' + BUF : '')
-            + (WALLSTR ? '_WSET' + WALLSTR.length : '')
+            + (ROWS === 2 ? '_R2s' + SEP.toFixed(1) + 'g' + STAG.toFixed(2) : '')
+           + (WALLSTR ? '_WSET' + WALLSTR.length : '')
             + (KINK ? '_KINK' + 'd' + DFRAC.toFixed(3) : '')
             + (q.get('curv') !== null ? '_CV' + parseFloat(q.get('curv')).toFixed(2) : '')
             + (q.get('free') === '1' ? '_FREE' : '_frozen');
@@ -940,6 +964,7 @@ window.onerror = function (msg, url, line) {
            + (NEL > 0 ? '_FILL' + NEL + 'of' + N : '')
            + (BC !== 'nn' ? '_BC' + BC : '')
            + (ZNUC !== 1.0 && NEL === 0 ? '_Zn' + ZNUC.toFixed(3) : '')
+           + (ROWS === 2 ? '_R2s' + SEP.toFixed(1) + 'g' + STAG.toFixed(2) : '')
            + (KMOVE >= 0 ? '_KM' + KMOVE + '_' + KDX.toFixed(3) : '')
            + (WALLSTR ? '_WSET' + WALLSTR.length : '')
            + (WRAP ? '_WRAP' : '')
