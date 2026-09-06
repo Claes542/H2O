@@ -1096,12 +1096,23 @@ window.onerror = function (msg, url, line) {
         // quadratic, so the normalisation defect (0.9-1.9% high, and worsening under refinement)
         // propagates differently through them. E_nn uses the SNAPPED kernel positions, since
         // those are the ones the electronic terms actually saw.
+        // Over EVERY atom carrying nuclear charge, in three dimensions. The old form looped over
+        // kernelX -- the N on-axis sites -- and measured distance along x alone, which returned
+        // exactly zero for every off-axis construction (rows, erows, nk), since those set
+        // Znuc[0..N-1] = 0 when the axis entries became electron seeds. Differences at fixed
+        // geometry were unaffected, absolute totals were not.
         var Enn = 0;
-        for (var _m = 0; _m < kernelX.length; _m++)
-          for (var _n = _m + 1; _n < kernelX.length; _n++) {
-            var _d = Math.abs(kernelX[_m] - kernelX[_n]) * h;
+        for (var _m = 0; _m < atoms.length; _m++) {
+          if (!(Znuc[_m] > 0)) continue;
+          for (var _n = _m + 1; _n < atoms.length; _n++) {
+            if (!(Znuc[_n] > 0)) continue;
+            var _dx = (atoms[_m].i - atoms[_n].i) * h;
+            var _dy = ((atoms[_m].j || 0) - (atoms[_n].j || 0)) * h;
+            var _dz = ((atoms[_m].k || 0) - (atoms[_n].k || 0)) * h;
+            var _d = Math.sqrt(_dx * _dx + _dy * _dy + _dz * _dz);
             if (_d > 0) Enn += Znuc[_m] * Znuc[_n] / _d;
           }
+        }
         var _t = res.terms;
         var _nel = res.perDomain.length || 1;
         var _s = _t.norm / _nel;
